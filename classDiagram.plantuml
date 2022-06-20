@@ -1,0 +1,64 @@
+@startuml
+skinparam Style strictuml
+
+' ??how to handle 'multiple claims' on a border
+class "HistoricalEvent" as HistoricalEvent {
+    Title: String
+    StartDate: String
+    EndDate: String
+    OccurredAt: RegionFK
+    Source: HistoricalEventSourceFK
+    PreviousVersion: HistoricalEventFK
+}
+
+' class HistoricalEventSource {
+'     HistoricalEvent: HistoricalEventFK
+'     Source: InformationSourceFK
+' }
+
+' Ignore "Nation" and just use an event in its place? Maybe not, because I want to differentiate disputed border claims from multiple events that occurred in the same region
+class "Nation" as Nation {
+    Name: String
+    ' Has many territory claims over time; ??how to separate??
+    ClaimedTerritory: RegionFK
+    StartDate: String
+    EndDate: String
+    TerritoryClaimSource: InformationSourceFK
+    PreviousVersion: NationFK
+}
+
+' class NationSource {
+'     Nation: NationFK
+'     Source: InformationSourceFK
+' }
+
+class "Region" as Region {
+    Location: FK
+}
+
+class Location {
+    Latitude: String
+    Longitude: String
+}
+
+class InformationSource {
+    Title: String
+    Source: String
+    ExactlyWhere: String
+}
+
+class Tag {
+    Title
+}
+
+Region "1" -- "*" Location: contains >
+
+Nation "1" -- "1" Region: has >
+Nation "1" -- "*" InformationSource: territory claim sourced from >
+Nation "1" -- "1" Nation: previous version >
+
+HistoricalEvent "1" -- "1" Region: occurred at >
+HistoricalEvent "1" -- "*" InformationSource: sourced from >
+HistoricalEvent "1" -- "1" HistoricalEvent: previous version >
+
+@enduml
