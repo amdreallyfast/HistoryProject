@@ -1,5 +1,21 @@
 How to Install Java JDK on Windows 11 ( with JAVA_HOME )
 https://www.youtube.com/watch?v=VTzzmqNwGzM
+Note: Creation of the "New Folder" folder.
 
 How to Set Up Java Development in Visual Studio Code on Windows 11 | VSCode Java Development Basics
 https://www.youtube.com/watch?v=AvOIyjBY_mk
+
+Build a Simple Web Server with Java
+https://www.youtube.com/watch?v=FqufxoA4m70
+Note: Creation of the BasicWebServer folder.
+Also Note: Access in browser with 
+    https://localhost:8080/
+
+How to run a web server using Java in 2022
+https://www.youtube.com/watch?v=Gel8Q_MO3rI
+Note: Learned this command:
+    java -m jdk.httpserver -b 0.0.0.0 -p 8080
+    This will create a basic HTTP server (with HTTPS support, should you select that port).
+    Does not support "jsp" (Java Server Pages). If you specify such a file in the browser address bar, the file is simply downloaded.
+
+    ?? is this useful to me??
