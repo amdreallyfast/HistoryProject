@@ -3,3 +3,22 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 
 How to Host a Website On Github
 https://www.youtube.com/watch?v=8hrJ4oN1u_8
+
+historyProjectSQLServerVM
+	username:
+		historyprojectadmin
+	password:
+		TinkerTots1ForAll!
+
+TODO:
+	https://www.youtube.com/results?search_query=how+to+host+a+page+on+github
+	
+	How to Host a Website On Github
+	https://www.youtube.com/watch?v=8hrJ4oN1u_8
+	
+	Three.js tutorial ($100)
+	https://threejs-journey.com/#
+
+{"code":"DeploymentFailed","message":"At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/DeployOperations for usage details.","details":[{"code":"Ext_StorageConfigurationDiskTooSmall","message":"Selected Disk size is too small and not supported. Please use size of atleast 8 GB."}]}
+
+D2s_v3 (selected) vs D2as_v4? What does the "as" do that the "s" does not?
