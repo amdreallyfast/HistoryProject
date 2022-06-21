@@ -19,3 +19,81 @@ Note: Learned this command:
     Does not support "jsp" (Java Server Pages). If you specify such a file in the browser address bar, the file is simply downloaded.
 
     ?? is this useful to me??
+
+React JS + .NET Core Web API + Microsoft SQL | full stack app tutorial
+https://www.youtube.com/watch?v=ON-Z1iD6Y-c
+
+	Not covered, but need to do: Create database in Azure and connect with SQL Server Management Studio (SSMS).
+		Josh Baugher guided me through.
+		Azure portal 
+			-> Create resource 
+			-> search for "SQL" 
+			-> select "Azure SQL" 
+			-> Create
+				"How do you plan to use the service?"
+				-> SQL databases
+					-> Resource type: Single database
+					-> Create
+						-> Basics
+							-> Resource group: <select or create new>
+							-> Database name
+								HistoryProjectSQL-DB
+							-> Server
+								-> Create new
+									-> Server name: "historyproject" (.database.windows.net automatically appended)
+									-> Location: <default>
+									-> Authentication method:
+										-> Use both SQL and Azure AD authentication
+											-> Set Azure AD admin
+												Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
+											-> Server admin login	
+												historyprojectadmin
+											-> Password
+												TinkerTots1ForAll!
+							-> Want to use SQL elastic pool?: No
+							-> Compute + storage
+								-> Configure database
+									-> Service tier: General Purpose
+									-> Compute tier: Serverless (that is, share a big VM with many others; performance not as much on demand, but much cheaper)
+									-> Hardware Configuration: Gen5
+									-> Max vCores: 2
+									-> Min vCores: 1
+									-> Auto-pause delay: 
+										-> Enable auto-pause: <checked>
+										-> Days: 0, Hours: 1, Minutes: 0
+									-> Data max size (GB): 50
+									-> Would you like to make this database zone redundant?: No
+							-> Backup storage redundancy: Locally-redundant backup storage
+						-> Networking
+							-> Allow Azure services and resources to access this server: Yes
+							-> Add current client IP address: Yes
+							-> Connection policy: Default
+						-> Security
+							-> Enable Microsoft Defender for SQL: No
+							-> Ledger
+								-> Configure ledger
+									-> Ledger
+										-> Enable for all future tables in this database: <checked>
+									--> Digest stroage
+										-> Enable automatic digest storage: <not checked>
+						-> Additional settings
+							-> Use existing data: None
+							-> Collation: <default> ("SQL_Latin1_General_CP1_CI_AS")
+							-> Maintenance window: <default> (5pm - 8am)
+						-> Review + create
+							-> Create
+		
+		<wait for resource creation to complete>
+		
+		Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)"
+			-> Overview
+				-> copy "Server name"
+		
+		Open SQL Server Management Studio (SSMS)
+			-> at login, use the "server name" copied ealier
+			-> sign in with username and password used in "Authentication method" during the SQL database creation
+	
+	Explaining the different Program.cs
+		.NET 6 Startup Changes - Handling Program.cs Without Startup.cs
+		https://www.youtube.com/watch?v=vdhFw1VSowg
+
