@@ -20,34 +20,6 @@ namespace WebAPI.Controllers
             _dataContext = dataContext;
         }
 
-        //[HttpGet]
-        //public JsonResult Get()
-        //{
-        //    string query = @"
-        //    select *
-        //    from dbo.Department
-        //    ";
-
-        //    DataTable table = new DataTable();
-        //    string sqlDataSource = _configuration.GetConnectionString("EmployeeAppConnectionStr");
-        //    SqlDataReader sqlDataReader;
-
-        //    //??simplify to single-line using statements? convert to Entity Framework??
-        //    using (SqlConnection sqlConnection = new SqlConnection(sqlDataSource))
-        //    {
-        //        sqlConnection.Open();
-        //        using (SqlCommand sqlCommand = new SqlCommand(query, sqlConnection))
-        //        {
-        //            sqlDataReader = sqlCommand.ExecuteReader();
-        //            table.Load(sqlDataReader);
-        //            sqlDataReader.Close();
-        //            sqlConnection.Close();
-        //        }
-        //    }
-
-        //    return new JsonResult(table);
-        //}
-
         [HttpGet]
         public async Task<ActionResult<List<Department>>> Get(int departmentId)
         {
@@ -61,6 +33,7 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<List<Department>>> Create(CreateDepartmentDto createDepartmentDto)
         {
+            // Note: _dataContext.SaveChanges() will automatically assign the new PK.
             var newDepartment = new Department
             {
                 Name = createDepartmentDto.Name

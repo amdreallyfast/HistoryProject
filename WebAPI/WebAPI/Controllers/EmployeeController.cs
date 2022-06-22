@@ -36,6 +36,7 @@ namespace WebAPI.Controllers
                 return NotFound();
             }
 
+            // Note: _dataContext.SaveChanges() will automatically assign the new PK.
             var newEmployee = new Employee
             {
                 Name = createEmployeeDto.Name,

@@ -46,7 +46,7 @@ namespace WebAPI.Controllers
 
             _dataContext.Characters.Add(newCharacter);
             await _dataContext.SaveChangesAsync();
-            return await Get(character.UserId);
+            return await Get(newCharacter.UserId);
         }
     }
 }
