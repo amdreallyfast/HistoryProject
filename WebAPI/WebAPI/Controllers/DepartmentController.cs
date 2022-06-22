@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Data.SqlClient;
+using WebAPI.Models;
 
 namespace WebAPI.Controllers
 {
@@ -10,9 +12,12 @@ namespace WebAPI.Controllers
     public class DepartmentController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        public DepartmentController(IConfiguration configuration)
+        private readonly DataContext _dataContext;
+
+        public DepartmentController(IConfiguration configuration, DataContext dataContext)
         {
             _configuration = configuration;
+            _dataContext = dataContext;
         }
 
         [HttpGet]
@@ -41,6 +46,27 @@ namespace WebAPI.Controllers
             }
 
             return new JsonResult(table);
+        }
+
+        public async Task<ActionResult<List<Department>>> Get(int departmentId)
+        {
+            var departments = await _dataContext.Departments
+                .Where(x => x.Id == departmentId)
+                .Include(x => x.Employees)
+                .ToListAsync();
+            return departments;
+        }
+
+        public async Task<ActionResult<List<Department>>> Create(CreateDepartmentDto createDepartmentDto)
+        {
+            var newDepartment = new Department
+            {
+                Name = createDepartmentDto.Name
+            };
+
+            _dataContext.Departments.Add(newDepartment);
+            await _dataContext.SaveChangesAsync();
+            return await Get(newDepartment.Id);
         }
     }
 }
