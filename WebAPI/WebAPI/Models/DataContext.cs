@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 
 namespace WebAPI.Models
 {
@@ -16,5 +17,7 @@ namespace WebAPI.Models
         //  Add-Migration AddUsersTable
         //  Update-Database
         public DbSet<User> Users { get; set; }
+        public DbSet<Character> Characters { get; set; }
+        public DbSet<Weapon> Weapons { get; set; }
     }
 }

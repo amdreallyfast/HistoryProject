@@ -15,7 +15,7 @@ namespace WebAPI.Models
         //    get => _department ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Department));
         //    set => _department = value;
         //}
-        //??how do I make this a required foreign key??
+        //??how do I make this a required foreign key without the null error??
         public Department? Department { get; set; }
 
         public DateTime DateOfJoining { get; set; }
