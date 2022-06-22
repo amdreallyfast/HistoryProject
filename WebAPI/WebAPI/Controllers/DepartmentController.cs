@@ -30,6 +30,15 @@ namespace WebAPI.Controllers
             return departments;
         }
 
+        [Route("GetAll")]
+        [HttpGet]
+        public async Task<ActionResult<List<Department>>> GetAll()
+        {
+            var departments = await _dataContext.Departments
+                .ToListAsync();
+            return departments;
+        }
+
         [HttpPost]
         public async Task<ActionResult<List<Department>>> Create(CreateDepartmentDto createDepartmentDto)
         {
