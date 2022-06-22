@@ -45,7 +45,7 @@ namespace WebAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Characters", (string)null);
+                    b.ToTable("Characters");
                 });
 
             modelBuilder.Entity("WebAPI.Models.Department", b =>
@@ -62,7 +62,7 @@ namespace WebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Departments", (string)null);
+                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("WebAPI.Models.Employee", b =>
@@ -91,7 +91,7 @@ namespace WebAPI.Migrations
 
                     b.HasIndex("DepartmentId");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("WebAPI.Models.User", b =>
@@ -108,7 +108,7 @@ namespace WebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("WebAPI.Models.Weapon", b =>
@@ -134,7 +134,7 @@ namespace WebAPI.Migrations
                     b.HasIndex("CharacterId")
                         .IsUnique();
 
-                    b.ToTable("Weapons", (string)null);
+                    b.ToTable("Weapons");
                 });
 
             modelBuilder.Entity("WebAPI.Models.Character", b =>

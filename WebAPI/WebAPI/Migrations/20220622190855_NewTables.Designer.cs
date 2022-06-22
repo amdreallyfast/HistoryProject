@@ -12,8 +12,8 @@ using WebAPI.Models;
 namespace WebAPI.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220622131903_AddCharacterModel")]
-    partial class AddCharacterModel
+    [Migration("20220622190855_NewTables")]
+    partial class NewTables
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,36 +52,36 @@ namespace WebAPI.Migrations
 
             modelBuilder.Entity("WebAPI.Models.Department", b =>
                 {
-                    b.Property<int>("DepartmentId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("DepartmentName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("DepartmentId");
+                    b.HasKey("Id");
 
                     b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("WebAPI.Models.Employee", b =>
                 {
-                    b.Property<int>("EmployeeId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<DateTime>("DateOfJoining")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DepartmentId")
+                    b.Property<int>("DepartmentId")
                         .HasColumnType("int");
 
-                    b.Property<string>("EmployeeName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -89,7 +89,7 @@ namespace WebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("EmployeeId");
+                    b.HasKey("Id");
 
                     b.HasIndex("DepartmentId");
 
@@ -113,10 +113,36 @@ namespace WebAPI.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("WebAPI.Models.Weapon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Damage")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId")
+                        .IsUnique();
+
+                    b.ToTable("Weapons");
+                });
+
             modelBuilder.Entity("WebAPI.Models.Character", b =>
                 {
                     b.HasOne("WebAPI.Models.User", "User")
-                        .WithMany()
+                        .WithMany("Characters")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -127,10 +153,38 @@ namespace WebAPI.Migrations
             modelBuilder.Entity("WebAPI.Models.Employee", b =>
                 {
                     b.HasOne("WebAPI.Models.Department", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentId");
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.Weapon", b =>
+                {
+                    b.HasOne("WebAPI.Models.Character", "Character")
+                        .WithOne("Weapon")
+                        .HasForeignKey("WebAPI.Models.Weapon", "CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.Character", b =>
+                {
+                    b.Navigation("Weapon");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.Department", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.User", b =>
+                {
+                    b.Navigation("Characters");
                 });
 #pragma warning restore 612, 618
         }
