@@ -3,7 +3,7 @@ import './App.css';
 import { Home } from "./Home";
 import { Department } from "./Department";
 import { Employee } from "./Employee";
-import { BrowserRouter, Route, Switch, NavLink } from "react-router-dom";
+import { BrowserRouter, Route, Routes, NavLink } from "react-router-dom";
 
 function App() {
   return (
@@ -33,11 +33,11 @@ function App() {
           </ul>
         </nav>
 
-        <Switch>
-          <Route path='/home' component={Home} />
-          <Route path='/department' component={Department} />
-          <Route path='/employee' component={Employee} />
-        </Switch>
+        <Routes>
+          <Route path='/home'  element={<Home/>} />
+          <Route path='/department' element={<Department/>} />
+          <Route path='/employee' element={<Employee/>} />
+        </Routes>
       </div>
     </BrowserRouter>
   );

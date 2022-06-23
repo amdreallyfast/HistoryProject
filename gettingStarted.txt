@@ -127,8 +127,16 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 	NPX command (run in PowerShell 7):
 		npx create-react-app my-app
 		Note: Prompted to install the "create-react-app" package (I said "y").
+		
+	Fixed error: "export 'Switch' (imported as 'Switch') was not found in 'react-router-dom'"
+		Syntax update in react-router-dom V6: do not use "Switch", but use "Routes" instead.
+		https://www.moreonfew.com/attempted-import-error-switch-is-not-exported-from-react-router-dom/
+	
+	Fixed error: <Route path="..." component={MyComponent}/> is invalid.
+		Syntax update in react-router-dom V6: do not use "component", but use "element={<MyComponent />}" instead.
+		https://stackoverflow.com/questions/69854011/matched-leaf-route-at-location-does-not-have-an-element
 
-	Run:
+	Run UI on its own:
 		cd <repo root>/UI/my-app
 		npm startS
 
