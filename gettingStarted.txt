@@ -1,3 +1,15 @@
+Prerequisite software:
+	SQL Server Management Studio (for connecting with my Azure SQL database)
+		Alternate: Azure Data Studio
+	Node.js (for creating and compiling React.js projects)
+		npm install react-router-dom		
+	Bootstrap (for styling)
+		https://getbootstrap.com/docs/5.2/getting-started/introduction/
+	Python 3 (??for what? was this for my java experiments??)
+	Visual Studio (for editing ASP.NET Core 6 code)
+	Visual Studio Code (for working with javascript)
+	
+
 How to Install Java JDK on Windows 11 ( with JAVA_HOME )
 https://www.youtube.com/watch?v=VTzzmqNwGzM
 Note: Creation of the "New Folder" folder.
@@ -38,6 +50,10 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 							-> Resource group: <select or create new>
 							-> Database name
 								HistoryProjectSQL-DB
+								
+								-> Note: Fully qualified server name:
+									historyproject.database.windows.net
+									
 							-> Server
 								-> Create new
 									-> Server name: "historyproject" (.database.windows.net automatically appended)
@@ -50,6 +66,10 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 												historyprojectadmin
 											-> Password
 												TinkerTots1ForAll!
+												
+										Note (later): ADO.NET SQL connection string:
+											Server=tcp:historyproject.database.windows.net,1433;Initial Catalog=HistoryProjectSQL-DB;Persist Security Info=False;User ID=historyprojectadmin;Password={your_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+											
 							-> Want to use SQL elastic pool?: No
 							-> Compute + storage
 								-> Configure database
@@ -104,8 +124,13 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 	How to upload a single file in ASP.NET Core with the Swagger web GUI (use IFormeFile)
 		https://codeburst.io/file-upload-via-swagger-e6c21b54d036
 
+	NPX command (run in PowerShell 7):
+		npx create-react-app my-app
+		Note: Prompted to install the "create-react-app" package (I said "y").
 
-
+	Run:
+		cd <repo root>/UI/my-app
+		npm startS
 
 TODO:
 	https://www.youtube.com/results?search_query=how+to+host+a+page+on+github
