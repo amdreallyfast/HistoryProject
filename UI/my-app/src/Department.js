@@ -60,7 +60,7 @@ export class Department extends Component {
         })
             .then(result => result.json())
             .then((result) => {
-                alert(result)
+                console.log(result)
                 this.refreshList()
             }, (error) => {
                 alert("Failed")
@@ -79,13 +79,8 @@ export class Department extends Component {
                 Name: this.state.DepartmentName
             })
         })
-            .then(result => {
-                console.log("First result: ")
-                console.log(result)
-                result.json()
-            })
+            .then(result => result.json())
             .then((result) => {
-                console.log("Second result: ")
                 console.log(result);
                 this.refreshList()
             }, (error) => {
@@ -157,13 +152,13 @@ export class Department extends Component {
                                 </div>
 
                                 {DepartmentId === 0 ?
-                                    <button type="button" className="btn btn-primary float-start" onClick={() => this.createClick()}>
+                                    <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.createClick()}>
                                         Create
                                     </button>
                                     : null}
 
                                 {DepartmentId !== 0 ?
-                                    <button type="button" className="btn btn-primary float-start" onClick={() => this.updateClick()}>
+                                    <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.updateClick()}>
                                         Update
                                     </button>
                                     : null}
