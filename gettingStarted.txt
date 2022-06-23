@@ -103,3 +103,15 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 	
 	How to upload a single file in ASP.NET Core with the Swagger web GUI (use IFormeFile)
 		https://codeburst.io/file-upload-via-swagger-e6c21b54d036
+
+
+
+
+TODO:
+	https://www.youtube.com/results?search_query=how+to+host+a+page+on+github
+	
+	How to Host a Website On Github
+	https://www.youtube.com/watch?v=8hrJ4oN1u_8
+	
+	Three.js tutorial ($100)
+	https://threejs-journey.com/#
