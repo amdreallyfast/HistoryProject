@@ -10,10 +10,12 @@ namespace WebAPI.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly DataContext _dataContext;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public EmployeeController(DataContext dataContext)
+        public EmployeeController(DataContext dataContext, IWebHostEnvironment webHostEnvironment)
         {
             _dataContext = dataContext;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [Route("GetById")]
@@ -108,6 +110,29 @@ namespace WebAPI.Controllers
             _dataContext.Employees.Remove(existingEmployee);
             await _dataContext.SaveChangesAsync();
             return Ok();
+        }
+
+        [Route("SaveFile")]
+        [HttpPost]
+        public async Task<ActionResult<string>> SaveFile(IFormFile file)
+        {
+            try
+            {
+                //var thing = file.FileName;
+                //var httpRequest = Request.Form;
+                //var postedFile = httpRequest.Files[0];
+                var newFilePath = Path.Combine(_webHostEnvironment.ContentRootPath, "Photos", file.FileName);
+                using (var stream = new FileStream(newFilePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                return Ok(newFilePath);
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
         }
     }
 }

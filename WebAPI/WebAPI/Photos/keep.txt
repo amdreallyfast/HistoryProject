@@ -1,0 +1,1 @@
+In order for git to keep the Photos folder around, there must be at least one file in it. This is that file.

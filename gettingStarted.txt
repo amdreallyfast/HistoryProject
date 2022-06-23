@@ -93,7 +93,13 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 			-> at login, use the "server name" copied ealier
 			-> sign in with username and password used in "Authentication method" during the SQL database creation
 	
-	Explaining the different Program.cs
+	Explaining how Program.cs is different in .NET Core 6 compared to .NET Core 5:
 		.NET 6 Startup Changes - Handling Program.cs Without Startup.cs
 		https://www.youtube.com/watch?v=vdhFw1VSowg
-
+	
+	Crash course in Entity Framework in .NET Core 6 (no different than in prior versions that I could tell):
+		.NET 6 & EF Core 🚀 ALL Relationships (1:1, 1:n, n:n) with Entity Framework Core 6 & SQL Server
+		https://www.youtube.com/watch?v=FHx6AGVF_IE
+	
+	How to upload a single file in ASP.NET Core with the Swagger web GUI (use IFormeFile)
+		https://codeburst.io/file-upload-via-swagger-e6c21b54d036
