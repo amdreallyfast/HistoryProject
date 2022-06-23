@@ -16,38 +16,98 @@ namespace WebAPI.Controllers
             _dataContext = dataContext;
         }
 
+        [Route("GetById")]
         [HttpGet]
-        public async Task<ActionResult<List<Employee>>> Get(int employeeId)
+        public async Task<ActionResult<Employee>> Get(int employeeId)
         {
-            var employees = await _dataContext.Employees
+            var employee = await _dataContext.Employees
                 .Where(x => x.Id == employeeId)
                 .Include(x => x.Department)
+                .FirstOrDefaultAsync();
+            if (employee == null)
+            {
+                return NotFound($"Unknown Employee ID: {employeeId}");
+            }
+            return Ok(employee);
+        }
+
+        [Route("GetAll")]
+        [HttpGet]
+        public async Task<ActionResult<List<Employee>>> GetAll()
+        {
+            var employees = await _dataContext.Employees
                 .ToListAsync();
             return employees;
         }
 
+        [Route("Create")]
         [HttpPost]
         public async Task<ActionResult<List<Employee>>> Create(CreateEmployeeDto createEmployeeDto)
         {
-            var department = await _dataContext.Departments
+            var existingDepartment = await _dataContext.Departments
                 .FirstOrDefaultAsync(x => x.Id == createEmployeeDto.DepartmentId);
-            if (department == null)
+            if (existingDepartment == null)
             {
-                return NotFound();
+                return NotFound($"Unknown Department ID: {createEmployeeDto.DepartmentId}");
             }
 
-            // Note: _dataContext.SaveChanges() will automatically assign the new PK.
+            // Note: _dataContext.SaveChanges() will automatically create the new PK in this object.
             var newEmployee = new Employee
             {
                 Name = createEmployeeDto.Name,
                 DateOfJoining = createEmployeeDto.DateOfJoining,
                 PhotoFileName = createEmployeeDto.PhotoFileName,
-                Department = department
+                Department = existingDepartment
             };
 
             _dataContext.Employees.Add(newEmployee);
             await _dataContext.SaveChangesAsync();
-            return await Get(newEmployee.Id);
+            return Ok(newEmployee);
+        }
+
+        [Route("Update")]
+        [HttpPut]
+        public async Task<ActionResult<Employee>> Update(int employeeId, CreateEmployeeDto createEmployeeDto)
+        {
+            var existingEmployee = await _dataContext.Employees
+                .Where(x => x.Id == employeeId)
+                .FirstOrDefaultAsync();
+            if (existingEmployee == null)
+            {
+                return NotFound($"Unknown Employee ID: {employeeId}");
+            }
+
+            var existingDepartment = await _dataContext.Departments
+                .FirstOrDefaultAsync(x => x.Id == createEmployeeDto.DepartmentId);
+            if (existingDepartment == null)
+            {
+                return NotFound($"Department ID: {createEmployeeDto.DepartmentId}");
+            }
+
+            existingEmployee.Name = createEmployeeDto.Name;
+            existingEmployee.DateOfJoining = createEmployeeDto.DateOfJoining;
+            existingEmployee.PhotoFileName = createEmployeeDto.PhotoFileName;
+            existingEmployee.Department = existingDepartment;
+
+            await _dataContext.SaveChangesAsync();
+            return Ok(existingEmployee);
+        }
+
+        [Route("Delete")]
+        [HttpDelete]
+        public async Task<ActionResult> Delete(int id)
+        {
+            var existingEmployee = await _dataContext.Employees
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
+            if (existingEmployee == null)
+            {
+                return NotFound($"Unknown Employee ID: {id}");
+            }
+
+            _dataContext.Employees.Remove(existingEmployee);
+            await _dataContext.SaveChangesAsync();
+            return Ok();
         }
     }
 }

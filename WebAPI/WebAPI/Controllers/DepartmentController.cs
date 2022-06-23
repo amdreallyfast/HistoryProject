@@ -20,14 +20,19 @@ namespace WebAPI.Controllers
             _dataContext = dataContext;
         }
 
+        [Route("GetById")]
         [HttpGet]
-        public async Task<ActionResult<List<Department>>> Get(int departmentId)
+        public async Task<ActionResult<Department>> Get(int departmentId)
         {
-            var departments = await _dataContext.Departments
+            var department = await _dataContext.Departments
                 .Where(x => x.Id == departmentId)
                 .Include(x => x.Employees)
-                .ToListAsync();
-            return departments;
+                .FirstOrDefaultAsync();
+            if (department == null)
+            {
+                return NotFound($"Unknown Department ID: {departmentId}");
+            }
+            return Ok(department);
         }
 
         [Route("GetAll")]
@@ -39,6 +44,7 @@ namespace WebAPI.Controllers
             return departments;
         }
 
+        [Route("Create")]
         [HttpPost]
         public async Task<ActionResult<List<Department>>> Create(CreateDepartmentDto createDepartmentDto)
         {
@@ -50,23 +56,42 @@ namespace WebAPI.Controllers
 
             _dataContext.Departments.Add(newDepartment);
             await _dataContext.SaveChangesAsync();
-            return await Get(newDepartment.Id);
+            return Ok(newDepartment);
         }
 
+        [Route("Update")]
         [HttpPut]
-        public async Task<ActionResult<List<Department>>> Update(CreateDepartmentDto createDepartmentDto)
+        public async Task<ActionResult<List<Department>>> Update(int departmentId, CreateDepartmentDto createDepartmentDto)
         {
             var existingDepartment = await _dataContext.Departments
-                .Where(x => x.Id == createDepartmentDto.Id)
+                .Where(x => x.Id == departmentId)
                 .FirstOrDefaultAsync();
             if (existingDepartment == null)
             {
-                return NotFound();
+                return NotFound($"Unknown Department ID: {departmentId}");
             }
 
             existingDepartment.Name = createDepartmentDto.Name;
+
             await _dataContext.SaveChangesAsync();
             return Ok(existingDepartment);
+        }
+
+        [Route("Delete")]
+        [HttpDelete]
+        public async Task<ActionResult> Delete(int departmentId)
+        {
+            var existingDepartment = await _dataContext.Departments
+                .Where(x => x.Id == departmentId)
+                .FirstOrDefaultAsync();
+            if (existingDepartment == null)
+            {
+                return NotFound($"Unknown Department ID: {departmentId}");
+            }
+
+            _dataContext.Departments.Remove(existingDepartment);
+            await _dataContext.SaveChangesAsync();
+            return Ok();
         }
     }
 }
