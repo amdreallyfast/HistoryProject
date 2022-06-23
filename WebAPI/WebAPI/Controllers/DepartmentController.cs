@@ -79,21 +79,21 @@ namespace WebAPI.Controllers
             return Ok(existingDepartment);
         }
 
-        [Route("Delete")]
+        [Route("Delete/{id}")]
         [HttpDelete]
-        public async Task<ActionResult> Delete(int departmentId)
+        public async Task<ActionResult> Delete(int id)
         {
             var existingDepartment = await _dataContext.Departments
-                .Where(x => x.Id == departmentId)
+                .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
             if (existingDepartment == null)
             {
-                return NotFound($"Unknown Department ID: {departmentId}");
+                return NotFound($"Unknown Department ID: {id}");
             }
 
             _dataContext.Departments.Remove(existingDepartment);
             await _dataContext.SaveChangesAsync();
-            return Ok();
+            return Ok("Success");
         }
     }
 }
