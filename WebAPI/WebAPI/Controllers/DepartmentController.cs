@@ -63,17 +63,14 @@ namespace WebAPI.Controllers
 
         [Route("Update")]
         [HttpPut]
-        //public async Task<ActionResult<List<Department>>> Update(CreateDepartmentDto data)
-        //{
-        //    return Ok(data);
-        public async Task<ActionResult<List<Department>>> Update(int departmentId, CreateDepartmentDto createDepartmentDto)
+        public async Task<ActionResult<List<Department>>> Update(CreateDepartmentDto createDepartmentDto)
         {
             var existingDepartment = await _dataContext.Departments
-                .Where(x => x.Id == departmentId)
+                .Where(x => x.Id == createDepartmentDto.Id)
                 .FirstOrDefaultAsync();
             if (existingDepartment == null)
             {
-                return NotFound($"Unknown Department ID: {departmentId}");
+                return NotFound($"Unknown Department ID: {createDepartmentDto.Id}");
             }
 
             existingDepartment.Name = createDepartmentDto.Name;

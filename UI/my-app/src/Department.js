@@ -68,30 +68,25 @@ export class Department extends Component {
     }
 
     updateClick() {
-        const formData = new FormData()
-        formData.append("id", this.state.DepartmentId)
-        formData.append("derblge", "another")
-        // formData.append("dto", JSON.stringify({
-        //     Name: this.state.DepartmentName
-        // }))
-        console.log(formData)
-        console.log("ID: " + this.state.DepartmentId)
-        console.log("Name: " + this.state.DepartmentName)
-
         fetch(variables.API_URL + "Department/Update", {
             method: "PUT",
             headers: {
                 "Accept": "application/json",
                 "Content-Type": "application/json"
             },
-            body: formData
+            body: JSON.stringify({
+                Id: this.state.DepartmentId,
+                Name: this.state.DepartmentName
+            })
         })
             .then(result => {
-                console.log("First result: " + result)
+                console.log("First result: ")
+                console.log(result)
                 result.json()
             })
             .then((result) => {
-                console.log("Second result: " + result)
+                console.log("Second result: ")
+                console.log(result);
                 this.refreshList()
             }, (error) => {
                 alert("Failed")
