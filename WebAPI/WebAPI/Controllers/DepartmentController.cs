@@ -52,5 +52,21 @@ namespace WebAPI.Controllers
             await _dataContext.SaveChangesAsync();
             return await Get(newDepartment.Id);
         }
+
+        [HttpPut]
+        public async Task<ActionResult<List<Department>>> Update(CreateDepartmentDto createDepartmentDto)
+        {
+            var existingDepartment = await _dataContext.Departments
+                .Where(x => x.Id == createDepartmentDto.Id)
+                .FirstOrDefaultAsync();
+            if (existingDepartment == null)
+            {
+                return NotFound();
+            }
+
+            existingDepartment.Name = createDepartmentDto.Name;
+            await _dataContext.SaveChangesAsync();
+            return Ok(existingDepartment);
+        }
     }
 }
