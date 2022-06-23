@@ -118,9 +118,6 @@ namespace WebAPI.Controllers
         {
             try
             {
-                //var thing = file.FileName;
-                //var httpRequest = Request.Form;
-                //var postedFile = httpRequest.Files[0];
                 var newFilePath = Path.Combine(_webHostEnvironment.ContentRootPath, "Photos", file.FileName);
                 using (var stream = new FileStream(newFilePath, FileMode.Create))
                 {
