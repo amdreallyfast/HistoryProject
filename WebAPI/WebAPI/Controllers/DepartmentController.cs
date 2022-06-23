@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System.Data;
 using System.Data.SqlClient;
+using System.Runtime.InteropServices;
 using WebAPI.Models;
 
 namespace WebAPI.Controllers
@@ -61,6 +63,9 @@ namespace WebAPI.Controllers
 
         [Route("Update")]
         [HttpPut]
+        //public async Task<ActionResult<List<Department>>> Update(CreateDepartmentDto data)
+        //{
+        //    return Ok(data);
         public async Task<ActionResult<List<Department>>> Update(int departmentId, CreateDepartmentDto createDepartmentDto)
         {
             var existingDepartment = await _dataContext.Departments

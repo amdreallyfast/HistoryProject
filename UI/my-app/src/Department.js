@@ -31,20 +31,71 @@ export class Department extends Component {
         this.setState({ DepartmentName: e.target.value })
     }
 
-    addClick(){
+    addClick() {
         this.setState({
-            modalTitle:"Add department",
-            DepartmentId:0,
-            DepartmentName:""
+            modalTitle: "Add department",
+            DepartmentId: 0,
+            DepartmentName: ""
         })
     }
 
-    editClick(dep){
+    editClick(dep) {
         this.setState({
-            modalTitle:"Edit Department",
+            modalTitle: "Edit Department",
             DepartmentId: dep.Id,
             DepartmentName: dep.Name
         })
+    }
+
+    createClick() {
+        fetch(variables.API_URL + "Department/Create", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                Name: this.state.DepartmentName
+            })
+        })
+            .then(result => result.json())
+            .then((result) => {
+                alert(result)
+                this.refreshList()
+            }, (error) => {
+                alert("Failed")
+            })
+    }
+
+    updateClick() {
+        const formData = new FormData()
+        formData.append("id", this.state.DepartmentId)
+        formData.append("derblge", "another")
+        // formData.append("dto", JSON.stringify({
+        //     Name: this.state.DepartmentName
+        // }))
+        console.log(formData)
+        console.log("ID: " + this.state.DepartmentId)
+        console.log("Name: " + this.state.DepartmentName)
+
+        fetch(variables.API_URL + "Department/Update", {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            body: formData
+        })
+            .then(result => {
+                console.log("First result: " + result)
+                result.json()
+            })
+            .then((result) => {
+                console.log("Second result: " + result)
+                this.refreshList()
+            }, (error) => {
+                alert("Failed")
+            })
     }
 
     render() {
@@ -111,13 +162,13 @@ export class Department extends Component {
                                 </div>
 
                                 {DepartmentId === 0 ?
-                                    <button type="button" className="btn btn-primary float-start">
+                                    <button type="button" className="btn btn-primary float-start" onClick={() => this.createClick()}>
                                         Create
                                     </button>
                                     : null}
 
                                 {DepartmentId !== 0 ?
-                                    <button type="button" className="btn btn-primary float-start">
+                                    <button type="button" className="btn btn-primary float-start" onClick={() => this.updateClick()}>
                                         Update
                                     </button>
                                     : null}
