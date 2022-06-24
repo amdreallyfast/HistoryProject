@@ -93,7 +93,7 @@ namespace WebAPI.Controllers
 
             _dataContext.Departments.Remove(existingDepartment);
             await _dataContext.SaveChangesAsync();
-            return Ok("Success");
+            return Ok("Delete success");
         }
     }
 }

@@ -9,6 +9,8 @@ export class Department extends Component {
         this.state = {
             departments: [],
             modalTitle: "",
+            
+            // ??create "selected" entry??
             DepartmentId: 0,
             DepartmentName: ""
         }
@@ -26,9 +28,13 @@ export class Department extends Component {
         this.refreshList()
     }
 
-    changeDepartmentName = (e) => {
-        // ??why a lambda instead of a normal function??
-        this.setState({ DepartmentName: e.target.value })
+    // changeDepartmentName = (e) => {
+    //     // ??why a lambda instead of a normal function??
+    //     this.setState({ DepartmentName: e.target.value })
+    // }
+    onChangeDepartmentNameInputText(changeEvent) {
+        // Note: Must be a lambda that 
+        this.setState({ DepartmentName: changeEvent.target.value })
     }
 
     addClick() {
@@ -41,7 +47,7 @@ export class Department extends Component {
 
     editClick(dep) {
         this.setState({
-            modalTitle: "Edit Department",
+            modalTitle: "Edit employee",
             DepartmentId: dep.Id,
             DepartmentName: dep.Name
         })
@@ -63,6 +69,7 @@ export class Department extends Component {
                 console.log(result)
                 this.refreshList()
             }, (error) => {
+                console.log(error)
                 alert("Failed")
             })
     }
@@ -84,6 +91,7 @@ export class Department extends Component {
                 console.log(result);
                 this.refreshList()
             }, (error) => {
+                console.log(error)
                 alert("Failed")
             })
     }
@@ -102,20 +110,13 @@ export class Department extends Component {
                     console.log(result);
                     this.refreshList()
                 }, (error) => {
-                    alert("Failed")
                     console.log(error)
+                    alert("Failed")
                 })
         }
     }
 
     render() {
-        const {
-            departments,
-            modalTitle,
-            DepartmentId,
-            DepartmentName
-        } = this.state
-
         return (
             <div>
                 <button type="button" className="btn btn-primary m-2 float-end" data-bs-toggle="modal" data-bs-target="#exampleModal"
@@ -132,7 +133,7 @@ export class Department extends Component {
                         </tr>
                     </thead>
                     <tbody>
-                        {departments.map(dep =>
+                        {this.state.departments.map(dep =>
                             <tr key={dep.Id}>
                                 <td>{dep.Id}</td>
                                 <td>{dep.Name}</td>
@@ -161,23 +162,23 @@ export class Department extends Component {
                     <div className="modal-dialog modal-lg modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">{modalTitle}</h5>
+                                <h5 className="modal-title">{this.state.modalTitle}</h5>
                                 <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
 
                             <div className="modal-body">
                                 <div className="input-group mb-3">
                                     <span className="input-group-text">DepartmentName</span>
-                                    <input type="text" className="form-control" value={DepartmentName} onChange={this.changeDepartmentName}></input>
+                                    <input type="text" className="form-control" value={this.state.DepartmentName} onChange={(changeEvent) => this.onChangeDepartmentNameInputText(changeEvent)}></input>
                                 </div>
 
-                                {DepartmentId === 0 ?
+                                {this.state.DepartmentId === 0 ?
                                     <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.createClick()}>
                                         Create
                                     </button>
                                     : null}
 
-                                {DepartmentId !== 0 ?
+                                {this.state.DepartmentId !== 0 ?
                                     <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.updateClick()}>
                                         Update
                                     </button>
@@ -186,7 +187,6 @@ export class Department extends Component {
                         </div>
                     </div>
                 </div>
-
             </div>
         )
     }
