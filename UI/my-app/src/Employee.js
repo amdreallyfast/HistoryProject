@@ -9,12 +9,14 @@ export class Employee extends Component {
         this.state = {
             employees: [],
             modalTitle: "",
-            //??have a "selected" object??
-            EmployeeId: 0,
-            EmployeeName: "",
-            EmployeeDateOfJoining: "",
-            EmployeePhotoFileName: "",
-            EmployeeDepartmentId: 0
+
+            selected: {
+                Id: 0,
+                Name: "",
+                DateOfJoining: "",
+                PhotoFileName: "",
+                DepartmentId: 0
+            }
         }
     }
 
@@ -22,7 +24,9 @@ export class Employee extends Component {
         fetch(variables.API_URL + "Employee/GetAll")
             .then(response => response.json())
             .then(data => {
-                this.setState({ employees: data })
+                this.setState({
+                    employees: data
+                })
             })
     }
 
@@ -32,47 +36,71 @@ export class Employee extends Component {
 
     onChangeInputTextEmployeeName(changeEvent) {
         this.setState({
-            EmployeeName: changeEvent.target.value
+            ...this.state,
+            selected: {
+                ...this.state.selected,
+                Name: changeEvent.target.value
+            }
         })
     }
 
     onChangeInputTextDateOfJoining(changeEvent) {
         this.setState({
-            EmployeeDateOfJoining: changeEvent.target.value
+            ...this.state,
+            selected: {
+                ...this.state.selected,
+                DateOfJoining: changeEvent.target.value
+            }
         })
     }
 
     onChangeInputTextPhotoFileName(changeEvent) {
         this.setState({
-            EmployeePhotoFileName: changeEvent.target.value
+            ...this.state,
+            selected: {
+                ...this.state.selected,
+                PhotoFileName: changeEvent.target.value
+            }
         })
     }
 
     onChangeInputTextDepartmentId(changeEvent) {
         this.setState({
-            EmployeeDepartmentId: changeEvent.target.value
+            ...this.state,
+            selected: {
+                ...this.state.selected,
+                DepartmentId: changeEvent.target.value
+            }
         })
     }
 
     addClick() {
         this.setState({
+            ...this.state,
             modalTitle: "Add employee",
-            EmployeeId: 0,
-            EmployeeName: "",
-            EmployeeDateOfJoining: "",
-            EmployeePhotoFileName: "",
-            EmployeeDepartmentId: 0
+            selected: {
+                ...this.state.selected,
+                Id: 0,
+                Name: "",
+                DateOfJoining: "",
+                PhotoFileName: "",
+                DepartmentId: 0
+            }
         })
     }
 
     editClick(selectedDbEntry) {
         this.setState({
+            ...this.state,
             modalTitle: "Edit employee",
-            EmployeeId: selectedDbEntry.Id,
-            EmployeeName: selectedDbEntry.Name,
-            EmployeeDateOfJoining: selectedDbEntry.DateOfJoining,
-            EmployeePhotoFileName: selectedDbEntry.PhotoFileName,
-            EmployeeDepartmentId: selectedDbEntry.DepartmentId
+            selected: {
+                ...this.state.selected,
+                Id: selectedDbEntry.Id,
+                Name: selectedDbEntry.Name,
+                DateOfJoining: selectedDbEntry.DateOfJoining,
+                PhotoFileName: selectedDbEntry.PhotoFileName,
+                DepartmentId: selectedDbEntry.DepartmentId
+            }
         })
     }
 
@@ -84,10 +112,10 @@ export class Employee extends Component {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                Name: this.state.EmployeeName,
-                DateOfJoining: this.state.EmployeeDateOfJoining,
-                PhotoFileName: this.state.EmployeePhotoFileName,
-                DepartmentId: this.state.EmployeeDepartmentId
+                Name: this.state.selected.Name,
+                DateOfJoining: this.state.selected.DateOfJoining,
+                PhotoFileName: this.state.selected.PhotoFileName,
+                DepartmentId: this.state.selected.DepartmentId
             })
         })
             .then(result => result.json())
@@ -108,11 +136,11 @@ export class Employee extends Component {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                Id: this.state.EmployeeId,
-                Name: this.state.EmployeeName,
-                DateOfJoining: this.state.EmployeeDateOfJoining,
-                PhotoFileName: this.state.EmployeePhotoFileName,
-                DepartmentId: this.state.EmployeeDepartmentId
+                Id: this.state.selected.Id,
+                Name: this.state.selected.Name,
+                DateOfJoining: this.state.selected.DateOfJoining,
+                PhotoFileName: this.state.selected.PhotoFileName,
+                DepartmentId: this.state.selected.DepartmentId
             })
         })
             .then(result => result.json())
@@ -205,46 +233,39 @@ export class Employee extends Component {
                             </div>
 
                             <div className="modal-body">
-
-                                {/* <td>{selectedDbEntry.Id}</td>
-                                <td>{selectedDbEntry.Name}</td>
-                                <td>{selectedDbEntry.DateOfJoining}</td>
-                                <td>{selectedDbEntry.PhotoFileName}</td>
-                                <td>{selectedDbEntry.DepartmentId}</td> */}
-
                                 {/* Employee name */}
                                 <div className="input-group mb-3">
                                     <span className="input-group-text">EmployeeName</span>
-                                    <input type="text" className="form-control" value={this.state.EmployeeName} onChange={(changeEvent) => this.onChangeInputTextEmployeeName(changeEvent)}></input>
+                                    <input type="text" className="form-control" value={this.state.selected.Name} onChange={(changeEvent) => this.onChangeInputTextEmployeeName(changeEvent)}></input>
                                 </div>
 
                                 {/* Date of joining */}
                                 <div className="input-group mb-3">
                                     <span className="input-group-text">DateOfJoining</span>
-                                    <input type="text" className="form-control" value={this.state.EmployeeDateOfJoining} onChange={(changeEvent) => this.onChangeInputTextDateOfJoining(changeEvent)}></input>
+                                    <input type="text" className="form-control" value={this.state.selected.DateOfJoining} onChange={(changeEvent) => this.onChangeInputTextDateOfJoining(changeEvent)}></input>
                                 </div>
 
-                                {/* Photo file name TODO change to one word*/}
+                                {/* Photo file name TODO ??change to one word??*/}
                                 <div className="input-group mb-3">
                                     <span className="input-group-text">PhotoFileName</span>
-                                    <input type="text" className="form-control" value={this.state.EmployeePhotoFileName} onChange={(changeEvent) => this.onChangeInputTextPhotoFileName(changeEvent)}></input>
+                                    <input type="text" className="form-control" value={this.state.selected.PhotoFileName} onChange={(changeEvent) => this.onChangeInputTextPhotoFileName(changeEvent)}></input>
                                 </div>
 
                                 {/* Department Id */}
                                 <div className="input-group mb-3">
                                     <span className="input-group-text">DepartmentId</span>
-                                    <input type="text" className="form-control" value={this.state.EmployeeDepartmentId} onChange={(changeEvent) => this.onChangeInputTextDepartmentId(changeEvent)}></input>
+                                    <input type="text" className="form-control" value={this.state.selected.DepartmentId} onChange={(changeEvent) => this.onChangeInputTextDepartmentId(changeEvent)}></input>
                                 </div>
 
                                 {/* Create button (only visible if Id == 0) */}
-                                {this.state.EmployeeId === 0 ?
+                                {this.state.selected.Id === 0 ?
                                     <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.createClick()}>
                                         Create
                                     </button>
                                     : null}
 
                                 {/* Update button (only visible if Id != 0) */}
-                                {this.state.EmployeeId !== 0 ?
+                                {this.state.selected.Id !== 0 ?
                                     <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.updateClick()}>
                                         Update
                                     </button>
