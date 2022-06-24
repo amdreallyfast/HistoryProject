@@ -18,17 +18,17 @@ namespace WebAPI.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        [Route("GetById")]
+        [Route("GetById/{id}")]
         [HttpGet]
-        public async Task<ActionResult<Employee>> Get(int employeeId)
+        public async Task<ActionResult<Employee>> Get(int id)
         {
             var employee = await _dataContext.Employees
-                .Where(x => x.Id == employeeId)
+                .Where(x => x.Id == id)
                 .Include(x => x.Department)
                 .FirstOrDefaultAsync();
             if (employee == null)
             {
-                return NotFound($"Unknown Employee ID: {employeeId}");
+                return NotFound($"Unknown Employee ID: {id}");
             }
             return Ok(employee);
         }
@@ -69,14 +69,14 @@ namespace WebAPI.Controllers
 
         [Route("Update")]
         [HttpPut]
-        public async Task<ActionResult<Employee>> Update(int employeeId, CreateEmployeeDto createEmployeeDto)
+        public async Task<ActionResult<Employee>> Update(CreateEmployeeDto createEmployeeDto)
         {
             var existingEmployee = await _dataContext.Employees
-                .Where(x => x.Id == employeeId)
+                .Where(x => x.Id == createEmployeeDto.Id)
                 .FirstOrDefaultAsync();
             if (existingEmployee == null)
             {
-                return NotFound($"Unknown Employee ID: {employeeId}");
+                return NotFound($"Unknown Employee ID: {createEmployeeDto.Id}");
             }
 
             var existingDepartment = await _dataContext.Departments
@@ -95,7 +95,7 @@ namespace WebAPI.Controllers
             return Ok(existingEmployee);
         }
 
-        [Route("Delete")]
+        [Route("Delete/{id}")]
         [HttpDelete]
         public async Task<ActionResult> Delete(int id)
         {
@@ -109,7 +109,7 @@ namespace WebAPI.Controllers
 
             _dataContext.Employees.Remove(existingEmployee);
             await _dataContext.SaveChangesAsync();
-            return Ok();
+            return Ok("Delete success");
         }
 
         [Route("SaveFile")]

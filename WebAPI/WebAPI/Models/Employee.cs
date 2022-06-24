@@ -17,6 +17,7 @@ namespace WebAPI.Models
 
     public class CreateEmployeeDto
     {
+        public int? Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public DateTime DateOfJoining { get; set; }
         public string PhotoFileName { get; set; } = string.Empty;
