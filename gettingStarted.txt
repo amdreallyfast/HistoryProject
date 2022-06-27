@@ -137,10 +137,12 @@ https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 		https://stackoverflow.com/questions/69854011/matched-leaf-route-at-location-does-not-have-an-element
 
 	Run UI on its own:
-		cd <repo root>/UI/my-app
-		npm startS
-		
-		Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
+		Command line:
+			cd <repo root>/UI/my-app
+			npm start
+		Browser:
+			http://localhost:3000/home
+			Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
 
 TODO:
 	https://www.youtube.com/results?search_query=how+to+host+a+page+on+github
