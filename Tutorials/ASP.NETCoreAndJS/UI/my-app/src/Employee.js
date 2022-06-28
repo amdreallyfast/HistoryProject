@@ -8,25 +8,41 @@ export class Employee extends Component {
 
         this.state = {
             employees: [],
+            departments: [],
             modalTitle: "",
 
             selected: {
                 Id: 0,
                 Name: "",
                 DateOfJoining: "",
-                PhotoFileName: "",
-                DepartmentId: 0
+                PhotoFileName: "anonymous.jpg",
+                PhotoPath: variables.PHOTO_URL,
+                Department: ""
             }
         }
     }
 
     refreshList() {
         fetch(variables.API_URL + "Employee/GetAll")
-            .then(response => response.json())
+            .then(response => {
+				let thing = response.json()
+				console.log(thing)
+				return thing
+			})
             .then(data => {
                 this.setState({
                     employees: data
                 })
+				console.log("employees: " + data)
+            })
+
+        fetch(variables.API_URL + "Department/GetAll")
+            .then(response => response.json())
+            .then(data => {
+                this.setState({
+                    departments: data
+                })
+				console.log("departments: " + data)
             })
     }
 
@@ -64,12 +80,12 @@ export class Employee extends Component {
         })
     }
 
-    onChangeInputTextDepartmentId(changeEvent) {
+    onChangeInputTextDepartment(changeEvent) {
         this.setState({
             ...this.state,
             selected: {
                 ...this.state.selected,
-                DepartmentId: changeEvent.target.value
+                Department: changeEvent.target.value
             }
         })
     }
@@ -83,8 +99,8 @@ export class Employee extends Component {
                 Id: 0,
                 Name: "",
                 DateOfJoining: "",
-                PhotoFileName: "",
-                DepartmentId: 0
+                PhotoFileName: "anonymous.jpg",
+                Department: ""
             }
         })
     }
@@ -99,7 +115,7 @@ export class Employee extends Component {
                 Name: selectedDbEntry.Name,
                 DateOfJoining: selectedDbEntry.DateOfJoining,
                 PhotoFileName: selectedDbEntry.PhotoFileName,
-                DepartmentId: selectedDbEntry.DepartmentId
+                Department: selectedDbEntry.Department
             }
         })
     }
@@ -115,7 +131,7 @@ export class Employee extends Component {
                 Name: this.state.selected.Name,
                 DateOfJoining: this.state.selected.DateOfJoining,
                 PhotoFileName: this.state.selected.PhotoFileName,
-                DepartmentId: this.state.selected.DepartmentId
+                Department: this.state.selected.Department
             })
         })
             .then(result => result.json())
@@ -140,7 +156,7 @@ export class Employee extends Component {
                 Name: this.state.selected.Name,
                 DateOfJoining: this.state.selected.DateOfJoining,
                 PhotoFileName: this.state.selected.PhotoFileName,
-                DepartmentId: this.state.selected.DepartmentId
+                Department: this.state.selected.Department
             })
         })
             .then(result => result.json())
@@ -174,6 +190,9 @@ export class Employee extends Component {
     }
 
     render() {
+		console.log("start render")
+		console.log("employees: " + this.state.employees)
+		console.log("departments: " + this.state.departments)
         return (
             <div>
                 <button type="button" className="btn btn-primary m-2 float-end" data-bs-toggle="modal" data-bs-target="#exampleModal"
@@ -187,9 +206,7 @@ export class Employee extends Component {
                             <th>EmployeeId</th>
                             <th>EmployeeName</th>
                             <th>DateOfJoining</th>
-                            <th>PhotoFileName</th>
-                            {/* ??possible to get the department name in here too?? */}
-                            <th>DepartmentId</th>
+                            <th>Department</th>
                             <th>Options</th>
                         </tr>
                     </thead>
@@ -199,9 +216,10 @@ export class Employee extends Component {
                                 <td>{selectedDbEntry.Id}</td>
                                 <td>{selectedDbEntry.Name}</td>
                                 <td>{selectedDbEntry.DateOfJoining}</td>
-                                <td>{selectedDbEntry.PhotoFileName}</td>
-                                <td>{selectedDbEntry.DepartmentId}</td>
-                                <td> {/* options */}
+                                <td>{selectedDbEntry.Department}</td>
+                                <td> 
+                                    {/* options */}
+                                    
                                     {/* Edit button */}
                                     <button type="button" className="btn btn-light mr-1" data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={() => this.editClick(selectedDbEntry)}>
                                         {/* Source: https://icons.getbootstrap.com/icons/pencil-square/ */}
@@ -225,6 +243,7 @@ export class Employee extends Component {
                 </table>
 
                 <div className="modal fade" id="exampleModal" tabIndex={-1} aria-hidden="true">
+					{console.log("rendering modal!")}
                     <div className="modal-dialog modal-lg modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -233,43 +252,61 @@ export class Employee extends Component {
                             </div>
 
                             <div className="modal-body">
-                                {/* Employee name */}
-                                <div className="input-group mb-3">
-                                    <span className="input-group-text">EmployeeName</span>
-                                    <input type="text" className="form-control" value={this.state.selected.Name} onChange={(changeEvent) => this.onChangeInputTextEmployeeName(changeEvent)}></input>
+                                <div className="d-flex flex-row bd-highlight mb-3">
+                                    <div className="input-group mb-3">
+                                        {/* Employee name */}
+                                        <div className="input-group mb-3">
+                                            <span className="input-group-text">EmployeeName</span>
+                                            <input type="text" className="form-control" value={this.state.selected.Name} onChange={(changeEvent) => this.onChangeInputTextEmployeeName(changeEvent)}></input>
+                                        </div>
+
+                                        {/* Department name */}
+                                        <div className="input-group mb-3">
+                                            <span className="input-group-text">Department</span>
+                                            <select type="text" className="form-select" value={this.state.selected.Department} onChange={(changeEvent) => this.onChangeInputTextDepartment(changeEvent)}>
+                                                {
+                                                    this.state.departments.map(selectedDbEntry =>
+                                                        <option key={selectedDbEntry.Id}>
+                                                            selectedDbEntry.Name
+                                                        </option>)
+                                                } 
+                                            </select>
+                                        </div>
+
+                                        {/* Date of joining */}
+                                        <div className="input-group mb-3">
+                                            <span className="input-group-text">DateOfJoining</span>
+                                            <input type="date" className="form-control" value={this.state.selected.DateOfJoining} onChange={(changeEvent) => this.onChangeInputTextDateOfJoining(changeEvent)}></input>
+                                        </div>
+
+                                        {/* Photo file name TODO ??change to one word??*/}
+                                        <div className="input-group mb-3">
+                                            <span className="input-group-text">PhotoFileName</span>
+                                            <input type="text" className="form-control" value={this.state.selected.PhotoFileName} onChange={(changeEvent) => this.onChangeInputTextPhotoFileName(changeEvent)}></input>
+                                        </div>
+                                    </div>
+
+{ console.log(this.state.selected.PhotoPath + this.state.selected.PhotoFileName)}
+
+                                    {/* Photo */}
+                                    <div className="p-2 w-50 bd-highlight"  >
+                                        <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} />
+                                    </div>
+
+                                    {/* Create button (only visible if Id == 0) */}
+                                    {this.state.selected.Id === 0 ?
+                                        <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.createClick()}>
+                                            Create
+                                        </button>
+                                        : null}
+
+                                    {/* Update button (only visible if Id != 0) */}
+                                    {this.state.selected.Id !== 0 ?
+                                        <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.updateClick()}>
+                                            Update
+                                        </button>
+                                        : null}
                                 </div>
-
-                                {/* Date of joining */}
-                                <div className="input-group mb-3">
-                                    <span className="input-group-text">DateOfJoining</span>
-                                    <input type="text" className="form-control" value={this.state.selected.DateOfJoining} onChange={(changeEvent) => this.onChangeInputTextDateOfJoining(changeEvent)}></input>
-                                </div>
-
-                                {/* Photo file name TODO ??change to one word??*/}
-                                <div className="input-group mb-3">
-                                    <span className="input-group-text">PhotoFileName</span>
-                                    <input type="text" className="form-control" value={this.state.selected.PhotoFileName} onChange={(changeEvent) => this.onChangeInputTextPhotoFileName(changeEvent)}></input>
-                                </div>
-
-                                {/* Department Id */}
-                                <div className="input-group mb-3">
-                                    <span className="input-group-text">DepartmentId</span>
-                                    <input type="text" className="form-control" value={this.state.selected.DepartmentId} onChange={(changeEvent) => this.onChangeInputTextDepartmentId(changeEvent)}></input>
-                                </div>
-
-                                {/* Create button (only visible if Id == 0) */}
-                                {this.state.selected.Id === 0 ?
-                                    <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.createClick()}>
-                                        Create
-                                    </button>
-                                    : null}
-
-                                {/* Update button (only visible if Id != 0) */}
-                                {this.state.selected.Id !== 0 ?
-                                    <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.updateClick()}>
-                                        Update
-                                    </button>
-                                    : null}
                             </div>
                         </div>
                     </div>

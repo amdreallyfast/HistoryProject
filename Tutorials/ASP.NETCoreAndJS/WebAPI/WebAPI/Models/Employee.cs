@@ -21,6 +21,6 @@ namespace WebAPI.Models
         public string Name { get; set; } = string.Empty;
         public DateTime DateOfJoining { get; set; }
         public string PhotoFileName { get; set; } = string.Empty;
-        public int DepartmentId { get; set; }
+        public string DepartmentName { get; set; }
     }
 }

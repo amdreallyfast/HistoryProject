@@ -22,6 +22,7 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<Employee>> Get(int id)
         {
+            // TODO: convert to DTO. We want to display the Department name, and that means getting it from the Department object, but ReactJS really does not like the Department object's embeded "Employees" object. Maybe the JSON isn't typical or something? Whatever the case, creating the Employee DTO and see if that helps.
             var employee = await _dataContext.Employees
                 .Where(x => x.Id == id)
                 .Include(x => x.Department)
@@ -38,6 +39,7 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<List<Employee>>> GetAll()
         {
             var employees = await _dataContext.Employees
+                .Include(x => x.Department)
                 .ToListAsync();
             return employees;
         }
@@ -47,10 +49,10 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<List<Employee>>> Create(CreateEmployeeDto createEmployeeDto)
         {
             var existingDepartment = await _dataContext.Departments
-                .FirstOrDefaultAsync(x => x.Id == createEmployeeDto.DepartmentId);
+                .FirstOrDefaultAsync(x => x.Name == createEmployeeDto.DepartmentName);
             if (existingDepartment == null)
             {
-                return NotFound($"Unknown Department ID: {createEmployeeDto.DepartmentId}");
+                return NotFound($"Unknown Department: {createEmployeeDto.DepartmentName}");
             }
 
             // Note: _dataContext.SaveChanges() will automatically create the new PK in this object.
@@ -80,10 +82,10 @@ namespace WebAPI.Controllers
             }
 
             var existingDepartment = await _dataContext.Departments
-                .FirstOrDefaultAsync(x => x.Id == createEmployeeDto.DepartmentId);
+                .FirstOrDefaultAsync(x => x.Name == createEmployeeDto.DepartmentName);
             if (existingDepartment == null)
             {
-                return NotFound($"Department ID: {createEmployeeDto.DepartmentId}");
+                return NotFound($"Department: {createEmployeeDto.DepartmentName}");
             }
 
             existingEmployee.Name = createEmployeeDto.Name;
