@@ -25,15 +25,15 @@ export class Employee extends Component {
     refreshList() {
         fetch(variables.API_URL + "Employee/GetAll")
             .then(response => {
-				let thing = response.json()
-				console.log(thing)
-				return thing
-			})
+                let thing = response.json()
+                console.log(thing)
+                return thing
+            })
             .then(data => {
                 this.setState({
                     employees: data
                 })
-				console.log("employees: " + data)
+                console.log("employees: " + data)
             })
 
         fetch(variables.API_URL + "Department/GetAll")
@@ -42,7 +42,7 @@ export class Employee extends Component {
                 this.setState({
                     departments: data
                 })
-				console.log("departments: " + data)
+                console.log("departments: " + data)
             })
     }
 
@@ -190,9 +190,9 @@ export class Employee extends Component {
     }
 
     render() {
-		console.log("start render")
-		console.log("employees: " + this.state.employees)
-		console.log("departments: " + this.state.departments)
+        console.log("start render")
+        console.log("employees: " + this.state.employees)
+        console.log("departments: " + this.state.departments)
         return (
             <div>
                 <button type="button" className="btn btn-primary m-2 float-end" data-bs-toggle="modal" data-bs-target="#exampleModal"
@@ -217,9 +217,9 @@ export class Employee extends Component {
                                 <td>{selectedDbEntry.Name}</td>
                                 <td>{selectedDbEntry.DateOfJoining}</td>
                                 <td>{selectedDbEntry.Department}</td>
-                                <td> 
+                                <td>
                                     {/* options */}
-                                    
+
                                     {/* Edit button */}
                                     <button type="button" className="btn btn-light mr-1" data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={() => this.editClick(selectedDbEntry)}>
                                         {/* Source: https://icons.getbootstrap.com/icons/pencil-square/ */}
@@ -243,7 +243,7 @@ export class Employee extends Component {
                 </table>
 
                 <div className="modal fade" id="exampleModal" tabIndex={-1} aria-hidden="true">
-					{console.log("rendering modal!")}
+                    {console.log("rendering modal!")}
                     <div className="modal-dialog modal-lg modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -269,7 +269,7 @@ export class Employee extends Component {
                                                         <option key={selectedDbEntry.Id}>
                                                             selectedDbEntry.Name
                                                         </option>)
-                                                } 
+                                                }
                                             </select>
                                         </div>
 
@@ -286,7 +286,7 @@ export class Employee extends Component {
                                         </div>
                                     </div>
 
-{ console.log(this.state.selected.PhotoPath + this.state.selected.PhotoFileName)}
+                                    {console.log(this.state.selected.PhotoPath + this.state.selected.PhotoFileName)}
 
                                     {/* Photo */}
                                     <div className="p-2 w-50 bd-highlight"  >
