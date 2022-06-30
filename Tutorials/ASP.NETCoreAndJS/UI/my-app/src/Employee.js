@@ -216,7 +216,7 @@ export class Employee extends Component {
                                 <td>{selectedDbEntry.Id}</td>
                                 <td>{selectedDbEntry.Name}</td>
                                 <td>{selectedDbEntry.DateOfJoining}</td>
-                                <td>{selectedDbEntry.Department}</td>
+                                <td>{selectedDbEntry.DepartmentName}</td>
                                 <td>
                                     {/* options */}
 
