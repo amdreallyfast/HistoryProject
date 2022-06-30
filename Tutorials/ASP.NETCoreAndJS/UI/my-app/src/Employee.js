@@ -267,7 +267,7 @@ export class Employee extends Component {
                                                 {
                                                     this.state.departments.map(selectedDbEntry =>
                                                         <option key={selectedDbEntry.Id}>
-                                                            selectedDbEntry.Name
+                                                            {selectedDbEntry.Name}
                                                         </option>)
                                                 }
                                             </select>
