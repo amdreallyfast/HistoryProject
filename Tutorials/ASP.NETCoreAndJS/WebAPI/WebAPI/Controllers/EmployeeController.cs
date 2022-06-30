@@ -20,7 +20,7 @@ namespace WebAPI.Controllers
 
         [Route("GetById/{id}")]
         [HttpGet]
-        public async Task<ActionResult<Employee>> Get(int id)
+        public async Task<ActionResult<CreateEmployeeDto>> Get(int id)
         {
             // TODO: convert to DTO. We want to display the Department name, and that means getting it from the Department object, but ReactJS really does not like the Department object's embeded "Employees" object. Maybe the JSON isn't typical or something? Whatever the case, creating the Employee DTO and see if that helps.
             var employee = await _dataContext.Employees
@@ -31,17 +31,39 @@ namespace WebAPI.Controllers
             {
                 return NotFound($"Unknown Employee ID: {id}");
             }
-            return Ok(employee);
+
+            var employeeDto = new CreateEmployeeDto
+            {
+                Id = employee.Id,
+                Name = employee.Name,
+                DateOfJoining = employee.DateOfJoining,
+                PhotoFileName = employee.PhotoFileName,
+                DepartmentName = employee.Department.Name
+            };
+            return Ok(employeeDto);
         }
 
         [Route("GetAll")]
         [HttpGet]
-        public async Task<ActionResult<List<Employee>>> GetAll()
+        public async Task<ActionResult<List<CreateEmployeeDto>>> GetAll()
         {
             var employees = await _dataContext.Employees
                 .Include(x => x.Department)
                 .ToListAsync();
-            return employees;
+
+            var employeeDtos = new List<CreateEmployeeDto>();
+            foreach (Employee employee in employees)
+            {
+                employeeDtos.Add(new CreateEmployeeDto
+                {
+                    Id = employee.Id,
+                    Name = employee.Name,
+                    DateOfJoining = employee.DateOfJoining,
+                    PhotoFileName = employee.PhotoFileName,
+                    DepartmentName = employee.Department.Name
+                });
+            }
+            return Ok(employeeDtos);
         }
 
         [Route("Create")]
