@@ -287,12 +287,12 @@ export class Employee extends Component {
                                     </div>
 
                                     {/* {console.log("Photo path: " + this.state.selected.PhotoPath + this.state.selected.PhotoFileName)} */}
-                                    {console.log("Photo path: " + this.state.selected.PhotoPath + "anonymous.jpg")}
+                                    {console.log("Photo path: " + this.state.selected.PhotoPath + "anonymous.png")}
 
                                     {/* Photo */}
                                     <div className="p-2 w-50 bd-highlight"  >
                                         {/* <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} /> */}
-                                        <img width="250px" height="250px" src={this.state.selected.PhotoPath + "anonymous.jpg"} />
+                                        <img width="250px" height="250px" src={this.state.selected.PhotoPath + "anonymous.png"} />
                                     </div>
 
                                     {/* Create button (only visible if Id == 0) */}
