@@ -15,9 +15,9 @@ export class Employee extends Component {
                 Id: 0,
                 Name: "",
                 DateOfJoining: "",
-                PhotoFileName: "anonymous.jpg",
+                PhotoFileName: "anonymous.png",
                 PhotoPath: variables.PHOTO_URL,
-                Department: ""
+                DepartmentName: ""
             }
         }
     }
@@ -85,7 +85,7 @@ export class Employee extends Component {
             ...this.state,
             selected: {
                 ...this.state.selected,
-                Department: changeEvent.target.value
+                DepartmentName: changeEvent.target.value
             }
         })
     }
@@ -99,28 +99,38 @@ export class Employee extends Component {
                 Id: 0,
                 Name: "",
                 DateOfJoining: "",
-                PhotoFileName: "anonymous.jpg",
-                Department: ""
+                PhotoFileName: "anonymous.png",
+                DepartmentName: this.state.departments[0].Name
             }
         })
     }
 
-    editClick(selectedDbEntry) {
+    editClick(selectedDto) {
+        console.log("Selected: " + JSON.stringify(selectedDto))
         this.setState({
             ...this.state,
             modalTitle: "Edit employee",
             selected: {
                 ...this.state.selected,
-                Id: selectedDbEntry.Id,
-                Name: selectedDbEntry.Name,
-                DateOfJoining: selectedDbEntry.DateOfJoining,
-                PhotoFileName: selectedDbEntry.PhotoFileName,
-                Department: selectedDbEntry.Department
+                Id: selectedDto.Id,
+                Name: selectedDto.Name,
+                DateOfJoining: selectedDto.DateOfJoining,
+                PhotoFileName: selectedDto.PhotoFileName,
+                DepartmentName: selectedDto.DepartmentName
             }
         })
     }
 
     createClick() {
+        var createdObj = JSON.stringify({
+            Id: this.state.selected.Id,
+            Name: this.state.selected.Name,
+            DateOfJoining: this.state.selected.DateOfJoining,
+            PhotoFileName: this.state.selected.PhotoFileName,
+            DepartmentName: this.state.selected.DepartmentName
+        })
+        console.log("Created obj: " + createdObj)
+
         fetch(variables.API_URL + "Employee/Create", {
             method: "POST",
             headers: {
@@ -131,7 +141,7 @@ export class Employee extends Component {
                 Name: this.state.selected.Name,
                 DateOfJoining: this.state.selected.DateOfJoining,
                 PhotoFileName: this.state.selected.PhotoFileName,
-                Department: this.state.selected.Department
+                DepartmentName: this.state.selected.DepartmentName
             })
         })
             .then(result => result.json())
@@ -156,7 +166,7 @@ export class Employee extends Component {
                 Name: this.state.selected.Name,
                 DateOfJoining: this.state.selected.DateOfJoining,
                 PhotoFileName: this.state.selected.PhotoFileName,
-                Department: this.state.selected.Department
+                DepartmentName: this.state.selected.DepartmentName
             })
         })
             .then(result => result.json())
@@ -263,7 +273,7 @@ export class Employee extends Component {
                                         {/* Department name */}
                                         <div className="input-group mb-3">
                                             <span className="input-group-text">Department</span>
-                                            <select type="text" className="form-select" value={this.state.selected.Department} onChange={(changeEvent) => this.onChangeInputTextDepartment(changeEvent)}>
+                                            <select type="text" className="form-select" value={this.state.selected.DepartmentName} onChange={(changeEvent) => this.onChangeInputTextDepartment(changeEvent)}>
                                                 {
                                                     this.state.departments.map(departmentDbEntry =>
                                                         <option key={departmentDbEntry.Id}>
@@ -276,7 +286,7 @@ export class Employee extends Component {
                                         {/* Date of joining */}
                                         <div className="input-group mb-3">
                                             <span className="input-group-text">DateOfJoining</span>
-                                            <input type="date" className="form-control" value={this.state.selected.DateOfJoining} onChange={(changeEvent) => this.onChangeInputTextDateOfJoining(changeEvent)}></input>
+                                            <input type="datetime-local" className="form-control" value={this.state.selected.DateOfJoining} onChange={(changeEvent) => this.onChangeInputTextDateOfJoining(changeEvent)}></input>
                                         </div>
 
                                         {/* Photo file name TODO ??change to one word??*/}
@@ -286,13 +296,9 @@ export class Employee extends Component {
                                         </div>
                                     </div>
 
-                                    {/* {console.log("Photo path: " + this.state.selected.PhotoPath + this.state.selected.PhotoFileName)} */}
-                                    {console.log("Photo path: " + this.state.selected.PhotoPath + "anonymous.png")}
-
                                     {/* Photo */}
                                     <div className="p-2 w-50 bd-highlight"  >
                                         {/* <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} /> */}
-                                        <img width="250px" height="250px" src={this.state.selected.PhotoPath + "anonymous.png"} />
                                     </div>
 
                                     {/* Create button (only visible if Id == 0) */}
@@ -313,7 +319,7 @@ export class Employee extends Component {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         )
     }
 }
