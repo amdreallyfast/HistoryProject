@@ -8,7 +8,15 @@ Prerequisite software:
 	Python 3 (??for what? was this for my java experiments??)
 	Visual Studio (for editing ASP.NET Core 6 code)
 	Visual Studio Code (for working with javascript)
-	
+
+VS Code settings:
+	Extension:
+		JavaScript and TypeScript Nightly (by Microsoft)
+	File -> Preferences -> Settings
+		Detect Indentation:	off
+	Ctrl-Shift-P
+		Default settings json
+			??set default formatter??
 
 How to Install Java JDK on Windows 11 ( with JAVA_HOME )
 https://www.youtube.com/watch?v=VTzzmqNwGzM
