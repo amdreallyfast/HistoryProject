@@ -20,9 +20,8 @@ namespace WebAPI.Controllers
 
         [Route("GetById/{id}")]
         [HttpGet]
-        public async Task<ActionResult<CreateEmployeeDto>> Get(int id)
+        public async Task<ActionResult<EmployeeDto>> Get(int id)
         {
-            // TODO: convert to DTO. We want to display the Department name, and that means getting it from the Department object, but ReactJS really does not like the Department object's embeded "Employees" object. Maybe the JSON isn't typical or something? Whatever the case, creating the Employee DTO and see if that helps.
             var employee = await _dataContext.Employees
                 .Where(x => x.Id == id)
                 .Include(x => x.Department)
@@ -32,7 +31,7 @@ namespace WebAPI.Controllers
                 return NotFound($"Unknown Employee ID: {id}");
             }
 
-            var employeeDto = new CreateEmployeeDto
+            var employeeDto = new EmployeeDto
             {
                 Id = employee.Id,
                 Name = employee.Name,
@@ -45,16 +44,16 @@ namespace WebAPI.Controllers
 
         [Route("GetAll")]
         [HttpGet]
-        public async Task<ActionResult<List<CreateEmployeeDto>>> GetAll()
+        public async Task<ActionResult<List<EmployeeDto>>> GetAll()
         {
             var employees = await _dataContext.Employees
                 .Include(x => x.Department)
                 .ToListAsync();
 
-            var employeeDtos = new List<CreateEmployeeDto>();
+            var employeeDtos = new List<EmployeeDto>();
             foreach (Employee employee in employees)
             {
-                employeeDtos.Add(new CreateEmployeeDto
+                employeeDtos.Add(new EmployeeDto
                 {
                     Id = employee.Id,
                     Name = employee.Name,
@@ -68,7 +67,7 @@ namespace WebAPI.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<List<Employee>>> Create(CreateEmployeeDto createEmployeeDto)
+        public async Task<ActionResult<List<Employee>>> Create(EmployeeDto createEmployeeDto)
         {
             var existingDepartment = await _dataContext.Departments
                 .FirstOrDefaultAsync(x => x.Name == createEmployeeDto.DepartmentName);
@@ -93,26 +92,26 @@ namespace WebAPI.Controllers
 
         [Route("Update")]
         [HttpPut]
-        public async Task<ActionResult<Employee>> Update(CreateEmployeeDto createEmployeeDto)
+        public async Task<ActionResult<Employee>> Update(EmployeeDto employeeDto)
         {
             var existingEmployee = await _dataContext.Employees
-                .Where(x => x.Id == createEmployeeDto.Id)
+                .Where(x => x.Id == employeeDto.Id)
                 .FirstOrDefaultAsync();
             if (existingEmployee == null)
             {
-                return NotFound($"Unknown Employee ID: {createEmployeeDto.Id}");
+                return NotFound($"Unknown Employee ID: {employeeDto.Id}");
             }
 
             var existingDepartment = await _dataContext.Departments
-                .FirstOrDefaultAsync(x => x.Name == createEmployeeDto.DepartmentName);
+                .FirstOrDefaultAsync(x => x.Name == employeeDto.DepartmentName);
             if (existingDepartment == null)
             {
-                return NotFound($"Department: {createEmployeeDto.DepartmentName}");
+                return NotFound($"Department: {employeeDto.DepartmentName}");
             }
 
-            existingEmployee.Name = createEmployeeDto.Name;
-            existingEmployee.DateOfJoining = createEmployeeDto.DateOfJoining;
-            existingEmployee.PhotoFileName = createEmployeeDto.PhotoFileName;
+            existingEmployee.Name = employeeDto.Name;
+            existingEmployee.DateOfJoining = employeeDto.DateOfJoining;
+            existingEmployee.PhotoFileName = employeeDto.PhotoFileName;
             existingEmployee.Department = existingDepartment;
 
             await _dataContext.SaveChangesAsync();

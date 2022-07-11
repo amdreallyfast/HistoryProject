@@ -48,12 +48,12 @@ namespace WebAPI.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<List<Department>>> Create(CreateDepartmentDto createDepartmentDto)
+        public async Task<ActionResult<List<Department>>> Create(DepartmentDto departmentDto)
         {
             // Note: _dataContext.SaveChanges() will automatically assign the new PK.
             var newDepartment = new Department
             {
-                Name = createDepartmentDto.Name
+                Name = departmentDto.Name
             };
 
             _dataContext.Departments.Add(newDepartment);
@@ -63,17 +63,17 @@ namespace WebAPI.Controllers
 
         [Route("Update")]
         [HttpPut]
-        public async Task<ActionResult<List<Department>>> Update(CreateDepartmentDto createDepartmentDto)
+        public async Task<ActionResult<List<Department>>> Update(DepartmentDto departmentDto)
         {
             var existingDepartment = await _dataContext.Departments
-                .Where(x => x.Id == createDepartmentDto.Id)
+                .Where(x => x.Id == departmentDto.Id)
                 .FirstOrDefaultAsync();
             if (existingDepartment == null)
             {
-                return NotFound($"Unknown Department ID: {createDepartmentDto.Id}");
+                return NotFound($"Unknown Department ID: {departmentDto.Id}");
             }
 
-            existingDepartment.Name = createDepartmentDto.Name;
+            existingDepartment.Name = departmentDto.Name;
 
             await _dataContext.SaveChangesAsync();
             return Ok(existingDepartment);
