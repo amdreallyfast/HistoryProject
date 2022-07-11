@@ -298,7 +298,7 @@ export class Employee extends Component {
 
                                     {/* Photo */}
                                     <div className="p-2 w-50 bd-highlight"  >
-                                        {/* <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} /> */}
+                                        <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} />
                                     </div>
 
                                     {/* Create button (only visible if Id == 0) */}
