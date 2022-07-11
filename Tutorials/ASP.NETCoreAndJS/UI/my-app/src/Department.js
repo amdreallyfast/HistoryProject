@@ -8,6 +8,12 @@ export class Department extends Component {
 
         this.state = {
             departments: [],
+            departmentsWithoutFilter: [],
+            filters: {
+                Id: "",
+                Name: ""
+            },
+
             modalTitle: "",
 
             selected: {
@@ -17,12 +23,61 @@ export class Department extends Component {
         }
     }
 
+    filterFunction() {
+        console.log("Filter function : filter state: '" + JSON.stringify(this.state.filters) + "'")
+        var idFilter = this.state.filters.Id
+        var nameFilter = this.state.filters.Name
+        var filteredData = this.state.departmentsWithoutFilter.filter(
+            function (el) {
+                var includesId = el.Id.toString().toLowerCase().includes(
+                    idFilter.toString().trim().toLocaleLowerCase()
+                )
+                var includesName = el.Name.toString().toLowerCase().includes(
+                    nameFilter.toString().trim().toLocaleLowerCase()
+                )
+                console.log("element Id '" + el.Id + "' contains filter '" + idFilter + "': '" + includesId + "'")
+                console.log("element Name '" + el.Name + "' contains filter '" + nameFilter + "': '" + includesName + "'")
+                console.log("result: '" + (includesId && includesName) + "'")
+                return includesId && includesName
+            }
+        )
+
+        this.setState({
+            ...this.state,
+            departments: filteredData
+        })
+    }
+
+    changeIdFilter = (event) => {
+        console.log("New Id filter: '" + event.target.value + "'")
+
+        // Note: _Must_ call the followup function as a callback because the state setting is not immediate. If we try to call it immediately following this.setState(...), then the new values may not be in the expected state by the time the function runs.
+        this.setState({
+            ...this.state,
+            filters: {
+                ...this.state.filters,
+                Id: event.target.value
+            }
+        }, () => this.filterFunction())
+    }
+
+    changeNameFilter = (event) => {
+        this.setState({
+            ...this.state,
+            filters: {
+                ...this.state.filters,
+                Name: event.target.value
+            }
+        }, () => this.filterFunction())
+    }
+
     refreshList() {
         fetch(variables.API_URL + "Department/GetAll")
             .then(response => response.json())
             .then(data => {
                 this.setState({
-                    departments: data
+                    departments: data,
+                    departmentsWithoutFilter: data
                 })
             })
     }
@@ -38,7 +93,6 @@ export class Department extends Component {
             ...this.state,
 
             selected: {
-
                 ...this.state.selected,
                 Name: changeEvent.target.value
             }
@@ -149,8 +203,14 @@ export class Department extends Component {
                 <table className="table table-striped">
                     <thead>
                         <tr>
-                            <th>DepartmentId</th>
-                            <th>DepartmentName</th>
+                            <th>
+                                <input className="form-control m-2" placeholder="Filter" onChange={this.changeIdFilter} />
+                                DepartmentId
+                            </th>
+                            <th>
+                                <input className="form-control m-2" placeholder="Filter" onChange={this.changeNameFilter} />
+                                DepartmentName
+                            </th>
                             <th>Options</th>
                         </tr>
                     </thead>

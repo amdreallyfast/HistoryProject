@@ -321,6 +321,7 @@ export class Employee extends Component {
                                         <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} />
                                         {/* <input className="m-2" type="file" value={this.state.selected.PhotoFileName} onChange={this.imageUpload} /> */}
                                         {/* ??why can't I set the value?? */}
+                                        {/* ??maybe this?? https://stackoverflow.com/questions/40894637/how-to-programmatically-fill-input-elements-built-with-react */}
                                         <input className="m-2" type="file" onChange={this.imageUpload} />
                                     </div>
                                 </div>
