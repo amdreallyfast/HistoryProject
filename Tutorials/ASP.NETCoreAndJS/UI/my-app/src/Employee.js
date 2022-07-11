@@ -207,13 +207,13 @@ export class Employee extends Component {
             method: "POST",
             body: formData
         })
-            // .then(result => {
-            //     // console.log(result)
-            //     return result.json()
-            // }, (error) => {
-            //     console.log(error)
-            //     alert("Failed")
-            // })
+            .then(result => {
+                return result.json()
+            }, (error) => {
+                console.log("Error")
+                console.log(error)
+                alert("Failed")
+            })
             .then(data => {
                 console.log("THE DATA STUFF")
                 console.log(data);
@@ -315,12 +315,6 @@ export class Employee extends Component {
                                         <div className="input-group mb-3">
                                             <span className="input-group-text">DateOfJoining</span>
                                             <input type="datetime-local" className="form-control" value={this.state.selected.DateOfJoining} onChange={(changeEvent) => this.onChangeInputTextDateOfJoining(changeEvent)}></input>
-                                        </div>
-
-                                        {/* Photo file name TODO ??change to one word??*/}
-                                        <div className="input-group mb-3">
-                                            <span className="input-group-text">PhotoFileName</span>
-                                            <input type="text" className="form-control" value={this.state.selected.PhotoFileName} onChange={(changeEvent) => this.onChangeInputTextPhotoFileName(changeEvent)}></input>
                                         </div>
                                     </div>
 

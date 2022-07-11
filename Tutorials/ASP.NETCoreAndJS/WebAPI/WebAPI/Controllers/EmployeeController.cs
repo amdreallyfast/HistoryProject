@@ -148,7 +148,8 @@ namespace WebAPI.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                return Ok(newFilePath);
+                // Return the filename only, not the full path. The client-side API is configured to know that "/Photos/<filename>" is enough to retrieve the image. It doesn't need to know anything about the file structure.
+                return new JsonResult(file.FileName);
             }
             catch (Exception ex)
             {
