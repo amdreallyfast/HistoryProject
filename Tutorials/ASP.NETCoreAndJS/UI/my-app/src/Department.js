@@ -9,6 +9,12 @@ export class Department extends Component {
         this.state = {
             departments: [],
             departmentsWithoutFilter: [],
+
+            sortAscending: {
+                Id: true,
+                Name: true
+            },
+
             filters: {
                 Id: "",
                 Name: ""
@@ -23,7 +29,102 @@ export class Department extends Component {
         }
     }
 
-    filterFunction() {
+    // filterFunction() {
+    //     // console.log("Filter function : filter state: '" + JSON.stringify(this.state.filters) + "'")
+    //     var idFilter = this.state.filters.Id
+    //     var nameFilter = this.state.filters.Name
+    //     var filteredData = this.state.departmentsWithoutFilter.filter(
+    //         function (el) {
+    //             var includesId = el.Id.toString().toLowerCase().includes(
+    //                 idFilter.toString().trim().toLocaleLowerCase()
+    //             )
+    //             var includesName = el.Name.toString().toLowerCase().includes(
+    //                 nameFilter.toString().trim().toLocaleLowerCase()
+    //             )
+    //             console.log("element Id '" + el.Id + "' contains filter '" + idFilter + "': '" + includesId + "'")
+    //             console.log("element Name '" + el.Name + "' contains filter '" + nameFilter + "': '" + includesName + "'")
+    //             console.log("result: '" + (includesId && includesName) + "'")
+    //             return includesId && includesName
+    //         }
+    //     )
+
+    //     this.setState({
+    //         ...this.state,
+    //         departments: filteredData
+    //     })
+    // }
+
+    // changeIdFilter = (event) => {
+    //     console.log("New Id filter: '" + event.target.value + "'")
+
+    //     // Note: _Must_ call the followup function as a callback because the state setting is not immediate. If we try to call it immediately following this.setState(...), then the new values may not be in the expected state by the time the function runs.
+    //     this.setState({
+    //         ...this.state,
+    //         filters: {
+    //             ...this.state.filters,
+    //             Id: event.target.value
+    //         }
+    //     }, () => this.filterFunction())
+    // }
+
+    // sortResult(property, ascending) {
+    //     // Note: Overwrites the filtered data. 
+    //     var sortedData = this.state.departments.sort(function (a, b) {
+    //         if (ascending) {
+    //             if (a[property] > b[property]) return 1
+    //             else if (a[property] < b[property]) return -1
+    //             else return 0
+    //         }
+    //         else {
+    //             if (b[property] > a[property]) return 1
+    //             else if (b[property] < a[property]) return -1
+    //             else return 0
+    //         }
+    //     })
+
+    //     this.setState({
+    //         ...this.state,
+    //         departments: sortedData
+    //     })
+    // }
+
+    // sortById(ascending) {
+    //     this.setState({
+    //         ...this.state,
+    //         sortAscending: {
+    //             ...this.state.sortAscending,
+    //             Id: ascending
+    //         }
+    //     }, () => {
+    //         this.sortResult("Id", this.state.sortAscending.Id)
+    //         this.sortResult("Name", this.state.sortAscending.Name)
+    //     })
+    // }
+
+    // sortByName(ascending){
+    //     this.setState({
+    //         ...this.state,
+    //         sortAscending: {
+    //             ...this.state.sortAscending,
+    //             Name: ascending
+    //         }
+    //     }, () => {
+    //         this.sortResult("Id", this.state.sortAscending.Id)
+    //         this.sortResult("Name", this.state.sortAscending.Name)
+    //     })
+    // }
+
+    // setNameFilter = (event) => {
+    //     this.setState({
+    //         ...this.state,
+    //         filters: {
+    //             ...this.state.filters,
+    //             Name: event.target.value
+    //         }
+    //     }, () => this.filterFunction())
+    // }
+
+    filterAndSort() {
         console.log("Filter function : filter state: '" + JSON.stringify(this.state.filters) + "'")
         var idFilter = this.state.filters.Id
         var nameFilter = this.state.filters.Name
@@ -42,53 +143,63 @@ export class Department extends Component {
             }
         )
 
-        this.setState({
-            ...this.state,
-            departments: filteredData
+
+
+
+        // Note: In order to properly get a multi-column sort working, I think that I'd need to creat a prioritized list or properties to sort on and I'd have to switch them around when the sort buttons were pressed. Not sure how to do that right now.
+
+
+
+
+
+        // Source: Inspired by:
+        // https://stackoverflow.com/questions/6913512/how-to-sort-an-array-of-objects-by-multiple-fields?page=1&tab=scoredesc#tab-top
+        var sortIdAsencding = this.state.sortAscending.Id
+        var sortNameAscending = this.state.sortAscending.Name
+        var sortedData = filteredData.sort(function (left, right) {
+            var idOrder = 0
+            if (sortIdAsencding) {
+                idOrder = left.Id - right.Id
+            } else {
+                idOrder = right.Id - left.Id
+            }
+
+            var nameOrder = 0
+            if (sortNameAscending) {
+                nameOrder = left.Name.localeCompare(right.Name)
+            } else {
+                nameOrder = right.Name.localeCompare(left.Name)
+            }
+
+            return idOrder || nameOrder
         })
-    }
 
-    changeIdFilter = (event) => {
-        console.log("New Id filter: '" + event.target.value + "'")
 
-        // Note: _Must_ call the followup function as a callback because the state setting is not immediate. If we try to call it immediately following this.setState(...), then the new values may not be in the expected state by the time the function runs.
-        this.setState({
-            ...this.state,
-            filters: {
-                ...this.state.filters,
-                Id: event.target.value
-            }
-        }, () => this.filterFunction())
-    }
+        // function sortByProperty(data, property, ascending) {
+        //     return data.sort(function (a, b) {
+        //         if (ascending) {
+        //             if (a[property] > b[property]) return 1
+        //             else if (a[property] < b[property]) return -1
+        //             else return 0
+        //         }
+        //         else {
+        //             if (b[property] > a[property]) return 1
+        //             else if (b[property] < a[property]) return -1
+        //             else return 0
+        //         }
+        //     })
+        // }
+        // var sortedData
+        // this.state.sortAscending.forEach((value) => {
+        //     console.log(JSON.stringify(value))
+        // })
 
-    sortResult(property, ascending) {
-        var sortedData = this.state.departmentsWithoutFilter.sort(function (a, b) {
-            if (ascending) {
-                if (a[property] > b[property]) return 1
-                else if (a[property] < b[property]) return -1
-                else return 0
-            }
-            else {
-                if (b[property] > a[property]) return 1
-                else if (b[property] < a[property]) return -1
-                else return 0
-            }
-        })
+        // var sortedData = []
 
         this.setState({
             ...this.state,
             departments: sortedData
         })
-    }
-
-    changeNameFilter = (event) => {
-        this.setState({
-            ...this.state,
-            filters: {
-                ...this.state.filters,
-                Name: event.target.value
-            }
-        }, () => this.filterFunction())
     }
 
     refreshList() {
@@ -225,16 +336,47 @@ export class Department extends Component {
                         <tr>
                             <th>
                                 <div className="d-flex flex-row">
+                                    {/* Deparment Id */}
                                     {/* Filter text box */}
-                                    <input className="form-control m-2" placeholder="Filter" onChange={this.changeIdFilter} />
+                                    <input className="form-control m-2" placeholder="Filter" onChange={
+                                        (event) => {
+                                            this.setState({
+                                                ...this.state,
+                                                filters: {
+                                                    ...this.state.filters,
+                                                    Id: event.target.value
+                                                }
+                                            }, () => this.filterAndSort())
+                                        }
+                                    } />
 
                                     {/* Sort up/down buttons */}
-                                    <button type="button" className="btn btn-light" onClick={() => this.sortResult("Id", true)}>
+                                    <button type="button" className="btn btn-light" onClick={
+                                        () => {
+                                            this.setState({
+                                                ...this.state,
+                                                sortAscending: {
+                                                    ...this.state.sortAscending,
+                                                    Id: true
+                                                }
+                                            }, () => this.filterAndSort())
+                                        }
+                                    }>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down-square-fill" viewBox="0 0 16 16">
                                             <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z" />
                                         </svg>
                                     </button>
-                                    <button type="button" className="btn btn-light" onClick={() => this.sortResult("Id", false)}>
+                                    <button type="button" className="btn btn-light" onClick={
+                                        () => {
+                                            this.setState({
+                                                ...this.state,
+                                                sortAscending: {
+                                                    ...this.state.sortAscending,
+                                                    Id: false
+                                                }
+                                            }, () => this.filterAndSort())
+                                        }
+                                    }>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-up-square-fill" viewBox="0 0 16 16">
                                             <path d="M2 16a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2zm6.5-4.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 1 0z" />
                                         </svg>
@@ -244,16 +386,47 @@ export class Department extends Component {
                             </th>
                             <th>
                                 <div className="d-flex flex-row">
+                                    {/* Department Name */}
                                     {/* Filter text box */}
-                                    <input className="form-control m-2" placeholder="Filter" onChange={this.changeNameFilter} />
+                                    <input className="form-control m-2" placeholder="Filter" onChange={
+                                        (event) => {
+                                            this.setState({
+                                                ...this.state,
+                                                filters: {
+                                                    ...this.state.filters,
+                                                    Name: event.target.value
+                                                }
+                                            }, () => this.filterAndSort())
+                                        }
+                                    } />
 
                                     {/* Sort up/down buttons */}
-                                    <button type="button" className="btn btn-light" onClick={() => this.sortResult("Name", true)}>
+                                    <button type="button" className="btn btn-light" onClick={
+                                        () => {
+                                            this.setState({
+                                                ...this.state,
+                                                sortAscending: {
+                                                    ...this.state.sortAscending,
+                                                    Name: true
+                                                }
+                                            }, () => this.filterAndSort())
+                                        }
+                                    }>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down-square-fill" viewBox="0 0 16 16">
                                             <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z" />
                                         </svg>
                                     </button>
-                                    <button type="button" className="btn btn-light" onClick={() => this.sortResult("Name", false)}>
+                                    <button type="button" className="btn btn-light" onClick={
+                                        () => {
+                                            this.setState({
+                                                ...this.state,
+                                                sortAscending: {
+                                                    ...this.state.sortAscending,
+                                                    Name: false
+                                                }
+                                            }, () => this.filterAndSort())
+                                        }
+                                    }>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-up-square-fill" viewBox="0 0 16 16">
                                             <path d="M2 16a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2zm6.5-4.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 1 0z" />
                                         </svg>
@@ -322,7 +495,7 @@ export class Department extends Component {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         )
     }
 }
