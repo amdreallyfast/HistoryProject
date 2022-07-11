@@ -207,9 +207,7 @@ export class Employee extends Component {
             method: "POST",
             body: formData
         })
-            .then(result => {
-                return result.json()
-            }, (error) => {
+            .then(result => result.json(), (error) => {
                 console.log("Error")
                 console.log(error)
                 alert("Failed")
@@ -322,7 +320,8 @@ export class Employee extends Component {
                                     <div className="p-2 w-50 bd-highlight"  >
                                         <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} />
                                         {/* <input className="m-2" type="file" value={this.state.selected.PhotoFileName} onChange={this.imageUpload} /> */}
-                                        <input className="m-2" type="file" value="" onChange={this.imageUpload} />
+                                        {/* ??why can't I set the value?? */}
+                                        <input className="m-2" type="file" onChange={this.imageUpload} />
                                     </div>
                                 </div>
 
