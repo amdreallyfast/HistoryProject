@@ -199,6 +199,34 @@ export class Employee extends Component {
         }
     }
 
+    imageUpload = (event) => {
+        event.preventDefault()
+        const formData = new FormData();
+        formData.append("file", event.target.files[0], event.target.files[0].name)
+        fetch(variables.API_URL + "Employee/Savefile", {
+            method: "POST",
+            body: formData
+        })
+            // .then(result => {
+            //     // console.log(result)
+            //     return result.json()
+            // }, (error) => {
+            //     console.log(error)
+            //     alert("Failed")
+            // })
+            .then(data => {
+                console.log("THE DATA STUFF")
+                console.log(data);
+                this.setState({
+                    ...this.state,
+                    selected: {
+                        ...this.state.selected,
+                        PhotoFileName: data
+                    }
+                })
+            })
+    }
+
     render() {
         console.log("start render")
         console.log("employees: " + this.state.employees)
@@ -299,6 +327,8 @@ export class Employee extends Component {
                                     {/* Photo */}
                                     <div className="p-2 w-50 bd-highlight"  >
                                         <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} />
+                                        {/* <input className="m-2" type="file" value={this.state.selected.PhotoFileName} onChange={this.imageUpload} /> */}
+                                        <input className="m-2" type="file" value="" onChange={this.imageUpload} />
                                     </div>
                                 </div>
 

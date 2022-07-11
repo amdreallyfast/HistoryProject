@@ -142,6 +142,7 @@ namespace WebAPI.Controllers
             try
             {
                 var newFilePath = Path.Combine(_webHostEnvironment.ContentRootPath, "Photos", file.FileName);
+                Console.WriteLine("newFilePath: ", newFilePath);
                 using (var stream = new FileStream(newFilePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
