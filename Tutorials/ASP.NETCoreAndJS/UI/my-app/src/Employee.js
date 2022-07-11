@@ -300,21 +300,21 @@ export class Employee extends Component {
                                     <div className="p-2 w-50 bd-highlight"  >
                                         <img width="250px" height="250px" src={this.state.selected.PhotoPath + this.state.selected.PhotoFileName} />
                                     </div>
-
-                                    {/* Create button (only visible if Id == 0) */}
-                                    {this.state.selected.Id === 0 ?
-                                        <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.createClick()}>
-                                            Create
-                                        </button>
-                                        : null}
-
-                                    {/* Update button (only visible if Id != 0) */}
-                                    {this.state.selected.Id !== 0 ?
-                                        <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.updateClick()}>
-                                            Update
-                                        </button>
-                                        : null}
                                 </div>
+
+                                {/* Create button (only visible if Id == 0) */}
+                                {this.state.selected.Id === 0 ?
+                                    <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.createClick()}>
+                                        Create
+                                    </button>
+                                    : null}
+
+                                {/* Update button (only visible if Id != 0) */}
+                                {this.state.selected.Id !== 0 ?
+                                    <button type="button" className="btn btn-primary float-start" data-bs-dismiss="modal" onClick={() => this.updateClick()}>
+                                        Update
+                                    </button>
+                                    : null}
                             </div>
                         </div>
                     </div>
