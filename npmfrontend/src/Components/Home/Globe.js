@@ -20,7 +20,24 @@ export class Globe extends Component {
   render() {
     return (
       <div>
-        Hello, I'm Globe
+        <p>
+          Hello, I'm Globe
+        </p>
+        <p>
+          Hello, I'm Globe
+        </p>
+        <p>
+          Hello, I'm Globe
+        </p>
+        <p>
+          Hello, I'm Globe
+        </p>
+        <p>
+          Hello, I'm Globe
+        </p>
+        <p>
+          Hello, I'm Globe
+        </p>
       </div>
     )
   }
