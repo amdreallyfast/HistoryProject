@@ -1,27 +1,27 @@
 import React, { Component } from "react";
 
 export class Globe extends Component {
-    constructor(props) {
-        super(props);
-    }
+  constructor(props) {
+    super(props);
+  }
 
-    refreshList() {
-        // TODO: something like this"
-        // fetch(variables.API_URL + "Department/GetAll")
-        // .then(response => response.json())
-        // .then(data => {
-        //     this.setState({
-        //         departments: data,
-        //         departmentsWithoutFilter: data
-        //     })
-        // })
-    }
+  refreshList() {
+    // TODO: something like this"
+    // fetch(variables.API_URL + "Department/GetAll")
+    // .then(response => response.json())
+    // .then(data => {
+    //     this.setState({
+    //         departments: data,
+    //         departmentsWithoutFilter: data
+    //     })
+    // })
+  }
 
-    render() {
-        return (
-            <div>
-                Hello, I'm Globe
-            </div>
-        )
-    }
+  render() {
+    return (
+      <div>
+        Hello, I'm Globe
+      </div>
+    )
+  }
 }
