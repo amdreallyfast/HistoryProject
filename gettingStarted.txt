@@ -40,117 +40,138 @@ Note: Learned this command:
 
     ?? is this useful to me??
 
-React JS + .NET Core Web API + Microsoft SQL | full stack app tutorial
-https://www.youtube.com/watch?v=ON-Z1iD6Y-c
+Tutorial:
+	React JS + .NET Core Web API + Microsoft SQL | full stack app tutorial
+	https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 
-	Not covered, but need to do: Create database in Azure and connect with SQL Server Management Studio (SSMS).
-		Josh Baugher guided me through.
-		Azure portal 
-			-> Create resource 
-			-> search for "SQL" 
-			-> select "Azure SQL" 
-			-> Create
-				"How do you plan to use the service?"
-				-> SQL databases
-					-> Resource type: Single database
-					-> Create
-						-> Basics
-							-> Resource group: <select or create new>
-							-> Database name
-								HistoryProjectSQL-DB
-								
-								-> Note: Fully qualified server name:
-									historyproject.database.windows.net
+		Not covered, but need to do: Create database in Azure and connect with SQL Server Management Studio (SSMS).
+			Josh Baugher guided me through.
+			Azure portal 
+				-> Create resource 
+				-> search for "SQL" 
+				-> select "Azure SQL" 
+				-> Create
+					"How do you plan to use the service?"
+					-> SQL databases
+						-> Resource type: Single database
+						-> Create
+							-> Basics
+								-> Resource group: <select or create new>
+								-> Database name
+									HistoryProjectSQL-DB
 									
-							-> Server
-								-> Create new
-									-> Server name: "historyproject" (.database.windows.net automatically appended)
-									-> Location: <default>
-									-> Authentication method:
-										-> Use both SQL and Azure AD authentication
-											-> Set Azure AD admin
-												Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
-											-> Server admin login	
-												historyprojectadmin
-											-> Password
-												TinkerTots1ForAll!
+									-> Note: Fully qualified server name:
+										historyproject.database.windows.net
+										
+								-> Server
+									-> Create new
+										-> Server name: "historyproject" (.database.windows.net automatically appended)
+										-> Location: <default>
+										-> Authentication method:
+											-> Use both SQL and Azure AD authentication
+												-> Set Azure AD admin
+													Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
+												-> Server admin login	
+													historyprojectadmin
+												-> Password
+													TinkerTots1ForAll!
+													
+											Note (later): ADO.NET SQL connection string:
+												Server=tcp:historyproject.database.windows.net,1433;Initial Catalog=HistoryProjectSQL-DB;Persist Security Info=False;User ID=historyprojectadmin;Password={your_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
 												
-										Note (later): ADO.NET SQL connection string:
-											Server=tcp:historyproject.database.windows.net,1433;Initial Catalog=HistoryProjectSQL-DB;Persist Security Info=False;User ID=historyprojectadmin;Password={your_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
-											
-							-> Want to use SQL elastic pool?: No
-							-> Compute + storage
-								-> Configure database
-									-> Service tier: General Purpose
-									-> Compute tier: Serverless (that is, share a big VM with many others; performance not as much on demand, but much cheaper)
-									-> Hardware Configuration: Gen5
-									-> Max vCores: 2
-									-> Min vCores: 1
-									-> Auto-pause delay: 
-										-> Enable auto-pause: <checked>
-										-> Days: 0, Hours: 1, Minutes: 0
-									-> Data max size (GB): 50
-									-> Would you like to make this database zone redundant?: No
-							-> Backup storage redundancy: Locally-redundant backup storage
-						-> Networking
-							-> Allow Azure services and resources to access this server: Yes
-							-> Add current client IP address: Yes
-							-> Connection policy: Default
-						-> Security
-							-> Enable Microsoft Defender for SQL: No
-							-> Ledger
-								-> Configure ledger
-									-> Ledger
-										-> Enable for all future tables in this database: <checked>
-									--> Digest stroage
-										-> Enable automatic digest storage: <not checked>
-						-> Additional settings
-							-> Use existing data: None
-							-> Collation: <default> ("SQL_Latin1_General_CP1_CI_AS")
-							-> Maintenance window: <default> (5pm - 8am)
-						-> Review + create
-							-> Create
+								-> Want to use SQL elastic pool?: No
+								-> Compute + storage
+									-> Configure database
+										-> Service tier: General Purpose
+										-> Compute tier: Serverless (that is, share a big VM with many others; performance not as much on demand, but much cheaper)
+										-> Hardware Configuration: Gen5
+										-> Max vCores: 2
+										-> Min vCores: 1
+										-> Auto-pause delay: 
+											-> Enable auto-pause: <checked>
+											-> Days: 0, Hours: 1, Minutes: 0
+										-> Data max size (GB): 50
+										-> Would you like to make this database zone redundant?: No
+								-> Backup storage redundancy: Locally-redundant backup storage
+							-> Networking
+								-> Allow Azure services and resources to access this server: Yes
+								-> Add current client IP address: Yes
+								-> Connection policy: Default
+							-> Security
+								-> Enable Microsoft Defender for SQL: No
+								-> Ledger
+									-> Configure ledger
+										-> Ledger
+											-> Enable for all future tables in this database: <checked>
+										--> Digest stroage
+											-> Enable automatic digest storage: <not checked>
+							-> Additional settings
+								-> Use existing data: None
+								-> Collation: <default> ("SQL_Latin1_General_CP1_CI_AS")
+								-> Maintenance window: <default> (5pm - 8am)
+							-> Review + create
+								-> Create
+			
+			<wait for resource creation to complete>
+			
+			Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)"
+				-> Overview
+					-> copy "Server name"
+			
+			Open SQL Server Management Studio (SSMS)
+				-> at login, use the "server name" copied ealier
+				-> sign in with username and password used in "Authentication method" during the SQL database creation
 		
-		<wait for resource creation to complete>
+		Explaining how Program.cs is different in .NET Core 6 compared to .NET Core 5:
+			.NET 6 Startup Changes - Handling Program.cs Without Startup.cs
+			https://www.youtube.com/watch?v=vdhFw1VSowg
 		
-		Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)"
-			-> Overview
-				-> copy "Server name"
+		Crash course in Entity Framework in .NET Core 6 (no different than in prior versions that I could tell):
+			.NET 6 & EF Core 🚀 ALL Relationships (1:1, 1:n, n:n) with Entity Framework Core 6 & SQL Server
+			https://www.youtube.com/watch?v=FHx6AGVF_IE
 		
-		Open SQL Server Management Studio (SSMS)
-			-> at login, use the "server name" copied ealier
-			-> sign in with username and password used in "Authentication method" during the SQL database creation
-	
-	Explaining how Program.cs is different in .NET Core 6 compared to .NET Core 5:
-		.NET 6 Startup Changes - Handling Program.cs Without Startup.cs
-		https://www.youtube.com/watch?v=vdhFw1VSowg
-	
-	Crash course in Entity Framework in .NET Core 6 (no different than in prior versions that I could tell):
-		.NET 6 & EF Core 🚀 ALL Relationships (1:1, 1:n, n:n) with Entity Framework Core 6 & SQL Server
-		https://www.youtube.com/watch?v=FHx6AGVF_IE
-	
-	How to upload a single file in ASP.NET Core with the Swagger web GUI (use IFormeFile)
-		https://codeburst.io/file-upload-via-swagger-e6c21b54d036
+		How to upload a single file in ASP.NET Core with the Swagger web GUI (use IFormeFile)
+			https://codeburst.io/file-upload-via-swagger-e6c21b54d036
 
-	NPX command (run in PowerShell 7):
+		NPX command (run in PowerShell 7):
+			npx create-react-app my-app
+			Note: Prompted to install the "create-react-app" package (I said "y").
+			
+		Fixed error: "export 'Switch' (imported as 'Switch') was not found in 'react-router-dom'"
+			Syntax update in react-router-dom V6: do not use "Switch", but use "Routes" instead.
+			https://www.moreonfew.com/attempted-import-error-switch-is-not-exported-from-react-router-dom/
+		
+		Fixed error: <Route path="..." component={MyComponent}/> is invalid.
+			Syntax update in react-router-dom V6: do not use "component", but use "element={<MyComponent />}" instead.
+			https://stackoverflow.com/questions/69854011/matched-leaf-route-at-location-does-not-have-an-element
+
+		Run UI on its own:
+			Command line:
+				cd <repo root>/UI/my-app
+				npm start
+			Browser:
+				http://localhost:3000/home
+				Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
+
+Quick start:
+	In root directory, use VS to create a new project with template "ASP.NET Core Web App" (with .NET 6), and call it "WebAPI". 
+	Note: Do _not_ check the box to "Place solution and project in the same directory". That makes file organization a bit messy.
+	
+	In root directory, open a terminal and run these:
 		npx create-react-app my-app
-		Note: Prompted to install the "create-react-app" package (I said "y").
+		Note: Say "y" if prompted to install the "create-react-app" package.
 		
-	Fixed error: "export 'Switch' (imported as 'Switch') was not found in 'react-router-dom'"
-		Syntax update in react-router-dom V6: do not use "Switch", but use "Routes" instead.
-		https://www.moreonfew.com/attempted-import-error-switch-is-not-exported-from-react-router-dom/
+		npm install -S react-router-dom
+		??isn't this supposed to be done as part of the 'create-react-app' package??
+		
+		npm audit fix --force
+		??necessary??
 	
-	Fixed error: <Route path="..." component={MyComponent}/> is invalid.
-		Syntax update in react-router-dom V6: do not use "component", but use "element={<MyComponent />}" instead.
-		https://stackoverflow.com/questions/69854011/matched-leaf-route-at-location-does-not-have-an-element
-
-	Run UI on its own:
-		Command line:
-			cd <repo root>/UI/my-app
-			npm start
-		Browser:
-			http://localhost:3000/home
-			Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
+	In browser:
+		Note: Should be opened automatically in your default browser after successfully running "npm start". If you close that tab though, use this.
+		
+		http://localhost:3000/home
+		Note: WebAPI executable _must_ be running in order for the WebAPI requests that are associated with a database to work.
 
 TODO:
 	https://www.youtube.com/results?search_query=how+to+host+a+page+on+github
@@ -160,3 +181,5 @@ TODO:
 	
 	Three.js tutorial ($100)
 	https://threejs-journey.com/#
+
+npm audit fix --force
