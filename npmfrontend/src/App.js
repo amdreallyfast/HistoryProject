@@ -7,7 +7,7 @@ import { About } from './Components/About'
 function App() {
   return (
     <BrowserRouter>
-      <div className="App">
+      <div className="App container">
         <h3 className="d-flext justify-content-center m-3">
           History Project
         </h3>

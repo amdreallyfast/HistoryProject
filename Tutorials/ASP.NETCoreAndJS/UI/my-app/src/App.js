@@ -34,9 +34,9 @@ function App() {
         </nav>
 
         <Routes>
-          <Route path='/home'  element={<Home/>} />
-          <Route path='/department' element={<Department/>} />
-          <Route path='/employee' element={<Employee/>} />
+          <Route path='/home' element={<Home />} />
+          <Route path='/department' element={<Department />} />
+          <Route path='/employee' element={<Employee />} />
         </Routes>
       </div>
     </BrowserRouter>

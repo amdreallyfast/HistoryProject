@@ -1,3 +1,7 @@
+:root {
+  --border-size: 2px;
+}
+
 html,
 body {
   height: 100%;
@@ -5,7 +9,7 @@ body {
 }
 
 .App {
-  text-align: center;
+  text-align: left;
 }
 
 .App-logo {
@@ -44,34 +48,114 @@ body {
   }
 }
 
-.projectsearch {
-  width: 25%;
+/* 
+Source:
+https://stackoverflow.com/questions/90178/make-a-div-fill-the-height-of-the-remaining-screen-space?rq=1
+ */
+/* .box {
+  display: flex;
+  flex-flow: column;
   height: 80%;
+}
+
+.box .row {
+  border: 1px dotted grey;
+}
+
+.box .row.header {
+  flex: 0 1 auto;
+}
+
+.box .row.content {
+  display: flex;
+  flex-flow: column;
+  flex: 1 1 auto;
+  overflow-y: scroll;
+  background-color: blue;
+}
+
+.box .row.footer {
+  flex: 0 1 40px;
+} */
+
+/* 
+Adjust content, padding, border, and margins
+https://www.digitalocean.com/community/tutorials/how-to-adjust-the-content-padding-border-and-margins-of-an-html-element-with-css
+ */
+
+/* .search {
+  width: calc(25% - (2 * var(--border-size)));
+  height: calc(80% - (2 * var(--border-size)));
   float: left;
   background-color: red;
-  border: black;
+  border: var(--border-size) solid black;
 }
 
-.projectglobe {
-  width: 50%;
-  height: 80%;
+.globe {
+  width: calc(50% - (2 * var(--border-size)));
+  height: calc(80% - (2 * var(--border-size)));
   float: left;
   background-color: white;
-  border: green;
+  border: var(--border-size) solid green;
 }
 
-.projectdisplayentry {
-  width: 25%;
-  height: 80%;
+.displayentry {
+  width: calc(25% - (2 * var(--border-size)));
+  height: calc(80% - (2 * var(--border-size)));
   float: right;
   background-color: brown;
-  border: darkgreen;
+  border: var(--border-size) solid darkgreen;
 }
 
-.projecttimeline {
-  width: 100%;
-  height: 20%;
+.timeline {
+  width: calc(100% - (2 * var(--border-size)));
+  height: calc(20% - (2 * var(--border-size)));
   float: left;
   background-color: yellow;
-  border: blue;
+  border: var(--border-size) solid blue;
+} */
+
+.thing1 {
+  border: 1px solid black;
+  width: 250px;
+  height: 100px;
+  overflow-y: auto;
+  margin-bottom: 120px;
+}
+
+#thing2 {
+  border: 1px solid black;
+  width: 250px;
+  height: 100px;
+  overflow-y: auto;
+  margin-bottom: 120px;
+}
+
+#div1,
+#div2,
+#div3,
+#div4 {
+  border: 1px solid black;
+  width: 250px;
+  height: 100px;
+}
+
+#div1 {
+  overflow-y: hidden;
+  margin-bottom: 12px;
+}
+
+#div2 {
+  overflow-y: scroll;
+  margin-bottom: 12px;
+}
+
+#div3 {
+  overflow-y: visible;
+  margin-bottom: 120px;
+}
+
+#div4 {
+  overflow-y: auto;
+  margin-bottom: 120px;
 }
