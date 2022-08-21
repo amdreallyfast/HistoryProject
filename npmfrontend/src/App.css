@@ -81,6 +81,11 @@ https://stackoverflow.com/questions/90178/make-a-div-fill-the-height-of-the-rema
 /* 
 Adjust content, padding, border, and margins
 https://www.digitalocean.com/community/tutorials/how-to-adjust-the-content-padding-border-and-margins-of-an-html-element-with-css
+
+In practice:
+https://jsfiddle.net/43tjn91k/1/
+
+Then I added my own use of calc(...) and the border size 
  */
 
 /* .search {
