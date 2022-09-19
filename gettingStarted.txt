@@ -153,9 +153,25 @@ Tutorial:
 				http://localhost:3000/home
 				Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
 
-Quick start:
+Setup summary:
 	In root directory, use VS to create a new project with template "ASP.NET Core Web App" (with .NET 6), and call it "WebAPI". 
 	Note: Do _not_ check the box to "Place solution and project in the same directory". That makes file organization a bit messy.
+	
+	Add your computer to the access list for the SQL Server resource:
+		Azure portal -> <sql server> -> Security -> Networking -> Firewall rules -> Add your client IPv4 address (<your public IP address>).
+		Note: I set it up this way so that not just anyone can connect to it. I'm hoping that these IP addresses cannot be spoofed.
+		
+	Open WebAPI solution in VS and connect to DB:
+		Open <project root>/WebAPI/appsettings.json.
+		Add:
+			"ConnectionStrings": {
+				"appConnStr": "<conn str>"
+				},
+				Note: The conn string is found in the Azure portal -> <sql server> -> <database> -> Settings -> ADO.NET (SQL authentication).
+				Also Note: The "{password}" needs to be replaced with your admin password. This password was set up once during the SQL Server creation and was not written down anywhere. It is up to the user to write it down and fill it in here.
+					TODO: put into a key vault.
+		
+		??stuff about setting up connection for Entity Framework so that I can use the Package Manager Console??
 	
 	In root directory, open a terminal and run these:
 		First time prerequisites:
@@ -174,16 +190,22 @@ Quick start:
 			# Upgrade NPM to latest version
 			npm update -g npm
 			??necessary??
-		
-		Noraml:
-			cd <solution root>\npmfrontend\
-			npm start
+	
+Quick start:
+	Note: WebAPI executable _must_ be running in order for the WebAPI requests that are associated with a database to work.
+
+	In VS:
+		Open <solution root>\WebAPI\WebAPI.sln
+		run
+	
+	In VS Code:
+		Open console
+		cd <solution root>\npmfrontend\
+		npm start
 
 	In browser:
-		Note: Should be opened automatically in your default browser after successfully running "npm start". If you close that tab though, use this.
-		
-		http://localhost:3000/home
-		Note: WebAPI executable _must_ be running in order for the WebAPI requests that are associated with a database to work.
+		Note: Should be opened automatically in your default browser after successfully running "npm start". If you close that tab though, use this:
+			http://localhost:3000/home
 
 TODO:
 	https://www.youtube.com/results?search_query=how+to+host+a+page+on+github
