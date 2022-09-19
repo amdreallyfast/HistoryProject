@@ -158,15 +158,24 @@ Quick start:
 	Note: Do _not_ check the box to "Place solution and project in the same directory". That makes file organization a bit messy.
 	
 	In root directory, open a terminal and run these:
-		npx create-react-app my-app
-		Note: Say "y" if prompted to install the "create-react-app" package.
+		First time prerequisites:
+			npx create-react-app my-app
+			Note: Say "y" if prompted to install the "create-react-app" package.
+			
+			npm install -S react-router-dom
+			??isn't this supposed to be done as part of the 'create-react-app' package??
+			
+			npm audit fix --force
+			??necessary??
+			
+			# Upgrade NPM to latest version
+			npm update -g npm
+			??necessary??
 		
-		npm install -S react-router-dom
-		??isn't this supposed to be done as part of the 'create-react-app' package??
-		
-		npm audit fix --force
-		??necessary??
-	
+		Noraml:
+			cd <solution root>\npmfrontend\
+			npm start
+
 	In browser:
 		Note: Should be opened automatically in your default browser after successfully running "npm start". If you close that tab though, use this.
 		
