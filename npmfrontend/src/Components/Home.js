@@ -30,22 +30,22 @@ export class Home extends Component {
         How to drop components into the HTML:
         https://reactjs.org/docs/components-and-props.html#composing-components
          */}
-        {/* <div>
-          <div className="search">
+        <div>
+          <div id="search-window">
             <Search />
           </div>
 
-          <div className="globe">
+          <div id="globe-window">
             <Globe />
           </div>
 
-          <div className="displayentry">
+          <div id="display-entry-window">
             <DisplayEntry />
           </div>
         </div>
-        <div className="timeline">
+        <div id="timeline-window">
           <Timeline />
-        </div> */}
+        </div>
 
         {/* 
         How I expected it work:
@@ -135,7 +135,7 @@ export class Home extends Component {
         How it actually works:
         https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-y
          */}
-        <ul>
+        {/* <ul>
           <li><code>overflow-y:hidden</code> — hides the text outside the box
             <div id="div1">
               Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
@@ -171,7 +171,7 @@ export class Home extends Component {
               Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
             </div>
           </li>
-        </ul>
+        </ul> */}
 
 
       </div>
