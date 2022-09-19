@@ -49,45 +49,16 @@ body {
 }
 
 /* 
-Source:
-https://stackoverflow.com/questions/90178/make-a-div-fill-the-height-of-the-remaining-screen-space?rq=1
- */
-/* .box {
-  display: flex;
-  flex-flow: column;
-  height: 80%;
-}
-
-.box .row {
-  border: 1px dotted grey;
-}
-
-.box .row.header {
-  flex: 0 1 auto;
-}
-
-.box .row.content {
-  display: flex;
-  flex-flow: column;
-  flex: 1 1 auto;
-  overflow-y: scroll;
-  background-color: blue;
-}
-
-.box .row.footer {
-  flex: 0 1 40px;
-} */
-
-/* 
 Adjust content, padding, border, and margins
 https://www.digitalocean.com/community/tutorials/how-to-adjust-the-content-padding-border-and-margins-of-an-html-element-with-css
+
+Note: For the "div" tag, setting the style _must_ be done via id="". Usage of classname="" doesn't work. I don't know why. It might be my version of node.js. Or my version of Chrome.
 
 In practice:
 https://jsfiddle.net/43tjn91k/1/
 
 Then I added my own use of calc(...) and the border size 
  */
-
 #search-window {
   position: absolute;
   left: calc(var(--border-size));
@@ -129,53 +100,4 @@ Then I added my own use of calc(...) and the border size
   overflow: auto;
   background-color: yellow;
   border: var(--border-size) solid blue;
-}
-
-.thing1 {
-  border: 1px solid black;
-  width: 250px;
-  height: 100px;
-  overflow-y: auto;
-  margin-bottom: 120px;
-}
-
-#thing2 {
-  border: 1px solid black;
-  width: 250px;
-  height: 100px;
-  overflow-y: auto;
-  margin-bottom: 120px;
-  /*style="z-index:99;position:absolute;width:128px;left:calc(50% - 64px);height:128px;top:calc(50% - 64px);"*/
-  position: absolute;
-  width: 256px;
-  left: calc(50% - 64px);
-}
-
-#div1,
-#div2,
-#div3,
-#div4 {
-  border: 1px solid black;
-  width: 250px;
-  height: 100px;
-}
-
-#div1 {
-  overflow-y: hidden;
-  margin-bottom: 12px;
-}
-
-#div2 {
-  overflow-y: scroll;
-  margin-bottom: 12px;
-}
-
-#div3 {
-  overflow-y: visible;
-  margin-bottom: 120px;
-}
-
-#div4 {
-  overflow-y: auto;
-  margin-bottom: 120px;
 }
