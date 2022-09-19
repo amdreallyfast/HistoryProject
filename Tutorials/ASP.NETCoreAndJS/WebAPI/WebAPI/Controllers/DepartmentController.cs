@@ -57,8 +57,15 @@ namespace WebAPI.Controllers
             };
 
             _dataContext.Departments.Add(newDepartment);
-            await _dataContext.SaveChangesAsync();
-            return Ok(newDepartment);
+            try
+            {
+                await _dataContext.SaveChangesAsync();
+                return Ok(newDepartment);
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
 
         [Route("Update")]

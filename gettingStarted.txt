@@ -162,8 +162,11 @@ Quick start:
 			npx create-react-app my-app
 			Note: Say "y" if prompted to install the "create-react-app" package.
 			
+			??why do I need to run this on new machines? why isn't this part of the create-react-app package??
+			npm install react-scripts
+			
+			??still need to do this??
 			npm install -S react-router-dom
-			??isn't this supposed to be done as part of the 'create-react-app' package??
 			
 			npm audit fix --force
 			??necessary??
