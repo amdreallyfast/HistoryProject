@@ -82,234 +82,319 @@ Setup summary:
 		How to securely store and load secrets using Azure Key Vault in .NET Core (using a certificate)
 		https://www.youtube.com/watch?v=b21EQvfjvHc
 
-	Azure:
-		Create SQL server + SQL database in Azure:
-			??and connect with SQL Server Management Studio (SSMS).??
-			
-			Josh Baugher guided me through.
-			Create resource -> "Azure SQL" -> "How do you plan to use the service?" -> SQL databases -> Resource type: Single database -> Create
-				Basics:
-					Resource group: 
-						HistoryProject-RG
-					Database name:
-						HistoryProjectSQL-DB
-					Server:
-						Create new
-							Server name: "historyproject" (.database.windows.net automatically appended)
-							Location: (US) East US
-								Note: East US was the default for me. It may have chosen this based on IP geolocation.
-							Authentication method:
-								Use both SQL and Azure AD authentication
-									Set Azure AD admin
-									Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
-								Server admin login
-									historyprojectadmin
-								Password
-									<not stored here; check HistoryProjectKV -> Secrets -> SQLServerAdmin>
-							
-							All other options default.
-							
-							-> Apply
-					Want to use SQL elastic pool?: 
-						No
-					Compute + storage -> Configure database
-						Service tier: 
-							General Purpose
-							(default)
-						Compute tier: 
-							Serverless
-							Note: That is, share a big VM with many others. Performance is less than having a dedicated, on-demand server, but it is much cheaper, and this is useful for dev work.
-						Hardware Configuration: 
-							Gen5
-							(default)
-						Max vCores: 
-							2
-							(default)
-						Min vCores: 
-							1
-							(default)
-						Auto-pause delay: 
-							Enable auto-pause: 
-								<checked>
-								(default)
-							Days: 
-								0
-								(default)
-							Hours: 
-								1
-								(default)
-							Minutes: 
-								0
-								(default)
-						Data max size (GB): 
-							50
-						Would you like to make this database zone redundant?: 
-							No
+	Create SQL server + SQL database in Azure:
+		??and connect with SQL Server Management Studio (SSMS).??
+		
+		Josh Baugher guided me through.
+		Azure portal -> Create resource -> "Azure SQL" -> "How do you plan to use the service?" -> SQL databases -> Resource type: Single database -> Create
+			Basics:
+				Resource group: 
+					HistoryProject-RG
+				Database name:
+					HistoryProjectSQL-DB
+				Server:
+					Create new
+						Server name: "historyproject" (.database.windows.net automatically appended)
+						Location: (US) East US
+							Note: East US was the default for me. It may have chosen this based on IP geolocation.
+						Authentication method:
+							Use both SQL and Azure AD authentication
+								Set Azure AD admin
+								Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
+							Server admin login
+								historyprojectadmin
+							Password
+								<not stored here; check HistoryProjectKV -> Secrets -> SQLServerAdmin>
+						
+						All other options default.
 						
 						-> Apply
-						
-					Backup storage redundancy: 
-						Locally-redundant backup storage
-				Networking:
-					Allow Azure services and resources to access this server: 
-						Yes
-					Add current client IP address: 
-						Yes
-					Connection policy: 
-						Default
-						Note: Literally called "Default".
-				Security:
-					Enable Microsoft Defender for SQL: 
+				Want to use SQL elastic pool?: 
+					No
+				Compute + storage -> Configure database
+					Service tier: 
+						General Purpose
+						(default)
+					Compute tier: 
+						Serverless
+						Note: That is, share a big VM with many others. Performance is less than having a dedicated, on-demand server, but it is much cheaper, and this is useful for dev work.
+					Hardware Configuration: 
+						Gen5
+						(default)
+					Max vCores: 
+						2
+						(default)
+					Min vCores: 
+						1
+						(default)
+					Auto-pause delay: 
+						Enable auto-pause: 
+							<checked>
+							(default)
+						Days: 
+							0
+							(default)
+						Hours: 
+							1
+							(default)
+						Minutes: 
+							0
+							(default)
+					Data max size (GB): 
+						50
+					Would you like to make this database zone redundant?: 
 						No
-						(default)
-					Ledger -> Configure ledger:
-						Ledger:
-							Enable for all future tables in this database: 
-								<checked>
-						Digest storage:
-							Enable automatic digest storage: 
-								<not checked>
-								(default)
-				Additional settings:
-					Use existing data: 
-						None
-						(default)
-					Collation:
-						SQL_Latin1_General_CP1_CI_AS
-						(default)
-					Maintenance window: 
-						System default (5pm - 8am)
-						(default)
+					
+					-> Apply
+					
+				Backup storage redundancy: 
+					Locally-redundant backup storage
+			Networking:
+				Allow Azure services and resources to access this server: 
+					Yes
+				Add current client IP address: 
+					Yes
+				Connection policy: 
+					Default
+					Note: Literally called "Default".
+			Security:
+				Enable Microsoft Defender for SQL: 
+					No
+					(default)
+				Ledger -> Configure ledger:
+					Ledger:
+						Enable for all future tables in this database: 
+							<checked>
+					Digest storage:
+						Enable automatic digest storage: 
+							<not checked>
+							(default)
+			Additional settings:
+				Use existing data: 
+					None
+					(default)
+				Collation:
+					SQL_Latin1_General_CP1_CI_AS
+					(default)
+				Maintenance window: 
+					System default (5pm - 8am)
+					(default)
 
-				-> Review + create
+			-> Review + create
+		
+		Wait for resource creation to complete.
+		
+		Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)" -> Overview
+			Copy "Server name"
+				historyproject.database.windows.net
+		
+		Open SQL Server Management Studio (SSMS)
+			At login, use the "server name" copied ealier.
+			Sign in with username and password used in "Authentication method" during the SQL database creation
+				historyprojectadmin
+				<password>
+
+	Create Web App
+		Azure portal -> Create resource -> "Web App" 
+			Resource Group: 
+				HistoryProject-RG
+			Name: 
+				historyproject-webapp-eastus
+			Publish:
+				Code
+			Runtime stack:
+				.NET 6 (LTS)
+			Operating System:
+				Window
+				(default if .NET 6 (LTS) is selected as the runtime stack)
+			Region:
+				East US
+			App Service Plan:
+				(New) ASP-HistoryProjectRG-<4-character random hexidecimal>
+				(auto-created)
+			Sku and size:
+				Dev/Test -> Recommended pricing tiers -> B1
+				Note: This is $32.12/m, but we need SSL for this certificate stuff and this is the cheapest pricing tier for a web app that supports it.
 			
-			Wait for resource creation to complete.
+			Everything else default
 			
-			Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)" -> Overview
-				Copy "Server name"
-					historyproject.database.windows.net
-			
-			Open SQL Server Management Studio (SSMS)
-				At login, use the "server name" copied ealier.
-				Sign in with username and password used in "Authentication method" during the SQL database creation
-					historyprojectadmin
-					<password>
+			-> Review + create
 	
-		Create Web App
-			Create resource -> "Web App" 
-				Resource Group: 
-					HistoryProject-RG
-				Name: 
-					historyproject-webapp-eastus
-				Publish:
-					Code
-				Runtime stack:
-					.NET 6 (LTS)
-				Operating System:
-					Window
-					(default if .NET 6 (LTS) is selected as the runtime stack)
-				Region:
-					East US
-				App Service Plan:
-					(New) ASP-HistoryProjectRG-<4-character random hexidecimal>
-					(auto-created)
-				Sku and size:
-					Dev/Test -> Recommended pricing tiers -> B1
-					Note: This is $32.12/m, but we need SSL for this certificate stuff and this is the cheapest pricing tier for a web app that supports it.
-				
-				Everything else default
-				
-				-> Review + create
+	Create app registration
+		??what does this do? it didn't even reference my "web app" VM that I just finished creating, so is this really an application??
 		
-		Create app registration
-			??what does this do? it didn't even reference my "web app" VM that I just finished creating, so is this really an application??
-			
-			Azure Active Directory (AAD) -> App registrations -> New registration:
-				Name:
-					HistoryProjectWebApp
-				Supported account types:
-					"Who can use this application or access this API?"
-						"Accounts in this organizational directory only (Default Directory only - Single tenant)"
-						(default)
-				Redirect URI (optional):
-					<blank>
+		Azure portal -> Azure Active Directory (AAD) -> App registrations -> New registration:
+			Name:
+				HistoryProjectWebApp
+			Supported account types:
+				"Who can use this application or access this API?"
+					"Accounts in this organizational directory only (Default Directory only - Single tenant)"
 					(default)
+			Redirect URI (optional):
+				<blank>
+				(default)
+			
+			-> Register
+			
+		Automatically taken to the service principle when complete.
+			Application (client) ID:
+				7bd8caf8-bef5-41fd-822a-6fe1e80ebf89
+			Object ID:
+				410edc80-b958-483f-b27e-ef12b82a4e40
+	
+	Create Key Vault:
+		Azure portal -> Create resource -> "Key Vault"
+			Resource Group:
+				HistoryProject-RG
+			Name:
+				HistoryProjectKV
+			Location:
+				East US
+			
+			Everything else default
+			Note: This includes the access policy, which defaults to only putting the current user on the policy.
+			
+			-> Review + create
+	
+	Add password to kv:
+		Azure portal -> HistoryProjectKV -> Secrets -> Generate/Import
+			Upload options:
+				Manual
+				(default)
+			Name:
+				SQLServerAdmin
+			Secret value:
+				<password from SQL server setup>
+			Content type (optional):
+				historyprojectadmin
+			
+			Everything else default
+			
+			-> Create
+
+	Add conn string to kv:
+		Azure portal -> HistoryProjectKV -> Secrets -> Generate/Import
+			Upload options:
+				Manual
+				(default)
+			Name:
+				HistoryProject-DB-ConnStr
+			Secret value:
+				<conn str including SQL server admin username and password>
+			Content type (optional)
+			
+			Everything else default
+			
+			-> Create
+	
+	Generate certificate ??for what??
+		Open Ubuntu (Windows subsystem for Linux)
+			If not installed:
+				Open PowerShell
+				wsl --install
+				Restart once done
+			
+			Create cert dir:
+				cd /mnt/c/Users/<username>
+				mkdir .certs
+				cd .cert
+			
+			Create private + public keys:
+				openssl req -newkey rsa:2048 -nodes -keyout historyProjectPrivateKey.pem -x509 -days 365 -out historyProjectPublicKey.pem
+					When prompted for the follow, hit Enter to accept default _except_ for "Common Name".
+					Also Note: The "Common Name" is needed (??for what? for the cert to work??), but since this is a self-signed certificate and we don't need to ask a certificate authority to for whether the cert's Common Name is a known value, we can put anything we want.
+						Country Name (2 letter code) [AU]:
+						State or Province Name (full name) [Some-State]:
+						Locality Name (eg, city) []:
+						Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+						Organizational Unit Name (eg, section) []:
+						Common Name (e.g. server FQDN or YOUR name) []:derblarglewhatever
+						Email Address []:
 				
-				-> Register
+					Should now have two files in C:\Users\<username>\.certs:
+						historyProjectPrivateKey.pem
+						historyProjectPublicKey.pem
+			
+			Combine into a single certificate:
+				??why is he doing this??
+				Note: Combining both into a single file (standard extension: .pfx) is necessary if you plan to export the authorization to sign certificates to a new certificate authority that is on a separate network. The private key is necessary to digitally sign new certs.
 				
-			Automatically taken to the service principle when complete.
-				Application (client) ID:
-					7bd8caf8-bef5-41fd-822a-6fe1e80ebf89
-				Object ID:
-					410edc80-b958-483f-b27e-ef12b82a4e40
+				"PFX files are digital certificates that contain both the public and private key needed to establish an SSL/TLS connection."
+				Source:
+					https://www.howtouselinux.com/post/pfx-file-with-examples
+			
+				openssl pkcs12 -inkey historyProjectPrivateKey.pem -in historyProjectPublicKey.pem -export -out historyProjectCert.pfx
+					Password:
+						FabulousAllAround1!
+				
+	Upload certificate to the app's service principle:
+		Azure portal -> AAD -> HistoryProjectWebApp (service principle) -> Certificates & secrets -> Certificates -> Upload certificate
+			<select public .pem>
+			Description:
+				"Public key (pem)"
+			
+			-> Add
+			
+			EDCDF961CDBEF36548E953C4ADBD19D7FB36824B
+	
+	Give the app's service principle permission to get secrets from the key vault:
+		Azure portal -> HistoryProjectKV -> Access policies -> Create
+			Permissions:
+				Secret permissions:
+					Get
+					List
+			Principal:
+				HistoryProjectWebApp
+			Application (optional):
+				NA. An application was already selected as the prinicple.
 		
-		Create Key Vault:
-			Create resource -> "Key Vault"
-				Resource Group:
-					HistoryProject-RG
-				Name:
-					HistoryProjectKV
+		-> Review + create
+	
+	Create backend WebAPI:
+		Create solution:
+			VS 2022 -> Create new project -> ASP.NET Core Web API
+				Project name:
+					WebAPI
 				Location:
-					East US
-				
-				Everything else default
-				Note: This includes the access policy, which defaults to only putting the current user on the policy.
-				
-				-> Review + create
-		
-		Add password to kv:
-			HistoryProjectKV -> Secrets -> Generate/Import
-				Upload options:
-					Manual
+					<in HistoryProject folder, and so I don't think that the solution needs to be named "HistoryProject">
+				Solution name:
+					<same as project>
+				Place solution and project in the same directory:
+					<unchecked>
 					(default)
-				Name:
-					SQLServerAdmin
-				Secret value:
-					<password from SQL server setup>
-				Content type (optional):
-					historyprojectadmin
+				
+				-> Next
 				
 				Everything else default
+				Note: Currently (9/20/2022), defaults to .NET 6.0 (Long-term support (LTS))
 				
 				-> Create
+		
+		Add Azure KV extension to the solution:
+			<solution> -> WebAPI (the project) -> Dependencies (right-click) -> Manage NuGet Packages -> Browse -> "Microsoft.Extensions.Configuration.AzureKeyVault" -> Install
+			??Azure.Extensions.AspNetCore.Configuration.Secrets instead??
+			
+		Add access values to appsettings.json:
+			"KeyVaultAccess": {
+				"VaultUrl": "https://historyprojectkv.vault.azure.net/",
+				"ServicePrincipleAppId": "7bd8caf8-bef5-41fd-822a-6fe1e80ebf89",
+				"Thumbprint": "EDCDF961CDBEF36548E953C4ADBD19D7FB36824B"
+			},
+		
+		Access values during startup in Program.cs:
+			(already present, first line of file)
+			var builder = WebApplication.CreateBuilder(args);
+			
+			(add)
+			var vaultUrl = builder.Configuration.GetValue(typeof(String), "KeyVaultAccess:VaultUrl");
+			var servicePrincipleAppId = builder.Configuration.GetValue(typeof(String), "KeyVaultAccess:ServicePrincipleAppId");
+			var thumbprint = builder.Configuration.GetValue(typeof(String), "KeyVaultAccess:Thumbprint");
+
+
 	
-		Add conn string to kv:
-			HistoryProjectKV -> Secrets -> Generate/Import
-				Upload options:
-					Manual
-					(default)
-				Name:
-					HistoryProject-DB-ConnStr
-				Secret value:
-					<conn str including SQL server admin username and password>
-				Content type (optional)
-				
-				Everything else default
-				
-				-> Create
-	
-	VS 2022 -> Create new project -> ASP.NET Core Web API
-		Project name:
-			HistoryProject
-		Location:
-			<wherever>
-		Solution name:
-			<same as project>
-		Place solution and project in the same directory:
-			<unchecked>
-			(default)
 		
-		-> Next
+	Open WebAPI.sln in VS and connect to DB:
 		
-		Everything else default
-		Note: Currently (9/20/2022), defaults to .NET 6.0 (Long-term support (LTS))
-		
-		-> Create
-		
-		TODO: 
-		
-		
-	Open HistoryProject.sln in VS and connect to DB:
 		
 		
 		TODO: replace with using a cert to authenticate to a key vault and then getting the secrete for the conn string
