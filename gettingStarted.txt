@@ -44,124 +44,277 @@ Tutorial:
 	React JS + .NET Core Web API + Microsoft SQL | full stack app tutorial
 	https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 
-		Not covered, but need to do: Create database in Azure and connect with SQL Server Management Studio (SSMS).
-			Josh Baugher guided me through.
-			Azure portal 
-				-> Create resource 
-				-> search for "SQL" 
-				-> select "Azure SQL" 
-				-> Create
-					"How do you plan to use the service?"
-					-> SQL databases
-						-> Resource type: Single database
-						-> Create
-							-> Basics
-								-> Resource group: <select or create new>
-								-> Database name
-									HistoryProjectSQL-DB
-									
-									-> Note: Fully qualified server name:
-										historyproject.database.windows.net
-										
-								-> Server
-									-> Create new
-										-> Server name: "historyproject" (.database.windows.net automatically appended)
-										-> Location: <default>
-										-> Authentication method:
-											-> Use both SQL and Azure AD authentication
-												-> Set Azure AD admin
-													Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
-												-> Server admin login	
-													historyprojectadmin
-												-> Password
-													TinkerTots1ForAll!
-													
-											Note (later): ADO.NET SQL connection string:
-												Server=tcp:historyproject.database.windows.net,1433;Initial Catalog=HistoryProjectSQL-DB;Persist Security Info=False;User ID=historyprojectadmin;Password={your_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
-												
-								-> Want to use SQL elastic pool?: No
-								-> Compute + storage
-									-> Configure database
-										-> Service tier: General Purpose
-										-> Compute tier: Serverless (that is, share a big VM with many others; performance not as much on demand, but much cheaper)
-										-> Hardware Configuration: Gen5
-										-> Max vCores: 2
-										-> Min vCores: 1
-										-> Auto-pause delay: 
-											-> Enable auto-pause: <checked>
-											-> Days: 0, Hours: 1, Minutes: 0
-										-> Data max size (GB): 50
-										-> Would you like to make this database zone redundant?: No
-								-> Backup storage redundancy: Locally-redundant backup storage
-							-> Networking
-								-> Allow Azure services and resources to access this server: Yes
-								-> Add current client IP address: Yes
-								-> Connection policy: Default
-							-> Security
-								-> Enable Microsoft Defender for SQL: No
-								-> Ledger
-									-> Configure ledger
-										-> Ledger
-											-> Enable for all future tables in this database: <checked>
-										--> Digest stroage
-											-> Enable automatic digest storage: <not checked>
-							-> Additional settings
-								-> Use existing data: None
-								-> Collation: <default> ("SQL_Latin1_General_CP1_CI_AS")
-								-> Maintenance window: <default> (5pm - 8am)
-							-> Review + create
-								-> Create
-			
-			<wait for resource creation to complete>
-			
-			Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)"
-				-> Overview
-					-> copy "Server name"
-			
-			Open SQL Server Management Studio (SSMS)
-				-> at login, use the "server name" copied ealier
-				-> sign in with username and password used in "Authentication method" during the SQL database creation
+	Note covered, but need to create a SQL server resource first.
 		
-		Explaining how Program.cs is different in .NET Core 6 compared to .NET Core 5:
-			.NET 6 Startup Changes - Handling Program.cs Without Startup.cs
-			https://www.youtube.com/watch?v=vdhFw1VSowg
-		
-		Crash course in Entity Framework in .NET Core 6 (no different than in prior versions that I could tell):
-			.NET 6 & EF Core 🚀 ALL Relationships (1:1, 1:n, n:n) with Entity Framework Core 6 & SQL Server
-			https://www.youtube.com/watch?v=FHx6AGVF_IE
-		
-		How to upload a single file in ASP.NET Core with the Swagger web GUI (use IFormeFile)
-			https://codeburst.io/file-upload-via-swagger-e6c21b54d036
+	Explaining how Program.cs is different in .NET Core 6 compared to .NET Core 5:
+		.NET 6 Startup Changes - Handling Program.cs Without Startup.cs
+		https://www.youtube.com/watch?v=vdhFw1VSowg
+	
+	Crash course in Entity Framework in .NET Core 6 (no different than in prior versions that I could tell):
+		.NET 6 & EF Core 🚀 ALL Relationships (1:1, 1:n, n:n) with Entity Framework Core 6 & SQL Server
+		https://www.youtube.com/watch?v=FHx6AGVF_IE
+	
+	How to upload a single file in ASP.NET Core with the Swagger web GUI (use IFormeFile)
+		https://codeburst.io/file-upload-via-swagger-e6c21b54d036
 
-		NPX command (run in PowerShell 7):
-			npx create-react-app my-app
-			Note: Prompted to install the "create-react-app" package (I said "y").
-			
-		Fixed error: "export 'Switch' (imported as 'Switch') was not found in 'react-router-dom'"
-			Syntax update in react-router-dom V6: do not use "Switch", but use "Routes" instead.
-			https://www.moreonfew.com/attempted-import-error-switch-is-not-exported-from-react-router-dom/
+	NPX command (run in PowerShell 7):
+		npx create-react-app my-app
+		Note: Prompted to install the "create-react-app" package (I said "y").
 		
-		Fixed error: <Route path="..." component={MyComponent}/> is invalid.
-			Syntax update in react-router-dom V6: do not use "component", but use "element={<MyComponent />}" instead.
-			https://stackoverflow.com/questions/69854011/matched-leaf-route-at-location-does-not-have-an-element
+	Fixed error: "export 'Switch' (imported as 'Switch') was not found in 'react-router-dom'"
+		Syntax update in react-router-dom V6: do not use "Switch", but use "Routes" instead.
+		https://www.moreonfew.com/attempted-import-error-switch-is-not-exported-from-react-router-dom/
+	
+	Fixed error: <Route path="..." component={MyComponent}/> is invalid.
+		Syntax update in react-router-dom V6: do not use "component", but use "element={<MyComponent />}" instead.
+		https://stackoverflow.com/questions/69854011/matched-leaf-route-at-location-does-not-have-an-element
 
-		Run UI on its own:
-			Command line:
-				cd <repo root>/UI/my-app
-				npm start
-			Browser:
-				http://localhost:3000/home
-				Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
+	Run UI on its own:
+		Command line:
+			cd <repo root>/UI/my-app
+			npm start
+		Browser:
+			http://localhost:3000/home
+			Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
 
 Setup summary:
-	In root directory, use VS to create a new project with template "ASP.NET Core Web App" (with .NET 6), and call it "WebAPI". 
-	Note: Do _not_ check the box to "Place solution and project in the same directory". That makes file organization a bit messy.
+	Source(s):
+		How to securely store and load secrets using Azure Key Vault in .NET Core (using a certificate)
+		https://www.youtube.com/watch?v=b21EQvfjvHc
+
+	Azure:
+		Create SQL server + SQL database in Azure:
+			??and connect with SQL Server Management Studio (SSMS).??
+			
+			Josh Baugher guided me through.
+			Create resource -> "Azure SQL" -> "How do you plan to use the service?" -> SQL databases -> Resource type: Single database -> Create
+				Basics:
+					Resource group: 
+						HistoryProject-RG
+					Database name:
+						HistoryProjectSQL-DB
+					Server:
+						Create new
+							Server name: "historyproject" (.database.windows.net automatically appended)
+							Location: (US) East US
+								Note: East US was the default for me. It may have chosen this based on IP geolocation.
+							Authentication method:
+								Use both SQL and Azure AD authentication
+									Set Azure AD admin
+									Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
+								Server admin login
+									historyprojectadmin
+								Password
+									<not stored here; check HistoryProjectKV -> Secrets -> SQLServerAdmin>
+							
+							All other options default.
+							
+							-> Apply
+					Want to use SQL elastic pool?: 
+						No
+					Compute + storage -> Configure database
+						Service tier: 
+							General Purpose
+							(default)
+						Compute tier: 
+							Serverless
+							Note: That is, share a big VM with many others. Performance is less than having a dedicated, on-demand server, but it is much cheaper, and this is useful for dev work.
+						Hardware Configuration: 
+							Gen5
+							(default)
+						Max vCores: 
+							2
+							(default)
+						Min vCores: 
+							1
+							(default)
+						Auto-pause delay: 
+							Enable auto-pause: 
+								<checked>
+								(default)
+							Days: 
+								0
+								(default)
+							Hours: 
+								1
+								(default)
+							Minutes: 
+								0
+								(default)
+						Data max size (GB): 
+							50
+						Would you like to make this database zone redundant?: 
+							No
+						
+						-> Apply
+						
+					Backup storage redundancy: 
+						Locally-redundant backup storage
+				Networking:
+					Allow Azure services and resources to access this server: 
+						Yes
+					Add current client IP address: 
+						Yes
+					Connection policy: 
+						Default
+						Note: Literally called "Default".
+				Security:
+					Enable Microsoft Defender for SQL: 
+						No
+						(default)
+					Ledger -> Configure ledger:
+						Ledger:
+							Enable for all future tables in this database: 
+								<checked>
+						Digest storage:
+							Enable automatic digest storage: 
+								<not checked>
+								(default)
+				Additional settings:
+					Use existing data: 
+						None
+						(default)
+					Collation:
+						SQL_Latin1_General_CP1_CI_AS
+						(default)
+					Maintenance window: 
+						System default (5pm - 8am)
+						(default)
+
+				-> Review + create
+			
+			Wait for resource creation to complete.
+			
+			Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)" -> Overview
+				Copy "Server name"
+					historyproject.database.windows.net
+			
+			Open SQL Server Management Studio (SSMS)
+				At login, use the "server name" copied ealier.
+				Sign in with username and password used in "Authentication method" during the SQL database creation
+					historyprojectadmin
+					<password>
 	
-	Add your computer to the access list for the SQL Server resource:
-		Azure portal -> <sql server> -> Security -> Networking -> Firewall rules -> Add your client IPv4 address (<your public IP address>).
-		Note: I set it up this way so that not just anyone can connect to it. I'm hoping that these IP addresses cannot be spoofed.
+		Create Web App
+			Create resource -> "Web App" 
+				Resource Group: 
+					HistoryProject-RG
+				Name: 
+					historyproject-webapp-eastus
+				Publish:
+					Code
+				Runtime stack:
+					.NET 6 (LTS)
+				Operating System:
+					Window
+					(default if .NET 6 (LTS) is selected as the runtime stack)
+				Region:
+					East US
+				App Service Plan:
+					(New) ASP-HistoryProjectRG-<4-character random hexidecimal>
+					(auto-created)
+				Sku and size:
+					Dev/Test -> Recommended pricing tiers -> B1
+					Note: This is $32.12/m, but we need SSL for this certificate stuff and this is the cheapest pricing tier for a web app that supports it.
+				
+				Everything else default
+				
+				-> Review + create
 		
-	Open WebAPI solution in VS and connect to DB:
+		Create app registration
+			??what does this do? it didn't even reference my "web app" VM that I just finished creating, so is this really an application??
+			
+			Azure Active Directory (AAD) -> App registrations -> New registration:
+				Name:
+					HistoryProjectWebApp
+				Supported account types:
+					"Who can use this application or access this API?"
+						"Accounts in this organizational directory only (Default Directory only - Single tenant)"
+						(default)
+				Redirect URI (optional):
+					<blank>
+					(default)
+				
+				-> Register
+				
+			Automatically taken to the service principle when complete.
+				Application (client) ID:
+					7bd8caf8-bef5-41fd-822a-6fe1e80ebf89
+				Object ID:
+					410edc80-b958-483f-b27e-ef12b82a4e40
+		
+		Create Key Vault:
+			Create resource -> "Key Vault"
+				Resource Group:
+					HistoryProject-RG
+				Name:
+					HistoryProjectKV
+				Location:
+					East US
+				
+				Everything else default
+				Note: This includes the access policy, which defaults to only putting the current user on the policy.
+				
+				-> Review + create
+		
+		Add password to kv:
+			HistoryProjectKV -> Secrets -> Generate/Import
+				Upload options:
+					Manual
+					(default)
+				Name:
+					SQLServerAdmin
+				Secret value:
+					<password from SQL server setup>
+				Content type (optional):
+					historyprojectadmin
+				
+				Everything else default
+				
+				-> Create
+	
+		Add conn string to kv:
+			HistoryProjectKV -> Secrets -> Generate/Import
+				Upload options:
+					Manual
+					(default)
+				Name:
+					HistoryProject-DB-ConnStr
+				Secret value:
+					<conn str including SQL server admin username and password>
+				Content type (optional)
+				
+				Everything else default
+				
+				-> Create
+	
+	VS 2022 -> Create new project -> ASP.NET Core Web API
+		Project name:
+			HistoryProject
+		Location:
+			<wherever>
+		Solution name:
+			<same as project>
+		Place solution and project in the same directory:
+			<unchecked>
+			(default)
+		
+		-> Next
+		
+		Everything else default
+		Note: Currently (9/20/2022), defaults to .NET 6.0 (Long-term support (LTS))
+		
+		-> Create
+		
+		TODO: 
+		
+		
+	Open HistoryProject.sln in VS and connect to DB:
+		
+		
+		TODO: replace with using a cert to authenticate to a key vault and then getting the secrete for the conn string
+		
+		
 		Open <project root>/WebAPI/appsettings.json.
 		Add:
 			"ConnectionStrings": {

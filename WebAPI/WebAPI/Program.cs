@@ -3,6 +3,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
+// ??how do I retrieve a conn string from a key vault??
+IConfigurationBuilder thing = new ConfigurationBuilder();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
