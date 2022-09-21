@@ -5,9 +5,10 @@ using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var tenantId = builder.Configuration.GetValue<String>("KeyVaultAccess:TenantId");
+var appId = builder.Configuration.GetValue<String>("KeyVaultAccess:AppId");
 var vaultUri = builder.Configuration.GetValue<String>("KeyVaultAccess:VaultUrl");
-var servicePrincipleAppId = builder.Configuration.GetValue<String>("KeyVaultAccess:ServicePrincipleAppId");
-var thumbprint = builder.Configuration.GetValue<String>("KeyVaultAccess:Thumbprint");
+var secretName = builder.Configuration.GetValue<String>("KeyVaultAccess:SecretName");
 
 //// Source:
 ////  https://learn.microsoft.com/en-us/dotnet/api/overview/azure/extensions.aspnetcore.configuration.secrets-readme
@@ -16,14 +17,30 @@ var thumbprint = builder.Configuration.GetValue<String>("KeyVaultAccess:Thumbpri
 //var config = thing.Build();
 //System.Diagnostics.Debug.WriteLine(config["HistoryProject-DB-ConnStr"]);
 
-var certificate = new X509Certificate2(@"C:\Users\coxjohn\.certs\historyProjectCert.pfx", "FabulousAllAround1!");
-var loginCredential = new ClientCertificateCredential("4ae6a2f0-4b52-495f-9829-d7a93eaaf17e", "7bd8caf8-bef5-41fd-822a-6fe1e80ebf89", certificate);
+//var certificate = new X509Certificate2(@"C:\Users\coxjohn\.certs\historyProjectCert.pfx", "FabulousAllAround1!");
+var certStore = new X509Store(StoreLocation.CurrentUser);
+certStore.Open(OpenFlags.ReadOnly);
+var certsByName = certStore.Certificates.Find(X509FindType.FindBySubjectName, "derblarglewhatever", false);
+if (certsByName.Count == 0)
+{
+    throw new Exception("no certificate available");
+}
+
+var cert = certsByName.First();
+
+var loginCredential = new ClientCertificateCredential(tenantId, appId, cert);
 var client = new SecretClient(new Uri(vaultUri), loginCredential);
-var secretName = "SecretThing";
-var secretValue = "ThingsAndSuch";
-//await client.SetSecretAsync(secretName, secretValue);
-//var secret = await client.GetSecretAsync(secretName);
-var secret = await client.GetSecretAsync("HistoryProject-DB-ConnStr");
+var response = await client.GetSecretAsync(secretName);
+var rawResponse = response.GetRawResponse();
+if (rawResponse.Status != 200)
+{
+    throw new Exception($"Could not get secret '{secretName}' from key vault. Response code: '{rawResponse.Status}', reason: '{rawResponse.ReasonPhrase}'");
+}
+
+var keyVaultSecret = response.Value;
+var dbConnStr = keyVaultSecret.Value;
+
+System.Diagnostics.Debug.WriteLine(dbConnStr);
 
 System.Diagnostics.Debug.WriteLine("things");
 

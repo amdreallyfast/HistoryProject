@@ -326,16 +326,34 @@ Setup summary:
 				openssl pkcs12 -inkey historyProjectPrivateKey.pem -in historyProjectPublicKey.pem -export -out historyProjectCert.pfx
 					Password:
 						FabulousAllAround1!
+		
+	Install cert on local PC:
+		Right-click .pfx file -> Install
+		Password:
+			<blank>
+			Note: It seems that the password here is not the same as the one set when running openssl pkcs12`.
+
+	Upload the certificate to the key vault:
+		Azure portal -> HistoryProjectKV -> Certificates -> Generate/Import
+			Method of Certificate Creation:
+				Import
+			Certificate Name:
+				HistoryProjectServicePrincipleCert
+			Upload Certificate File:
+				<browse for .pfx file>
+			Password:
+				<pfx password, created when running `openssl pkcs12`>
+			
+			-> Create
 				
 	Upload certificate to the app's service principle:
-		Azure portal -> AAD -> HistoryProjectWebApp (service principle) -> Certificates & secrets -> Certificates -> Upload certificate
-			<select public .pem>
+		Azure portal -> AAD -> App registrations -> HistoryProjectWebApp -> Certificates & secrets -> Certificates -> Upload certificate
+			Upload:
+				<browse for public .pem>
 			Description:
 				"Public key (pem)"
 			
 			-> Add
-			
-			EDCDF961CDBEF36548E953C4ADBD19D7FB36824B
 	
 	Give the app's service principle permission to get secrets from the key vault:
 		Azure portal -> HistoryProjectKV -> Access policies -> Create
@@ -346,7 +364,8 @@ Setup summary:
 			Principal:
 				HistoryProjectWebApp
 			Application (optional):
-				NA. An application was already selected as the prinicple.
+				"NA. An application was already selected as the prinicple."
+				(default; unchangeable)
 		
 		-> Review + create
 	
@@ -370,25 +389,54 @@ Setup summary:
 				
 				-> Create
 		
-		Add Azure KV extension to the solution:
-			<solution> -> WebAPI (the project) -> Dependencies (right-click) -> Manage NuGet Packages -> Browse -> "Microsoft.Extensions.Configuration.AzureKeyVault" -> Install
-			??Azure.Extensions.AspNetCore.Configuration.Secrets instead??
+		Add Azure KV extension to the solution (if not already added):
+			<solution> -> WebAPI (the project) -> Dependencies (right-click) -> Manage NuGet Packages -> Browse -> <select package> -> Install
+				Azure.Identity
+				Azure.Security.KeyVault.Secrets
 			
 		Add access values to appsettings.json:
 			"KeyVaultAccess": {
+				"TenantId": "4ae6a2f0-4b52-495f-9829-d7a93eaaf17e",
+				"AppId": "7bd8caf8-bef5-41fd-822a-6fe1e80ebf89",
 				"VaultUrl": "https://historyprojectkv.vault.azure.net/",
-				"ServicePrincipleAppId": "7bd8caf8-bef5-41fd-822a-6fe1e80ebf89",
-				"Thumbprint": "EDCDF961CDBEF36548E953C4ADBD19D7FB36824B"
+				"SecretName": "HistoryProject-DB-ConnStr"
 			},
 		
-		Access values during startup in Program.cs:
+		Get conn string from key vault and connect to database during startup in Program.cs:
 			(already present, first line of file)
 			var builder = WebApplication.CreateBuilder(args);
 			
 			(add)
-			var vaultUrl = builder.Configuration.GetValue(typeof(String), "KeyVaultAccess:VaultUrl");
-			var servicePrincipleAppId = builder.Configuration.GetValue(typeof(String), "KeyVaultAccess:ServicePrincipleAppId");
-			var thumbprint = builder.Configuration.GetValue(typeof(String), "KeyVaultAccess:Thumbprint");
+			var vaultUri = builder.Configuration.GetValue<String>("KeyVaultAccess:VaultUrl");
+			var appId = builder.Configuration.GetValue<String>("KeyVaultAccess:AppId");
+			var tenantId = builder.Configuration.GetValue<String>("KeyVaultAccess:TenantId");
+
+			var certStore = new X509Store(StoreLocation.CurrentUser);
+			certStore.Open(OpenFlags.ReadOnly);
+			var certsByName = certStore.Certificates.Find(X509FindType.FindBySubjectName, "derblarglewhatever", false);
+			if (certsByName.Count == 0)
+			{
+				throw new Exception("no certificate available");
+			}
+
+			var cert = certsByName.First();
+
+			var loginCredential = new ClientCertificateCredential(tenantId, appId, cert);
+			var client = new SecretClient(new Uri(vaultUri), loginCredential);
+			var secretName = "HistoryProject-DB-ConnStr";
+			var response = await client.GetSecretAsync(secretName);
+			var rawResponse = response.GetRawResponse();
+			if (rawResponse.Status != 200)
+			{
+				throw new Exception($"Could not get secret '{secretName}' from key vault. Response code: '{rawResponse.Status}', reason: '{rawResponse.ReasonPhrase}'");
+			}
+
+			var keyVaultSecret = response.Value;
+			var dbConnStr = keyVaultSecret.Value;
+			
+			
+
+
 
 
 	
@@ -455,3 +503,6 @@ TODO:
 	https://threejs-journey.com/#
 
 npm audit fix --force
+Windows Start menu -> Run -> "certmgr.msc"
+	Opens the cert manager for the current user
+	
