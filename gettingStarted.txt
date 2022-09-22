@@ -591,3 +591,7 @@ TODO:
 npm audit fix --force
 Windows Start menu -> Run -> "certmgr.msc"
 	Opens the cert manager for the current user
+
+9/22/2022
+	npm install -S sass
+		??for modal styles??

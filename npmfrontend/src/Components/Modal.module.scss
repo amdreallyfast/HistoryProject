@@ -1,0 +1,53 @@
+// Source:
+//  Create a Popup Modal in React (with parent and child components)
+//  https://www.youtube.com/watch?v=RcA88ABRUds
+.container {
+    position: fixed;
+    display: flex;
+    width: 100%;
+    height: 90vh;
+    top: 10vh;
+    left: 0px;
+    justify-content: center;
+    align-items: center;
+    // border: 1px solid green;
+
+    // Start invisible at 0.8 scale, but transition to visible at full scale (1) when the "active" style is toggled.
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.8);
+
+    // Note: Placing multiple cursors to edit multiple items simultaneously (alt-click).
+    //  https://stackoverflow.com/questions/30037808/multiline-editing-in-visual-studio-code
+    transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
+    &.active {
+        visibility: visible;
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .modal {
+        width: 90%;
+        height: 90%;
+        background-color: lightgrey;
+        position: relative;
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+
+            // Source:
+            //  https://icons.getbootstrap.com/icons/x-lg/
+            //  https://stackoverflow.com/questions/43845709/svg-in-background-image
+            // Note: Same result as (if I had downloaded the file to the current folder):
+            //  background-image: url("./x-lg.svg");
+            background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+    }
+}
