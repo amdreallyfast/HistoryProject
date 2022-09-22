@@ -101,7 +101,7 @@ Setup summary:
 				Resource group: 
 					HistoryProject-RG
 				Database name:
-					HistoryProjectSQL-DB
+					HistoryProjectSqlDb
 				Server:
 					Create new
 						Server name: "historyproject" (.database.windows.net automatically appended)
@@ -121,6 +121,9 @@ Setup summary:
 						-> Apply
 				Want to use SQL elastic pool?: 
 					No
+					(default)
+				Workload environment:
+					Development
 				Compute + storage -> Configure database
 					Service tier: 
 						General Purpose
@@ -373,6 +376,7 @@ Setup summary:
 	
 	Upload the certificate to the key vault:
 		Note: Do this so that you can download it to another PC and install it there when you need to use that one.
+		Also Note: After entering the password during upload, the .pfx file password does not need to be entered again when downloading to and installing on another PC.
 		
 		Azure portal -> HistoryProjectKV -> Certificates -> Generate/Import
 			Method of Certificate Creation:
@@ -429,10 +433,32 @@ Setup summary:
 				
 				-> Create
 		
-		Add Azure KV extension to the solution (if not already added):
+		Add extensions:
 			<solution> -> WebAPI (the project) -> Dependencies (right-click) -> Manage NuGet Packages -> Browse -> <select package> -> Install
 				Azure.Identity
+					Needed for:
+						ClientCertificateCredential
+					
 				Azure.Security.KeyVault.Secrets
+					Needed for:
+						SecretClient
+				
+				Microsoft.EntityFrameworkCore
+					Needed for:
+						builder.Services.AddDbContext
+						Basics of everything with EF.
+				
+				Microsoft.EntityFrameworkCore.Tools
+					Needed for:
+						Package Manager Console commands (Get-Migration, Add-Migration, etc.)
+				
+				Microsoft.EntityFrameworkCore.SqlServer
+					Needed for:
+						options.UseSqlServer
+				
+				Swashbuckle.AspNetCore
+					Needed for:
+						Additional tools for working with models when developing the ASP.NET Core backend.
 			
 		Add access values to appsettings.json:
 			"KeyVaultAccess": {
@@ -442,41 +468,61 @@ Setup summary:
 				"SecretName": "HistoryProject-DB-ConnStr"
 			},
 		
-		Get conn string from key vault and connect to database during startup in Program.cs:
-			(already present, first line of file)
-			var builder = WebApplication.CreateBuilder(args);
+		Add DbContext class:
+			Right-click WebAPI project -> Add -> New Folder -> "Models"
+			Add new class to Models folder.
+				using Microsoft.EntityFrameworkCore;
+
+				namespace WebAPI.Models
+				{
+					public class HistoryProjectDbContext : DbContext
+					{
+						public HistoryProjectDbContext(DbContextOptions<HistoryProjectDbContext> options) : base(options)
+						{
+
+						}
+
+						//public DbSet<MyTable> MyTable { get; set; }
+					}
+				}
+		
+		Get conn string from key vault and connect to database during startup.
+			Program.cs:
+				(already present, first line of file)
+				var builder = WebApplication.CreateBuilder(args);
+				
+				(add)
+				var vaultUri = builder.Configuration.GetValue<String>("KeyVaultAccess:VaultUrl");
+				var appId = builder.Configuration.GetValue<String>("KeyVaultAccess:AppId");
+				var tenantId = builder.Configuration.GetValue<String>("KeyVaultAccess:TenantId");
+
+				var certStore = new X509Store(StoreLocation.CurrentUser);
+				certStore.Open(OpenFlags.ReadOnly);
+				var certsByName = certStore.Certificates.Find(X509FindType.FindBySubjectName, "derblarglewhatever", false);
+				if (certsByName.Count == 0)
+				{
+					throw new Exception("no certificate available");
+				}
+
+				var cert = certsByName.First();
+
+				var loginCredential = new ClientCertificateCredential(tenantId, appId, cert);
+				var client = new SecretClient(new Uri(vaultUri), loginCredential);
+				var secretName = "HistoryProject-DB-ConnStr";
+				var response = await client.GetSecretAsync(secretName);
+				var rawResponse = response.GetRawResponse();
+				if (rawResponse.Status != 200)
+				{
+					throw new Exception($"Could not get secret '{secretName}' from key vault. Response code: '{rawResponse.Status}', reason: '{rawResponse.ReasonPhrase}'");
+				}
+
+				var keyVaultSecret = response.Value;
+				var dbConnStr = keyVaultSecret.Value;
 			
-			(add)
-			var vaultUri = builder.Configuration.GetValue<String>("KeyVaultAccess:VaultUrl");
-			var appId = builder.Configuration.GetValue<String>("KeyVaultAccess:AppId");
-			var tenantId = builder.Configuration.GetValue<String>("KeyVaultAccess:TenantId");
-
-			var certStore = new X509Store(StoreLocation.CurrentUser);
-			certStore.Open(OpenFlags.ReadOnly);
-			var certsByName = certStore.Certificates.Find(X509FindType.FindBySubjectName, "derblarglewhatever", false);
-			if (certsByName.Count == 0)
-			{
-				throw new Exception("no certificate available");
-			}
-
-			var cert = certsByName.First();
-
-			var loginCredential = new ClientCertificateCredential(tenantId, appId, cert);
-			var client = new SecretClient(new Uri(vaultUri), loginCredential);
-			var secretName = "HistoryProject-DB-ConnStr";
-			var response = await client.GetSecretAsync(secretName);
-			var rawResponse = response.GetRawResponse();
-			if (rawResponse.Status != 200)
-			{
-				throw new Exception($"Could not get secret '{secretName}' from key vault. Response code: '{rawResponse.Status}', reason: '{rawResponse.ReasonPhrase}'");
-			}
-
-			var keyVaultSecret = response.Value;
-			var dbConnStr = keyVaultSecret.Value;
-			
 			
 
 
+HistoryProjectAppRegistrationCert2ndAttempt
 
 
 	
@@ -545,4 +591,3 @@ TODO:
 npm audit fix --force
 Windows Start menu -> Run -> "certmgr.msc"
 	Opens the cert manager for the current user
-	
