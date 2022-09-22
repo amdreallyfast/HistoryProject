@@ -78,9 +78,19 @@ Tutorial:
 			Note: WebAPI _must_ be running in order for the WebAPI requests that are associated with a database to work.
 
 Setup summary:
+	Authorization flow:
+		VS ASP.NET Core program retrieves locally installed cert from cert store.
+		Program uses that cert + tenantId + appId to reach out to the AAD in my personal tenant and attempt to identify itself as the app via the cert.
+		AAD responds with authorization (or "Issuer failed" if I set it up wrong).
+		Program attempts to access the secret for the DB connection string in the key vault by (back end in Azure) using the identity of the app from earlier.
+		Azure responds with the Azure KeyVaultSecret (or "Authorization failed" if the app was not given secret "get" access to the key vault).
+
 	Source(s):
 		How to securely store and load secrets using Azure Key Vault in .NET Core (using a certificate)
 		https://www.youtube.com/watch?v=b21EQvfjvHc
+		
+		People at work: 
+			Michael Crewe, Josh Baugher, Larry Wilcher, Brian McMullen, (partially) John 
 
 	Create SQL server + SQL database in Azure:
 		??and connect with SQL Server Management Studio (SSMS).??
@@ -287,7 +297,7 @@ Setup summary:
 			
 			-> Create
 	
-	Generate certificate ??for what??
+	Generate certificate (manually)
 		Open Ubuntu (Windows subsystem for Linux)
 			If not installed:
 				Open PowerShell
@@ -333,7 +343,37 @@ Setup summary:
 			<blank>
 			Note: It seems that the password here is not the same as the one set when running openssl pkcs12`.
 
+	??ignore??
+	//Generate certificate (in key vault):
+	//	Create CA (if you don't already have one):
+	//		Azure portal -> HistoryProjectKV -> Certificates -> Certificate Authorities -> Add
+	//			Name:
+	//				<enter a name>
+	//				Ex: "MyFirstCA"
+	//			Provider:
+	//				DigiCert
+	//			Account ID:
+	//				<digicert username>
+	//			Account Password:
+	//				<digicert password>
+	//			Organization ID:
+	//				Microsoft
+	//				(organization name that I used on account creation)
+	//	
+	//	Create cert:
+	//		Azure portal -> HistoryProjectKV -> Certificates -> Generate/Import
+	//			Method of Certificate Creation:
+	//				Generate
+	//			CertificateName:
+	//				HistoryProjectAppRegistrationCert
+	//			Type of Certificate Authority (CA):
+	//				Certificate issued by an integrated CA
+	//			Certificate Authority (CA) -> "not configured" (link)
+	//				<select CA created earlier>
+	
 	Upload the certificate to the key vault:
+		Note: Do this so that you can download it to another PC and install it there when you need to use that one.
+		
 		Azure portal -> HistoryProjectKV -> Certificates -> Generate/Import
 			Method of Certificate Creation:
 				Import
@@ -346,7 +386,7 @@ Setup summary:
 			
 			-> Create
 				
-	Upload certificate to the app's service principle:
+	Upload certificate to the app registration:
 		Azure portal -> AAD -> App registrations -> HistoryProjectWebApp -> Certificates & secrets -> Certificates -> Upload certificate
 			Upload:
 				<browse for public .pem>
