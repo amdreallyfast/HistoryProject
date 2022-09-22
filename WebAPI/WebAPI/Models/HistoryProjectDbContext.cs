@@ -9,6 +9,10 @@ namespace WebAPI.Models
 
         }
 
-        //public DbSet<MyTable> MyTable { get; set; }
+        // Note: The "!" will tell the compiler, "this isn't null, trust me", but it is not a
+        // valid symbol in class member declarations, so we have to assign the member to
+        // "default" so that EF's startup flow is not interrupted, and then add the "!" to say,
+        // "this isn't null, trust me".
+        public DbSet<Event> Events { get; set; } = default!;
     }
 }
