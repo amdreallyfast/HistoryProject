@@ -4,7 +4,29 @@ import { BrowserRouter, Route, Routes, NavLink } from "react-router-dom";
 import { Home } from './Components/Home'
 import { About } from './Components/About'
 
-function App() {
+// Reference:
+//  React Cards with Props | UI Card Design with React JS
+//  https://www.youtube.com/watch?v=4KxHcbQ8GYQ
+function Card(){
+  return (
+    <div className='card'>
+      <div className='card__body'>
+        <img src=''/>
+        <h2 className='card__title'>
+          A fabulous title
+        </h2>
+        <p className='card__description'>
+          This is the card description
+        </p>
+      </div>
+      <button className='card__btn'>
+        View Recipe
+      </button>
+    </div>
+  );
+}
+
+export default function App() {
   return (
     <BrowserRouter>
       <div className="App container">
@@ -20,20 +42,19 @@ function App() {
               </NavLink>
             </li>
             <li className='nav-item- m-1'>
-              <NavLink className='btn btn-light btn-outline-primary' to='/about'>
+              {/* <NavLink className='btn btn-light btn-outline-primary' to='/about'>
                 About
-              </NavLink>
+              </NavLink> */}
+              <Card />
             </li>
           </ul>
         </nav>
 
-        <Routes>
+        {/* <Routes>
           <Route path='/home' element={<Home />} />
           <Route path='/about' element={<About />} />
-        </Routes>
+        </Routes> */}
       </div>
     </BrowserRouter>
   );
 }
-
-export default App;
