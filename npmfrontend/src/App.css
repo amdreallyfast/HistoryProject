@@ -48,6 +48,13 @@ body {
   }
 }
 
+.aboutlinktext {
+  color: blue;
+  text-decoration: underline;
+  text-decoration-color: blue;
+  cursor: pointer;
+}
+
 /* 
 Adjust content, padding, border, and margins
 https://www.digitalocean.com/community/tutorials/how-to-adjust-the-content-padding-border-and-margins-of-an-html-element-with-css
@@ -74,7 +81,7 @@ Then I added my own use of calc(...) and the border size
   position: absolute;
   left: calc(25%);
   top: calc(150px - var(--border-size));
-  width: calc(50% - var(--border-size));  
+  width: calc(50% - var(--border-size));
   height: calc(70% - var(--border-size));
   background-color: white;
   border: var(--border-size) solid green;

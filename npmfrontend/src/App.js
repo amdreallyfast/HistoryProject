@@ -56,12 +56,28 @@ export default function App() {
 
         <Home /> */}
 
-        <span onClick={toggleModalState}>
-          About<br/>
-          Modal state: '{aboutModalState.toString()}'
+        <span onClick={toggleModalState} className="aboutlinktext">
+          About (Modal state: '{aboutModalState.toString()}')
         </span>
-        <AboutModal toggle={aboutModalState} onClick={toggleModalState} />
 
+        <div>
+          <div id="search-window">
+            <Search />
+          </div>
+
+          <div id="globe-window">
+            <Globe />
+          </div>
+
+          <div id="display-entry-window">
+            <DisplayEntry />
+          </div>
+        </div>
+        <div id="timeline-window">
+          <Timeline />
+        </div>
+
+        <AboutModal toggle={aboutModalState} onClick={toggleModalState} />
       </div>
     </BrowserRouter>
   );
