@@ -1,13 +1,18 @@
-// Source:
+:root {
+    --container-width: 500px;
+    --container-height: 250px;
+    --modal-radius: 30px;
+}
+// Modified from:
 //  Create a Popup Modal in React (with parent and child components)
 //  https://www.youtube.com/watch?v=RcA88ABRUds
-.container {
+.modalcontainer {
     position: fixed;
     display: flex;
-    width: 100%;
-    height: 90vh;
-    top: 10vh;
-    left: 0px;
+    width: var(--container-width);
+    height: var(--container-height);
+    top: calc(50vh - (0.6 * var(--container-height)));
+    left: calc(50vw - (0.6 * var(--container-width)));
     justify-content: center;
     align-items: center;
     // border: 1px solid green;
@@ -30,9 +35,21 @@
         width: 90%;
         height: 90%;
         background-color: lightgrey;
+        border-radius: var(--modal-radius);
         position: relative;
 
-        .close {
+        .textblock {
+            position: absolute;
+            width: calc(85% - var(--modal-radius));
+            height: calc(90% - var(--modal-radius));
+            top: calc(0.3 * var(--modal-radius));
+            left: calc(0.9 * var(--modal-radius));
+            // background-color: blue;
+            text-align: left;
+            word-break: normal;
+        }
+
+        .closeicon {
             position: absolute;
             top: 10px;
             right: 10px;
