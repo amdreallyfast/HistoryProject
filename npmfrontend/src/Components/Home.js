@@ -1,8 +1,8 @@
 import React, { Component } from "react";
-import { Search } from './Home/Search'
-import { Globe } from './Home/Globe'
-import { DisplayEntry } from './Home/DisplayEntry'
-import { Timeline } from './Home/Timeline'
+import { Search } from './Search'
+import { Globe } from './Globe'
+import { DisplayEntry } from './DisplayEntry'
+import { Timeline } from './Timeline'
 
 export class Home extends Component {
   constructor(props) {

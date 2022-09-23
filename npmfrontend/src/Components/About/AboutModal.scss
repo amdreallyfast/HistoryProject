@@ -15,7 +15,7 @@
     left: calc(50vw - (0.6 * var(--container-width)));
     justify-content: center;
     align-items: center;
-    // border: 1px solid green;
+    border: 1px solid green;
 
     // Start invisible at 0.8 scale, but transition to visible at full scale (1) when the "active" style is toggled.
     visibility: hidden;
@@ -44,7 +44,7 @@
             height: calc(90% - var(--modal-radius));
             top: calc(0.3 * var(--modal-radius));
             left: calc(0.9 * var(--modal-radius));
-            // background-color: blue;
+            background-color: blue;
             text-align: left;
             word-break: normal;
         }

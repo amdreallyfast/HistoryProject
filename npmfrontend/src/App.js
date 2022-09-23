@@ -1,9 +1,12 @@
 import './App.css';
 import React from 'react'
 import { BrowserRouter, Route, Routes, NavLink } from "react-router-dom";
-import { Home } from './Components/Home'
-import { About } from './Components/About'
-import Modal from './Components/Modal';
+import AboutModal from './Components/About/AboutModal';
+import { Search } from './Components/Search'
+import { Globe } from './Components/Globe'
+import { DisplayEntry } from './Components/DisplayEntry'
+import { Timeline } from './Components/Timeline'
+import { Home } from './Components/Home';
 
 // Reference:
 //  React Cards with Props | UI Card Design with React JS
@@ -28,10 +31,10 @@ function Card() {
 }
 
 export default function App() {
-  const [modalState, setModalState] = React.useState(false)
+  const [aboutModalState, setModalState] = React.useState(false)
 
   function toggleModalState() {
-    setModalState(!modalState)
+    setModalState(!aboutModalState)
   }
 
   return (
@@ -54,10 +57,29 @@ export default function App() {
         <Home /> */}
 
         <span onClick={toggleModalState}>
-          About
-          Modal state: '{modalState.toString()}'
+          About<br/>
+          Modal state: '{aboutModalState.toString()}'
         </span>
-        <Modal toggle={modalState} onClickAction={toggleModalState} />
+
+        {/* Main render area */}
+        {/* <div>
+          <div id="search-window">
+            <Search />
+          </div>
+
+          <div id="globe-window">
+            <Globe />
+          </div>
+
+          <div id="display-entry-window">
+            <DisplayEntry />
+          </div>
+        </div>
+        <div id="timeline-window">
+          <Timeline />
+        </div> */}
+
+        <AboutModal toggle={aboutModalState} onClick={toggleModalState} />
 
       </div>
     </BrowserRouter>
