@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react'
 import { BrowserRouter, Route, Routes, NavLink } from "react-router-dom";
-import AboutModal from './Components/Modal';
+import AboutModal from './Components/About/AboutModal';
 import { Search } from './Components/Search'
 import { Globe } from './Components/Globe'
 import { DisplayEntry } from './Components/DisplayEntry'
