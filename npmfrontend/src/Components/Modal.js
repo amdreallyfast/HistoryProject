@@ -1,4 +1,4 @@
-import styles from "./AboutModal.scss"
+import styles from "./Modal.module.scss"
 
 export default function AboutModal(props) {
     const modalState = props.toggle
