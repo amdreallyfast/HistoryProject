@@ -5,8 +5,11 @@ export default function AboutModal(props) {
     const onClick = props.onClick
 
     return (
+        // Note: The ".active" style will be interpretted according to the hierarchy that it 
+        // lands in. This means that the "backgroundoverlay" gets its embedded ".active", and the 
+        // "modalcontainer" get its embedded ".active". Cool.
         <div className={`${styles.backgroundoverlay} ${modalState ? styles.active : ''}`} onClick={onClick}>
-            <div className={`${styles.modalcontainer}`}>
+            <div className={`${styles.modalcontainer} ${modalState ? styles.active : ''}`}>
                 <div className={styles.modal}>
                     <div className={styles.textblock}>
                         <p><b>History of the World</b></p>

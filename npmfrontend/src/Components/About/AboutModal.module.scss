@@ -1,81 +1,90 @@
 :root {
-    --container-width: 500px;
-    --container-height: 250px;
-    --modal-radius: 30px;
+  --container-width: 500px;
+  --container-height: 250px;
+  --modal-radius: 30px;
 }
 
 // Modified from:
 //  Create a Popup Modal in React (with parent and child components)
 //  https://www.youtube.com/watch?v=RcA88ABRUds
 .backgroundoverlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgb(223, 223, 223);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(223, 223, 223, 0);
 
-    // Start invisible at 0.8 scale, but transition to visible at full scale (1) when the "active" style is toggled.
-    visibility: hidden;
+  // Start invisible at 0.8 scale, but transition to visible at full scale (1) when the "active" style is toggled.
+  visibility: hidden;
+  // opacity: 0;
+  transform: scale(0.8);
+
+  // Note: Placing multiple cursors to edit multiple items simultaneously (alt-click).
+  //  https://stackoverflow.com/questions/30037808/multiline-editing-in-visual-studio-code
+  transition: opacity 0.5s, visibility 0.5s, transform 0.5s,
+    background-color 0.5s;
+
+  &.active {
+    visibility: visible;
+    // opacity: 0.75;
+    background-color: rgba(223, 223, 223, 0.75);
+    transform: scale(1);
+  }
+
+  .modalcontainer {
+    position: fixed;
+    display: flex;
+    width: var(--container-width);
+    height: var(--container-height);
+    top: calc(50vh - (0.6 * var(--container-height)));
+    left: calc(50vw - (0.6 * var(--container-width)));
+    justify-content: center;
+    align-items: center;
+    // border: 1px solid green;
+
     opacity: 0;
-    transform: scale(0.8);
-
-    // Note: Placing multiple cursors to edit multiple items simultaneously (alt-click).
-    //  https://stackoverflow.com/questions/30037808/multiline-editing-in-visual-studio-code
-    transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
-
+    transition: opacity 0.5s;
     &.active {
-        visibility: visible;
-        opacity: 0.75;
-        transform: scale(1);
+      opacity: 1;
     }
 
-    .modalcontainer {
-        position: fixed;
-        display: flex;
-        width: var(--container-width);
-        height: var(--container-height);
-        top: calc(50vh - (0.6 * var(--container-height)));
-        left: calc(50vw - (0.6 * var(--container-width)));
-        justify-content: center;
-        align-items: center;
-        // border: 1px solid green;
+    .modal {
+      width: 90%;
+      height: 90%;
+      background-color: rgb(175, 175, 175);
+      opacity: 1;
+      border-radius: var(--modal-radius);
+      position: relative;
 
-        .modal {
-            width: 90%;
-            height: 90%;
-            background-color: rgb(175, 175, 175);
-            border-radius: var(--modal-radius);
-            position: relative;
+      .textblock {
+        position: absolute;
+        width: calc(85% - var(--modal-radius));
+        height: calc(90% - var(--modal-radius));
+        top: calc(0.3 * var(--modal-radius));
+        left: calc(0.9 * var(--modal-radius));
+        // background-color: blue;
+        text-align: left;
+        word-break: normal;
+      }
 
-            .textblock {
-                position: absolute;
-                width: calc(85% - var(--modal-radius));
-                height: calc(90% - var(--modal-radius));
-                top: calc(0.3 * var(--modal-radius));
-                left: calc(0.9 * var(--modal-radius));
-                // background-color: blue;
-                text-align: left;
-                word-break: normal;
-            }
+      .closeicon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
 
-            .closeicon {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-
-                // Source:
-                //  https://icons.getbootstrap.com/icons/x-lg/
-                //  https://stackoverflow.com/questions/43845709/svg-in-background-image
-                // Note: Same result as (if I had downloaded the file to the current folder):
-                //  background-image: url("./x-lg.svg");
-                background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>');
-                background-size: contain;
-                background-repeat: no-repeat;
-                width: 30px;
-                height: 30px;
-                cursor: pointer;
-            }
-        }
+        // Source:
+        //  https://icons.getbootstrap.com/icons/x-lg/
+        //  https://stackoverflow.com/questions/43845709/svg-in-background-image
+        // Note: Same result as (if I had downloaded the file to the current folder):
+        //  background-image: url("./x-lg.svg");
+        background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>');
+        background-size: contain;
+        background-repeat: no-repeat;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+      }
     }
+  }
 }
