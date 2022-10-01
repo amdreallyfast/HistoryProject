@@ -2,6 +2,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Newtonsoft.Json.Serialization;
 using System.Security.Cryptography.X509Certificates;
 using WebAPI.Models;
 
@@ -34,89 +35,53 @@ if (rawResponse.Status != 200)
 var keyVaultSecret = response.Value;
 var dbConnStr = keyVaultSecret.Value;
 
-//// Add services to the container.
-//builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
-//{
-//    options.UseSqlServer(dbConnStr);
-//});
-
-//builder.Services.AddRazorPages();
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-//var app = builder.Build();
-
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//    //app.UseExceptionHandler("/Error");
-//    //// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-//    //app.UseHsts();
-//}
-
-//app.UseHttpsRedirection();
-//app.UseStaticFiles();
-
-//app.UseRouting();
-
-//app.UseAuthorization();
-
-//app.MapRazorPages();
-
-//app.Run();
-
 // Add services to the container.
-// Entity Framework
 builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString(dbConnStr));
+    options.UseSqlServer(dbConnStr);
 });
 
-//// Enable CORS
-//builder.Services.AddCors(corsOptions =>
-//{
-//    corsOptions.AddPolicy(name: "AllowOrigin", policy =>
-//    {
-//        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-//    });
-//});
+// Enable CORS
+builder.Services.AddCors(corsOptions =>
+{
+    corsOptions.AddPolicy(name: "AllowOrigin", policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
 
-//// JSON Serializer
-//builder.Services.AddControllersWithViews()
-//    .AddNewtonsoftJson(jsonOptions => jsonOptions.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
-//    .AddNewtonsoftJson(jsonOptions => jsonOptions.SerializerSettings.ContractResolver = new DefaultContractResolver());
+// JSON Serializer
+builder.Services.AddControllersWithViews()
+    .AddNewtonsoftJson(jsonOptions => jsonOptions.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
+    .AddNewtonsoftJson(jsonOptions => jsonOptions.SerializerSettings.ContractResolver = new DefaultContractResolver());
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-//app.UseCors(corsPolicyBuilder =>
-//{
-//    corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-//});
+app.UseCors(corsPolicyBuilder =>
+{
+    corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    //app.UseExceptionHandler("/Error");
+    //// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    //app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseStaticFiles();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), "Photos")),
-    RequestPath = "/Photos"
-});
+app.UseRouting();
+
+app.MapRazorPages();
 
 app.Run();
