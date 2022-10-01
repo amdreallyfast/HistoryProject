@@ -546,9 +546,12 @@ HistoryProjectAppRegistrationCert2ndAttempt
 		??stuff about setting up connection for Entity Framework so that I can use the Package Manager Console??
 	
 	In root directory, open a terminal and run these:
-		First time prerequisites:
-			npm install -S create-react-app
-			npx create-react-app my-app
+		Create project:
+			npx create-react-app npmfrontend
+		
+		On future machines:
+			cd <project root>\npmfrontend
+			npm install
 	
 Quick start:
 	Note: WebAPI executable _must_ be running in order for the WebAPI requests that are associated with a database to work.
