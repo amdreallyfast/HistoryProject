@@ -6,7 +6,6 @@ import { Search } from './Components/Search'
 import { Globe } from './Components/Globe'
 import { DisplayEntry } from './Components/DisplayEntry'
 import { Timeline } from './Components/Timeline'
-import { Home } from './Components/Home';
 
 export default function App() {
   const [aboutModalState, setModalState] = React.useState(false)
