@@ -6,7 +6,7 @@ export class Search extends Component {
     super(props);
 
     this.state = {
-      searchTerm: "", // required )??how??)
+      searchTerm: "", // required (??how??)
       fromDate: "", // default "beginning of time"
       toDate: ""    // default "end of time"
     }

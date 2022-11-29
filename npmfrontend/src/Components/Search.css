@@ -1,6 +1,7 @@
 :root {
   --border-size: 2px;
   --margin-size: 5px;
+  --padding-size: 5px;
 }
 
 #main-container {
@@ -19,12 +20,13 @@
   left: 0px;
   height: 25%;
   width: 100%;
-  /* background-color: brown; */
+  background-color: brown;
 }
 
 .search-text-container {
   margin: var(--margin-size);
-  background-color: brown;
+  /* padding: var(--padding-size); */
+  background-color: yellow;
 }
 
 .search-text-box {
@@ -34,7 +36,7 @@
 .search-date-container {
   margin: var(--margin-size);
   width: 70%;
-  background-color: brown;
+  background-color: yellow;
 }
 
 .search-date-span {

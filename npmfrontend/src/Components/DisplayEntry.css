@@ -1,0 +1,78 @@
+:root {
+  --border-size: 2px;
+  --margin-size: 5px;
+  --padding-size: 5px;
+}
+
+#main-container {
+  position: absolute;
+  margin: var(--margin-size);
+  /* padding: var(--padding-size); */
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  background-color: whitesmoke;
+}
+
+/* .display-container {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 25%;
+  width: 100%;
+  background-color: brown;
+} */
+
+.display-title-container {
+  margin: var(--margin-size);
+  /* padding: var(--padding-size); */
+  height: 5%;
+  background-color: yellow;
+}
+
+.display-title-text-box {
+  width: 90%;
+}
+
+.display-image-container {
+  margin: var(--margin-size);
+  height: 40%;
+  /* padding: var(--padding-size); */
+  background-color: yellow;
+}
+
+.display-image {
+  background-color: green;
+}
+
+.display-where-container {
+  margin: var(--margin-size);
+  /* padding: var(--padding-size); */
+  height: 5%;
+  background-color: yellow;
+}
+
+.display-when-container {
+  margin: var(--margin-size);
+  /* padding: var(--padding-size); */
+  /* position: absolute;
+  left: 0px;
+  right: 0px;
+  top: 50%;
+  bottom: 40%; */
+  height: 5%;
+  background-color: yellow;
+}
+
+.display-description-container {
+  margin: var(--margin-size);
+  /* padding: var(--padding-size); */
+  /* position: absolute;
+  left: 0px;
+  right: 0px;
+  top: 60%;
+  bottom: 0px; */
+  height: 40%;
+  background-color: yellow;
+}
