@@ -1,7 +1,7 @@
 ﻿namespace WebAPI.Models
 {
-    // TODO: Split all fields into their own models, then make the Event a place of foreign keys
-    public class Event
+    // TODO: Split all fields into their own models, then make the SingleEvent a place of foreign keys
+    public class SingleEvent
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -11,7 +11,7 @@
         public DateTime UpperTimeBoundary { get; set; } = DateTime.MinValue;
     }
 
-    public class EventDto
+    public class SingleEventDto
     {
         public int? Id { get; set; }
         public string Name { get; set; } = string.Empty;

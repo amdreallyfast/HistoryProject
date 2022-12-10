@@ -20,7 +20,7 @@ namespace WebAPI.Controllers
 
         [Route("GetById/{id}")]
         [HttpGet]
-        public async Task<ActionResult<EventDto>> Get(int id)
+        public async Task<ActionResult<SingleEventDto>> Get(int id)
         {
             var singleEvent = await dbContext.Events
                 .Where(x => x.Id == id)
@@ -31,7 +31,7 @@ namespace WebAPI.Controllers
                 return NotFound($"Unknown EventID: '{id}'");
             }
 
-            var eventDto = new EventDto
+            var singleEventDto = new SingleEventDto
             {
                 Id = singleEvent.Id,
                 Name = singleEvent.Name,
@@ -40,7 +40,7 @@ namespace WebAPI.Controllers
                 LowerTimeBoundary = singleEvent.LowerTimeBoundary,
                 UpperTimeBoundary = singleEvent.UpperTimeBoundary
             };
-            return Ok(eventDto);
+            return Ok(singleEventDto);
         }
     }
 }
