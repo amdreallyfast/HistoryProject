@@ -20,7 +20,7 @@ namespace WebAPI.Controllers
 
         [Route("GetById/{id}")]
         [HttpGet]
-        public async Task<ActionResult<Event>> Get(int id)
+        public async Task<ActionResult<EventDto>> Get(int id)
         {
             var singleEvent = await dbContext.Events
                 .Where(x => x.Id == id)
@@ -31,10 +31,11 @@ namespace WebAPI.Controllers
                 return NotFound($"Unknown EventID: '{id}'");
             }
 
-            var eventDto = new Event
+            var eventDto = new EventDto
             {
                 Id = singleEvent.Id,
                 Name = singleEvent.Name,
+                ImageFilePath = singleEvent.ImageFilePath,
                 Description = singleEvent.Description,
                 LowerTimeBoundary = singleEvent.LowerTimeBoundary,
                 UpperTimeBoundary = singleEvent.UpperTimeBoundary
