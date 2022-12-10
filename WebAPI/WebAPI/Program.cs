@@ -55,7 +55,7 @@ builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson(jsonOptions => jsonOptions.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
     .AddNewtonsoftJson(jsonOptions => jsonOptions.SerializerSettings.ContractResolver = new DefaultContractResolver());
 
-builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -80,8 +80,6 @@ app.UseAuthorization();
 
 app.UseStaticFiles();
 
-app.UseRouting();
-
-app.MapRazorPages();
+app.MapControllers();
 
 app.Run();
