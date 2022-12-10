@@ -39,7 +39,7 @@ var dbConnStr = keyVaultSecret.Value;
 // Entity Framework
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString(dbConnStr));
+    options.UseSqlServer(dbConnStr);
 });
 
 // Enable CORS
