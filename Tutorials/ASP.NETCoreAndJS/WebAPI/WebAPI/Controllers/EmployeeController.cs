@@ -67,7 +67,7 @@ namespace WebAPI.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<List<Employee>>> Create(EmployeeDto createEmployeeDto)
+        public async Task<ActionResult<Employee>> Create(EmployeeDto createEmployeeDto)
         {
             var existingDepartment = await _dataContext.Departments
                 .FirstOrDefaultAsync(x => x.Name == createEmployeeDto.DepartmentName);
