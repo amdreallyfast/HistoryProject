@@ -104,33 +104,16 @@ namespace WebAPI.Controllers
             // Take the new entry as-is.
             // Note: After much thought, I am not comfortable with trying to find duplicate entries. It is extremely unlikely that two different people are going to choose the exact same title for the exact same event.
             // TODO: Similarity search. ??maybe a machine learning search engine for similarity?? Suggest existing items and pop them up in a modal for preview prior to the user getting all the way through their creation.
-
-
-            // Check for an existing entity that is currently using that same title in the same time span.
-            // Note: There may be events that could feasibly have the same title but in different times. Ex: "Babylon sacks Jerusalem". If someone is using the same title in the same time range, then they are probably attempting a duplicate 
-            // Note: Do _not_ check the entire TitleText table. That table includes previous
-            // entries (for record keeping purposes), and if a previous entry is not in use, then
-            // I don't want it to infringe on future entries.
-            // Also Note: Using HTTP 422
-            // https://www.bennadel.com/blog/2434-http-status-codes-for-invalid-data-400-vs-422.htm
-            var existingEventWithSameTitle = await dbContext.Events
-                .Where(x => x.Title.Text == singleEventDto.Title)
-                .Where(x => x.LowerTimeBoundary <= singleEventDto.UpperTimeBoundary)
-                .Where(x => x.UpperTimeBoundary >= singleEventDto.LowerTimeBoundary)
-                .Include(x => x.Title)
-                .FirstOrDefaultAsync();
-            if (existingEventWithSameTitle != null)
+            var newTitle = new TitleText
             {
-                var existingEventWithSameTitleDto = new SingleEventDto(existingEventWithSameTitle);
-                return UnprocessableEntity(existingEventWithSameTitleDto);
-            }
-
-            // New title.
-            var newTitle
+                Text = singleEventDto.Title
+            };
+            //var result1 = dbContext.TitleTexts.Add(newTitle);
+            //var result2 = await dbContext.SaveChangesAsync();
 
             var newSingleEvent = new SingleEvent
             {
-                Title = singleEventDto.Title,
+                Title = newTitle,
                 ImageFilePath = singleEventDto.ImageFilePath,
                 Description = singleEventDto.Description,
                 LowerTimeBoundary = singleEventDto.LowerTimeBoundary,
@@ -155,11 +138,11 @@ namespace WebAPI.Controllers
 
             // TODO: check foreign keys
 
-            existing.Title = singleEventDto.Title;
-            existing.ImageFilePath = singleEventDto.ImageFilePath;
-            existing.Description = singleEventDto.Description;
-            existing.LowerTimeBoundary = singleEventDto.LowerTimeBoundary;
-            existing.UpperTimeBoundary = singleEventDto.UpperTimeBoundary;
+            //existing.Title = singleEventDto.Title;
+            //existing.ImageFilePath = singleEventDto.ImageFilePath;
+            //existing.Description = singleEventDto.Description;
+            //existing.LowerTimeBoundary = singleEventDto.LowerTimeBoundary;
+            //existing.UpperTimeBoundary = singleEventDto.UpperTimeBoundary;
             await dbContext.SaveChangesAsync();
             return Ok(singleEventDto);
         }
