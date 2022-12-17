@@ -7,7 +7,8 @@ namespace WebAPI.Models
     {
         [Key]
         public Guid Id { get; set; }
-        public string Title { get; set; } = string.Empty;
+        public TitleText Title { get; set; }
+        //public string Title { get; set; } = string.Empty;
         public string ImageFilePath { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public DateTime LowerTimeBoundary { get; set; } = DateTime.Now;
@@ -22,5 +23,15 @@ namespace WebAPI.Models
         public string Description { get; set; } = string.Empty;
         public DateTime LowerTimeBoundary { get; set; } = DateTime.Now;
         public DateTime UpperTimeBoundary { get; set; } = DateTime.MinValue;
+
+        public SingleEventDto(SingleEvent singleEvent)
+        {
+            Id = singleEvent.Id;
+            Title = singleEvent.Title.Text;
+            ImageFilePath = singleEvent.ImageFilePath;
+            Description = singleEvent.Description;
+            LowerTimeBoundary = singleEvent.LowerTimeBoundary;
+            UpperTimeBoundary = singleEvent.UpperTimeBoundary;
+        }
     }
 }
