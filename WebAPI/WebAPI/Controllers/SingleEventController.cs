@@ -81,26 +81,6 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<SingleEventDto>> Create(SingleEventDto singleEventDto)
         {
-            // TODO: look up FK items
-
-            // TODO: ??forbid entries with the same title??
-            //var existingEvent = dbContext.Events
-            //    .Where(x => x.Title == singleEventDto.Title)
-            //    .Where(x => x.ImageFilePath == singleEventDto.ImageFilePath)
-            //    .Where(x => x.Description == singleEventDto.Description)
-
-            //if (existingEvent != null)
-            //{
-            //    return BadRequest("Already have an event with the same title.");
-            //}
-
-            //existingEvent = dbContext.Events.Where(x => x.Description == singleEventDto.Description);
-            //if (existingEvent != null)
-            //{
-            //    return BadRequest($"Event already exists with the exact same description")
-            //}
-
-
             // Take the new entry as-is.
             // Note: After much thought, I am not comfortable with trying to find duplicate entries. It is extremely unlikely that two different people are going to choose the exact same title for the exact same event.
             // TODO: Similarity search. ??maybe a machine learning search engine for similarity?? Suggest existing items and pop them up in a modal for preview prior to the user getting all the way through their creation.
@@ -108,8 +88,6 @@ namespace WebAPI.Controllers
             {
                 Text = singleEventDto.Title
             };
-            //var result1 = dbContext.TitleTexts.Add(newTitle);
-            //var result2 = await dbContext.SaveChangesAsync();
 
             var newSingleEvent = new SingleEvent
             {

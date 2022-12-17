@@ -10,7 +10,6 @@ namespace WebAPI.Models
 
         [Required]
         public TitleText Title { get; set; } = new TitleText();
-        //public string Title { get; set; } = string.Empty;
 
         public string ImageFilePath { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
