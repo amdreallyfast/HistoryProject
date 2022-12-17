@@ -12,8 +12,8 @@ using WebAPI.Models;
 namespace WebAPI.Migrations
 {
     [DbContext(typeof(HistoryProjectDbContext))]
-    [Migration("20221217135009_FirstMigration_20221217")]
-    partial class FirstMigration_20221217
+    [Migration("20221217171856_Initial_20221217")]
+    partial class Initial_20221217
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -41,16 +41,46 @@ namespace WebAPI.Migrations
                     b.Property<DateTime>("LowerTimeBoundary")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("TitleId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("UpperTimeBoundary")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TitleId");
+
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.TitleText", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("Previous")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TitleTexts");
+                });
+
+            modelBuilder.Entity("WebAPI.Models.SingleEvent", b =>
+                {
+                    b.HasOne("WebAPI.Models.TitleText", "Title")
+                        .WithMany()
+                        .HasForeignKey("TitleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Title");
                 });
 #pragma warning restore 612, 618
         }
