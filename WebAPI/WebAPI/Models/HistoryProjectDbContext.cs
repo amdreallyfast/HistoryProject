@@ -14,5 +14,10 @@ namespace WebAPI.Models
         // "default" so that EF's startup flow is not interrupted, and then add the "!" to say,
         // "this isn't null, trust me".
         public DbSet<SingleEvent> Events { get; set; } = default!;
+        
+        //protected override void OnModelCreating(ModelBuilder modelBuilder)
+        //{
+
+        //}
     }
 }

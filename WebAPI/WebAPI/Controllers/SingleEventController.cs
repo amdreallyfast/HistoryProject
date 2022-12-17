@@ -43,6 +43,29 @@ namespace WebAPI.Controllers
             return Ok(singleEventDto);
         }
 
+        [Route("GetAll")]
+        [HttpGet]
+        public async Task<ActionResult<List<SingleEventDto>>> GetAll()
+        {
+            var singleEvents = await dbContext.Events
+                .ToListAsync();
+
+            var singleEventDtos = new List<SingleEventDto>();
+            foreach (SingleEvent singleEvent in singleEvents)
+            {
+                singleEventDtos.Add(new SingleEventDto
+                {
+                    Id = singleEvent.Id,
+                    Title = singleEvent.Title,
+                    ImageFilePath = singleEvent.ImageFilePath,
+                    Description = singleEvent.Description,
+                    LowerTimeBoundary = singleEvent.LowerTimeBoundary,
+                    UpperTimeBoundary = singleEvent.UpperTimeBoundary
+                });
+            }
+            return Ok(singleEventDtos);
+        }
+
         [Route("Create")]
         [HttpPost]
         public async Task<ActionResult<SingleEventDto>> Create(SingleEventDto singleEventDto)
