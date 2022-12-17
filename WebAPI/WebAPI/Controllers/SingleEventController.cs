@@ -91,7 +91,6 @@ namespace WebAPI.Controllers
 
             var newSingleEvent = new SingleEvent
             {
-                Id = Guid.NewGuid(),
                 Title = singleEventDto.Title,
                 ImageFilePath = singleEventDto.ImageFilePath,
                 Description = singleEventDto.Description,
