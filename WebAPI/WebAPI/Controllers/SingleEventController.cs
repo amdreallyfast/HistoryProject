@@ -18,7 +18,7 @@ namespace WebAPI.Controllers
             this.webHostEnvironment = webHostEnvironment;
         }
 
-        [Route("GetById/{id}")]
+        [Route("Get/{id}")]
         [HttpGet]
         public async Task<ActionResult<SingleEventDto>> Get(Guid id)
         {
@@ -121,21 +121,20 @@ namespace WebAPI.Controllers
             existing.Description = singleEventDto.Description;
             existing.LowerTimeBoundary = singleEventDto.LowerTimeBoundary;
             existing.UpperTimeBoundary = singleEventDto.UpperTimeBoundary;
-            dbContext.Events.Add(existing);
             await dbContext.SaveChangesAsync();
             return Ok(singleEventDto);
         }
 
         [Route("Delete/{id}")]
         [HttpDelete]
-        public async Task<ActionResult> Delete(SingleEventDto singleEventDto)
+        public async Task<ActionResult> Delete(Guid id)
         {
             var existing = await dbContext.Events
-                .Where(x => x.Id == singleEventDto.Id)
+                .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
             if (existing == null)
             {
-                return NotFound($"Unknown event ID: '{singleEventDto.Id}'");
+                return NotFound($"Unknown event ID: '{id}'");
             }
 
             dbContext.Events.Remove(existing);
