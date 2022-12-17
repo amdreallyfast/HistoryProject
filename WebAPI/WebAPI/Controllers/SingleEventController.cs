@@ -108,19 +108,27 @@ namespace WebAPI.Controllers
         {
             var existing = await dbContext.Events
                 .Where(x => x.Id == singleEventDto.Id)
+                .Include(x => x.Title)
                 .FirstOrDefaultAsync();
             if (existing == null)
             {
                 return NotFound($"Unknown event ID: '{singleEventDto.Id}'");
             }
 
-            // TODO: check foreign keys
+            if (existing.Title.Text != singleEventDto.Title)
+            {
+                var newTitle = new TitleText
+                {
+                    Text = singleEventDto.Title,
+                    Previous = existing.Title.Id
+                };
+                existing.Title = newTitle;
+            }
 
-            //existing.Title = singleEventDto.Title;
-            //existing.ImageFilePath = singleEventDto.ImageFilePath;
-            //existing.Description = singleEventDto.Description;
-            //existing.LowerTimeBoundary = singleEventDto.LowerTimeBoundary;
-            //existing.UpperTimeBoundary = singleEventDto.UpperTimeBoundary;
+            existing.ImageFilePath = singleEventDto.ImageFilePath;
+            existing.Description = singleEventDto.Description;
+            existing.LowerTimeBoundary = singleEventDto.LowerTimeBoundary;
+            existing.UpperTimeBoundary = singleEventDto.UpperTimeBoundary;
             await dbContext.SaveChangesAsync();
             return Ok(singleEventDto);
         }
