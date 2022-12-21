@@ -11,6 +11,7 @@ namespace WebAPI.Controllers
     {
         private readonly HistoryProjectDbContext dbContext;
         private readonly IWebHostEnvironment webHostEnvironment;
+        private string uploadedFilePath;
 
         public EventController(HistoryProjectDbContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
@@ -157,9 +158,52 @@ namespace WebAPI.Controllers
                 return NotFound($"Unknown event ID: '{revisionId}'");
             }
 
+            // Check if anyone _else_ is using the image.
+            var eventsUsingImage = await dbContext.Events
+                .Where(x => x.RevisionId != existing.RevisionId)
+                .Where(x => x.ImageFilePath == existing.ImageFilePath)
+                .FirstOrDefaultAsync();
+            if (eventsUsingImage == null)
+            {
+                // No one else using it. Remove the associated image.
+                System.IO.File.Delete(existing.ImageFilePath);
+            }
+
             dbContext.Events.Remove(existing);
             await dbContext.SaveChangesAsync();
             return Ok("Delete successful");
+        }
+
+        [Route("SaveFile")]
+        [HttpPost]
+        public async Task<ActionResult<string>> SaveFile(IFormFile formFile)
+        {
+            try
+            {
+                var newFilePath = Path.Combine(webHostEnvironment.ContentRootPath, "Photos", formFile.FileName);
+                Console.WriteLine($"newFilePath: '{newFilePath}'");
+                using (var stream = new FileStream(newFilePath, FileMode.Create))
+                {
+                    await formFile.CopyToAsync(stream);
+                }
+
+                // Delete the already-existing file so that we don't end up with a pile of unused files.
+                if (!string.IsNullOrEmpty(uploadedFilePath))
+                {
+                    System.IO.File.Delete(uploadedFilePath);
+                }
+
+                uploadedFilePath = newFilePath;
+
+                // Return the filename only, not the full path. The client-side API is configured
+                // to know that "/Photos/<filename>" is enough to retrieve the image. It doesn't
+                // need to know anything about the rest of the server's file structure.
+                return new JsonResult(formFile.FileName);
+            }
+            catch (Exception ex)
+            {
+                return ex.ToString();
+            }
         }
     }
 }
