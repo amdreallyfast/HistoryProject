@@ -139,6 +139,11 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<string>> SaveFile(IFormFile file)
         {
+
+
+            // TODO: record file path, and delete existing file first before saving the new upload
+
+
             try
             {
                 var newFilePath = Path.Combine(_webHostEnvironment.ContentRootPath, "Photos", file.FileName);
@@ -148,7 +153,9 @@ namespace WebAPI.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                // Return the filename only, not the full path. The client-side API is configured to know that "/Photos/<filename>" is enough to retrieve the image. It doesn't need to know anything about the file structure.
+                // Return the filename only, not the full path. The client-side API is configured
+                // to know that "/Photos/<filename>" is enough to retrieve the image. It doesn't
+                // need to know anything about the file structure.
                 return new JsonResult(file.FileName);
             }
             catch (Exception ex)
