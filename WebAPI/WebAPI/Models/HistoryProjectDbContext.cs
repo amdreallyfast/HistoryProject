@@ -14,7 +14,11 @@ namespace WebAPI.Models
         // "this isn't null, trust me".
         public DbSet<SingleEvent> Events { get; set; } = default!;
 
-        public DbSet<TitleText> TitleTexts { get; set; } = default!;
+        public DbSet<EventTime> EventTimes { get; set; } = default!;
+
+        public DbSet<Region> Regions { get; set; } = default!;
+
+        public DbSet<Location> Locations { get; set; } = default!;
 
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)

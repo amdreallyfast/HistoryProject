@@ -18,37 +18,30 @@ namespace WebAPI.Controllers
             this.webHostEnvironment = webHostEnvironment;
         }
 
-        [Route("Get/{id}")]
+        [Route("Get/{revisionId}")]
         [HttpGet]
-        public async Task<ActionResult<SingleEventDto>> Get(Guid id)
+        public async Task<ActionResult<SingleEventDto>> Get(Guid revisionId)
         {
             var singleEvent = await dbContext.Events
-                .Where(x => x.Id == id)
-                .Include(x=>x.Title)
-                // TODO: include all the foreign keys
+                .Where(x => x.RevisionId == revisionId)
+                .Include(x => x.LowerTimeBoundary)
+                .Include(x => x.UpperTimeBoundary)
+                .Include(x => x.Where)
                 .FirstOrDefaultAsync();
             if (singleEvent == null)
             {
-                return NotFound($"Unknown EventID: '{id}'");
+                return NotFound($"Unknown event RevisionId: '{revisionId}'");
             }
 
-            //var singleEventDto = new SingleEventDto
-            //{
-            //    Id = singleEvent.Id,
-            //    Title = singleEvent.Title,
-            //    ImageFilePath = singleEvent.ImageFilePath,
-            //    Description = singleEvent.Description,
-            //    LowerTimeBoundary = singleEvent.LowerTimeBoundary,
-            //    UpperTimeBoundary = singleEvent.UpperTimeBoundary
-            //};
             var singleEventDto = new SingleEventDto
             {
-                Id = singleEvent.Id,
-                Title = singleEvent.Title.Text,
+                RevisionId = revisionId,
+                Title = singleEvent.Title,
                 ImageFilePath = singleEvent.ImageFilePath,
-                Description = singleEvent.Description,
+                Summary = singleEvent.Summary,
                 LowerTimeBoundary = singleEvent.LowerTimeBoundary,
-                UpperTimeBoundary = singleEvent.UpperTimeBoundary
+                UpperTimeBoundary = singleEvent.UpperTimeBoundary,
+                Where = singleEvent.Where
             };
             return Ok(singleEventDto);
         }
@@ -58,7 +51,9 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<List<SingleEventDto>>> GetAll()
         {
             var singleEvents = await dbContext.Events
-                .Include(x => x.Title)
+                .Include(x => x.LowerTimeBoundary)
+                .Include(x => x.UpperTimeBoundary)
+                .Include(x => x.Where)
                 .ToListAsync();
 
             var singleEventDtos = new List<SingleEventDto>();
@@ -66,12 +61,13 @@ namespace WebAPI.Controllers
             {
                 singleEventDtos.Add(new SingleEventDto
                 {
-                    Id = singleEvent.Id,
-                    Title = singleEvent.Title.Text,
+                    RevisionId = singleEvent.RevisionId,
+                    Title = singleEvent.Title,
                     ImageFilePath = singleEvent.ImageFilePath,
-                    Description = singleEvent.Description,
+                    Summary = singleEvent.Summary,
                     LowerTimeBoundary = singleEvent.LowerTimeBoundary,
-                    UpperTimeBoundary = singleEvent.UpperTimeBoundary
+                    UpperTimeBoundary = singleEvent.UpperTimeBoundary,
+                    Where = singleEvent.Where
                 });
             }
             return Ok(singleEventDtos);
@@ -81,21 +77,32 @@ namespace WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<SingleEventDto>> Create(SingleEventDto singleEventDto)
         {
-            // Take the new entry as-is.
-            // Note: After much thought, I am not comfortable with trying to find duplicate entries. It is extremely unlikely that two different people are going to choose the exact same title for the exact same event.
-            // TODO: Similarity search. ??maybe a machine learning search engine for similarity?? Suggest existing items and pop them up in a modal for preview prior to the user getting all the way through their creation.
-            var newTitle = new TitleText
+            if (string.IsNullOrEmpty(singleEventDto.Title))
             {
-                Text = singleEventDto.Title
-            };
+                return UnprocessableEntity("Title cannot be empty");
+            }
+            else if (string.IsNullOrEmpty(singleEventDto.Summary))
+            {
+                return UnprocessableEntity("Summary cannot be empty");
+            }
+            else if (!singleEventDto.Where.Locations.Any())
+            {
+                return UnprocessableEntity("Must specify where (or approximately where)");
+            }
 
+            // Take the new entry as-is.
+            // Note: After much thought, I am not comfortable with trying to find duplicate
+            // entries. It is extremely unlikely that two different people are going to choose
+            // the exact same title for the exact same event.
+            // TODO: Similarity search. ??maybe a machine learning search engine for similarity?? Suggest existing items and pop them up in a modal for preview prior to the user getting all the way through their creation.
             var newSingleEvent = new SingleEvent
             {
-                Title = newTitle,
+                Title = singleEventDto.Title,
                 ImageFilePath = singleEventDto.ImageFilePath,
-                Description = singleEventDto.Description,
+                Summary = singleEventDto.Summary,
                 LowerTimeBoundary = singleEventDto.LowerTimeBoundary,
-                UpperTimeBoundary = singleEventDto.UpperTimeBoundary
+                UpperTimeBoundary = singleEventDto.UpperTimeBoundary,
+                Where = singleEventDto.Where,
             };
             dbContext.Events.Add(newSingleEvent);
             await dbContext.SaveChangesAsync();
@@ -107,42 +114,47 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<SingleEventDto>> Update(SingleEventDto singleEventDto)
         {
             var existing = await dbContext.Events
-                .Where(x => x.Id == singleEventDto.Id)
-                .Include(x => x.Title)
+                .Where(x => x.RevisionId == singleEventDto.RevisionId)
+                .Include(x => x.LowerTimeBoundary)
+                .Include(x => x.UpperTimeBoundary)
+                .Include(x => x.Where)
                 .FirstOrDefaultAsync();
             if (existing == null)
             {
-                return NotFound($"Unknown event ID: '{singleEventDto.Id}'");
+                return NotFound($"Cannot update unknown event: '{singleEventDto.Title} ({singleEventDto.RevisionId})'");
             }
 
-            if (existing.Title.Text != singleEventDto.Title)
+            var newEventRevision = new SingleEvent
             {
-                var newTitle = new TitleText
-                {
-                    Text = singleEventDto.Title,
-                    Previous = existing.Title.Id
-                };
-                existing.Title = newTitle;
-            }
+                // Preserve the fact that this is the same event.
+                EventId = existing.EventId,
 
-            existing.ImageFilePath = singleEventDto.ImageFilePath;
-            existing.Description = singleEventDto.Description;
-            existing.LowerTimeBoundary = singleEventDto.LowerTimeBoundary;
-            existing.UpperTimeBoundary = singleEventDto.UpperTimeBoundary;
+                Title = singleEventDto.Title,
+                ImageFilePath = singleEventDto.ImageFilePath,
+                Summary = singleEventDto.Summary,
+                LowerTimeBoundary = singleEventDto.LowerTimeBoundary,
+                UpperTimeBoundary = singleEventDto.UpperTimeBoundary,
+                Where = singleEventDto.Where,
+            };
+
+            dbContext.Events.Add(newEventRevision);
             await dbContext.SaveChangesAsync();
             return Ok(singleEventDto);
         }
 
-        [Route("Delete/{id}")]
+        [Route("Delete/{revisionId}")]
         [HttpDelete]
-        public async Task<ActionResult> Delete(Guid id)
+        public async Task<ActionResult> Delete(Guid revisionId)
         {
             var existing = await dbContext.Events
-                .Where(x => x.Id == id)
+                .Where(x => x.RevisionId == revisionId)
+                .Include(x => x.LowerTimeBoundary)
+                .Include(x => x.UpperTimeBoundary)
+                .Include(x => x.Where)
                 .FirstOrDefaultAsync();
             if (existing == null)
             {
-                return NotFound($"Unknown event ID: '{id}'");
+                return NotFound($"Unknown event ID: '{revisionId}'");
             }
 
             dbContext.Events.Remove(existing);

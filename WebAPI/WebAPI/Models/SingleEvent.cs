@@ -1,8 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+
+
+
+// (done) TODO: get SingleEventDto compiling
+// (done) TODO: get Create method compiling
+// (done) TODO: get Get methods compiling
+// (done) TODO: get Update method compiling
+// (done) TODO: get Delete method compiling
+// TODO: implement equals, operator overrides, and GetHashCode for all classes
+// TODO: create database
+//      in initial migration, insert "null" items (that is, all zeros/empty strings
+// 1.Report errors during creation
+// 2. Create
+// 3. Get
+// 4. Change "when" display based 
+// 5. Add question-mark-hover-text above "where" section to explain what it does
+
+
+
+
 namespace WebAPI.Models
 {
-    // TODO: Split all fields into their own models, then make the SingleEvent a place of foreign keys
     public class SingleEvent
     {
         // Represents a single revision of an event.
@@ -27,8 +46,8 @@ namespace WebAPI.Models
         public string ImageFilePath { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(2056)]
-        public string Description { get; set; } = string.Empty;
+        [MaxLength(2048)]
+        public string Summary { get; set; } = string.Empty;
 
         [Required]
         public EventTime LowerTimeBoundary { get; set; } = new EventTime();
@@ -37,7 +56,25 @@ namespace WebAPI.Models
         public EventTime UpperTimeBoundary { get; set; } = new EventTime();
 
         [Required]
-        public Region Region { get; set; } = new Region();
+        public Region Where { get; set; } = new Region();
+
+
+        // TODO:
+        //  implement IEquatable
+        //      bool Equals(SingleEvent other)
+        //      override bool Equals (object other)
+        //          if (ReferenceEquals(null, other)) return false
+        //          if (ReferenceEquals(this, other)) return true
+        //          if (this.GetType() != other.GetType()) return false
+        //          else return Equals(other as SingleEvent)
+        //      override bool operator == (SingleEvent other)
+        //          return Equals(other as SingleEvent)
+        //      override bool operatoe != (SingleEvent other)
+        //          return !Equals(other as SingleEvent)
+        // TODO:
+        //  override GetHashCode()
+        // TODO:
+        //  Create HashCodeBuilder
     }
 
     // Used in place of DateTime so that it would be easier to pretty print historical dates and
@@ -87,12 +124,16 @@ namespace WebAPI.Models
 
     public class SingleEventDto
     {
-        public Guid? Id { get; set; }
+        public Guid? RevisionId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string ImageFilePath { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public DateTime LowerTimeBoundary { get; set; } = DateTime.Now;
-        public DateTime UpperTimeBoundary { get; set; } = DateTime.MinValue;
+        public string Summary { get; set; } = string.Empty;
+
+        // TODO: ??will the SingleEventDto be able to construct a new EventTime object from the JSON DTO??
+        public EventTime LowerTimeBoundary { get; set; } = new EventTime();
+
+        public EventTime UpperTimeBoundary { get; set; } = new EventTime();
+        public Region Where { get; set; } = new Region();
 
         public SingleEventDto()
         {
@@ -100,12 +141,13 @@ namespace WebAPI.Models
 
         public SingleEventDto(SingleEvent singleEvent)
         {
-            Id = singleEvent.Id;
-            Title = singleEvent.Title.Text;
+            RevisionId = singleEvent.RevisionId;
+            Title = singleEvent.Title;
             ImageFilePath = singleEvent.ImageFilePath;
-            Description = singleEvent.Description;
+            Summary = singleEvent.Summary;
             LowerTimeBoundary = singleEvent.LowerTimeBoundary;
             UpperTimeBoundary = singleEvent.UpperTimeBoundary;
+            Where = singleEvent.Where;
         }
     }
 }
