@@ -72,7 +72,7 @@ namespace WebAPI.Controllers
             {
                 return UnprocessableEntity("Summary cannot be empty");
             }
-            else if (!eventDto.Region.Any())
+            else if (!eventDto.Region.Locations.Any())
             {
                 return UnprocessableEntity("Must specify where (or approximately where)");
             }

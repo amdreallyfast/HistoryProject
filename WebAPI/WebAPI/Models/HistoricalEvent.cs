@@ -1,4 +1,5 @@
 ﻿using Microsoft.Identity.Client;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 
@@ -93,14 +94,15 @@ namespace WebAPI.Models
             //UpperTimeBoundary.Min = eventDto.UpperMin;
             TimeRange = eventDto.TimeRange;
 
-            foreach (var latLongTuple in eventDto.Region)
-            {
-                Region.Locations.Add(new EventLocation
-                {
-                    Latitude = latLongTuple.Item1,
-                    Longitude = latLongTuple.Item2,
-                });
-            }
+            //foreach (var latLongTuple in eventDto.Region)
+            //{
+            //    Region.Locations.Add(new EventLocation
+            //    {
+            //        Latitude = latLongTuple.Item1,
+            //        Longitude = latLongTuple.Item2,
+            //    });
+            //}
+            Region = eventDto.Region;
         }
 
         public HistoricalEvent CreateUpdatedFromDto(HistoricalEventDto eventDto)
@@ -154,7 +156,8 @@ namespace WebAPI.Models
 
             // If region changed, create a new entry, else preserve the existing one.
             //??possible to just use a List<Location>??
-            var regionFromDto = EventRegion.FromListOfTuples(eventDto.Region);
+            //var regionFromDto = EventRegion.FromListOfTuples(eventDto.Region);
+            var regionFromDto = new EventRegion(eventDto.Region);
             newEvent.Region = Region == regionFromDto ? Region : regionFromDto;
 
             return newEvent;
@@ -310,6 +313,26 @@ namespace WebAPI.Models
     //Console.WriteLine($"        e1.GetHashCode() == e2.GetHashCode(): '${e1.GetHashCode() == e2.GetHashCode()}'");
     //Console.WriteLine("");
 
+
+    public class RegionJsonConverter : JsonConverter<List<Tuple<double, double>>>
+    {
+        public override List<Tuple<double, double>>? ReadJson(JsonReader reader, Type objectType, List<Tuple<double, double>>? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            //"region": [{1.1, 2.2}]
+            while (reader.Read())
+            {
+                Console.WriteLine(reader.Value);
+            }
+
+            throw new NotImplementedException();
+        }
+
+        public override void WriteJson(JsonWriter writer, List<Tuple<double, double>>? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class HistoricalEventDto
     {
         public Guid RevisionId { get; set; }
@@ -336,8 +359,12 @@ namespace WebAPI.Models
         //public int? UpperMin { get; set; }
         public EventTime TimeRange { get; set; } = new EventTime();
 
-        // (Lat,Long) pairs.
-        public List<Tuple<double, double>> Region = new List<Tuple<double, double>>();
+        //// (Lat,Long) pairs.
+        //[JsonConverter(typeof(RegionJsonConverter))]
+        //public List<Tuple<double, double>> Region = new List<Tuple<double, double>>();
+        public EventRegion Region { get; set; } = new EventRegion();
+
+        public string BushWhacker { get; set; } = "yay!";
 
         public HistoricalEventDto()
         {
@@ -356,10 +383,11 @@ namespace WebAPI.Models
 
             TimeRange = historicalEvent.TimeRange;
 
-            foreach (var location in historicalEvent.Region.Locations)
-            {
-                Region.Add(new Tuple<double, double>(location.Latitude, location.Longitude));
-            }
+            //foreach (var location in historicalEvent.Region.Locations)
+            //{
+            //    Region.Add(new Tuple<double, double>(location.Latitude, location.Longitude));
+            //}
+            Region = historicalEvent.Region;
         }
     }
 }

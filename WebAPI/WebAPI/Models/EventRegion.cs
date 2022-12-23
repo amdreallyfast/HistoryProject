@@ -14,6 +14,18 @@ namespace WebAPI.Models
         {
         }
 
+        public EventRegion(EventRegion other)
+        {
+            foreach (var location in other.Locations)
+            {
+                Locations.Add(new EventLocation
+                {
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude,
+                });
+            }
+        }
+
         public static EventRegion FromListOfTuples(List<Tuple<double,double>> tuples)
         {
             var newRegion = new EventRegion();
