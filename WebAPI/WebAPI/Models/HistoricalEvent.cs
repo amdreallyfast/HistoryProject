@@ -23,7 +23,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebAPI.Models
 {
-    public class Event : IEquatable<Event>
+    public class HistoricalEvent : IEquatable<HistoricalEvent>
     {
         // Represents a single revision of an event.
         [Key]
@@ -62,12 +62,12 @@ namespace WebAPI.Models
         [Required]
         public EventRegion Region { get; set; } = new EventRegion();
 
-        public Event()
+        public HistoricalEvent()
         {
 
         }
 
-        public Event(EventDto eventDto)
+        public HistoricalEvent(HistoricalEventDto eventDto)
         {
             RevisionId = eventDto.RevisionId;
             RevisionDateTime = eventDto.RevisionDateTime;
@@ -100,11 +100,11 @@ namespace WebAPI.Models
             }
         }
 
-        public Event CreateUpdatedFromDto(EventDto eventDto)
+        public HistoricalEvent CreateUpdatedFromDto(HistoricalEventDto eventDto)
         {
             // Always preserve the EventId, which must remain constant across all revisions.
             // Everything else is subject to change.
-            var newEvent = new Event
+            var newEvent = new HistoricalEvent
             {
                 EventId = eventDto.EventId,
             };
@@ -152,7 +152,7 @@ namespace WebAPI.Models
             return newEvent;
         }
 
-        public bool Equals(Event? other)
+        public bool Equals(HistoricalEvent? other)
         {
             if (ReferenceEquals(this, other)) return true;
             if (other is null) return false;
@@ -167,10 +167,10 @@ namespace WebAPI.Models
 
             // Note: If the object type is the same, then it can be guaranteed cast to this object
             // without risk of null.
-            return Same((other as Event)!);
+            return Same((other as HistoricalEvent)!);
         }
 
-        public static bool operator ==(Event? left, Event? right)
+        public static bool operator ==(HistoricalEvent? left, HistoricalEvent? right)
         {
             if (ReferenceEquals(left, right)) return true;
             if (left is null) return false;
@@ -178,7 +178,7 @@ namespace WebAPI.Models
             return left.Same(right);
         }
 
-        public static bool operator !=(Event? left, Event? right)
+        public static bool operator !=(HistoricalEvent? left, HistoricalEvent? right)
         {
             if (ReferenceEquals(left, right)) return false;
             if (left is null) return false;
@@ -186,7 +186,7 @@ namespace WebAPI.Models
             return !left.Same(right);
         }
 
-        private bool Same(Event other)
+        private bool Same(HistoricalEvent other)
         {
             bool same = true;
             //same &= RevisionId == other.RevisionId;
@@ -300,7 +300,7 @@ namespace WebAPI.Models
     //Console.WriteLine($"        e1.GetHashCode() == e2.GetHashCode(): '${e1.GetHashCode() == e2.GetHashCode()}'");
     //Console.WriteLine("");
 
-    public class EventDto
+    public class HistoricalEventDto
     {
         public Guid RevisionId { get; set; }
         public DateTime RevisionDateTime { get; set; }
@@ -329,35 +329,35 @@ namespace WebAPI.Models
         // (Lat,Long) pairs.
         public List<Tuple<double, double>> Region = new List<Tuple<double, double>>();
 
-        public EventDto()
+        public HistoricalEventDto()
         {
         }
 
-        public EventDto(Event existingEvent)
+        public HistoricalEventDto(HistoricalEvent historicalEvent)
         {
-            RevisionId = existingEvent.RevisionId;
-            RevisionDateTime = existingEvent.RevisionDateTime;
-            RevisionAuthor = existingEvent.RevisionAuthor;
-            EventId = existingEvent.EventId;
+            RevisionId = historicalEvent.RevisionId;
+            RevisionDateTime = historicalEvent.RevisionDateTime;
+            RevisionAuthor = historicalEvent.RevisionAuthor;
+            EventId = historicalEvent.EventId;
 
-            Title = existingEvent.Title;
-            ImageFilePath = existingEvent.ImageFilePath;
-            Summary = existingEvent.Summary.Text;
+            Title = historicalEvent.Title;
+            ImageFilePath = historicalEvent.ImageFilePath;
+            Summary = historicalEvent.Summary.Text;
 
-            LowerYear = existingEvent.LowerTimeBoundary.Year;
-            LowerMonth = existingEvent.LowerTimeBoundary.Month;
-            LowerDay = existingEvent.LowerTimeBoundary.Day;
-            LowerHour = existingEvent.LowerTimeBoundary.Hour;
-            LowerMin = existingEvent.LowerTimeBoundary.Min;
+            LowerYear = historicalEvent.LowerTimeBoundary.Year;
+            LowerMonth = historicalEvent.LowerTimeBoundary.Month;
+            LowerDay = historicalEvent.LowerTimeBoundary.Day;
+            LowerHour = historicalEvent.LowerTimeBoundary.Hour;
+            LowerMin = historicalEvent.LowerTimeBoundary.Min;
 
             //UpperYear = existingEvent.UpperTimeBoundary.Year;
             //UpperMonth = existingEvent.UpperTimeBoundary.Month;
             //UpperDay = existingEvent.UpperTimeBoundary.Day;
             //UpperHour = existingEvent.UpperTimeBoundary.Hour;
             //UpperMin = existingEvent.UpperTimeBoundary.Min;
-            UpperTimeBoundary = existingEvent.UpperTimeBoundary;
+            UpperTimeBoundary = historicalEvent.UpperTimeBoundary;
 
-            foreach (var location in existingEvent.Region.Locations)
+            foreach (var location in historicalEvent.Region.Locations)
             {
                 Region.Add(new Tuple<double, double>(location.Latitude, location.Longitude));
             }

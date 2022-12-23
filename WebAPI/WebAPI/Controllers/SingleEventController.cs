@@ -21,7 +21,7 @@ namespace WebAPI.Controllers
 
         [Route("Get/{revisionId}")]
         [HttpGet]
-        public async Task<ActionResult<EventDto>> Get(Guid revisionId)
+        public async Task<ActionResult<HistoricalEventDto>> Get(Guid revisionId)
         {
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == revisionId)
@@ -35,13 +35,13 @@ namespace WebAPI.Controllers
                 return NotFound($"Unknown event RevisionId: '{revisionId}'");
             }
 
-            var eventDto = new EventDto(existingEvent);
+            var eventDto = new HistoricalEventDto(existingEvent);
             return Ok(eventDto);
         }
 
         [Route("GetAll")]
         [HttpGet]
-        public async Task<ActionResult<List<EventDto>>> GetAll()
+        public async Task<ActionResult<List<HistoricalEventDto>>> GetAll()
         {
             var existingEvents = await dbContext.Events
                 .Include(x => x.Summary)
@@ -50,17 +50,17 @@ namespace WebAPI.Controllers
                 .Include(x => x.Region)
                 .ToListAsync();
 
-            var existingEventDtos = new List<EventDto>();
-            foreach (Event existingEvent in existingEvents)
+            var existingEventDtos = new List<HistoricalEventDto>();
+            foreach (HistoricalEvent existingEvent in existingEvents)
             {
-                existingEventDtos.Add(new EventDto(existingEvent));
+                existingEventDtos.Add(new HistoricalEventDto(existingEvent));
             }
             return Ok(existingEventDtos);
         }
 
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<EventDto>> Create(EventDto eventDto)
+        public async Task<ActionResult<HistoricalEventDto>> Create(HistoricalEventDto eventDto)
         {
             if (string.IsNullOrEmpty(eventDto.Title))
             {
@@ -80,7 +80,7 @@ namespace WebAPI.Controllers
             // entries. It is extremely unlikely that two different people are going to choose
             // the exact same title for the exact same event.
             // TODO: Similarity search. ??maybe a machine learning search engine for similarity?? Suggest existing items and pop them up in a modal for preview prior to the user getting all the way through their creation.
-            var newEvent = new Event(eventDto);
+            var newEvent = new HistoricalEvent(eventDto);
             dbContext.Events.Add(newEvent);
             await dbContext.SaveChangesAsync();
             return Ok(newEvent);
@@ -88,7 +88,7 @@ namespace WebAPI.Controllers
 
         [Route("Update")]
         [HttpPut]
-        public async Task<ActionResult<EventDto>> Update(EventDto eventDto)
+        public async Task<ActionResult<HistoricalEventDto>> Update(HistoricalEventDto eventDto)
         {
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == eventDto.RevisionId)
