@@ -28,7 +28,7 @@ namespace WebAPI.Models
     {
         // Represents a single revision of an event.
         [Key]
-        public Guid RevisionId { get; set; } = Guid.NewGuid();
+        public Guid RevisionId { get; set; }
 
         [Required]
         public DateTime RevisionDateTime { get; set; } = DateTime.Now;

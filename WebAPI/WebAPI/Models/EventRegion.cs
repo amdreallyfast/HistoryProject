@@ -5,7 +5,7 @@ namespace WebAPI.Models
     public class EventRegion : IEquatable<EventRegion>
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         [Required]
         public List<EventLocation> Locations { get; set; } = new List<EventLocation>();

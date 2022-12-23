@@ -14,7 +14,7 @@ namespace WebAPI.Models
     public class EventTime : IEquatable<EventTime>
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         // Note: Leave the "BC/BCE" and "AD/CE" debate for the UI and only represent the year in
         // the DB as "+/-".

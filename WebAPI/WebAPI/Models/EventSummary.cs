@@ -5,7 +5,7 @@ namespace WebAPI.Models
     public class EventSummary : IEquatable<EventSummary>
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         [Required]
         [MaxLength(2048)]

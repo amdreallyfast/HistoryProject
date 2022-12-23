@@ -5,7 +5,7 @@ namespace WebAPI.Models
     public class EventLocation : IEquatable<EventLocation>
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         [Required]
         public double Latitude { get; set; }
