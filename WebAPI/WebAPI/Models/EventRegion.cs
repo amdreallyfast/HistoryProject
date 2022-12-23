@@ -88,15 +88,26 @@ namespace WebAPI.Models
     }
 
     // Testing
-    //var region1 = new EventRegion();
-    //region1.Locations.Add(new Location { Latitude = 1.11, Longitude = 9.99 });
-    //region1.Locations.Add(new Location { Latitude = 2.22, Longitude = 8.88 });
-    //region1.Locations.Add(new Location { Latitude = 3.33, Longitude = 7.77 });
+    //var region1 = new EventRegion
+    //{
+    //    Locations = new List<EventLocation>
+    //    {
+    //        new EventLocation { Latitude = 1.11, Longitude = 9.99 },
+    //        new EventLocation { Latitude = 2.22, Longitude = 8.88 },
+    //        new EventLocation { Latitude = 3.33, Longitude = 7.77 }
+    //    }
+    //};
 
-    //var region2 = new EventRegion();
-    //region2.Locations.Add(new Location { Latitude = 1.11, Longitude = 9.99 });
-    //region2.Locations.Add(new Location { Latitude = 2.22, Longitude = 8.88 });
-    //region2.Locations.Add(new Location { Latitude = 3.33, Longitude = 7.77 });
+    //var region2 = new EventRegion
+    //{
+    //    Id = region1.Id,
+    //    Locations = new List<EventLocation>
+    //    {
+    //        new EventLocation { Latitude = 1.11, Longitude = 9.99 },
+    //        new EventLocation { Latitude = 2.22, Longitude = 8.88 },
+    //        new EventLocation { Latitude = 3.33, Longitude = 7.77 }
+    //    }
+    //};
 
     //Console.WriteLine("Location test:");
     //var r1 = region1;
