@@ -19,11 +19,37 @@ namespace WebAPI.Models
         // Note: Leave the "BC/BCE" and "AD/CE" debate for the UI and only represent the year in
         // the DB as "+/-".
         [Required]
-        public int Year { get; set; } = -1337;
-        public int? Month { get; set; }
-        public int? Day { get; set; }
-        public int? Hour { get; set; }
-        public int? Min { get; set; }
+        public int LowerBoundYear { get; set; } = -1337;
+        public int? LowerBoundMonth { get; set; }
+        public int? LowerBoundDay { get; set; }
+        public int? LowerBoundHour { get; set; }
+        public int? LowerBoundMin { get; set; }
+
+        [Required]
+        public int UpperBoundYear { get; set; } = -1337;
+        public int? UpperBoundMonth { get; set; }
+        public int? UpperBoundDay { get; set; }
+        public int? UpperBoundHour { get; set; }
+        public int? UpperBoundMin { get; set; }
+
+        public EventTime()
+        {
+        }
+
+        public EventTime(EventTime other)
+        {
+            LowerBoundYear = other.LowerBoundYear;
+            LowerBoundMonth = other.LowerBoundMonth;
+            LowerBoundDay = other.LowerBoundDay;
+            LowerBoundHour = other.LowerBoundHour;
+            LowerBoundMin = other.LowerBoundMin;
+
+            UpperBoundYear = other.UpperBoundYear;
+            UpperBoundMonth = other.UpperBoundMonth;
+            UpperBoundDay = other.UpperBoundDay;
+            UpperBoundHour = other.UpperBoundHour;
+            UpperBoundMin = other.UpperBoundMin;
+        }
 
         public bool Equals(EventTime? other)
         {
@@ -63,18 +89,37 @@ namespace WebAPI.Models
         {
             bool same = true;
             //same &= Id == other.Id;
-            same &= Year == other.Year;
-            same &= Month == other.Month;
-            same &= Day == other.Day;
-            same &= Hour == other.Hour;
-            same &= Min == other.Min;
+
+            same &= LowerBoundYear == other.LowerBoundYear;
+            same &= LowerBoundMonth == other.LowerBoundMonth;
+            same &= LowerBoundDay == other.LowerBoundDay;
+            same &= LowerBoundHour == other.LowerBoundHour;
+            same &= LowerBoundMin == other.LowerBoundMin;
+
+            same &= UpperBoundYear == other.UpperBoundYear;
+            same &= UpperBoundMonth == other.UpperBoundMonth;
+            same &= UpperBoundDay == other.UpperBoundDay;
+            same &= UpperBoundHour == other.UpperBoundHour;
+            same &= UpperBoundMin == other.UpperBoundMin;
 
             return same;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id, Year, Month, Day, Hour, Min);
+            var hash = new HashCode();
+            hash.Add(Id);
+            hash.Add(LowerBoundYear);
+            hash.Add(LowerBoundMonth);
+            hash.Add(LowerBoundDay);
+            hash.Add(LowerBoundHour);
+            hash.Add(LowerBoundMin);
+            hash.Add(UpperBoundYear);
+            hash.Add(UpperBoundMonth);
+            hash.Add(UpperBoundDay);
+            hash.Add(UpperBoundHour);
+            hash.Add(UpperBoundMin);
+            return hash.ToHashCode();
         }
     }
 

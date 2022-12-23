@@ -16,7 +16,7 @@ namespace WebAPI.Models
 
         public DbSet<EventSummary> Summaries { get; set; } = default!;
 
-        public DbSet<EventTime> Times { get; set; } = default!;
+        public DbSet<EventTime> TimeRanges { get; set; } = default!;
 
         public DbSet<EventRegion> Regions { get; set; } = default!;
 

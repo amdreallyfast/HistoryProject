@@ -26,8 +26,9 @@ namespace WebAPI.Controllers
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == revisionId)
                 .Include(x => x.Summary)
-                .Include(x => x.LowerTimeBoundary)
-                .Include(x => x.UpperTimeBoundary)
+                //.Include(x => x.LowerTimeBoundary)
+                //.Include(x => x.UpperTimeBoundary)
+                .Include(x => x.TimeRange)
                 .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (existingEvent == null)
@@ -45,8 +46,9 @@ namespace WebAPI.Controllers
         {
             var existingEvents = await dbContext.Events
                 .Include(x => x.Summary)
-                .Include(x => x.LowerTimeBoundary)
-                .Include(x => x.UpperTimeBoundary)
+                //.Include(x => x.LowerTimeBoundary)
+                //.Include(x => x.UpperTimeBoundary)
+                .Include(x => x.TimeRange)
                 .Include(x => x.Region)
                 .ToListAsync();
 
@@ -93,8 +95,9 @@ namespace WebAPI.Controllers
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == eventDto.RevisionId)
                 .Include(x => x.Summary)
-                .Include(x => x.LowerTimeBoundary)
-                .Include(x => x.UpperTimeBoundary)
+                //.Include(x => x.LowerTimeBoundary)
+                //.Include(x => x.UpperTimeBoundary)
+                .Include(x => x.TimeRange)
                 .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (existingEvent == null)
@@ -115,8 +118,9 @@ namespace WebAPI.Controllers
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == revisionId)
                 .Include(x => x.Summary)
-                .Include(x => x.LowerTimeBoundary)
-                .Include(x => x.UpperTimeBoundary)
+                //.Include(x => x.LowerTimeBoundary)
+                //.Include(x => x.UpperTimeBoundary)
+                .Include(x => x.TimeRange)
                 .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (existingEvent == null)

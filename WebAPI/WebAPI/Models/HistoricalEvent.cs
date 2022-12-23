@@ -53,11 +53,14 @@ namespace WebAPI.Models
         [Required]
         public EventSummary Summary { get; set; } = new EventSummary();
 
-        [Required]
-        public EventTime LowerTimeBoundary { get; set; } = new EventTime();
+        //[Required]
+        //public EventTime LowerTimeBoundary { get; set; } = new EventTime();
+
+        //[Required]
+        //public EventTime UpperTimeBoundary { get; set; } = new EventTime();
 
         [Required]
-        public EventTime UpperTimeBoundary { get; set; } = new EventTime();
+        public EventTime TimeRange { get; set; } = new EventTime();
 
         [Required]
         public EventRegion Region { get; set; } = new EventRegion();
@@ -77,18 +80,18 @@ namespace WebAPI.Models
             ImageFilePath = eventDto.ImageFilePath;
             Summary.Text = eventDto.Summary;
 
-            LowerTimeBoundary.Year = eventDto.LowerYear;
-            LowerTimeBoundary.Month = eventDto.LowerMonth;
-            LowerTimeBoundary.Day = eventDto.LowerDay;
-            LowerTimeBoundary.Hour = eventDto.LowerHour;
-            LowerTimeBoundary.Min = eventDto.LowerMin;
+            //LowerTimeBoundary.Year = eventDto.LowerYear;
+            //LowerTimeBoundary.Month = eventDto.LowerMonth;
+            //LowerTimeBoundary.Day = eventDto.LowerDay;
+            //LowerTimeBoundary.Hour = eventDto.LowerHour;
+            //LowerTimeBoundary.Min = eventDto.LowerMin;
 
             //UpperTimeBoundary.Year = eventDto.UpperYear;
             //UpperTimeBoundary.Month = eventDto.UpperMonth;
             //UpperTimeBoundary.Day = eventDto.UpperDay;
             //UpperTimeBoundary.Hour = eventDto.UpperHour;
             //UpperTimeBoundary.Min = eventDto.UpperMin;
-            UpperTimeBoundary = eventDto.UpperTimeBoundary;
+            TimeRange = eventDto.TimeRange;
 
             foreach (var latLongTuple in eventDto.Region)
             {
@@ -122,30 +125,35 @@ namespace WebAPI.Models
             };
             newEvent.Summary = Summary == summaryFromDto ? Summary : summaryFromDto;
 
-            // If lower time boundary changed, create a new entry, else preserve the existing one.
-            var lowerTimeBoundaryFromDto = new EventTime
-            {
-                Year = eventDto.LowerYear,
-                Month = eventDto.LowerMonth,
-                Day = eventDto.LowerDay,
-                Hour = eventDto.LowerHour,
-                Min = eventDto.LowerMin
-            };
-            newEvent.LowerTimeBoundary = LowerTimeBoundary == lowerTimeBoundaryFromDto ? LowerTimeBoundary : lowerTimeBoundaryFromDto;
+            //// If lower time boundary changed, create a new entry, else preserve the existing one.
+            //var timeBoundaryFromDto = new EventTime
+            //{
+            //    LowerBoundYear = eventDto.LowerYear,
+            //    LowerBoundMonth = eventDto.LowerMonth,
+            //    LowerBoundDay = eventDto.LowerDay,
+            //    LowerBoundHour = eventDto.LowerHour,
+            //    LowerBoundMin = eventDto.LowerMin
+            //};
+            //newEvent.LowerTimeBoundary = LowerTimeBoundary == lowerTimeBoundaryFromDto ? LowerTimeBoundary : lowerTimeBoundaryFromDto;
 
             // If upper time boundary changed, create a new entry, else preserve the existing one.
-            //var upperTimeBoundaryFromDto = new EventTime
-            //{
-            //    Year = eventDto.UpperYear,
-            //    Month = eventDto.UpperMonth,
-            //    Day = eventDto.UpperDay,
-            //    Hour = eventDto.UpperHour,
-            //    Min = eventDto.UpperMin
-            //};
-            var upperTimeBoundaryFromDto = eventDto.UpperTimeBoundary;
-            newEvent.UpperTimeBoundary = UpperTimeBoundary == upperTimeBoundaryFromDto ? UpperTimeBoundary : upperTimeBoundaryFromDto;
+            ////var upperTimeBoundaryFromDto = new EventTime
+            ////{
+            ////    Year = eventDto.UpperYear,
+            ////    Month = eventDto.UpperMonth,
+            ////    Day = eventDto.UpperDay,
+            ////    Hour = eventDto.UpperHour,
+            ////    Min = eventDto.UpperMin
+            ////};
+            //var upperTimeBoundaryFromDto = eventDto.UpperTimeBoundary;
+            //newEvent.UpperTimeBoundary = UpperTimeBoundary == upperTimeBoundaryFromDto ? UpperTimeBoundary : upperTimeBoundaryFromDto;
+
+            // If time boundary changed, create a new entry, else preserve the existing one.
+            var timeBoundaryFromDto = new EventTime(eventDto.TimeRange);
+            newEvent.TimeRange = TimeRange == timeBoundaryFromDto ? TimeRange : timeBoundaryFromDto;
 
             // If region changed, create a new entry, else preserve the existing one.
+            //??possible to just use a List<Location>??
             var regionFromDto = EventRegion.FromListOfTuples(eventDto.Region);
             newEvent.Region = Region == regionFromDto ? Region : regionFromDto;
 
@@ -195,8 +203,9 @@ namespace WebAPI.Models
             same &= Title == other.Title;
             same &= ImageFilePath == other.ImageFilePath;
             same &= Summary == other.Summary;
-            same &= LowerTimeBoundary == other.LowerTimeBoundary;
-            same &= UpperTimeBoundary == other.UpperTimeBoundary;
+            //same &= LowerTimeBoundary == other.LowerTimeBoundary;
+            //same &= UpperTimeBoundary == other.UpperTimeBoundary;
+            same &= TimeRange == other.TimeRange;
             same &= Region == other.Region;
 
             return same;
@@ -211,8 +220,9 @@ namespace WebAPI.Models
             hash.Add(Title);
             hash.Add(ImageFilePath);
             hash.Add(Summary);
-            hash.Add(LowerTimeBoundary);
-            hash.Add(UpperTimeBoundary);
+            //hash.Add(LowerTimeBoundary);
+            //hash.Add(UpperTimeBoundary);
+            hash.Add(TimeRange);
             hash.Add(Region);
             return hash.ToHashCode();
         }
@@ -311,12 +321,12 @@ namespace WebAPI.Models
         public string ImageFilePath { get; set; } = string.Empty;
         public string Summary { get; set; } = string.Empty;
 
-        // Lower time boundary
-        public int LowerYear { get; set; } = -1337;
-        public int? LowerMonth { get; set; }
-        public int? LowerDay { get; set; }
-        public int? LowerHour { get; set; }
-        public int? LowerMin { get; set; }
+        //// Lower time boundary
+        //public int LowerYear { get; set; } = -1337;
+        //public int? LowerMonth { get; set; }
+        //public int? LowerDay { get; set; }
+        //public int? LowerHour { get; set; }
+        //public int? LowerMin { get; set; }
 
         // Upper time boundary
         //public int UpperYear { get; set; } = -1337;
@@ -324,7 +334,7 @@ namespace WebAPI.Models
         //public int? UpperDay { get; set; }
         //public int? UpperHour { get; set; }
         //public int? UpperMin { get; set; }
-        public EventTime UpperTimeBoundary { get; set; } = new EventTime();
+        public EventTime TimeRange { get; set; } = new EventTime();
 
         // (Lat,Long) pairs.
         public List<Tuple<double, double>> Region = new List<Tuple<double, double>>();
@@ -344,18 +354,7 @@ namespace WebAPI.Models
             ImageFilePath = historicalEvent.ImageFilePath;
             Summary = historicalEvent.Summary.Text;
 
-            LowerYear = historicalEvent.LowerTimeBoundary.Year;
-            LowerMonth = historicalEvent.LowerTimeBoundary.Month;
-            LowerDay = historicalEvent.LowerTimeBoundary.Day;
-            LowerHour = historicalEvent.LowerTimeBoundary.Hour;
-            LowerMin = historicalEvent.LowerTimeBoundary.Min;
-
-            //UpperYear = existingEvent.UpperTimeBoundary.Year;
-            //UpperMonth = existingEvent.UpperTimeBoundary.Month;
-            //UpperDay = existingEvent.UpperTimeBoundary.Day;
-            //UpperHour = existingEvent.UpperTimeBoundary.Hour;
-            //UpperMin = existingEvent.UpperTimeBoundary.Min;
-            UpperTimeBoundary = historicalEvent.UpperTimeBoundary;
+            TimeRange = historicalEvent.TimeRange;
 
             foreach (var location in historicalEvent.Region.Locations)
             {
