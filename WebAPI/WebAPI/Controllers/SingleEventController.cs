@@ -11,7 +11,7 @@ namespace WebAPI.Controllers
     {
         private readonly HistoryProjectDbContext dbContext;
         private readonly IWebHostEnvironment webHostEnvironment;
-        private string uploadedFilePath;
+        private string uploadedFilePath = string.Empty;
 
         public EventController(HistoryProjectDbContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
@@ -25,25 +25,17 @@ namespace WebAPI.Controllers
         {
             var singleEvent = await dbContext.Events
                 .Where(x => x.RevisionId == revisionId)
+                .Include(x => x.Summary)
                 .Include(x => x.LowerTimeBoundary)
                 .Include(x => x.UpperTimeBoundary)
-                .Include(x => x.Where)
+                .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (singleEvent == null)
             {
                 return NotFound($"Unknown event RevisionId: '{revisionId}'");
             }
 
-            var singleEventDto = new SingleEventDto
-            {
-                RevisionId = revisionId,
-                Title = singleEvent.Title,
-                ImageFilePath = singleEvent.ImageFilePath,
-                Summary = singleEvent.Summary,
-                LowerTimeBoundary = singleEvent.LowerTimeBoundary,
-                UpperTimeBoundary = singleEvent.UpperTimeBoundary,
-                Where = singleEvent.Where
-            };
+            var singleEventDto = new SingleEventDto(singleEvent);
             return Ok(singleEventDto);
         }
 
@@ -52,24 +44,16 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<List<SingleEventDto>>> GetAll()
         {
             var singleEvents = await dbContext.Events
+                .Include(x => x.Summary)
                 .Include(x => x.LowerTimeBoundary)
                 .Include(x => x.UpperTimeBoundary)
-                .Include(x => x.Where)
+                .Include(x => x.Region)
                 .ToListAsync();
 
             var singleEventDtos = new List<SingleEventDto>();
             foreach (SingleEvent singleEvent in singleEvents)
             {
-                singleEventDtos.Add(new SingleEventDto
-                {
-                    RevisionId = singleEvent.RevisionId,
-                    Title = singleEvent.Title,
-                    ImageFilePath = singleEvent.ImageFilePath,
-                    Summary = singleEvent.Summary,
-                    LowerTimeBoundary = singleEvent.LowerTimeBoundary,
-                    UpperTimeBoundary = singleEvent.UpperTimeBoundary,
-                    Where = singleEvent.Where
-                });
+                singleEventDtos.Add(new SingleEventDto(singleEvent));
             }
             return Ok(singleEventDtos);
         }
@@ -86,7 +70,7 @@ namespace WebAPI.Controllers
             {
                 return UnprocessableEntity("Summary cannot be empty");
             }
-            else if (!singleEventDto.Where.Locations.Any())
+            else if (!singleEventDto.Region.Any())
             {
                 return UnprocessableEntity("Must specify where (or approximately where)");
             }
@@ -96,15 +80,7 @@ namespace WebAPI.Controllers
             // entries. It is extremely unlikely that two different people are going to choose
             // the exact same title for the exact same event.
             // TODO: Similarity search. ??maybe a machine learning search engine for similarity?? Suggest existing items and pop them up in a modal for preview prior to the user getting all the way through their creation.
-            var newSingleEvent = new SingleEvent
-            {
-                Title = singleEventDto.Title,
-                ImageFilePath = singleEventDto.ImageFilePath,
-                Summary = singleEventDto.Summary,
-                LowerTimeBoundary = singleEventDto.LowerTimeBoundary,
-                UpperTimeBoundary = singleEventDto.UpperTimeBoundary,
-                Where = singleEventDto.Where,
-            };
+            var newSingleEvent = new SingleEvent(singleEventDto);
             dbContext.Events.Add(newSingleEvent);
             await dbContext.SaveChangesAsync();
             return Ok(newSingleEvent);
@@ -116,28 +92,17 @@ namespace WebAPI.Controllers
         {
             var existing = await dbContext.Events
                 .Where(x => x.RevisionId == singleEventDto.RevisionId)
+                .Include(x => x.Summary)
                 .Include(x => x.LowerTimeBoundary)
                 .Include(x => x.UpperTimeBoundary)
-                .Include(x => x.Where)
+                .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (existing == null)
             {
                 return NotFound($"Cannot update unknown event: '{singleEventDto.Title} ({singleEventDto.RevisionId})'");
             }
 
-            var newEventRevision = new SingleEvent
-            {
-                // Preserve the fact that this is the same event.
-                EventId = existing.EventId,
-
-                Title = singleEventDto.Title,
-                ImageFilePath = singleEventDto.ImageFilePath,
-                Summary = singleEventDto.Summary,
-                LowerTimeBoundary = singleEventDto.LowerTimeBoundary,
-                UpperTimeBoundary = singleEventDto.UpperTimeBoundary,
-                Where = singleEventDto.Where,
-            };
-
+            var newEventRevision = existing.CreateUpdatedFromDto(singleEventDto);
             dbContext.Events.Add(newEventRevision);
             await dbContext.SaveChangesAsync();
             return Ok(singleEventDto);
@@ -149,9 +114,10 @@ namespace WebAPI.Controllers
         {
             var existing = await dbContext.Events
                 .Where(x => x.RevisionId == revisionId)
+                .Include(x => x.Summary)
                 .Include(x => x.LowerTimeBoundary)
                 .Include(x => x.UpperTimeBoundary)
-                .Include(x => x.Where)
+                .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (existing == null)
             {
@@ -187,7 +153,7 @@ namespace WebAPI.Controllers
                     await formFile.CopyToAsync(stream);
                 }
 
-                // Delete the already-existing file so that we don't end up with a pile of unused files.
+                // Delete any previously-existing image so that we don't end up with a pile of unused images.
                 if (!string.IsNullOrEmpty(uploadedFilePath))
                 {
                     System.IO.File.Delete(uploadedFilePath);
