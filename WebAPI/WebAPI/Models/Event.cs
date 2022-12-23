@@ -23,7 +23,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebAPI.Models
 {
-    public class SingleEvent : IEquatable<SingleEvent>
+    public class Event : IEquatable<Event>
     {
         // Represents a single revision of an event.
         [Key]
@@ -62,34 +62,35 @@ namespace WebAPI.Models
         [Required]
         public EventRegion Region { get; set; } = new EventRegion();
 
-        public SingleEvent()
+        public Event()
         {
 
         }
 
-        public SingleEvent(SingleEventDto singleEventDto)
+        public Event(EventDto eventDto)
         {
-            RevisionId = singleEventDto.RevisionId;
-            RevisionDateTime = singleEventDto.RevisionDateTime;
-            RevisionAuthor = singleEventDto.RevisionAuthor;
+            RevisionId = eventDto.RevisionId;
+            RevisionDateTime = eventDto.RevisionDateTime;
+            RevisionAuthor = eventDto.RevisionAuthor;
 
-            Title = singleEventDto.Title;
-            ImageFilePath = singleEventDto.ImageFilePath;
-            Summary.Text = singleEventDto.Summary;
+            Title = eventDto.Title;
+            ImageFilePath = eventDto.ImageFilePath;
+            Summary.Text = eventDto.Summary;
 
-            LowerTimeBoundary.Year = singleEventDto.LowerYear;
-            LowerTimeBoundary.Month = singleEventDto.LowerMonth;
-            LowerTimeBoundary.Day = singleEventDto.LowerDay;
-            LowerTimeBoundary.Hour = singleEventDto.LowerHour;
-            LowerTimeBoundary.Min = singleEventDto.LowerMin;
+            LowerTimeBoundary.Year = eventDto.LowerYear;
+            LowerTimeBoundary.Month = eventDto.LowerMonth;
+            LowerTimeBoundary.Day = eventDto.LowerDay;
+            LowerTimeBoundary.Hour = eventDto.LowerHour;
+            LowerTimeBoundary.Min = eventDto.LowerMin;
 
-            UpperTimeBoundary.Year = singleEventDto.UpperYear;
-            UpperTimeBoundary.Month = singleEventDto.UpperMonth;
-            UpperTimeBoundary.Day = singleEventDto.UpperDay;
-            UpperTimeBoundary.Hour = singleEventDto.UpperHour;
-            UpperTimeBoundary.Min = singleEventDto.UpperMin;
+            //UpperTimeBoundary.Year = eventDto.UpperYear;
+            //UpperTimeBoundary.Month = eventDto.UpperMonth;
+            //UpperTimeBoundary.Day = eventDto.UpperDay;
+            //UpperTimeBoundary.Hour = eventDto.UpperHour;
+            //UpperTimeBoundary.Min = eventDto.UpperMin;
+            UpperTimeBoundary = eventDto.UpperTimeBoundary;
 
-            foreach (var latLongTuple in singleEventDto.Region)
+            foreach (var latLongTuple in eventDto.Region)
             {
                 Region.Locations.Add(new EventLocation
                 {
@@ -99,58 +100,59 @@ namespace WebAPI.Models
             }
         }
 
-        public SingleEvent CreateUpdatedFromDto(SingleEventDto singleEventDto)
+        public Event CreateUpdatedFromDto(EventDto eventDto)
         {
             // Always preserve the EventId, which must remain constant across all revisions.
             // Everything else is subject to change.
-            var newSingleEvent = new SingleEvent
+            var newEvent = new Event
             {
-                EventId = singleEventDto.EventId,
+                EventId = eventDto.EventId,
             };
 
             // Take these simple objects as-is.
-            newSingleEvent.RevisionDateTime = singleEventDto.RevisionDateTime;
-            newSingleEvent.RevisionAuthor = singleEventDto.RevisionAuthor;
-            newSingleEvent.Title = singleEventDto.Title;
-            newSingleEvent.ImageFilePath = singleEventDto.ImageFilePath;
+            newEvent.RevisionDateTime = eventDto.RevisionDateTime;
+            newEvent.RevisionAuthor = eventDto.RevisionAuthor;
+            newEvent.Title = eventDto.Title;
+            newEvent.ImageFilePath = eventDto.ImageFilePath;
 
             // If summary changed, create a new entry, else preserve the existing one.
             var summaryFromDto = new EventSummary
             {
-                Text = singleEventDto.Summary,
+                Text = eventDto.Summary,
             };
-            newSingleEvent.Summary = Summary == summaryFromDto ? Summary : summaryFromDto;
+            newEvent.Summary = Summary == summaryFromDto ? Summary : summaryFromDto;
 
             // If lower time boundary changed, create a new entry, else preserve the existing one.
             var lowerTimeBoundaryFromDto = new EventTime
             {
-                Year = singleEventDto.LowerYear,
-                Month = singleEventDto.LowerMonth,
-                Day = singleEventDto.LowerDay,
-                Hour = singleEventDto.LowerHour,
-                Min = singleEventDto.LowerMin
+                Year = eventDto.LowerYear,
+                Month = eventDto.LowerMonth,
+                Day = eventDto.LowerDay,
+                Hour = eventDto.LowerHour,
+                Min = eventDto.LowerMin
             };
-            newSingleEvent.LowerTimeBoundary = LowerTimeBoundary == lowerTimeBoundaryFromDto ? LowerTimeBoundary : lowerTimeBoundaryFromDto;
+            newEvent.LowerTimeBoundary = LowerTimeBoundary == lowerTimeBoundaryFromDto ? LowerTimeBoundary : lowerTimeBoundaryFromDto;
 
             // If upper time boundary changed, create a new entry, else preserve the existing one.
-            var upperTimeBoundaryFromDto = new EventTime
-            {
-                Year = singleEventDto.UpperYear,
-                Month = singleEventDto.UpperMonth,
-                Day = singleEventDto.UpperDay,
-                Hour = singleEventDto.UpperHour,
-                Min = singleEventDto.UpperMin
-            };
-            newSingleEvent.UpperTimeBoundary = UpperTimeBoundary == upperTimeBoundaryFromDto ? UpperTimeBoundary : upperTimeBoundaryFromDto;
+            //var upperTimeBoundaryFromDto = new EventTime
+            //{
+            //    Year = eventDto.UpperYear,
+            //    Month = eventDto.UpperMonth,
+            //    Day = eventDto.UpperDay,
+            //    Hour = eventDto.UpperHour,
+            //    Min = eventDto.UpperMin
+            //};
+            var upperTimeBoundaryFromDto = eventDto.UpperTimeBoundary;
+            newEvent.UpperTimeBoundary = UpperTimeBoundary == upperTimeBoundaryFromDto ? UpperTimeBoundary : upperTimeBoundaryFromDto;
 
             // If region changed, create a new entry, else preserve the existing one.
-            var regionFromDto = EventRegion.FromListOfTuples(singleEventDto.Region);
-            newSingleEvent.Region = Region == regionFromDto ? Region : regionFromDto;
+            var regionFromDto = EventRegion.FromListOfTuples(eventDto.Region);
+            newEvent.Region = Region == regionFromDto ? Region : regionFromDto;
 
-            return newSingleEvent;
+            return newEvent;
         }
 
-        public bool Equals(SingleEvent? other)
+        public bool Equals(Event? other)
         {
             if (ReferenceEquals(this, other)) return true;
             if (other is null) return false;
@@ -165,10 +167,10 @@ namespace WebAPI.Models
 
             // Note: If the object type is the same, then it can be guaranteed cast to this object
             // without risk of null.
-            return Same((other as SingleEvent)!);
+            return Same((other as Event)!);
         }
 
-        public static bool operator ==(SingleEvent? left, SingleEvent? right)
+        public static bool operator ==(Event? left, Event? right)
         {
             if (ReferenceEquals(left, right)) return true;
             if (left is null) return false;
@@ -176,7 +178,7 @@ namespace WebAPI.Models
             return left.Same(right);
         }
 
-        public static bool operator !=(SingleEvent? left, SingleEvent? right)
+        public static bool operator !=(Event? left, Event? right)
         {
             if (ReferenceEquals(left, right)) return false;
             if (left is null) return false;
@@ -184,7 +186,7 @@ namespace WebAPI.Models
             return !left.Same(right);
         }
 
-        private bool Same(SingleEvent other)
+        private bool Same(Event other)
         {
             bool same = true;
             //same &= RevisionId == other.RevisionId;
@@ -216,7 +218,7 @@ namespace WebAPI.Models
         }
     }
 
-    //var event1 = new SingleEvent
+    //var event1 = new Event
     //{
     //    RevisionId = Guid.NewGuid(),
     //    RevisionDateTime = DateTime.Parse("12/19/1998 16:35:02"),
@@ -246,7 +248,7 @@ namespace WebAPI.Models
     //    }
     //};
 
-    //var event2 = new SingleEvent
+    //var event2 = new Event
     //{
     //    RevisionId = event1.RevisionId,
     //    RevisionDateTime = DateTime.Parse("12/19/1998 16:35:02"),
@@ -298,9 +300,9 @@ namespace WebAPI.Models
     //Console.WriteLine($"        e1.GetHashCode() == e2.GetHashCode(): '${e1.GetHashCode() == e2.GetHashCode()}'");
     //Console.WriteLine("");
 
-    public class SingleEventDto
+    public class EventDto
     {
-        public Guid RevisionId { get; set; } = Guid.NewGuid();
+        public Guid RevisionId { get; set; }
         public DateTime RevisionDateTime { get; set; }
         public string RevisionAuthor { get; set; } = string.Empty;
         public Guid EventId { get; set; }
@@ -317,43 +319,45 @@ namespace WebAPI.Models
         public int? LowerMin { get; set; }
 
         // Upper time boundary
-        public int UpperYear { get; set; } = -1337;
-        public int? UpperMonth { get; set; }
-        public int? UpperDay { get; set; }
-        public int? UpperHour { get; set; }
-        public int? UpperMin { get; set; }
+        //public int UpperYear { get; set; } = -1337;
+        //public int? UpperMonth { get; set; }
+        //public int? UpperDay { get; set; }
+        //public int? UpperHour { get; set; }
+        //public int? UpperMin { get; set; }
+        public EventTime UpperTimeBoundary { get; set; } = new EventTime();
 
         // (Lat,Long) pairs.
         public List<Tuple<double, double>> Region = new List<Tuple<double, double>>();
 
-        public SingleEventDto()
+        public EventDto()
         {
         }
 
-        public SingleEventDto(SingleEvent singleEvent)
+        public EventDto(Event existingEvent)
         {
-            RevisionId = singleEvent.RevisionId;
-            RevisionDateTime = singleEvent.RevisionDateTime;
-            RevisionAuthor = singleEvent.RevisionAuthor;
-            EventId = singleEvent.EventId;
+            RevisionId = existingEvent.RevisionId;
+            RevisionDateTime = existingEvent.RevisionDateTime;
+            RevisionAuthor = existingEvent.RevisionAuthor;
+            EventId = existingEvent.EventId;
 
-            Title = singleEvent.Title;
-            ImageFilePath = singleEvent.ImageFilePath;
-            Summary = singleEvent.Summary.Text;
+            Title = existingEvent.Title;
+            ImageFilePath = existingEvent.ImageFilePath;
+            Summary = existingEvent.Summary.Text;
 
-            LowerYear = singleEvent.LowerTimeBoundary.Year;
-            LowerMonth = singleEvent.LowerTimeBoundary.Month;
-            LowerDay = singleEvent.LowerTimeBoundary.Day;
-            LowerHour = singleEvent.LowerTimeBoundary.Hour;
-            LowerMin = singleEvent.LowerTimeBoundary.Min;
+            LowerYear = existingEvent.LowerTimeBoundary.Year;
+            LowerMonth = existingEvent.LowerTimeBoundary.Month;
+            LowerDay = existingEvent.LowerTimeBoundary.Day;
+            LowerHour = existingEvent.LowerTimeBoundary.Hour;
+            LowerMin = existingEvent.LowerTimeBoundary.Min;
 
-            UpperYear = singleEvent.UpperTimeBoundary.Year;
-            UpperMonth = singleEvent.UpperTimeBoundary.Month;
-            UpperDay = singleEvent.UpperTimeBoundary.Day;
-            UpperHour = singleEvent.UpperTimeBoundary.Hour;
-            UpperMin = singleEvent.UpperTimeBoundary.Min;
+            //UpperYear = existingEvent.UpperTimeBoundary.Year;
+            //UpperMonth = existingEvent.UpperTimeBoundary.Month;
+            //UpperDay = existingEvent.UpperTimeBoundary.Day;
+            //UpperHour = existingEvent.UpperTimeBoundary.Hour;
+            //UpperMin = existingEvent.UpperTimeBoundary.Min;
+            UpperTimeBoundary = existingEvent.UpperTimeBoundary;
 
-            foreach (var location in singleEvent.Region.Locations)
+            foreach (var location in existingEvent.Region.Locations)
             {
                 Region.Add(new Tuple<double, double>(location.Latitude, location.Longitude));
             }

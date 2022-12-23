@@ -12,7 +12,7 @@ namespace WebAPI.Models
         // valid symbol in class member declarations, so we have to assign the member to
         // "default" so that EF's startup flow is not interrupted, and then add the "!" to say,
         // "this isn't null, trust me".
-        public DbSet<SingleEvent> Events { get; set; } = default!;
+        public DbSet<Event> Events { get; set; } = default!;
 
         public DbSet<EventSummary> Summaries { get; set; } = default!;
 
