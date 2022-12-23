@@ -78,16 +78,12 @@ namespace WebAPI.Models
 
         public override int GetHashCode()
         {
-            // Note: Have to use the HashCodeBuilder because HashCode.Combine(Locations) creates a
-            // different hash code for two lists with the same values, and for a EventRegion object, they
-            // should be the same, so I have to handle this myself.
-            var hashCodeBuilder = new HashCodeBuilder();
-            hashCodeBuilder.Add(Id);
+            HashCode hash = new HashCode();
             foreach (var location in Locations)
             {
-                hashCodeBuilder.Add(location);
+                hash.Add(location);
             }
-            return hashCodeBuilder.Hash;
+            return hash.ToHashCode();
         }
     }
 
