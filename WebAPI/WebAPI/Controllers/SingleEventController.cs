@@ -30,6 +30,7 @@ namespace WebAPI.Controllers
                 //.Include(x => x.UpperTimeBoundary)
                 .Include(x => x.TimeRange)
                 .Include(x => x.Region)
+                .Include(x => x.Region.Locations)
                 .FirstOrDefaultAsync();
             if (existingEvent == null)
             {
@@ -50,6 +51,7 @@ namespace WebAPI.Controllers
                 //.Include(x => x.UpperTimeBoundary)
                 .Include(x => x.TimeRange)
                 .Include(x => x.Region)
+                .Include(x => x.Region.Locations)
                 .ToListAsync();
 
             var existingEventDtos = new List<HistoricalEventDto>();
@@ -99,6 +101,7 @@ namespace WebAPI.Controllers
                 //.Include(x => x.UpperTimeBoundary)
                 .Include(x => x.TimeRange)
                 .Include(x => x.Region)
+                .Include(x => x.Region.Locations)
                 .FirstOrDefaultAsync();
             if (existingEvent == null)
             {
