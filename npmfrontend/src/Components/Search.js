@@ -38,16 +38,6 @@ export class Search extends Component {
     thing.innerHTML = htmlString
   }
 
-  getEventOfTheDay() {
-    fetch(variables.API_URL + "Event/GetEventOfTheDay")
-      .then(response => response.json())
-      .then(data => console.log(data))
-  }
-
-  componentDidMount() {
-    this.getEventOfTheDay()
-  }
-
   render() {
     return (
       <div id="main-container">

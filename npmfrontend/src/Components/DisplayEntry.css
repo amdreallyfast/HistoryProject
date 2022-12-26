@@ -65,7 +65,7 @@
   background-color: yellow;
 }
 
-.display-description-container {
+.display-summary-container {
   margin: var(--margin-size);
   /* padding: var(--padding-size); */
   /* position: absolute;
