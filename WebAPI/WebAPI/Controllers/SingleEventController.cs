@@ -39,11 +39,12 @@ namespace WebAPI.Controllers
             return Ok(eventDto);
         }
 
-        [Route("GetAll")]
+        [Route("GetFirst100")]
         [HttpGet]
-        public async Task<ActionResult<List<HistoricalEventDto>>> GetAll()
+        public async Task<ActionResult<List<HistoricalEventDto>>> GetFirst100()
         {
             var existingEvents = await dbContext.Events
+                .Take(100)
                 .Include(x => x.Summary)
                 .Include(x => x.TimeRange)
                 .Include(x => x.Region)
@@ -56,6 +57,34 @@ namespace WebAPI.Controllers
                 existingEventDtos.Add(new HistoricalEventDto(existingEvent));
             }
             return Ok(existingEventDtos);
+        }
+
+        [Route("GetEventOfTheDay")]
+        [HttpGet]
+        public async Task<ActionResult<HistoricalEventDto>> GetEventOfTheDay()
+        {
+            // TODO: get info from somewhere else
+
+            // Until I figure that out, get a random element.
+            var numEvents = await dbContext.Events.CountAsync();
+            var random = new Random();
+            var randomIndex = random.Next(numEvents);
+            var randomEvent = await dbContext.Events
+                .Skip(randomIndex)
+                .Include(x => x.Summary)
+                .Include(x => x.TimeRange)
+                .Include(x => x.Region)
+                .Include(x => x.Region.Locations)
+                .FirstOrDefaultAsync();
+
+            //randomEvent = null;
+            if (randomEvent == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to retrieve any random event.");
+            }
+
+            var randomEventDto = new HistoricalEventDto(randomEvent);
+            return Ok(randomEventDto);
         }
 
         [Route("Create")]

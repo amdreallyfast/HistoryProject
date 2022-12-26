@@ -1,3 +1,4 @@
+import { variables } from "../Variables";
 import "./Search.css"
 import React, { Component } from "react";
 
@@ -37,16 +38,14 @@ export class Search extends Component {
     thing.innerHTML = htmlString
   }
 
-  refreshList() {
-    // TODO: something like this"
-    // fetch(variables.API_URL + "Department/GetAll")
-    // .then(response => response.json())
-    // .then(data => {
-    //     this.setState({
-    //         departments: data,
-    //         departmentsWithoutFilter: data
-    //     })
-    // })
+  getEventOfTheDay() {
+    fetch(variables.API_URL + "Event/GetEventOfTheDay")
+      .then(response => response.json())
+      .then(data => console.log(data))
+  }
+
+  componentDidMount() {
+    this.getEventOfTheDay()
   }
 
   render() {
