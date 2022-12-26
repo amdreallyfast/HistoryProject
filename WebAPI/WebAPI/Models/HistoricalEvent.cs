@@ -1,5 +1,4 @@
-﻿using Microsoft.Identity.Client;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 
@@ -54,12 +53,6 @@ namespace WebAPI.Models
         [Required]
         public EventSummary Summary { get; set; } = new EventSummary();
 
-        //[Required]
-        //public EventTime LowerTimeBoundary { get; set; } = new EventTime();
-
-        //[Required]
-        //public EventTime UpperTimeBoundary { get; set; } = new EventTime();
-
         [Required]
         public EventTime TimeRange { get; set; } = new EventTime();
 
@@ -80,28 +73,7 @@ namespace WebAPI.Models
             Title = eventDto.Title;
             ImageFilePath = eventDto.ImageFilePath;
             Summary.Text = eventDto.Summary;
-
-            //LowerTimeBoundary.Year = eventDto.LowerYear;
-            //LowerTimeBoundary.Month = eventDto.LowerMonth;
-            //LowerTimeBoundary.Day = eventDto.LowerDay;
-            //LowerTimeBoundary.Hour = eventDto.LowerHour;
-            //LowerTimeBoundary.Min = eventDto.LowerMin;
-
-            //UpperTimeBoundary.Year = eventDto.UpperYear;
-            //UpperTimeBoundary.Month = eventDto.UpperMonth;
-            //UpperTimeBoundary.Day = eventDto.UpperDay;
-            //UpperTimeBoundary.Hour = eventDto.UpperHour;
-            //UpperTimeBoundary.Min = eventDto.UpperMin;
             TimeRange = eventDto.TimeRange;
-
-            //foreach (var latLongTuple in eventDto.Region)
-            //{
-            //    Region.Locations.Add(new EventLocation
-            //    {
-            //        Latitude = latLongTuple.Item1,
-            //        Longitude = latLongTuple.Item2,
-            //    });
-            //}
             Region = eventDto.Region;
         }
 
@@ -127,36 +99,11 @@ namespace WebAPI.Models
             };
             newEvent.Summary = Summary == summaryFromDto ? Summary : summaryFromDto;
 
-            //// If lower time boundary changed, create a new entry, else preserve the existing one.
-            //var timeBoundaryFromDto = new EventTime
-            //{
-            //    LowerBoundYear = eventDto.LowerYear,
-            //    LowerBoundMonth = eventDto.LowerMonth,
-            //    LowerBoundDay = eventDto.LowerDay,
-            //    LowerBoundHour = eventDto.LowerHour,
-            //    LowerBoundMin = eventDto.LowerMin
-            //};
-            //newEvent.LowerTimeBoundary = LowerTimeBoundary == lowerTimeBoundaryFromDto ? LowerTimeBoundary : lowerTimeBoundaryFromDto;
-
-            // If upper time boundary changed, create a new entry, else preserve the existing one.
-            ////var upperTimeBoundaryFromDto = new EventTime
-            ////{
-            ////    Year = eventDto.UpperYear,
-            ////    Month = eventDto.UpperMonth,
-            ////    Day = eventDto.UpperDay,
-            ////    Hour = eventDto.UpperHour,
-            ////    Min = eventDto.UpperMin
-            ////};
-            //var upperTimeBoundaryFromDto = eventDto.UpperTimeBoundary;
-            //newEvent.UpperTimeBoundary = UpperTimeBoundary == upperTimeBoundaryFromDto ? UpperTimeBoundary : upperTimeBoundaryFromDto;
-
             // If time boundary changed, create a new entry, else preserve the existing one.
             var timeBoundaryFromDto = new EventTime(eventDto.TimeRange);
             newEvent.TimeRange = TimeRange == timeBoundaryFromDto ? TimeRange : timeBoundaryFromDto;
 
             // If region changed, create a new entry, else preserve the existing one.
-            //??possible to just use a List<Location>??
-            //var regionFromDto = EventRegion.FromListOfTuples(eventDto.Region);
             var regionFromDto = new EventRegion(eventDto.Region);
             newEvent.Region = Region == regionFromDto ? Region : regionFromDto;
 
@@ -206,8 +153,6 @@ namespace WebAPI.Models
             same &= Title == other.Title;
             same &= ImageFilePath == other.ImageFilePath;
             same &= Summary == other.Summary;
-            //same &= LowerTimeBoundary == other.LowerTimeBoundary;
-            //same &= UpperTimeBoundary == other.UpperTimeBoundary;
             same &= TimeRange == other.TimeRange;
             same &= Region == other.Region;
 
@@ -223,14 +168,13 @@ namespace WebAPI.Models
             hash.Add(Title);
             hash.Add(ImageFilePath);
             hash.Add(Summary);
-            //hash.Add(LowerTimeBoundary);
-            //hash.Add(UpperTimeBoundary);
             hash.Add(TimeRange);
             hash.Add(Region);
             return hash.ToHashCode();
         }
     }
 
+    // Testing
     //var event1 = new Event
     //{
     //    RevisionId = Guid.NewGuid(),
@@ -314,25 +258,6 @@ namespace WebAPI.Models
     //Console.WriteLine("");
 
 
-    public class RegionJsonConverter : JsonConverter<List<Tuple<double, double>>>
-    {
-        public override List<Tuple<double, double>>? ReadJson(JsonReader reader, Type objectType, List<Tuple<double, double>>? existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            //"region": [{1.1, 2.2}]
-            while (reader.Read())
-            {
-                Console.WriteLine(reader.Value);
-            }
-
-            throw new NotImplementedException();
-        }
-
-        public override void WriteJson(JsonWriter writer, List<Tuple<double, double>>? value, JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class HistoricalEventDto
     {
         public Guid RevisionId { get; set; }
@@ -343,28 +268,8 @@ namespace WebAPI.Models
         public string Title { get; set; } = string.Empty;
         public string ImageFilePath { get; set; } = string.Empty;
         public string Summary { get; set; } = string.Empty;
-
-        //// Lower time boundary
-        //public int LowerYear { get; set; } = -1337;
-        //public int? LowerMonth { get; set; }
-        //public int? LowerDay { get; set; }
-        //public int? LowerHour { get; set; }
-        //public int? LowerMin { get; set; }
-
-        // Upper time boundary
-        //public int UpperYear { get; set; } = -1337;
-        //public int? UpperMonth { get; set; }
-        //public int? UpperDay { get; set; }
-        //public int? UpperHour { get; set; }
-        //public int? UpperMin { get; set; }
         public EventTime TimeRange { get; set; } = new EventTime();
-
-        //// (Lat,Long) pairs.
-        //[JsonConverter(typeof(RegionJsonConverter))]
-        //public List<Tuple<double, double>> Region = new List<Tuple<double, double>>();
         public EventRegion Region { get; set; } = new EventRegion();
-
-        public string BushWhacker { get; set; } = "yay!";
 
         public HistoricalEventDto()
         {
@@ -380,13 +285,7 @@ namespace WebAPI.Models
             Title = historicalEvent.Title;
             ImageFilePath = historicalEvent.ImageFilePath;
             Summary = historicalEvent.Summary.Text;
-
             TimeRange = historicalEvent.TimeRange;
-
-            //foreach (var location in historicalEvent.Region.Locations)
-            //{
-            //    Region.Add(new Tuple<double, double>(location.Latitude, location.Longitude));
-            //}
             Region = historicalEvent.Region;
         }
     }

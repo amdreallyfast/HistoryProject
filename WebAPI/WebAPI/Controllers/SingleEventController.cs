@@ -26,8 +26,6 @@ namespace WebAPI.Controllers
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == revisionId)
                 .Include(x => x.Summary)
-                //.Include(x => x.LowerTimeBoundary)
-                //.Include(x => x.UpperTimeBoundary)
                 .Include(x => x.TimeRange)
                 .Include(x => x.Region)
                 .Include(x => x.Region.Locations)
@@ -47,8 +45,6 @@ namespace WebAPI.Controllers
         {
             var existingEvents = await dbContext.Events
                 .Include(x => x.Summary)
-                //.Include(x => x.LowerTimeBoundary)
-                //.Include(x => x.UpperTimeBoundary)
                 .Include(x => x.TimeRange)
                 .Include(x => x.Region)
                 .Include(x => x.Region.Locations)
@@ -97,8 +93,6 @@ namespace WebAPI.Controllers
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == eventDto.RevisionId)
                 .Include(x => x.Summary)
-                //.Include(x => x.LowerTimeBoundary)
-                //.Include(x => x.UpperTimeBoundary)
                 .Include(x => x.TimeRange)
                 .Include(x => x.Region)
                 .Include(x => x.Region.Locations)
@@ -118,13 +112,10 @@ namespace WebAPI.Controllers
         [HttpDelete]
         public async Task<ActionResult> Delete(Guid revisionId)
         {
+            // Note: Don't need to load the related models just to verify that it exists. The
+            // cascade delete will get them anyway.
             var existingEvent = await dbContext.Events
                 .Where(x => x.RevisionId == revisionId)
-                .Include(x => x.Summary)
-                //.Include(x => x.LowerTimeBoundary)
-                //.Include(x => x.UpperTimeBoundary)
-                .Include(x => x.TimeRange)
-                .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (existingEvent == null)
             {
