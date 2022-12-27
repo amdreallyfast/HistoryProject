@@ -2,7 +2,8 @@ Prerequisite software:
 	SQL Server Management Studio (for connecting with my Azure SQL database)
 		Alternate: Azure Data Studio
 	Node.js (for creating and compiling React.js projects)
-		npm install react-router-dom		
+		npm install --save react-router-dom
+		npm install --save react-bootstrap
 	Bootstrap (for styling)
 		https://getbootstrap.com/docs/5.2/getting-started/introduction/
 	Python 3 (??for what? was this for my java experiments??)
@@ -44,7 +45,7 @@ Tutorial:
 	React JS + .NET Core Web API + Microsoft SQL | full stack app tutorial
 	https://www.youtube.com/watch?v=ON-Z1iD6Y-c
 
-	Note covered, but need to create a SQL server resource first.
+	Not covered, but need to create a SQL server resource first.
 		
 	Explaining how Program.cs is different in .NET Core 6 compared to .NET Core 5:
 		.NET 6 Startup Changes - Handling Program.cs Without Startup.cs
@@ -529,11 +530,7 @@ HistoryProjectAppRegistrationCert2ndAttempt
 		
 	Open WebAPI.sln in VS and connect to DB:
 		
-		
-		
-		TODO: replace with using a cert to authenticate to a key vault and then getting the secrete for the conn string
-		
-		
+				
 		Open <project root>/WebAPI/appsettings.json.
 		Add:
 			"ConnectionStrings": {
@@ -552,6 +549,8 @@ HistoryProjectAppRegistrationCert2ndAttempt
 		On future machines:
 			cd <project root>\npmfrontend
 			npm install
+			npm install --save react-router-dom
+			npm install --save react-bootstrap 
 	
 Quick start:
 	Note: WebAPI executable _must_ be running in order for the WebAPI requests that are associated with a database to work.
@@ -583,5 +582,9 @@ Windows Start menu -> Run -> "certmgr.msc"
 	Opens the cert manager for the current user
 
 9/22/2022
-	npm install -S sass
+	npm install --save sass
 		??for modal styles??
+
+12/27/2022
+	npm install --save react-bootstrap 
+	

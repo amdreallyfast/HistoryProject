@@ -1,6 +1,53 @@
 import "./DisplayEntry.css"
 import React, { Component } from "react";
 import { variables } from "../Variables";
+import Button from 'react-bootstrap/Button'
+import Modal from 'react-bootstrap/Modal'
+
+export function MyModalNonClass() {
+  // console.log("showSelectImageModal...")
+
+  // const cancelImageUpload = () => {
+  //   console.log("cancelImageUpload")
+  //   this.setState({
+  //     ...this.state,
+  //     selectImageModalVisible: false,
+  //   });
+  // }
+
+  // const confirmImageUpload = () => {
+  //   console.log("confirmImageUpload")
+  //   this.setState({
+  //     ...this.state,
+  //     selectImageModalVisible: false,
+  //   });
+  // }
+
+  const [show, setShow] = React.useState(true);
+  const cancelImageUpload = () => setShow(false);
+  const confirmImageUpload = () => setShow(true);
+
+  return (
+    <>
+      <Modal show={show} onHide={cancelImageUpload}>
+        <Modal.Header closeButton>
+          <Modal.Title>Select image</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>hi there!</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={cancelImageUpload}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={confirmImageUpload}>
+            Submit
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+}
 
 export class DisplayEntry extends Component {
   constructor(props) {
@@ -8,6 +55,8 @@ export class DisplayEntry extends Component {
 
     this.state = {
       editMode: false,
+      selectImageModalVisible: false,
+      imageUploadFailedMsg: "",
 
       event: {
         titleText: "",
@@ -88,7 +137,7 @@ export class DisplayEntry extends Component {
   }
 
   componentDidMount() {
-    this.getEventOfTheDay()
+    // this.getEventOfTheDay()
   }
 
   switchEditMode() {
@@ -108,6 +157,79 @@ export class DisplayEntry extends Component {
     }
   }
 
+  // Thanks for react-bootstrap for this demo code. I've modified it to work in classes (replace 
+  // "React.useState(...)" with "this.state.<property>"") and for my application.
+  // Source:
+  //  https://react-bootstrap.github.io/components/modal/
+
+
+  // Note: For some reason has to use the "= () => {...}" syntax instead of normal function syntax in order for the "this" to work in the callbacks...??why javascript??.
+  MyModalClassMember = () => {
+    console.log("showSelectImageModal...")
+
+    // const cancelImageUpload = () => {
+    //   console.log("cancelImageUpload")
+    //   this.setState({
+    //     ...this.state,
+    //     selectImageModalVisible: false,
+    //   });
+    // }
+
+    // const confirmImageUpload = () => {
+    //   console.log("confirmImageUpload")
+    //   this.setState({
+    //     ...this.state,
+    //     selectImageModalVisible: false,
+    //   });
+    // }
+
+    const cancelImageUpload = () => {
+      console.log("cancel image upload");
+      this.setState({
+        ...this.state,
+        selectImageModalVisible: false,
+      });
+    }
+
+    const confirmImageUpload = () => {
+      console.log("confirm image upload");
+      this.setState({
+        ...this.state,
+        selectImageModalVisible: false,
+      });
+    }
+
+    return (
+      <>
+        <Modal show={this.state.selectImageModalVisible} onHide={cancelImageUpload}>
+          <Modal.Header closeButton>
+            <Modal.Title>Select image</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>hi there!</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={cancelImageUpload}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={confirmImageUpload}>
+              Submit
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </>
+    );
+
+  }
+
+  showMyModal() {
+    // Set state to show the modal.
+    this.setState({
+      ...this.state,
+      selectImageModalVisible: true,
+    });
+  }
+
   render() {
     console.log("rendering")
     return (
@@ -124,10 +246,18 @@ export class DisplayEntry extends Component {
             Things
           </button> */}
           <span>{this.state.titleText}</span>
-          <button onClick={() => this.getEventOfTheDay()}>things</button>
+          <button onClick={() => this.getEventOfTheDay()}>
+            getEventOfTheDay
+          </button>
         </div>
         <div className="display-image-container">
-          <span>Image box</span>
+          {/* <img width="100%" height="100%" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="THE ALT TEXT ANDSTUFF" data-bs-toggle="modal" data-bs-target="#imageUploadModal">
+          </img> */}
+          <Button variant="primary" onClick={() => this.showMyModal()}>
+            Select things
+          </Button>
+          {/* <MyModalNonClass /> */}
+          <this.MyModalClassMember />
         </div>
         <div className="display-where-container">
           <span>Where</span>
