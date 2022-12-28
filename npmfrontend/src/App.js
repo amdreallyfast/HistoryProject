@@ -20,6 +20,8 @@ export default function App() {
         <h3 className="d-flext justify-content-center m-3">
           History Project
         </h3>
+
+        {/* TODO: replace this "sass"-based modal with a react-bootstrap modal */}
         <span onClick={toggleModalState} className="aboutlinktext">
           About (Modal state: '{aboutModalState.toString()}')
         </span>

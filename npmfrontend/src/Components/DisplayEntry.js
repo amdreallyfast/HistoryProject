@@ -4,51 +4,6 @@ import { variables } from "../Variables";
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 
-export function MyModalNonClass() {
-  // console.log("showSelectImageModal...")
-
-  // const cancelImageUpload = () => {
-  //   console.log("cancelImageUpload")
-  //   this.setState({
-  //     ...this.state,
-  //     selectImageModalVisible: false,
-  //   });
-  // }
-
-  // const confirmImageUpload = () => {
-  //   console.log("confirmImageUpload")
-  //   this.setState({
-  //     ...this.state,
-  //     selectImageModalVisible: false,
-  //   });
-  // }
-
-  const [show, setShow] = React.useState(true);
-  const cancelImageUpload = () => setShow(false);
-  const confirmImageUpload = () => setShow(true);
-
-  return (
-    <>
-      <Modal show={show} onHide={cancelImageUpload}>
-        <Modal.Header closeButton>
-          <Modal.Title>Select image</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>hi there!</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={cancelImageUpload}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={confirmImageUpload}>
-            Submit
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
-  );
-}
-
 export class DisplayEntry extends Component {
   constructor(props) {
     super(props);
@@ -89,15 +44,6 @@ export class DisplayEntry extends Component {
     fetch(variables.API_URL + "Event/GetEventOfTheDay")
       .then(response => response.json())
       .then(event => {
-        // newRegion = []
-        // event.Region.Locations.forEach((item, index, arr) => {
-        //   // console.log(`lat: '${item.Latitude}', lon: '${item.Longitude}'`)
-        //   newRegion.push({
-        //     lat: item.Latitude,
-        //     long: item.Longitude
-        //   })
-        // })
-
         this.setState({
           ...this.state,
           event: {
@@ -161,27 +107,9 @@ export class DisplayEntry extends Component {
   // "React.useState(...)" with "this.state.<property>"") and for my application.
   // Source:
   //  https://react-bootstrap.github.io/components/modal/
-
-
   // Note: For some reason has to use the "= () => {...}" syntax instead of normal function syntax in order for the "this" to work in the callbacks...??why javascript??.
   MyModalClassMember = () => {
     console.log("showSelectImageModal...")
-
-    // const cancelImageUpload = () => {
-    //   console.log("cancelImageUpload")
-    //   this.setState({
-    //     ...this.state,
-    //     selectImageModalVisible: false,
-    //   });
-    // }
-
-    // const confirmImageUpload = () => {
-    //   console.log("confirmImageUpload")
-    //   this.setState({
-    //     ...this.state,
-    //     selectImageModalVisible: false,
-    //   });
-    // }
 
     const cancelImageUpload = () => {
       console.log("cancel image upload");
@@ -256,7 +184,6 @@ export class DisplayEntry extends Component {
           <Button variant="primary" onClick={() => this.showMyModal()}>
             Select things
           </Button>
-          {/* <MyModalNonClass /> */}
           <this.MyModalClassMember />
         </div>
         <div className="display-where-container">
