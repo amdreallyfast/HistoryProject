@@ -4,14 +4,18 @@ import { variables } from "../Variables";
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 
+// TODO: delete: if (window.confirm('Are you sure?')) { <do the fetch> }
+
 export class DisplayEntry extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       editMode: false,
+
       selectImageModalVisible: false,
       imageUploadFailedMsg: "",
+      defaultImagePath: variables.PHOTO_URL + "anonymous.png",
 
       event: {
         titleText: "",
@@ -159,7 +163,8 @@ export class DisplayEntry extends Component {
   }
 
   render() {
-    console.log("rendering")
+    console.log("rendering");
+    console.log(variables.PHOTO_URL + "crabRidingAnAlbinoAligator.jpg");
     return (
       // <div>
       //   Hello, I'm DisplayEntry
@@ -179,8 +184,12 @@ export class DisplayEntry extends Component {
           </button>
         </div>
         <div className="display-image-container">
-          {/* <img width="100%" height="100%" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="THE ALT TEXT ANDSTUFF" data-bs-toggle="modal" data-bs-target="#imageUploadModal">
-          </img> */}
+          <img width="200px" height="200px"
+            src={this.state.event.imageFilePath || this.state.defaultImagePath}
+            alt="THE ALT TEXT ANDSTUFF"
+            onClick={() => this.showMyModal()}>
+          </img>
+          {/* <img width="200px" height="200px" src={variables.PHOTO_URL + "crabRidingAnAlbinoAligator.jpg"}></img> */}
           <Button variant="primary" onClick={() => this.showMyModal()}>
             Select things
           </Button>
