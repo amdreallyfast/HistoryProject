@@ -44,67 +44,90 @@ export class DisplayEntry extends Component {
     }
   }
 
-  getEventOfTheDay() {
-    fetch(variables.API_URL + "Event/GetEventOfTheDay")
-      .then(response => response.json())
-      .then(event => {
-        this.setState({
-          ...this.state,
-          event: {
-            // Don't need to preserve any exist event state. Everything will be overwritten by 
-            // the incoming object.
-            titleText: event.Title,
-            imageFilePath: event.ImageFilePath,
-            summaryText: event.Summary,
-            timeRange: {
-              lowerBound: {
-                Year: event.TimeRange.LowerBoundYear,
-                Month: event.TimeRange.LowerBoundMonth,
-                Day: event.TimeRange.LowerBoundDay,
-                Hour: event.TimeRange.LowerBoundHour,
-                Min: event.TimeRange.LowerBoundMin,
-              },
-              upperBound: {
-                Year: event.TimeRange.UpperBoundYear,
-                Month: event.TimeRange.UpperBoundMonth,
-                Day: event.TimeRange.UpperBoundDay,
-                Hour: event.TimeRange.UpperBoundHour,
-                Min: event.TimeRange.UpperBoundMin,
-              }
-            },
-            region: event.Region.Locations.map((item) => {
-              return {
-                lat: item.Latitude,
-                long: item.Longitude
-              }
-            }),
-            revisionDateTime: event.RevisionDateTime,
-            revisionAuthor: event.RevisionAuthor,
+  setEvent = (eventJson) => {
+    this.setState({
+      ...this.state,
+      event: {
+        // Don't need to preserve any exist eventJson state. Everything will be overwritten by 
+        // the incoming object.
+        titleText: eventJson.Title,
+        imageFilePath: eventJson.ImageFilePath,
+        summaryText: eventJson.Summary,
+        timeRange: {
+          lowerBound: {
+            Year: eventJson.TimeRange.LowerBoundYear,
+            Month: eventJson.TimeRange.LowerBoundMonth,
+            Day: eventJson.TimeRange.LowerBoundDay,
+            Hour: eventJson.TimeRange.LowerBoundHour,
+            Min: eventJson.TimeRange.LowerBoundMin,
+          },
+          upperBound: {
+            Year: eventJson.TimeRange.UpperBoundYear,
+            Month: eventJson.TimeRange.UpperBoundMonth,
+            Day: eventJson.TimeRange.UpperBoundDay,
+            Hour: eventJson.TimeRange.UpperBoundHour,
+            Min: eventJson.TimeRange.UpperBoundMin,
           }
-        })
-      })
+        },
+        region: eventJson.Region.Locations.map((item) => {
+          return {
+            lat: item.Latitude,
+            long: item.Longitude
+          }
+        }),
+        revisionDateTime: eventJson.RevisionDateTime,
+        revisionAuthor: eventJson.RevisionAuthor,
+      }
+    });
+  }
+
+  getSelectedEvent = (eventId) => {
+    fetch(`${variables.API_URL}Event/Get/${eventId}`)
+      .then(response => response.json())
+      .then(eventJson => this.setEvent(eventJson));
+  }
+
+  getEventOfTheDay = () => {
+    fetch(`${variables.API_URL}Event/GetEventOfTheDay`)
+      .then(response => response.json())
+      .then(eventJson => this.setEvent(eventJson));
     console.log(this.state)
   }
 
   componentDidMount() {
-    // this.getEventOfTheDay()
+    // this.getEventOfTheDay();
+    this.getSelectedEvent("be9aa2f5-1569-4a8e-b31f-08dae5392545")
   }
 
-  switchEditMode() {
-    if (this.state.editMode) {
-      console.log("turning off edit mode")
-      this.setState({
-        ...this.state,
-        editMode: false
-      })
-    }
-    else {
-      console.log("turning on edit mode")
-      this.setState({
-        ...this.state,
-        editMode: true
-      })
-    }
+  turnOnEditMode = () => {
+    console.log("turning on edit mode")
+    this.setState({
+      ...this.state,
+      editMode: true
+    })
+  }
+
+  submitChanges = () => {
+    // TODO: this
+
+    console.log("submitting changes")
+    console.log("turning off edit mode")
+    this.setState({
+      ...this.state,
+      editMode: false
+    })
+  }
+
+  cancelChanges = () => {
+    // TODO: this
+
+    //??just re-fetch??
+    console.log("cancelling changes")
+    console.log("turning off edit mode")
+    this.setState({
+      ...this.state,
+      editMode: false
+    })
   }
 
   // Thanks for react-bootstrap for this demo code. I've modified it to work in classes (replace 
@@ -112,7 +135,7 @@ export class DisplayEntry extends Component {
   // Source:
   //  https://react-bootstrap.github.io/components/modal/
   // Note: For some reason has to use the "= () => {...}" syntax instead of normal function syntax in order for the "this" to work in the callbacks...??why javascript??.
-  MyModalClassMember = () => {
+  editEventImgModal = () => {
     console.log("showSelectImageModal...")
 
     const cancelImageUpload = () => {
@@ -154,46 +177,69 @@ export class DisplayEntry extends Component {
 
   }
 
-  showMyModal() {
+  showMyModal = () => {
     // Set state to show the modal.
+    console.log("showMyModal")
     this.setState({
       ...this.state,
       selectImageModalVisible: true,
     });
   }
 
+  onTitleChanged = (changeEvent) => {
+    console.log("onTitleChanged");
+    this.setState({
+      ...this.state,
+      event: {
+        ...this.state.event,
+        titleText: changeEvent.target.value
+      }
+    });
+  }
+
   render() {
     console.log("rendering");
-    console.log(variables.PHOTO_URL + "crabRidingAnAlbinoAligator.jpg");
     return (
-      // <div>
-      //   Hello, I'm DisplayEntry
-      // </div>
       <div id="main-container">
+        {/* Title
+            If in edit mode, use an input form, otherwise use a non-editable span. 
+        */}
         <div className="display-title-container">
-          {/* {this.state.editMode === true ?
-            <span>Edit le title</span>
-            : <span>normal mode title</span>
+          {this.state.editMode === true ?
+            <input type="text"
+              className="form-control"
+              value={this.state.event.titleText}
+              onChange={this.onTitleChanged}>
+            </input>
+            :
+            <span>{this.state.event.titleText}</span>
           }
-          <button type="button" onClick={() => this.switchEditMode()}>
-            Things
-          </button> */}
-          <span>{this.state.titleText}</span>
-          <button onClick={() => this.getEventOfTheDay()}>
-            getEventOfTheDay
-          </button>
         </div>
+
+        {/* Image 
+            Note: If no image, just say so.
+        */}
         <div className="display-image-container">
-          <img width="200px" height="200px"
-            src={this.state.event.imageFilePath || this.state.defaultImagePath}
-            alt="THE ALT TEXT ANDSTUFF"
-            onClick={() => this.showMyModal()}>
-          </img>
-          {/* <img width="200px" height="200px" src={variables.PHOTO_URL + "crabRidingAnAlbinoAligator.jpg"}></img> */}
-          <Button variant="primary" onClick={() => this.showMyModal()}>
-            Select things
-          </Button>
-          <this.MyModalClassMember />
+          {this.state.event.imageFilePath === "" ?
+            <span>No image</span>
+            :
+            <>
+              <img
+                className="eventImg"
+                src={variables.PHOTO_URL + this.state.event.imageFilePath}
+                alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!">
+              </img>
+
+              {this.state.editMode === true ?
+                <Button variant="primary" className="imageEditButtonselectEventImageBtn" onClick={this.showMyModal}>
+                  Select image
+                </Button>
+                :
+                null
+              }
+              <this.editEventImgModal />
+            </>
+          }
         </div>
         <div className="display-where-container">
           <span>Where</span>
@@ -204,7 +250,30 @@ export class DisplayEntry extends Component {
         <div className="display-summary-container">
           <span>{this.state.summaryText}</span>
         </div>
+
+        {this.state.editMode === true ?
+          <>
+            {/* "Cancel" goes on the far right, and then put "submit" next to it. */}
+            <button type="button" className="btn btn-secondary float-end" onClick={this.cancelChanges}>
+              Cancel
+            </button>
+            <button type="button" className="btn btn-primary float-end" onClick={this.submitChanges}>
+              Submit
+            </button>
+          </>
+          :
+          <>
+            <button type="button" onClick={this.turnOnEditMode}>
+              Edit
+            </button>
+
+            {/* TODO: move this button elsewhere (??maybe even the App??) */}
+            <button onClick={this.getEventOfTheDay}>
+              getEventOfTheDay
+            </button>
+          </>
+        }
       </div >
-    )
+    );
   }
 }

@@ -174,6 +174,9 @@ namespace WebAPI.Models
         }
     }
 
+    // TODO: move testing to a unit testing project
+    //  https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-mstest
+
     // Testing
     //var event1 = new Event
     //{
@@ -260,6 +263,7 @@ namespace WebAPI.Models
 
     public class HistoricalEventDto
     {
+        // TODO: remove RevisionId from the DTO. Do not expose that so that network sniffers can't get their hands on PKs and...do whatever it is that sneaky hackers can do when they get their hands on such info
         public Guid RevisionId { get; set; }
         public DateTime RevisionDateTime { get; set; }
         public string RevisionAuthor { get; set; } = string.Empty;

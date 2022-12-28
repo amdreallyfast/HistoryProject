@@ -35,11 +35,37 @@
   width: 90%;
 }
 
+/* Let the image container be as big as it needs to be in order to contain the image, but make it
+ centered. This seems to auto-size pretty well. 
+ */
 .display-image-container {
+  /* Note: Making the item "relative" appears to make sure that other elements (ex: the "where" 
+  div and "when" div) that render after it will take into account this div's width and height, 
+  while making this div "absolute" will cause elements that are rendered afterwards to _not_ take 
+  this div's final rendered width and height into account. 
+  
+  I think.
+ */
+  position: relative;
   margin: var(--margin-size);
-  height: 40%;
+  /* height: 40%; */
+  /* max-height: 40%; */
   /* padding: var(--padding-size); */
+  text-align: center;
   background-color: yellow;
+}
+
+.display-image-container .eventImg {
+  max-width: 100%;
+  max-height: 100%;
+  /* opacity: 20%; */
+}
+
+.display-image-container .imageEditButtonselectEventImageBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .display-image {
