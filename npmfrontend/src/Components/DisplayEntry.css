@@ -26,8 +26,9 @@
 
 .display-title-container {
   margin: var(--margin-size);
-  /* padding: var(--padding-size); */
+  padding: var(--padding-size);
   height: 5%;
+  text-align: center;
   background-color: yellow;
 }
 
@@ -73,9 +74,13 @@
 }
 
 .display-where-container {
+  position: relative;
   margin: var(--margin-size);
   /* padding: var(--padding-size); */
-  height: 5%;
+  /* height: 5%; */
+  overflow-x: visible;
+  overflow-y: hidden;
+  white-space: nowrap;
   background-color: yellow;
 }
 

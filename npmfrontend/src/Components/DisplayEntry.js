@@ -79,6 +79,8 @@ export class DisplayEntry extends Component {
         revisionAuthor: eventJson.RevisionAuthor,
       }
     });
+
+    this.displayWhereContainer();
   }
 
   getSelectedEvent = (eventId) => {
@@ -197,6 +199,19 @@ export class DisplayEntry extends Component {
     });
   }
 
+  displayWhereContainer = () => {
+    console.log("displayWhereContainer:");
+    let htmlString = "";
+    this.state.event.region.forEach(latLong => {
+      htmlString += `<div>'${latLong.lat}', '${latLong.long}'</div>\n`;
+    });
+    console.log("htmlString:");
+    console.log(htmlString);
+
+    const whereElement = document.querySelector("#whereContainer");
+    whereElement.innerHTML = htmlString;
+  }
+
   render() {
     console.log("rendering");
     return (
@@ -241,7 +256,9 @@ export class DisplayEntry extends Component {
             </>
           }
         </div>
-        <div className="display-where-container">
+
+        {/* TODO: create a list of (lat,lon) pairs */}
+        <div id="whereContainer" className="display-where-container">
           <span>Where</span>
         </div>
         <div className="display-when-container">
