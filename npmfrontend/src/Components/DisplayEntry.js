@@ -265,6 +265,73 @@ export class DisplayEntry extends Component {
     );
   }
 
+  timePrettyStr = (year, month, day, hour, min) => {
+    let dateStr = null;
+    if (year !== null && month !== null && day !== null) {
+      dateStr = `${year}/${month}/${day}`;
+    }
+    else if (year !== null && month !== null) {
+      dateStr = `${year}/${month}`;
+    }
+    else {
+      // Note: Year should never be null, so don't bother to check.
+      // Also Note: Don't bother checking the combination if year != null, month == null, and 
+      // day != null. Having a day without a month would be very silly.
+      dateStr = `${year}`
+    }
+
+    let timeWithLeadingZeros = (num) => {
+      return num < 10 ? `0${num}` : `${num}`
+    };
+
+    let timeStr = null;
+    if (hour !== null && min !== null) {
+      timeStr = `${timeWithLeadingZeros(hour)}:${timeWithLeadingZeros(min)}`
+    }
+    else if (hour !== null) {
+      timeStr = `${timeWithLeadingZeros(hour)}`
+    }
+
+    // console.log(`dateStr: '${dateStr}', timeStr: '${timeStr}'`);
+    return timeStr === null ? dateStr : `${dateStr} ${timeStr}`
+  }
+
+  timeRangeHtml = () => {
+    console.log("timeRangeHtml:");
+
+    let lowerBound = this.state.event.timeRange.lowerBound;
+    let lowerBoundText = this.timePrettyStr(lowerBound.Year, lowerBound.Month, lowerBound.Day, lowerBound.Hour, lowerBound.Min);
+    console.log(`lowerBoundText: '${lowerBoundText}'`);
+
+    let upperBound = this.state.event.timeRange.upperBound;
+    let upperBoundText = this.timePrettyStr(upperBound.Year, upperBound.Month, upperBound.Day, upperBound.Hour, upperBound.Min);
+    console.log(`upperBoundText: '${upperBoundText}'`);
+
+    return (
+      <>
+        <div>
+          {/* TODO: make small text, like a header note */}
+          <span>
+            Year/month/day hour:min
+          </span>
+        </div>
+        <div>
+          <span className="float-start">{lowerBoundText}</span>
+          <span className="float-end">{upperBoundText}</span>
+        </div>
+        {this.state.errMsgs.eventWhenErrMsg === null ?
+          null
+          :
+          <div className="event-when-err-container">
+            <span className="err-msg">
+              {this.state.errMsgs.eventWhenErrMsg}
+            </span>
+          </div>
+        }
+      </>
+    );
+  }
+
   // Thanks for react-bootstrap for this demo code. I've modified it to work in classes (replace 
   // "React.useState(...)" with "this.state.<property>"") and for my application.
   // Source:
@@ -375,71 +442,6 @@ export class DisplayEntry extends Component {
     );
   }
 
-  timePrettyStr = (year, month, day, hour, min) => {
-    let dateStr = null;
-    if (year !== null && month !== null && day !== null) {
-      dateStr = `${year}/${month}/${day}`;
-    }
-    else if (year !== null && month !== null) {
-      dateStr = `${year}/${month}`;
-    }
-    else {
-      // Note: Year should never be null, so don't bother to check.
-      // Also Note: Don't bother checking the combination if year != null, month == null, and 
-      // day != null. Having a day without a month would be very silly.
-      dateStr = `${year}`
-    }
-
-    let timeWithLeadingZeros = (num) => {
-      return num < 10 ? `0${num}` : `${num}`
-    };
-
-    let timeStr = null;
-    if (hour !== null && min !== null) {
-      timeStr = `${timeWithLeadingZeros(hour)}:${timeWithLeadingZeros(min)}`
-    }
-    else if (hour !== null) {
-      timeStr = `${timeWithLeadingZeros(hour)}`
-    }
-
-    // console.log(`dateStr: '${dateStr}', timeStr: '${timeStr}'`);
-    return timeStr === null ? dateStr : `${dateStr} ${timeStr}`
-  }
-
-  timeRangeHtml = () => {
-    console.log("timeRangeHtml:");
-
-    let lowerBound = this.state.event.timeRange.lowerBound;
-    let lowerBoundText = this.timePrettyStr(lowerBound.Year, lowerBound.Month, lowerBound.Day, lowerBound.Hour, lowerBound.Min);
-    console.log(`lowerBoundText: '${lowerBoundText}'`);
-
-    let upperBound = this.state.event.timeRange.upperBound;
-    let upperBoundText = this.timePrettyStr(upperBound.Year, upperBound.Month, upperBound.Day, upperBound.Hour, upperBound.Min);
-    console.log(`upperBoundText: '${upperBoundText}'`);
-
-    return (
-      <>
-        <div>
-          {/* TODO: make small text, like a header note */}
-          <span>
-            Year/month/day hour:min
-          </span>
-        </div>
-        <span>{lowerBoundText}</span>
-        <span style={{ float: "right" }}>{upperBoundText}</span>
-        {this.state.errMsgs.eventWhenErrMsg === null ?
-          null
-          :
-          <div className="event-when-err-container">
-            <span className="err-msg">
-              {this.state.errMsgs.eventWhenErrMsg}
-            </span>
-          </div>
-        }
-      </>
-    );
-  }
-
   summaryHtml = () => {
     console.log("generateSummaryHtml:");
 
@@ -465,7 +467,6 @@ export class DisplayEntry extends Component {
     );
   }
 
-
   render() {
     console.log("rendering");
     return (
@@ -475,6 +476,12 @@ export class DisplayEntry extends Component {
         */}
         <div className="display-title-container">
           <this.titleHtml />
+        </div>
+
+        {/* When
+        */}
+        <div className="display-when-container">
+          <this.timeRangeHtml />
         </div>
 
         {/* Image 
@@ -488,13 +495,6 @@ export class DisplayEntry extends Component {
         */}
         <div className="display-where-container">
           <this.regionHtml />
-        </div>
-
-        {/* TODO: move "when" to just below title */}
-        {/* When
-        */}
-        <div className="display-when-container">
-          <this.timeRangeHtml />
         </div>
 
         {/* Summary */}
