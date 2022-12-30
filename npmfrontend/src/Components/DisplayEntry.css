@@ -24,16 +24,24 @@
   background-color: brown;
 } */
 
+.err-msg {
+  color: red;
+}
+
 .display-title-container {
+  position: relative;
   margin: var(--margin-size);
   padding: var(--padding-size);
-  height: 5%;
-  text-align: center;
+  /* height: 5%; */
   background-color: yellow;
 }
 
-.display-title-text-box {
-  width: 90%;
+.display-title-container .display-title-text-container {
+  text-align: center;
+}
+
+.display-title-container .display-title-err-container {
+  text-align: left;
 }
 
 /* Let the image container be as big as it needs to be in order to contain the image, but make it
@@ -49,17 +57,17 @@
  */
   position: relative;
   margin: var(--margin-size);
-  /* height: 40%; */
-  /* max-height: 40%; */
-  /* padding: var(--padding-size); */
   text-align: center;
   background-color: yellow;
 }
 
-.display-image-container .eventImg {
+.display-image-container .event-image {
   max-width: 100%;
   max-height: 100%;
-  /* opacity: 20%; */
+}
+
+.display-image-container .event-image-err-container {
+  text-align: left;
 }
 
 .display-image-container .imageEditButtonselectEventImageBtn {
@@ -67,10 +75,6 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-.display-image {
-  background-color: green;
 }
 
 .display-where-container {
@@ -84,7 +88,12 @@
   background-color: yellow;
 }
 
+.display-where-container .event-where-err-container {
+  text-align: left;
+}
+
 .display-when-container {
+  position: relative;
   margin: var(--margin-size);
   /* padding: var(--padding-size); */
   /* position: absolute;
@@ -92,11 +101,28 @@
   right: 0px;
   top: 50%;
   bottom: 40%; */
-  height: 5%;
+  /* height: 10%; */
+  overflow-x: visible;
+  overflow-y: visible;
   background-color: yellow;
 }
 
+.display-when-container .lower-bound-time {
+  float: left;
+  color: blue;
+}
+
+.display-when-container .upper-bound-time {
+  float: right;
+  color: green;
+}
+
+.display-when-container .event-when-err-container {
+  text-align: left;
+}
+
 .display-summary-container {
+  position: relative;
   margin: var(--margin-size);
   /* padding: var(--padding-size); */
   /* position: absolute;
@@ -104,6 +130,15 @@
   right: 0px;
   top: 60%;
   bottom: 0px; */
-  height: 40%;
+  /* height: 40%; */
+  /* opacity: 20%; */
   background-color: yellow;
+}
+
+.display-summary-container .event-summary-char-count-container {
+  text-align: right;
+}
+
+.display-summary-container .event-summary-err-container {
+  text-align: left;
 }
