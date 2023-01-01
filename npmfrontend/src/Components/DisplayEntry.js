@@ -467,6 +467,22 @@ export class DisplayEntry extends Component {
     );
   }
 
+  revisionInfoHtml = () => {
+    console.log("revisionInfoHtml:");
+
+    // Note: No editing this. This info will be automatically filled out upon submitting a new 
+    // entry or editing an existing entry.
+    return (
+      <>
+        <div>
+          <span>
+            Last edited by '{this.state.event.revisionAuthor}' on '{this.state.event.revisionDateTime}'.
+          </span>
+        </div>
+      </>
+    );
+  }
+
   render() {
     console.log("rendering");
     return (
@@ -500,6 +516,11 @@ export class DisplayEntry extends Component {
         {/* Summary */}
         <div className="display-summary-container">
           <this.summaryHtml />
+        </div>
+
+        {/* Revision info*/}
+        <div className="display-revision-info-container">
+          <this.revisionInfoHtml />
         </div>
 
         {/* Edit/(Submit/Cancel) */}
