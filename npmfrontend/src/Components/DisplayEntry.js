@@ -11,7 +11,7 @@ export class DisplayEntry extends Component {
     super(props);
 
     this.state = {
-      editMode: false,
+      editMode: true,
 
       titleMinLen: 10,
       titleMaxLen: 128,
@@ -74,18 +74,18 @@ export class DisplayEntry extends Component {
         summaryText: eventJson.Summary,
         timeRange: {
           lowerBound: {
-            Year: eventJson.TimeRange.LowerBoundYear,
-            Month: eventJson.TimeRange.LowerBoundMonth,
-            Day: eventJson.TimeRange.LowerBoundDay,
-            Hour: eventJson.TimeRange.LowerBoundHour,
-            Min: eventJson.TimeRange.LowerBoundMin,
+            year: eventJson.TimeRange.LowerBoundYear,
+            month: eventJson.TimeRange.LowerBoundMonth,
+            day: eventJson.TimeRange.LowerBoundDay,
+            hour: eventJson.TimeRange.LowerBoundHour,
+            min: eventJson.TimeRange.LowerBoundMin,
           },
           upperBound: {
-            Year: eventJson.TimeRange.UpperBoundYear,
-            Month: eventJson.TimeRange.UpperBoundMonth,
-            Day: eventJson.TimeRange.UpperBoundDay,
-            Hour: eventJson.TimeRange.UpperBoundHour,
-            Min: eventJson.TimeRange.UpperBoundMin,
+            year: eventJson.TimeRange.UpperBoundYear,
+            month: eventJson.TimeRange.UpperBoundMonth,
+            day: eventJson.TimeRange.UpperBoundDay,
+            hour: eventJson.TimeRange.UpperBoundHour,
+            min: eventJson.TimeRange.UpperBoundMin,
           }
         },
         region: eventJson.Region.Locations.map((item) => {
@@ -105,58 +105,224 @@ export class DisplayEntry extends Component {
     // this.generateSummaryHtml();
   }
 
-  checkEventForErrors = (eventJson) => {
-    console.log("checkEventForErrors:");
-    console.log(eventJson);
+  errorCheckTitleOk = () => {
+    console.log("errorCheckTitleOk:");
 
-    // Title
     let titleErrMsg = null;
-    if (eventJson.Title.length === 0) {
+    if (this.state.event.titleText.length === 0) {
       titleErrMsg = `Must be at least '${this.state.titleMinLen}' characters.`;
     }
-    else if (eventJson.Title.length > this.state.titleMaxLen) {
+    else if (this.state.event.titleText.length > this.state.titleMaxLen) {
       titleErrMsg = `Must be less than '${this.state.titleMaxLen}' characters.`;
     }
 
-    // Image file path
+    this.setState({
+      errMsgs: {
+        ...this.state.errMsgs,
+        eventTitleErrMsg: titleErrMsg
+      }
+    });
+
+    // Ok if no error.
+    return titleErrMsg === null;
+  }
+
+  errorCheckImageFilePathOk = () => {
+    console.log("errorCheckImageFilePathOk:");
+
     let imgErrMsg = null;
-    if (eventJson.ImageFilePath.length > this.state.imageFilePathMaxLen) {
+    if (this.state.event.imageFilePath.length > this.state.imageFilePathMaxLen) {
       imgErrMsg = `Must be less than '${this.state.imageFilePathMaxLen} characters.`;
     }
 
-    // Summary
-    let summaryErrMsg = null;
-    if (eventJson.Summary.length < this.state.summaryTextMinLen) {
-      summaryErrMsg = `Must be at least '${this.state.summaryTextMinLen}' characters.`;
-    }
-    else if (eventJson.Summary.length > this.state.summaryTextMaxLen) {
-      summaryErrMsg = `Must be at less than '${this.state.summaryTextMaxLen}' characters.`;
-    }
+    this.setState({
+      errMsgs: {
+        ...this.state.errMsgs,
+        eventImgErrMsg: imgErrMsg
+      }
+    });
 
-    // Time range
+    // Ok if no error.
+    return imgErrMsg === null;
+  }
+
+  errorCheckTimeRangeOk = () => {
+    console.log("errorCheckTimeRangeOk:");
+
     let whenErrMsg = null;
-    if (eventJson.TimeRange.LowerBoundYear === null || eventJson.TimeRange.UpperBoundYear === null) {
+    if (this.state.event.timeRange.lowerBound.year === null || this.state.event.timeRange.upperBound.year === null) {
       whenErrMsg = "Must select both upper and lower time boundaries.";
     }
 
-    // Region
+    this.setState({
+      errMsgs: {
+        ...this.state.errMsgs,
+        eventWhenErrMsg: whenErrMsg
+      }
+    });
+
+    // Ok if no error.
+    return whenErrMsg === null;
+  }
+
+  errorCheckRegionOk = () => {
+    console.log("errorCheckRegionOk:");
+
     let whereErrMsg = null;
-    if (eventJson.Region.length === 0) {
+    if (this.state.event.region.length === 0) {
       whereErrMsg = "Must select at least one location.";
     }
 
-    // Set the error message.    
     this.setState({
-      // ...this.state,
       errMsgs: {
         ...this.state.errMsgs,
-        eventTitleErrMsg: titleErrMsg,
-        eventImgErrMsg: imgErrMsg,
-        eventSummaryErrMsg: summaryErrMsg,
-        eventWhenErrMsg: whenErrMsg,
-        eventRegionErrMsg: whereErrMsg,
+        eventRegionErrMsg: whereErrMsg
       }
     });
+
+    // Ok if no error.
+    return whereErrMsg === null;
+  }
+
+  errorCheckSummaryOk = () => {
+    console.log("errorCheckSummaryOk:");
+
+    let summaryErrMsg = null;
+    if (this.state.event.summaryText.length < this.state.summaryTextMinLen) {
+      summaryErrMsg = `Must be at least '${this.state.summaryTextMinLen}' characters.`;
+    }
+    else if (this.state.event.summaryText.length > this.state.summaryTextMaxLen) {
+      summaryErrMsg = `Must be at less than '${this.state.summaryTextMaxLen}' characters.`;
+    }
+
+    this.setState({
+      errMsgs: {
+        ...this.state.errMsgs,
+        eventSummaryErrMsg: summaryErrMsg
+      }
+    });
+
+    // Ok if no error.
+    return summaryErrMsg === null;
+  }
+
+
+  // checkEventForErrors = (eventJson) => {
+  //   console.log("checkEventForErrors:");
+  //   console.log(eventJson);
+
+  //   // Title
+  //   let titleErrMsg = null;
+  //   if (eventJson.Title.length === 0) {
+  //     titleErrMsg = `Must be at least '${this.state.titleMinLen}' characters.`;
+  //   }
+  //   else if (eventJson.Title.length > this.state.titleMaxLen) {
+  //     titleErrMsg = `Must be less than '${this.state.titleMaxLen}' characters.`;
+  //   }
+
+  //   // Image file path
+  //   let imgErrMsg = null;
+  //   if (eventJson.ImageFilePath.length > this.state.imageFilePathMaxLen) {
+  //     imgErrMsg = `Must be less than '${this.state.imageFilePathMaxLen} characters.`;
+  //   }
+
+  //   // Summary
+  //   let summaryErrMsg = null;
+  //   if (eventJson.Summary.length < this.state.summaryTextMinLen) {
+  //     summaryErrMsg = `Must be at least '${this.state.summaryTextMinLen}' characters.`;
+  //   }
+  //   else if (eventJson.Summary.length > this.state.summaryTextMaxLen) {
+  //     summaryErrMsg = `Must be at less than '${this.state.summaryTextMaxLen}' characters.`;
+  //   }
+
+  //   // Time range
+  //   let whenErrMsg = null;
+  //   if (eventJson.TimeRange.LowerBoundYear === null || eventJson.TimeRange.UpperBoundYear === null) {
+  //     whenErrMsg = "Must select both upper and lower time boundaries.";
+  //   }
+
+  //   // Region
+  //   let whereErrMsg = null;
+  //   if (eventJson.Region.length === 0) {
+  //     whereErrMsg = "Must select at least one location.";
+  //   }
+
+  //   // Set the error message.    
+  //   this.setState({
+  //     // ...this.state,
+  //     errMsgs: {
+  //       ...this.state.errMsgs,
+  //       eventTitleErrMsg: titleErrMsg,
+  //       eventImgErrMsg: imgErrMsg,
+  //       eventSummaryErrMsg: summaryErrMsg,
+  //       eventWhenErrMsg: whenErrMsg,
+  //       eventRegionErrMsg: whereErrMsg,
+  //     }
+  //   });
+  // }
+
+  // checkEventForErrors = () => {
+  //   console.log("checkEventForErrors:");
+
+  //   let event = this.state.event;
+
+  //   // Title
+  //   let titleErrMsg = null;
+  //   if (event.titleText.length === 0) {
+  //     titleErrMsg = `Must be at least '${this.state.titleMinLen}' characters.`;
+  //   }
+  //   else if (event.titleText.length > this.state.titleMaxLen) {
+  //     titleErrMsg = `Must be less than '${this.state.titleMaxLen}' characters.`;
+  //   }
+
+  //   // Image file path
+  //   let imgErrMsg = null;
+  //   if (event.imageFilePath.length > this.state.imageFilePathMaxLen) {
+  //     imgErrMsg = `Must be less than '${this.state.imageFilePathMaxLen} characters.`;
+  //   }
+
+  //   // Summary
+  //   let summaryErrMsg = null;
+  //   if (event.summaryText.length < this.state.summaryTextMinLen) {
+  //     summaryErrMsg = `Must be at least '${this.state.summaryTextMinLen}' characters.`;
+  //   }
+  //   else if (event.summaryText.length > this.state.summaryTextMaxLen) {
+  //     summaryErrMsg = `Must be at less than '${this.state.summaryTextMaxLen}' characters.`;
+  //   }
+
+  //   // Time range
+  //   let whenErrMsg = null;
+  //   if (event.timeRange.lowerBound.year === null || event.timeRange.upperBound.year === null) {
+  //     whenErrMsg = "Must select both upper and lower time boundaries.";
+  //   }
+
+  //   // Region
+  //   let whereErrMsg = null;
+  //   if (event.region.length === 0) {
+  //     whereErrMsg = "Must select at least one location.";
+  //   }
+
+  //   // Set the error message.    
+  //   this.setState({
+  //     // ...this.state,
+  //     errMsgs: {
+  //       ...this.state.errMsgs,
+  //       eventTitleErrMsg: titleErrMsg,
+  //       eventImgErrMsg: imgErrMsg,
+  //       eventSummaryErrMsg: summaryErrMsg,
+  //       eventWhenErrMsg: whenErrMsg,
+  //       eventRegionErrMsg: whereErrMsg,
+  //     }
+  //   });
+  // }
+
+  errorCheckAllOk = () => {
+    console.log("errorCheckAllOk:");
+    this.errorCheckTitleOk();
+    this.errorCheckImageFilePathOk();
+    this.errorCheckTimeRangeOk();
+    this.errorCheckRegionOk();
+    this.errorCheckSummaryOk();
   }
 
   getSelectedEvent = (eventId) => {
@@ -164,7 +330,7 @@ export class DisplayEntry extends Component {
       .then(response => response.json())
       .then(eventJson => {
         this.setEvent(eventJson);
-        this.checkEventForErrors(eventJson);
+        this.errorCheckAllOk();
       });
   }
 
@@ -173,7 +339,7 @@ export class DisplayEntry extends Component {
       .then(response => response.json())
       .then(eventJson => {
         this.setEvent(eventJson);
-        this.checkEventForErrors(eventJson);
+        this.errorCheckAllOk();
       });
     console.log(this.state)
   }
@@ -214,8 +380,9 @@ export class DisplayEntry extends Component {
     })
   }
 
-
   showMyModal = () => {
+    // TODO: move function to this.imageHtml() function
+
     // Set state to show the modal.
     console.log("showMyModal")
     this.setState({
@@ -224,32 +391,36 @@ export class DisplayEntry extends Component {
     });
   }
 
-  onTitleChanged = (changeEvent) => {
-    console.log("onTitleChanged");
-    this.setState({
-      ...this.state,
-      event: {
-        ...this.state.event,
-        titleText: changeEvent.target.value
-      }
-    });
-  }
-
   titleHtml = () => {
     console.log("titleHtml:");
 
+    let onTitleChanged = (changeEvent) => {
+      console.log("onTitleChanged");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          titleText: changeEvent.target.value
+        }
+      });
+
+      this.errorCheckTitleOk();
+    }
+
     return (
-      <>
+      <div className="display-title-container">
         {/* Data */}
         <div className="display-title-text-container">
           {this.state.editMode === true ?
             <input type="text"
               className="form-control"
               value={this.state.event.titleText}
-              onChange={this.onTitleChanged}>
+              onChange={onTitleChanged}>
             </input>
             :
-            <span>{this.state.event.titleText}</span>
+            <span>
+              {this.state.event.titleText}
+            </span>
           }
         </div>
 
@@ -261,7 +432,7 @@ export class DisplayEntry extends Component {
             <span className="err-msg">{this.state.errMsgs.eventTitleErrMsg}</span>
           </div>
         }
-      </>
+      </div>
     );
   }
 
@@ -300,25 +471,92 @@ export class DisplayEntry extends Component {
     console.log("timeRangeHtml:");
 
     let lowerBound = this.state.event.timeRange.lowerBound;
-    let lowerBoundText = this.timePrettyStr(lowerBound.Year, lowerBound.Month, lowerBound.Day, lowerBound.Hour, lowerBound.Min);
+    let lowerBoundText = this.timePrettyStr(lowerBound.year, lowerBound.month, lowerBound.day, lowerBound.hour, lowerBound.min);
     console.log(`lowerBoundText: '${lowerBoundText}'`);
 
     let upperBound = this.state.event.timeRange.upperBound;
-    let upperBoundText = this.timePrettyStr(upperBound.Year, upperBound.Month, upperBound.Day, upperBound.Hour, upperBound.Min);
+    let upperBoundText = this.timePrettyStr(upperBound.year, upperBound.month, upperBound.day, upperBound.hour, upperBound.min);
     console.log(`upperBoundText: '${upperBoundText}'`);
 
     return (
-      <>
+      <div className="display-when-container">
+        {/* Header */}
         <div>
-          {/* TODO: make small text, like a header note */}
-          <span>
+          <span className="when-info-header">
             Year/month/day hour:min
           </span>
         </div>
-        <div>
-          <span className="float-start">{lowerBoundText}</span>
-          <span className="float-end">{upperBoundText}</span>
-        </div>
+
+        {/* Data */}
+        {this.state.editMode === true ?
+          // Two columns side by side.
+          <div style={{
+            position: "relative",
+            overflow: "hidden"
+          }}>
+            <table class="table table-striped" style={{
+              tableLayout: "fixed",
+              width: "90%"
+            }}>
+
+              <thead>
+                <tr>
+                  <th style={{ width: "20%", margin: "5px" }}></th>
+                  <th style={{ width: "40%", margin: "5px" }}>Upper bound</th>
+                  <th style={{ width: "40%", margin: "5px" }}>Lower bound</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <span>Year</span>
+                  </td>
+                  <td>
+                    <input type="text" style={{
+                      margin: "5px",
+                      width: "100%"
+                    }} value="1001" />
+                  </td>
+                  <td>
+                    <input type="text" value="1029" />
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>
+                    <span>Month</span>
+                  </td>
+                  <td>
+                    <input type="text" value="3" />
+                  </td>
+                  <td>
+                    <input type="text" value="10" />
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>
+                    <span>Day</span>
+                  </td>
+                  <td>
+                    <input type="text" value="5" />
+                  </td>
+                  <td>
+                    <input type="text" value="17" />
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+          :
+          <div style={{ overflow: "hidden" }}>
+            <span className="float-start">{lowerBoundText}</span>
+            <span className="float-end">{upperBoundText}</span>
+          </div>
+        }
+
+        {/* Error */}
         {this.state.errMsgs.eventWhenErrMsg === null ?
           null
           :
@@ -328,7 +566,7 @@ export class DisplayEntry extends Component {
             </span>
           </div>
         }
-      </>
+      </div>
     );
   }
 
@@ -442,18 +680,39 @@ export class DisplayEntry extends Component {
     );
   }
 
+  onSummaryChanged = (changeEvent) => {
+    console.log("onSummaryChanged:");
+    this.setState({
+      ...this.state,
+      event: {
+        ...this.state.event,
+        summaryText: changeEvent.target.value
+      }
+    });
+  }
+
   summaryHtml = () => {
     console.log("generateSummaryHtml:");
 
     return (
-      <>
-        <div>
-          <span>{this.state.event.summaryText}</span>
-        </div>
+      <div className="display-summary-container">
+        {this.state.editMode === true ?
+          <>
+            <input type="text"
+              className="form-control"
+              value={this.state.event.summaryText}
+              onChange={this.onSummaryChanged}>
+            </input>
 
-        <div className="event-summary-char-count-container">
-          <span>{this.state.event.summaryText.length}/{this.state.summaryTextMaxLen}</span>
-        </div>
+            <div className="event-summary-char-count-container">
+              <span>{this.state.event.summaryText.length}/{this.state.summaryTextMaxLen}</span>
+            </div>
+          </>
+          :
+          <div>
+            <span>{this.state.event.summaryText}</span>
+          </div>
+        }
 
         {this.state.errMsgs.eventSummaryErrMsg === null ?
           null :
@@ -463,7 +722,7 @@ export class DisplayEntry extends Component {
             </span>
           </div>
         }
-      </>
+      </div>
     );
   }
 
@@ -474,7 +733,7 @@ export class DisplayEntry extends Component {
     // entry or editing an existing entry.
     return (
       <>
-        <div>
+        <div className="display-revision-info-container">
           <span>
             Last edited by '{this.state.event.revisionAuthor}' on '{this.state.event.revisionDateTime}'.
           </span>
@@ -487,18 +746,8 @@ export class DisplayEntry extends Component {
     console.log("rendering");
     return (
       <div id="main-container">
-        {/* Title
-            If in edit mode, use an input form, otherwise use a non-editable span. 
-        */}
-        <div className="display-title-container">
-          <this.titleHtml />
-        </div>
-
-        {/* When
-        */}
-        <div className="display-when-container">
-          <this.timeRangeHtml />
-        </div>
+        <this.titleHtml />
+        <this.timeRangeHtml />
 
         {/* Image 
             Note: If no image, just say so.
@@ -514,41 +763,37 @@ export class DisplayEntry extends Component {
         </div>
 
         {/* Summary */}
-        <div className="display-summary-container">
-          <this.summaryHtml />
-        </div>
+        <this.summaryHtml />
 
-        {/* Revision info*/}
-        <div className="display-revision-info-container">
-          <this.revisionInfoHtml />
-        </div>
+        <this.revisionInfoHtml />
 
         {/* Edit/(Submit/Cancel) */}
         {/* TODO: let "escape" key also cancel edit mode */}
-        {this.state.editMode === true ?
-          <>
-            {/* "Cancel" goes on the far right, and then put "Submit" next, also on the far 
+        {
+          this.state.editMode === true ?
+            <>
+              {/* "Cancel" goes on the far right, and then put "Submit" next, also on the far 
             right, but since the "Cancel" button is already there, "Summary" will end up 
             immediately left of it.
             */}
-            <button type="button" className="btn btn-secondary float-end" onClick={this.cancelChanges}>
-              Cancel
-            </button>
-            <button type="button" className="btn btn-primary float-end" onClick={this.submitChanges}>
-              Submit
-            </button>
-          </>
-          :
-          <>
-            <button type="button" onClick={this.turnOnEditMode}>
-              Edit
-            </button>
+              <button type="button" className="btn btn-secondary float-end" onClick={this.cancelChanges}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary float-end" onClick={this.submitChanges}>
+                Submit
+              </button>
+            </>
+            :
+            <>
+              <button type="button" onClick={this.turnOnEditMode}>
+                Edit
+              </button>
 
-            {/* TODO: move this button elsewhere (??maybe even the App??) */}
-            <button onClick={this.getEventOfTheDay}>
-              getEventOfTheDay
-            </button>
-          </>
+              {/* TODO: move this button elsewhere (??maybe even the App??) */}
+              <button onClick={this.getEventOfTheDay}>
+                getEventOfTheDay
+              </button>
+            </>
         }
       </div >
     );

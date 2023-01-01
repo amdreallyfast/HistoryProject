@@ -92,6 +92,11 @@
   text-align: left;
 }
 
+/* Note: "overflow: hidden" encapsulates the "float" elements too. The "float" style seems to 
+intentionally disconnect the element from the dimensions of its parent container (gives it more
+ freedom, maybe?), but the parent container can still be forced to encapsulate it by using 
+ "overflow: hidden". All I want is the "float-start" and "float-end" styles, and I want the 
+ container to still contain them. */
 .display-when-container {
   position: relative;
   overflow: hidden;
@@ -104,6 +109,10 @@
   bottom: 40%; */
   /* height: 10%; */
   background-color: yellow;
+}
+
+.display-when-container .when-info-header {
+  font-size: small;
 }
 
 .display-when-container .lower-bound-time {
