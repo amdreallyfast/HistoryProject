@@ -802,7 +802,7 @@ export class DisplayEntry extends Component {
             position: "relative",
             overflow: "hidden"
           }}>
-            <table class="table table-striped" style={{
+            <table className="table table-striped" style={{
               tableLayout: "fixed",
               width: "100%"
             }}>
