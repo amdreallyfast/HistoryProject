@@ -94,35 +94,67 @@ export class DisplayEntry extends Component {
   // Only sets values that have changed. If not changed on the incoming json, existing event 
   // values will persist.
   setEventValues = (eventJson) => {
-    console.log("setting event:");
+    console.log("setEventValues:");
     console.log(eventJson);
 
-    this.setState({
-      ...this.state,
-      event: {
-        titleText: eventJson.titleText !== undefined ? eventJson.titleText : this.state.event.titleText,
-        imageFilePath: eventJson.imageFilePath !== undefined ? eventJson.imageFilePath : this.state.event.imageFilePath,
-        summaryText: eventJson.summaryText !== undefined ? eventJson.summaryText : this.state.event.summaryText,
-        timeRange: {
-          lowerBound: {
-            year: eventJson.timeRange.lowerBound.year !== undefined ? eventJson.timeRange.lowerBound.year : this.state.event.timeRange.lowerBound.year,
-            month: eventJson.timeRange.lowerBound.month !== undefined ? eventJson.timeRange.lowerBound.month : this.state.event.timeRange.lowerBound.month,
-            day: eventJson.timeRange.lowerBound.day !== undefined ? eventJson.timeRange.lowerBound.day : this.state.event.timeRange.lowerBound.day,
-            hour: eventJson.timeRange.lowerBound.hour !== undefined ? eventJson.timeRange.lowerBound.hour : this.state.event.timeRange.lowerBound.hour,
-            min: eventJson.timeRange.lowerBound.min !== undefined ? eventJson.timeRange.lowerBound.min : this.state.event.timeRange.lowerBound.min,
-          },
-          upperBound: {
-            year: eventJson.timeRange.upperBound.year !== undefined ? eventJson.timeRange.upperBound.year : this.state.event.timeRange.upperBound.year,
-            month: eventJson.timeRange.upperBound.month !== undefined ? eventJson.timeRange.upperBound.month : this.state.event.timeRange.upperBound.month,
-            day: eventJson.timeRange.upperBound.day !== undefined ? eventJson.timeRange.upperBound.day : this.state.event.timeRange.upperBound.day,
-            hour: eventJson.timeRange.upperBound.hour !== undefined ? eventJson.timeRange.upperBound.hour : this.state.event.timeRange.upperBound.hour,
-            min: eventJson.timeRange.upperBound.min !== undefined ? eventJson.timeRange.upperBound.min : this.state.event.timeRange.upperBound.min,
-          }
-        },
-        region: eventJson.region.length !== 0 ? eventJson.region : this.state.event.region,
-        revisionDateTime: eventJson.revisionDateTime !== undefined ? eventJson.revisionDateTime : this.state.event.revisionDateTime,
-        revisionAuthor: eventJson.revisionAuthor !== undefined ? eventJson.revisionAuthor : this.state.event.revisionAuthor,
+    let eventState = this.state.event;
+    let newEvent = {};
+    newEvent.titleText = eventJson.titleText !== undefined ? eventJson.titleText : eventState.titleText;
+    newEvent.imageFilePath = eventJson.imageFilePath !== undefined ? eventJson.imageFilePath : eventState.imageFilePath;
+    newEvent.summaryText = eventJson.summaryText !== undefined ? eventJson.summaryText : eventState.summaryText;
+
+    // Time range
+    if (eventJson.timeRange === undefined) {
+      newEvent.timeRange = eventState.timeRange;
+    }
+    else {
+      newEvent.timeRange = {};
+
+      let jsonLowerBound = eventJson.timeRange.lowerBound;
+      let stateLowerBound = eventState.timeRange.lowerBound;
+      if (jsonLowerBound === undefined) {
+        newEvent.timeRange.lowerBound = stateLowerBound;
       }
+      else {
+        newEvent.timeRange.lowerBound = {
+          year: jsonLowerBound.year !== undefined ? jsonLowerBound.year : stateLowerBound.year,
+          month: jsonLowerBound.month !== undefined ? jsonLowerBound.month : stateLowerBound.month,
+          day: jsonLowerBound.day !== undefined ? jsonLowerBound.day : stateLowerBound.day,
+          hour: jsonLowerBound.hour !== undefined ? jsonLowerBound.hour : stateLowerBound.hour,
+          min: jsonLowerBound.min !== undefined ? jsonLowerBound.min : stateLowerBound.min,
+        }
+      }
+
+      let jsonUpperBound = eventJson.timeRange.upperBound;
+      let stateUpperBound = eventState.timeRange.upperBound;
+      if (jsonUpperBound === undefined) {
+        newEvent.timeRange.upperBound = stateUpperBound;
+      }
+      else {
+        newEvent.timeRange.upperBound = {
+          year: jsonUpperBound.year !== undefined ? jsonUpperBound.year : stateUpperBound.year,
+          month: jsonUpperBound.month !== undefined ? jsonUpperBound.month : stateUpperBound.month,
+          day: jsonUpperBound.day !== undefined ? jsonUpperBound.day : stateUpperBound.day,
+          hour: jsonUpperBound.hour !== undefined ? jsonUpperBound.hour : stateUpperBound.hour,
+          min: jsonUpperBound.min !== undefined ? jsonUpperBound.min : stateUpperBound.min,
+        }
+      }
+    }
+
+    // Region
+    if (eventJson.region === undefined) {
+      newEvent.region = eventState.region;
+    }
+    else {
+      newEvent.region = eventJson.region;
+    }
+
+    // newEvent.region = eventJson.region.length !== 0 ? eventJson.region : eventState.region;
+    newEvent.revisionDateTime = eventJson.revisionDateTime !== undefined ? eventJson.revisionDateTime : eventState.revisionDateTime;
+    newEvent.revisionAuthor = eventJson.revisionAuthor !== undefined ? eventJson.revisionAuthor : eventState.revisionAuthor;
+
+    this.setState({
+      event: newEvent
     });
 
     // console.log(`title: '${this.state.event.titleText}'`)
