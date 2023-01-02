@@ -156,11 +156,6 @@ export class DisplayEntry extends Component {
     this.setState({
       event: newEvent
     });
-
-    // console.log(`title: '${this.state.event.titleText}'`)
-    // this.generateWhereHtml();
-    // this.generateWhenHtml();
-    // this.generateSummaryHtml();
   }
 
   errorCheckTitleOk = () => {
@@ -264,118 +259,9 @@ export class DisplayEntry extends Component {
     return errMsg === null;
   }
 
-
-  // checkEventForErrors = (eventJson) => {
-  //   console.log("checkEventForErrors:");
-  //   console.log(eventJson);
-
-  //   // Title
-  //   let titleErrMsg = null;
-  //   if (eventJson.Title.length === 0) {
-  //     titleErrMsg = `Must be at least '${this.state.titleMinLen}' characters.`;
-  //   }
-  //   else if (eventJson.Title.length > this.state.titleMaxLen) {
-  //     titleErrMsg = `Must be less than '${this.state.titleMaxLen}' characters.`;
-  //   }
-
-  //   // Image file path
-  //   let imgErrMsg = null;
-  //   if (eventJson.ImageFilePath.length > this.state.imageFilePathMaxLen) {
-  //     imgErrMsg = `Must be less than '${this.state.imageFilePathMaxLen} characters.`;
-  //   }
-
-  //   // Summary
-  //   let summaryErrMsg = null;
-  //   if (eventJson.Summary.length < this.state.summaryTextMinLen) {
-  //     summaryErrMsg = `Must be at least '${this.state.summaryTextMinLen}' characters.`;
-  //   }
-  //   else if (eventJson.Summary.length > this.state.summaryTextMaxLen) {
-  //     summaryErrMsg = `Must be at less than '${this.state.summaryTextMaxLen}' characters.`;
-  //   }
-
-  //   // Time range
-  //   let whenErrMsg = null;
-  //   if (eventJson.TimeRange.LowerBoundYear === null || eventJson.TimeRange.UpperBoundYear === null) {
-  //     whenErrMsg = "Must select both upper and lower time boundaries.";
-  //   }
-
-  //   // Region
-  //   let whereErrMsg = null;
-  //   if (eventJson.Region.length === 0) {
-  //     whereErrMsg = "Must select at least one location.";
-  //   }
-
-  //   // Set the error message.    
-  //   this.setState({
-  //     // ...this.state,
-  //     errMsgs: {
-  //       ...this.state.errMsgs,
-  //       eventTitleErrMsg: titleErrMsg,
-  //       eventImgErrMsg: imgErrMsg,
-  //       eventSummaryErrMsg: summaryErrMsg,
-  //       eventWhenErrMsg: whenErrMsg,
-  //       eventRegionErrMsg: whereErrMsg,
-  //     }
-  //   });
-  // }
-
-  // checkEventForErrors = () => {
-  //   console.log("checkEventForErrors:");
-
-  //   let event = this.state.event;
-
-  //   // Title
-  //   let titleErrMsg = null;
-  //   if (event.titleText.length === 0) {
-  //     titleErrMsg = `Must be at least '${this.state.titleMinLen}' characters.`;
-  //   }
-  //   else if (event.titleText.length > this.state.titleMaxLen) {
-  //     titleErrMsg = `Must be less than '${this.state.titleMaxLen}' characters.`;
-  //   }
-
-  //   // Image file path
-  //   let imgErrMsg = null;
-  //   if (event.imageFilePath.length > this.state.imageFilePathMaxLen) {
-  //     imgErrMsg = `Must be less than '${this.state.imageFilePathMaxLen} characters.`;
-  //   }
-
-  //   // Summary
-  //   let summaryErrMsg = null;
-  //   if (event.summaryText.length < this.state.summaryTextMinLen) {
-  //     summaryErrMsg = `Must be at least '${this.state.summaryTextMinLen}' characters.`;
-  //   }
-  //   else if (event.summaryText.length > this.state.summaryTextMaxLen) {
-  //     summaryErrMsg = `Must be at less than '${this.state.summaryTextMaxLen}' characters.`;
-  //   }
-
-  //   // Time range
-  //   let whenErrMsg = null;
-  //   if (event.timeRange.lowerBound.year === null || event.timeRange.upperBound.year === null) {
-  //     whenErrMsg = "Must select both upper and lower time boundaries.";
-  //   }
-
-  //   // Region
-  //   let whereErrMsg = null;
-  //   if (event.region.length === 0) {
-  //     whereErrMsg = "Must select at least one location.";
-  //   }
-
-  //   // Set the error message.    
-  //   this.setState({
-  //     // ...this.state,
-  //     errMsgs: {
-  //       ...this.state.errMsgs,
-  //       eventTitleErrMsg: titleErrMsg,
-  //       eventImgErrMsg: imgErrMsg,
-  //       eventSummaryErrMsg: summaryErrMsg,
-  //       eventWhenErrMsg: whenErrMsg,
-  //       eventRegionErrMsg: whereErrMsg,
-  //     }
-  //   });
-  // }
-
   errorCheckAllOk = () => {
     console.log("errorCheckAllOk:");
+
     this.errorCheckTitleOk();
     this.errorCheckImageFilePathOk();
     this.errorCheckTimeRangeOk();
@@ -411,7 +297,6 @@ export class DisplayEntry extends Component {
   componentDidMount() {
     console.log("componentDidMount:");
 
-    // this.getEventOfTheDay();
     this.getSelectedEvent("be9aa2f5-1569-4a8e-b31f-08dae5392545")
   }
 
@@ -465,14 +350,6 @@ export class DisplayEntry extends Component {
       console.log(`onTitleChanged: '${value}'`);
 
       this.setEventValues({ titleText: value });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     titleText: changeEvent.target.value
-      //   }
-      // });
-
       this.errorCheckTitleOk();
     };
 
@@ -515,7 +392,7 @@ export class DisplayEntry extends Component {
     }
     else {
       // Note: Year should never be null, so don't bother to check.
-      // Also Note: Don't bother checking the combination if year != null, month == null, and 
+      // Also Note: Don't bother checking the combination of year != null, month == null, and 
       // day != null. Having a day without a month would be very silly.
       dateStr = `${year}`
     }
@@ -532,7 +409,7 @@ export class DisplayEntry extends Component {
       timeStr = `${timeWithLeadingZeros(hour)}`
     }
 
-    // console.log(`dateStr: '${dateStr}', timeStr: '${timeStr}'`);
+    console.log(`timePrettyStr: dateStr: '${dateStr}', timeStr: '${timeStr}'`);
     return timeStr === null ? dateStr : `${dateStr} ${timeStr}`
   }
 
@@ -543,27 +420,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onLowerBoundYearChange: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          lowerBound: {
-            year: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       lowerBound: {
-      //         ...this.state.event.timeRange.lowerBound,
-      //         year: value === "" ? null : value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { lowerBound: { year: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -571,26 +428,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value
       console.log(`onLowerBoundYearChange: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          lowerBound: {
-            month: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       lowerBound: {
-      //         month: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { lowerBound: { month: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -598,26 +436,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onLowerBoundDayChanged: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          lowerBound: {
-            day: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       lowerBound: {
-      //         day: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { lowerBound: { day: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -625,26 +444,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onLowerBoundHourChanged: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          lowerBound: {
-            hour: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       lowerBound: {
-      //         hour: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { lowerBound: { hour: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -652,26 +452,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onLowerBoundMinChanged: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          lowerBound: {
-            min: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       lowerBound: {
-      //         min: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { lowerBound: { min: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -679,26 +460,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onUpperBoundYearChange: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          upperBound: {
-            year: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       upperBound: {
-      //         year: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { upperBound: { year: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -706,26 +468,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onUpperBoundYearChange: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          upperBound: {
-            month: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       upperBound: {
-      //         month: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { upperBound: { month: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -733,26 +476,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onUpperBoundDayChanged: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          upperBound: {
-            day: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       upperBound: {
-      //         day: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { upperBound: { day: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -760,26 +484,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onUpperBoundHourChanged: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          upperBound: {
-            hour: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       upperBound: {
-      //         hour: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { upperBound: { hour: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -787,26 +492,7 @@ export class DisplayEntry extends Component {
       let value = changeEvent.target.value;
       console.log(`onUpperBoundMinChanged: '${value}'`);
 
-      this.setEventValues({
-        timeRange: {
-          upperBound: {
-            min: value === "" ? null : value
-          }
-        }
-      });
-      // this.setState({
-      //   ...this.state,
-      //   event: {
-      //     ...this.state.event,
-      //     timeRange: {
-      //       ...this.state.event.timeRange,
-      //       upperBound: {
-      //         min: changeEvent.target.value
-      //       }
-      //     }
-      //   }
-      // });
-
+      this.setEventValues({ timeRange: { upperBound: { min: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
     };
 
@@ -940,7 +626,8 @@ export class DisplayEntry extends Component {
   // "React.useState(...)" with "this.state.<property>"") and for my application.
   // Source:
   //  https://react-bootstrap.github.io/components/modal/
-  // Note: For some reason has to use the "= () => {...}" syntax instead of normal function syntax in order for the "this" to work in the callbacks...??why javascript??.
+  // Note: For some reason has to use the "= () => {...}" syntax instead of normal function 
+  // syntax in order for the "this" to work in the callbacks...??why u do this javascript??.
   editEventImgModal = () => {
     console.log("showSelectImageModal...")
 
