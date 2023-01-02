@@ -332,17 +332,6 @@ export class DisplayEntry extends Component {
     });
   }
 
-  showMyModal = () => {
-    // TODO: move function to this.imageHtml() function
-
-    // Set state to show the modal.
-    console.log("showMyModal");
-    this.setState({
-      ...this.state,
-      selectImageModalVisible: true,
-    });
-  }
-
   titleHtml = () => {
     console.log("titleHtml:");
 
@@ -604,33 +593,49 @@ export class DisplayEntry extends Component {
     );
   }
 
-  // Thanks for react-bootstrap for this demo code. I've modified it to work in classes (replace 
-  // "React.useState(...)" with "this.state.<property>"") and for my application.
-  // Source:
-  //  https://react-bootstrap.github.io/components/modal/
-  // Note: For some reason has to use the "= () => {...}" syntax instead of normal function 
-  // syntax in order for the "this" to work in the callbacks...??why u do this javascript??.
-  editEventImgModal = () => {
-    console.log("showSelectImageModal...")
+  imageHtml = () => {
+    console.log("imageHtml:")
 
-    const cancelImageUpload = () => {
-      console.log("cancel image upload");
+    const showSelectImageModal = () => {
+      console.log("showSelectImageModal:");
+
       this.setState({
-        ...this.state,
+        selectImageModalVisible: true,
+      });
+    };
+
+    const hideSelectImageModal = () => {
+      console.log("hideSelectImageModal:");
+
+      this.setState({
         selectImageModalVisible: false,
       });
     }
 
-    const confirmImageUpload = () => {
-      console.log("confirm image upload");
-      this.setState({
-        ...this.state,
-        selectImageModalVisible: false,
-      });
-    }
+    // Thanks for react-bootstrap for this demo code. I've modified it to work in classes (replace 
+    // "React.useState(...)" with "this.state.<property>"") and for my application.
+    // Source:
+    //  https://react-bootstrap.github.io/components/modal/
+    // Note: For some reason has to use the "= () => {...}" syntax instead of normal function 
+    // syntax in order for the "this" to work in the callbacks...??why u do this javascript??.
+    const SelectImageModal = () => {
+      console.log("selectImageModal...")
 
-    return (
-      <>
+      const cancelImageUpload = () => {
+        console.log("cancelImageUpload:");
+
+        // TODO: this
+        hideSelectImageModal();
+      }
+
+      const confirmImageUpload = () => {
+        console.log("confirmImageUpload:");
+
+        // TODO: this
+        hideSelectImageModal();
+      }
+
+      return (
         <Modal show={this.state.selectImageModalVisible} onHide={cancelImageUpload}>
           <Modal.Header closeButton>
             <Modal.Title>Select image</Modal.Title>
@@ -647,15 +652,10 @@ export class DisplayEntry extends Component {
             </Button>
           </Modal.Footer>
         </Modal>
-      </>
-    );
-  }
-
-  imageHtml = () => {
-    console.log("imageHtml:")
-
+      );
+    }
     return (
-      <>
+      <div className="display-image-container">
         {/* Data */}
         {this.state.event.imageFilePath === "" ?
           <span>No image</span>
@@ -668,13 +668,14 @@ export class DisplayEntry extends Component {
             </img>
 
             {this.state.editMode === true ?
-              <Button variant="primary" className="imageEditButtonselectEventImageBtn" onClick={this.showMyModal}>
+              <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
                 Select image
               </Button>
               :
               null
             }
-            <this.editEventImgModal />
+
+            <SelectImageModal />
           </>
         }
 
@@ -682,13 +683,13 @@ export class DisplayEntry extends Component {
         <div className="event-image-err-container">
           <span className="err-msg">{this.state.errMsgs.eventImgErrMsg}</span>
         </div>
-      </>
+      </div>
     );
   }
 
   regionHtml = () => {
     console.log("regionHtml:");
-    console.log(this.state.event.region);
+    // console.log(this.state.event.region);
     return (
       <>
         <div>
@@ -699,7 +700,6 @@ export class DisplayEntry extends Component {
           ))}
         </div>
 
-        {/* TODO: remove the trinary operator and just use the div and span. If contents are null, then they will not be visible when the HTML renders. */}
         <div className="event-where-err-container">
           <span className="err-msg">{this.state.errMsgs.eventRegionErrMsg}</span>
         </div>
@@ -761,13 +761,7 @@ export class DisplayEntry extends Component {
       <div id="main-container">
         <this.titleHtml />
         <this.timeRangeHtml />
-
-        {/* Image 
-            Note: If no image, just say so.
-        */}
-        <div className="display-image-container">
-          <this.imageHtml />
-        </div>
+        <this.imageHtml />
 
         {/* Region
         */}
