@@ -382,37 +382,6 @@ export class DisplayEntry extends Component {
     );
   }
 
-  timePrettyStr = (year, month, day, hour, min) => {
-    let dateStr = null;
-    if (year !== null && month !== null && day !== null) {
-      dateStr = `${year}/${month}/${day}`;
-    }
-    else if (year !== null && month !== null) {
-      dateStr = `${year}/${month}`;
-    }
-    else {
-      // Note: Year should never be null, so don't bother to check.
-      // Also Note: Don't bother checking the combination of year != null, month == null, and 
-      // day != null. Having a day without a month would be very silly.
-      dateStr = `${year}`
-    }
-
-    let timeWithLeadingZeros = (num) => {
-      return num < 10 ? `0${num}` : `${num}`
-    };
-
-    let timeStr = null;
-    if (hour !== null && min !== null) {
-      timeStr = `${timeWithLeadingZeros(hour)}:${timeWithLeadingZeros(min)}`
-    }
-    else if (hour !== null) {
-      timeStr = `${timeWithLeadingZeros(hour)}`
-    }
-
-    console.log(`timePrettyStr: dateStr: '${dateStr}', timeStr: '${timeStr}'`);
-    return timeStr === null ? dateStr : `${dateStr} ${timeStr}`
-  }
-
   timeRangeHtml = () => {
     console.log("timeRangeHtml:");
 
@@ -496,12 +465,43 @@ export class DisplayEntry extends Component {
       this.errorCheckTimeRangeOk();
     };
 
+    const timePrettyStr = (year, month, day, hour, min) => {
+      let dateStr = null;
+      if (year !== null && month !== null && day !== null) {
+        dateStr = `${year}/${month}/${day}`;
+      }
+      else if (year !== null && month !== null) {
+        dateStr = `${year}/${month}`;
+      }
+      else {
+        // Note: Year should never be null, so don't bother to check.
+        // Also Note: Don't bother checking the combination of year != null, month == null, and 
+        // day != null. Having a day without a month would be very silly.
+        dateStr = `${year}`
+      }
+
+      let timeWithLeadingZeros = (num) => {
+        return num < 10 ? `0${num}` : `${num}`
+      };
+
+      let timeStr = null;
+      if (hour !== null && min !== null) {
+        timeStr = `${timeWithLeadingZeros(hour)}:${timeWithLeadingZeros(min)}`
+      }
+      else if (hour !== null) {
+        timeStr = `${timeWithLeadingZeros(hour)}`
+      }
+
+      console.log(`timePrettyStr: dateStr: '${dateStr}', timeStr: '${timeStr}'`);
+      return timeStr === null ? dateStr : `${dateStr} ${timeStr}`
+    }
+
     let lowerBound = this.state.event.timeRange.lowerBound;
-    let lowerBoundText = this.timePrettyStr(lowerBound.year, lowerBound.month, lowerBound.day, lowerBound.hour, lowerBound.min);
+    let lowerBoundText = timePrettyStr(lowerBound.year, lowerBound.month, lowerBound.day, lowerBound.hour, lowerBound.min);
     console.log(`lowerBoundText: '${lowerBoundText}'`);
 
     let upperBound = this.state.event.timeRange.upperBound;
-    let upperBoundText = this.timePrettyStr(upperBound.year, upperBound.month, upperBound.day, upperBound.hour, upperBound.min);
+    let upperBoundText = timePrettyStr(upperBound.year, upperBound.month, upperBound.day, upperBound.hour, upperBound.min);
     console.log(`upperBoundText: '${upperBoundText}'`);
 
     return (
