@@ -297,7 +297,8 @@ export class DisplayEntry extends Component {
   componentDidMount() {
     console.log("componentDidMount:");
 
-    this.getSelectedEvent("be9aa2f5-1569-4a8e-b31f-08dae5392545")
+    // this.getEventOfTheDay();
+    this.getSelectedEvent("be9aa2f5-1569-4a8e-b31f-08dae5392545");
   }
 
   turnOnEditMode = () => {
@@ -357,27 +358,19 @@ export class DisplayEntry extends Component {
       <div className="display-title-container">
         {/* Data */}
         <div className="display-title-text-container">
-          {this.state.editMode === true ?
-            <input type="text"
-              className="form-control"
-              value={this.state.event.titleText}
-              onChange={onTitleChanged}>
-            </input>
-            :
+          {this.state.editMode === false ?
             <span>
               {this.state.event.titleText}
             </span>
+            :
+            <input type="text" className="form-control" value={this.state.event.titleText} onChange={onTitleChanged} />
           }
         </div>
 
         {/* Error */}
-        {this.state.errMsgs.eventTitleErrMsg === "" ?
-          null
-          :
-          <div className="display-title-err-container">
-            <span className="err-msg">{this.state.errMsgs.eventTitleErrMsg}</span>
-          </div>
-        }
+        <div className="display-title-err-container">
+          <span className="err-msg">{this.state.errMsgs.eventTitleErrMsg}</span>
+        </div>
       </div>
     );
   }
@@ -514,17 +507,15 @@ export class DisplayEntry extends Component {
         </div>
 
         {/* Data */}
-        {this.state.editMode === true ?
+        {this.state.editMode === false ?
+          <div style={{ overflow: "hidden" }}>
+            <span className="float-start">{lowerBoundText}</span>
+            <span className="float-end">{upperBoundText}</span>
+          </div>
+          :
           // Two columns side by side.
-          <div style={{
-            position: "relative",
-            overflow: "hidden"
-          }}>
-            <table className="table table-striped" style={{
-              tableLayout: "fixed",
-              width: "100%"
-            }}>
-
+          <div style={{ position: "relative", overflow: "hidden" }}>
+            <table className="table table-striped" style={{ tableLayout: "fixed", width: "100%" }}>
               <thead>
                 <tr>
                   <th style={{ width: "20%" }}></th>
@@ -601,23 +592,14 @@ export class DisplayEntry extends Component {
               </tbody>
             </table>
           </div>
-          :
-          <div style={{ overflow: "hidden" }}>
-            <span className="float-start">{lowerBoundText}</span>
-            <span className="float-end">{upperBoundText}</span>
-          </div>
         }
 
         {/* Error */}
-        {this.state.errMsgs.eventWhenErrMsg === null ?
-          null
-          :
-          <div className="event-when-err-container">
-            <span className="err-msg">
-              {this.state.errMsgs.eventWhenErrMsg}
-            </span>
-          </div>
-        }
+        <div className="event-when-err-container">
+          <span className="err-msg">
+            {this.state.errMsgs.eventWhenErrMsg}
+          </span>
+        </div>
       </div>
     );
   }
@@ -697,12 +679,9 @@ export class DisplayEntry extends Component {
         }
 
         {/* Error */}
-        {this.state.errMsgs.eventImgErrMsg === "" ?
-          null :
-          <div className="event-image-err-container">
-            <span className="err-msg">{this.state.errMsgs.eventImgErrMsg}</span>
-          </div>
-        }
+        <div className="event-image-err-container">
+          <span className="err-msg">{this.state.errMsgs.eventImgErrMsg}</span>
+        </div>
       </>
     );
   }
@@ -721,15 +700,9 @@ export class DisplayEntry extends Component {
         </div>
 
         {/* TODO: remove the trinary operator and just use the div and span. If contents are null, then they will not be visible when the HTML renders. */}
-        {this.state.errMsgs.eventRegionErrMsg === null ?
-          null
-          :
-          <div className="event-where-err-container">
-            <span className="err-msg">
-              {this.state.errMsgs.eventRegionErrMsg}
-            </span>
-          </div>
-        }
+        <div className="event-where-err-container">
+          <span className="err-msg">{this.state.errMsgs.eventRegionErrMsg}</span>
+        </div>
       </>
     );
   }
