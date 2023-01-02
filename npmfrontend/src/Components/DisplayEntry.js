@@ -4,7 +4,8 @@ import { variables } from "../Variables";
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 
-// TODO: delete: if (window.confirm('Are you sure?')) { <do the fetch> }
+// TODO: on delete, show if (window.confirm('Are you sure?')) { <do the fetch> }
+// TODO: replace "if editMode === true" with "if editMode === false" and put the simple display-only HTML at the top
 
 export class DisplayEntry extends Component {
   constructor(props) {
@@ -39,18 +40,18 @@ export class DisplayEntry extends Component {
         summaryText: "",
         timeRange: {
           lowerBound: {
-            Year: 0,
-            Month: 0,
-            Day: 0,
-            Hour: 0,
-            Min: 0,
+            year: 0,
+            month: 0,
+            day: 0,
+            hour: 0,
+            min: 0,
           },
           upperBound: {
-            Year: 0,
-            Month: 0,
-            Day: 0,
-            Hour: 0,
-            Mon: 0,
+            year: 0,
+            month: 0,
+            day: 0,
+            hour: 0,
+            mon: 0,
           }
         },
         region: [],
@@ -394,7 +395,7 @@ export class DisplayEntry extends Component {
   titleHtml = () => {
     console.log("titleHtml:");
 
-    let onTitleChanged = (changeEvent) => {
+    const onTitleChanged = (changeEvent) => {
       console.log("onTitleChanged");
       this.setState({
         ...this.state,
@@ -405,7 +406,7 @@ export class DisplayEntry extends Component {
       });
 
       this.errorCheckTitleOk();
-    }
+    };
 
     return (
       <div className="display-title-container">
@@ -470,6 +471,189 @@ export class DisplayEntry extends Component {
   timeRangeHtml = () => {
     console.log("timeRangeHtml:");
 
+    const onLowerBoundYearChanged = (changeEvent) => {
+      console.log(`onLowerBoundYearChange: '${changeEvent.target.value}'`);
+
+      let value = changeEvent.target.value;
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            lowerBound: {
+              ...this.state.event.timeRange.lowerBound,
+              year: value === "" ? null : value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onLowerBoundMonthChanged = (changeEvent) => {
+      console.log("onLowerBoundYearChange");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            lowerBound: {
+              month: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onLowerBoundDayChanged = (changeEvent) => {
+      console.log("onLowerBoundDayChanged");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            lowerBound: {
+              day: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onLowerBoundHourChanged = (changeEvent) => {
+      console.log("onLowerBoundHourChanged");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            lowerBound: {
+              hour: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onLowerBoundMinChanged = (changeEvent) => {
+      console.log("onLowerBoundMinChanged");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            lowerBound: {
+              min: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onUpperBoundYearChanged = (changeEvent) => {
+      console.log("onUpperBoundYearChange");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            upperBound: {
+              year: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onUpperBoundMonthChanged = (changeEvent) => {
+      console.log("onUpperBoundYearChange");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            upperBound: {
+              month: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onUpperBoundDayChanged = (changeEvent) => {
+      console.log("onUpperBoundDayChanged");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            upperBound: {
+              day: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onUpperBoundHourChanged = (changeEvent) => {
+      console.log("onUpperBoundHourChanged");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            upperBound: {
+              hour: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
+    const onUpperBoundMinChanged = (changeEvent) => {
+      console.log("onUpperBoundMinChanged");
+      this.setState({
+        ...this.state,
+        event: {
+          ...this.state.event,
+          timeRange: {
+            ...this.state.event.timeRange,
+            upperBound: {
+              min: changeEvent.target.value
+            }
+          }
+        }
+      });
+
+      this.errorCheckTimeRangeOk();
+    };
+
     let lowerBound = this.state.event.timeRange.lowerBound;
     let lowerBoundText = this.timePrettyStr(lowerBound.year, lowerBound.month, lowerBound.day, lowerBound.hour, lowerBound.min);
     console.log(`lowerBoundText: '${lowerBoundText}'`);
@@ -483,7 +667,7 @@ export class DisplayEntry extends Component {
         {/* Header */}
         <div>
           <span className="when-info-header">
-            Year/month/day hour:min
+            Year/month/day (24hour):minute
           </span>
         </div>
 
@@ -496,53 +680,79 @@ export class DisplayEntry extends Component {
           }}>
             <table class="table table-striped" style={{
               tableLayout: "fixed",
-              width: "90%"
+              width: "100%"
             }}>
 
               <thead>
                 <tr>
-                  <th style={{ width: "20%", margin: "5px" }}></th>
-                  <th style={{ width: "40%", margin: "5px" }}>Upper bound</th>
-                  <th style={{ width: "40%", margin: "5px" }}>Lower bound</th>
+                  <th style={{ width: "20%" }}></th>
+                  <th style={{ width: "40%" }}>Upper bound</th>
+                  <th style={{ width: "40%" }}>Lower bound</th>
                 </tr>
               </thead>
               <tbody>
+                {/* Year */}
                 <tr>
                   <td>
                     <span>Year</span>
                   </td>
                   <td>
-                    <input type="text" style={{
-                      margin: "5px",
-                      width: "100%"
-                    }} value="1001" />
+                    <input type="text" style={{ width: "100%" }} value={lowerBound.year} onChange={onLowerBoundYearChanged} />
                   </td>
                   <td>
-                    <input type="text" value="1029" />
+                    <input type="text" style={{ width: "100%" }} value={upperBound.year} onChange={onUpperBoundYearChanged} />
                   </td>
                 </tr>
 
+                {/* Month */}
                 <tr>
                   <td>
                     <span>Month</span>
                   </td>
                   <td>
-                    <input type="text" value="3" />
+                    <input type="text" style={{ width: "100%" }} value={lowerBound.month} onChange={onLowerBoundMonthChanged} />
                   </td>
                   <td>
-                    <input type="text" value="10" />
+                    <input type="text" style={{ width: "100%" }} value={upperBound.month} onChange={onUpperBoundMonthChanged} />
                   </td>
                 </tr>
 
+                {/* Day */}
                 <tr>
                   <td>
                     <span>Day</span>
                   </td>
                   <td>
-                    <input type="text" value="5" />
+                    <input type="text" style={{ width: "100%" }} value={lowerBound.day} onChange={onLowerBoundDayChanged} />
                   </td>
                   <td>
-                    <input type="text" value="17" />
+                    <input type="text" style={{ width: "100%" }} value={upperBound.day} onChange={onUpperBoundDayChanged} />
+                  </td>
+                </tr>
+
+                {/* Hour */}
+                <tr>
+                  <td>
+                    <span>Hour</span>
+                  </td>
+                  <td>
+                    <input type="text" style={{ width: "100%" }} value={lowerBound.hour} onChange={onLowerBoundHourChanged} />
+                  </td>
+                  <td>
+                    <input type="text" style={{ width: "100%" }} value={upperBound.hour} onChange={onUpperBoundHourChanged} />
+                  </td>
+                </tr>
+
+                {/* Min */}
+                <tr>
+                  <td>
+                    <span>Min</span>
+                  </td>
+                  <td>
+                    <input type="text" style={{ width: "100%" }} value={lowerBound.min} onChange={onLowerBoundMinChanged} />
+                  </td>
+                  <td>
+                    <input type="text" style={{ width: "100%" }} value={upperBound.min} onChange={onUpperBoundMinChanged} />
                   </td>
                 </tr>
 
