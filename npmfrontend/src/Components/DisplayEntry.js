@@ -707,6 +707,7 @@ export class DisplayEntry extends Component {
     );
   }
 
+  // TODO: move this into summaryHtml
   onSummaryChanged = (changeEvent) => {
     console.log("onSummaryChanged:");
     this.setState({
@@ -723,7 +724,9 @@ export class DisplayEntry extends Component {
 
     return (
       <div className="display-summary-container">
-        {this.state.editMode === true ?
+        {this.state.editMode === false ?
+          <span>{this.state.event.summaryText}</span>
+          :
           <>
             <input type="text"
               className="form-control"
@@ -735,20 +738,11 @@ export class DisplayEntry extends Component {
               <span>{this.state.event.summaryText.length}/{this.state.summaryTextMaxLen}</span>
             </div>
           </>
-          :
-          <div>
-            <span>{this.state.event.summaryText}</span>
-          </div>
         }
 
-        {this.state.errMsgs.eventSummaryErrMsg === null ?
-          null :
-          <div className="event-summary-err-container">
-            <span className="err-msg">
-              {this.state.errMsgs.eventSummaryErrMsg}
-            </span>
-          </div>
-        }
+        <div className="event-summary-err-container">
+          <span className="err-msg">{this.state.errMsgs.eventSummaryErrMsg}</span>
+        </div>
       </div>
     );
   }
