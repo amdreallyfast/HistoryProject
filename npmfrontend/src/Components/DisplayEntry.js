@@ -707,20 +707,16 @@ export class DisplayEntry extends Component {
     );
   }
 
-  // TODO: move this into summaryHtml
-  onSummaryChanged = (changeEvent) => {
-    console.log("onSummaryChanged:");
-    this.setState({
-      ...this.state,
-      event: {
-        ...this.state.event,
-        summaryText: changeEvent.target.value
-      }
-    });
-  }
-
   summaryHtml = () => {
-    console.log("generateSummaryHtml:");
+    console.log("summaryHtml:");
+
+    const onSummaryChanged = (changeEvent) => {
+      let value = changeEvent.target.value;
+      console.log(`onSummaryChanged: '${value}'`);
+
+      this.setEventValues({ summaryText: value });
+      this.errorCheckSummaryOk();
+    };
 
     return (
       <div className="display-summary-container">
@@ -728,12 +724,7 @@ export class DisplayEntry extends Component {
           <span>{this.state.event.summaryText}</span>
           :
           <>
-            <input type="text"
-              className="form-control"
-              value={this.state.event.summaryText}
-              onChange={this.onSummaryChanged}>
-            </input>
-
+            <input type="text" className="form-control" value={this.state.event.summaryText} onChange={onSummaryChanged} />
             <div className="event-summary-char-count-container">
               <span>{this.state.event.summaryText.length}/{this.state.summaryTextMaxLen}</span>
             </div>
