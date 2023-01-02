@@ -995,7 +995,7 @@ export class DisplayEntry extends Component {
       <>
         <div>
           {this.state.event.region.map((latLong, index) => (
-            <div>
+            <div key={index}>
               <span>'{latLong.lat}', '{latLong.long}'</span>
             </div>
           ))}
