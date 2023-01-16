@@ -160,15 +160,7 @@ export class DisplayEntry extends Component {
       }
     }
 
-    // Region
-    if (eventJson.region === undefined) {
-      newEvent.region = eventState.region;
-    }
-    else {
-      newEvent.region = eventJson.region;
-    }
-
-    // newEvent.region = eventJson.region.length !== 0 ? eventJson.region : eventState.region;
+    newEvent.region = eventJson.region !== undefined ? eventJson.region : eventState.region;
     newEvent.revisionDateTime = eventJson.revisionDateTime !== undefined ? eventJson.revisionDateTime : eventState.revisionDateTime;
     newEvent.revisionAuthor = eventJson.revisionAuthor !== undefined ? eventJson.revisionAuthor : eventState.revisionAuthor;
 
