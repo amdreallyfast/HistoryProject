@@ -12,6 +12,7 @@ export class DisplayEntry extends Component {
     super(props);
 
     this.state = {
+      debug: false,
       editMode: true,
 
       titleMinLen: 10,
@@ -22,6 +23,7 @@ export class DisplayEntry extends Component {
 
       selectImageModalVisible: false,
       defaultImagePath: variables.PHOTO_URL + "anonymous.png",
+      selectImageTempFile: null,
       selectImageTempStorageName: "selectImageTempStorage",
 
       errMsgs: {
@@ -62,6 +64,12 @@ export class DisplayEntry extends Component {
     }
   }
 
+  logIfDebug = (obj) => {
+    if (this.state.debug) {
+      console.log(obj);
+    }
+  }
+
   convertEventJsonFromModelToFrontend = (eventJson) => {
     return {
       titleText: eventJson.Title,
@@ -97,13 +105,17 @@ export class DisplayEntry extends Component {
   // Only sets values that have changed. If not changed on the incoming json, existing event 
   // values will persist.
   setEventValues = (eventJson) => {
-    console.log("setEventValues:");
-    console.log(eventJson);
+    this.logIfDebug("setEventValues:");
+    this.logIfDebug("    eventJson:");
+    this.logIfDebug(eventJson);
 
     let eventState = this.state.event;
     let newEvent = {};
     newEvent.titleText = eventJson.titleText !== undefined ? eventJson.titleText : eventState.titleText;
-    newEvent.imageFilePath = eventJson.imageFilePath !== undefined ? eventJson.imageFilePath : eventState.imageFilePath;
+    newEvent.imageFilePath = eventJson.imageFilePath !== undefined ?
+      variables.PHOTO_URL + eventJson.imageFilePath
+      :
+      variables.PHOTO_URL + eventState.imageFilePath;
     newEvent.summaryText = eventJson.summaryText !== undefined ? eventJson.summaryText : eventState.summaryText;
 
     // Time range
@@ -156,6 +168,9 @@ export class DisplayEntry extends Component {
     newEvent.revisionDateTime = eventJson.revisionDateTime !== undefined ? eventJson.revisionDateTime : eventState.revisionDateTime;
     newEvent.revisionAuthor = eventJson.revisionAuthor !== undefined ? eventJson.revisionAuthor : eventState.revisionAuthor;
 
+    this.logIfDebug("    newEvent:");
+    this.logIfDebug(newEvent);
+
     this.setState({
       event: newEvent,
       startingEvent: newEvent
@@ -178,7 +193,7 @@ export class DisplayEntry extends Component {
       }
     });
 
-    console.log(`errorCheckTitleOk: '${errMsg === null ? "Ok" : errMsg}'`);
+    this.logIfDebug(`errorCheckTitleOk: '${errMsg === null ? "Ok" : errMsg}'`);
 
     // Ok if no error.
     return errMsg === null;
@@ -197,7 +212,7 @@ export class DisplayEntry extends Component {
       }
     });
 
-    console.log(`errorCheckImageFilePathOk: '${errMsg === null ? "Ok" : errMsg}'`);
+    this.logIfDebug(`errorCheckImageFilePathOk: '${errMsg === null ? "Ok" : errMsg}'`);
 
     // Ok if no error.
     return errMsg === null;
@@ -216,7 +231,7 @@ export class DisplayEntry extends Component {
       }
     });
 
-    console.log(`errorCheckTimeRangeOk: '${errMsg === null ? "Ok" : errMsg}'`);
+    this.logIfDebug(`errorCheckTimeRangeOk: '${errMsg === null ? "Ok" : errMsg}'`);
 
     // Ok if no error.
     return errMsg === null;
@@ -235,7 +250,7 @@ export class DisplayEntry extends Component {
       }
     });
 
-    console.log(`errorCheckRegionOk: '${errMsg === null ? "Ok" : errMsg}'`);
+    this.logIfDebug(`errorCheckRegionOk: '${errMsg === null ? "Ok" : errMsg}'`);
 
     // Ok if no error.
     return errMsg === null;
@@ -257,14 +272,14 @@ export class DisplayEntry extends Component {
       }
     });
 
-    console.log(`errorCheckSummaryOk: '${errMsg === null ? "Ok" : errMsg}'`);
+    this.logIfDebug(`errorCheckSummaryOk: '${errMsg === null ? "Ok" : errMsg}'`);
 
     // Ok if no error.
     return errMsg === null;
   }
 
   errorCheckAllOk = () => {
-    console.log("errorCheckAllOk:");
+    this.logIfDebug("errorCheckAllOk:");
 
     this.errorCheckTitleOk();
     this.errorCheckImageFilePathOk();
@@ -274,7 +289,7 @@ export class DisplayEntry extends Component {
   }
 
   getSelectedEvent = (eventId) => {
-    console.log(`getSelectedEvent: '${eventId}'`);
+    this.logIfDebug(`getSelectedEvent: '${eventId}'`);
 
     fetch(`${variables.API_URL}Event/Get/${eventId}`)
       .then(response => response.json())
@@ -286,7 +301,7 @@ export class DisplayEntry extends Component {
   }
 
   getEventOfTheDay = () => {
-    console.log("getEventOfTheDay:");
+    this.logIfDebug("getEventOfTheDay:");
 
     fetch(`${variables.API_URL}Event/GetEventOfTheDay`)
       .then(response => response.json())
@@ -295,18 +310,18 @@ export class DisplayEntry extends Component {
         this.setEventValues(convertedJson);
         this.errorCheckAllOk();
       });
-    console.log(this.state);
+    this.logIfDebug(this.state);
   }
 
   componentDidMount() {
-    console.log("componentDidMount:");
+    this.logIfDebug("componentDidMount:");
 
     // this.getEventOfTheDay();
     this.getSelectedEvent("be9aa2f5-1569-4a8e-b31f-08dae5392545");
   }
 
   turnOnEditMode = () => {
-    console.log("turnOnEditMode:");
+    this.logIfDebug("turnOnEditMode:");
     this.setState({
       ...this.state,
       editMode: true
@@ -314,14 +329,14 @@ export class DisplayEntry extends Component {
   }
 
   submitChanges = () => {
-    // console.log("submitChanges:");
-    // console.log("turning off edit mode");
+    this.logIfDebug("submitChanges:");
+    this.logIfDebug("turning off edit mode");
 
     // TODO: save image
     if (this.state.event.imageFilePath !== this.state.startingEvent.imageFilePath) {
       // New image. Need to upload.
       // Note: New images should be stored in session storage as a dataUrl. Convert that to a blob and send it.
-
+      // this.state.selectImageTempFile
     }
     // TODO: save event
 
@@ -333,8 +348,8 @@ export class DisplayEntry extends Component {
   }
 
   cancelChanges = () => {
-    // console.log("cancelChanges:");
-    // console.log("turning off edit mode");
+    this.logIfDebug("cancelChanges:");
+    this.logIfDebug("turning off edit mode");
 
     this.setState({
       ...this.state,
@@ -344,11 +359,11 @@ export class DisplayEntry extends Component {
   }
 
   titleHtml = () => {
-    console.log("titleHtml:");
+    this.logIfDebug("titleHtml:");
 
     const onTitleChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onTitleChanged: '${value}'`);
+      this.logIfDebug(`onTitleChanged: '${value}'`);
 
       this.setEventValues({ titleText: value });
       this.errorCheckTitleOk();
@@ -376,11 +391,11 @@ export class DisplayEntry extends Component {
   }
 
   timeRangeHtml = () => {
-    console.log("timeRangeHtml:");
+    this.logIfDebug("timeRangeHtml:");
 
     const onLowerBoundYearChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onLowerBoundYearChange: '${value}'`);
+      this.logIfDebug(`onLowerBoundYearChange: '${value}'`);
 
       this.setEventValues({ timeRange: { lowerBound: { year: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -388,7 +403,7 @@ export class DisplayEntry extends Component {
 
     const onLowerBoundMonthChanged = (changeEvent) => {
       let value = changeEvent.target.value
-      console.log(`onLowerBoundYearChange: '${value}'`);
+      this.logIfDebug(`onLowerBoundYearChange: '${value}'`);
 
       this.setEventValues({ timeRange: { lowerBound: { month: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -396,7 +411,7 @@ export class DisplayEntry extends Component {
 
     const onLowerBoundDayChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onLowerBoundDayChanged: '${value}'`);
+      this.logIfDebug(`onLowerBoundDayChanged: '${value}'`);
 
       this.setEventValues({ timeRange: { lowerBound: { day: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -404,7 +419,7 @@ export class DisplayEntry extends Component {
 
     const onLowerBoundHourChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onLowerBoundHourChanged: '${value}'`);
+      this.logIfDebug(`onLowerBoundHourChanged: '${value}'`);
 
       this.setEventValues({ timeRange: { lowerBound: { hour: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -412,7 +427,7 @@ export class DisplayEntry extends Component {
 
     const onLowerBoundMinChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onLowerBoundMinChanged: '${value}'`);
+      this.logIfDebug(`onLowerBoundMinChanged: '${value}'`);
 
       this.setEventValues({ timeRange: { lowerBound: { min: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -420,7 +435,7 @@ export class DisplayEntry extends Component {
 
     const onUpperBoundYearChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onUpperBoundYearChange: '${value}'`);
+      this.logIfDebug(`onUpperBoundYearChange: '${value}'`);
 
       this.setEventValues({ timeRange: { upperBound: { year: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -428,7 +443,7 @@ export class DisplayEntry extends Component {
 
     const onUpperBoundMonthChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onUpperBoundYearChange: '${value}'`);
+      this.logIfDebug(`onUpperBoundYearChange: '${value}'`);
 
       this.setEventValues({ timeRange: { upperBound: { month: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -436,7 +451,7 @@ export class DisplayEntry extends Component {
 
     const onUpperBoundDayChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onUpperBoundDayChanged: '${value}'`);
+      this.logIfDebug(`onUpperBoundDayChanged: '${value}'`);
 
       this.setEventValues({ timeRange: { upperBound: { day: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -444,7 +459,7 @@ export class DisplayEntry extends Component {
 
     const onUpperBoundHourChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onUpperBoundHourChanged: '${value}'`);
+      this.logIfDebug(`onUpperBoundHourChanged: '${value}'`);
 
       this.setEventValues({ timeRange: { upperBound: { hour: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -452,7 +467,7 @@ export class DisplayEntry extends Component {
 
     const onUpperBoundMinChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onUpperBoundMinChanged: '${value}'`);
+      this.logIfDebug(`onUpperBoundMinChanged: '${value}'`);
 
       this.setEventValues({ timeRange: { upperBound: { min: value === "" ? null : value } } });
       this.errorCheckTimeRangeOk();
@@ -485,17 +500,17 @@ export class DisplayEntry extends Component {
         timeStr = `${timeWithLeadingZeros(hour)}`
       }
 
-      console.log(`timePrettyStr: dateStr: '${dateStr}', timeStr: '${timeStr}'`);
+      this.logIfDebug(`timePrettyStr: dateStr: '${dateStr}', timeStr: '${timeStr}'`);
       return timeStr === null ? dateStr : `${dateStr} ${timeStr}`
     }
 
     let lowerBound = this.state.event.timeRange.lowerBound;
     let lowerBoundText = timePrettyStr(lowerBound.year, lowerBound.month, lowerBound.day, lowerBound.hour, lowerBound.min);
-    console.log(`lowerBoundText: '${lowerBoundText}'`);
+    this.logIfDebug(`lowerBoundText: '${lowerBoundText}'`);
 
     let upperBound = this.state.event.timeRange.upperBound;
     let upperBoundText = timePrettyStr(upperBound.year, upperBound.month, upperBound.day, upperBound.hour, upperBound.min);
-    console.log(`upperBoundText: '${upperBoundText}'`);
+    this.logIfDebug(`upperBoundText: '${upperBoundText}'`);
 
     return (
       <div className="display-when-container">
@@ -605,17 +620,17 @@ export class DisplayEntry extends Component {
   }
 
   imageHtml = () => {
-    console.log("imageHtml:")
+    this.logIfDebug("imageHtml:")
 
     const showSelectImageModal = () => {
-      // console.log("showSelectImageModal:");
+      this.logIfDebug("showSelectImageModal:");
       this.setState({
         selectImageModalVisible: true,
       });
     };
 
     const hideSelectImageModal = () => {
-      // console.log("hideSelectImageModal:");
+      this.logIfDebug("hideSelectImageModal:");
       this.setState({
         selectImageModalVisible: false,
       });
@@ -628,14 +643,15 @@ export class DisplayEntry extends Component {
     // Note: For some reason has to use the "= () => {...}" syntax instead of normal function 
     // syntax in order for the "this" to work in the callbacks...??why u do this javascript??.
     const SelectImageModal = () => {
-      // console.log("selectImageModal:");
+      this.logIfDebug("selectImageModal:");
 
       // Adapted from:
       //  - How to Save Images to Local/Session Storage - JavaScript Tutorial
       //    https://www.youtube.com/watch?v=8K2ihr3NC40
       //  - https://www.w3schools.com/html/html5_webstorage.asp
       const tempImageUpload = (event) => {
-        // Upload to HTML5 web storage (for current session only!).
+        // Convert File object to dataUrl (and store in HTML5 web storage (for current session 
+        // only!)) so that it can be easily displayed.
         const reader = new FileReader();
         reader.addEventListener("load", () => {
           sessionStorage.setItem(this.state.selectImageTempStorageName, reader.result);
@@ -643,13 +659,21 @@ export class DisplayEntry extends Component {
           document.getElementById("submitSelectImageBtn").removeAttribute("disabled");
         })
         reader.readAsDataURL(event.target.files[0]);
+
+        // And save the original file for later so that it can be sent to the server.
+        this.logIfDebug(event.target.files);
+        this.setState({
+          ...this.state,
+          selectImageTempFile: event.target.files[0]
+        })
       }
 
       const cancelSelectImage = () => {
-        console.log("cancelSelectImage:");
+        this.logIfDebug("cancelSelectImage:");
 
         // Restore original imageFilePath (just in case it changed).
         this.setState({
+          selectImageTempFile: null,
           event: {
             ...this.state.event,
             imageFilePath: this.state.startingEvent.imageFilePath
@@ -660,13 +684,13 @@ export class DisplayEntry extends Component {
       }
 
       const submitSelectImage = () => {
-        console.log("confirmImageUpload:");
+        this.logIfDebug("confirmImageUpload:");
 
         // Record something in the state to flag that the temp image needs to be accessed.
         this.setState({
           event: {
             ...this.state.event,
-            imageFilePath: this.state.selectImageTempStorageName
+            imageFilePath: sessionStorage.getItem(this.state.selectImageTempStorageName)
           }
         });
 
@@ -681,9 +705,9 @@ export class DisplayEntry extends Component {
           <Modal.Body>
             <div>
               {this.state.event.imageFilePath === this.state.selectImageTempStorageName ?
-                <img width="250px" height="auto" id="selectImagePreview" src={sessionStorage.getItem(this.state.selectImageTempStorageName)} alt="No image selected." />
+                <img width="250px" height="auto" id="modalSelectImagePreview" src={this.state.event.imageFilePath} alt="Nothing selected." />
                 :
-                <img width="250px" height="auto" id="modalSelectImagePreview" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="No image selected." />
+                <img width="250px" height="auto" id="modalSelectImagePreview" src={this.state.event.imageFilePath} alt="Nothing selected." />
               }
             </div>
             <div>
@@ -695,7 +719,7 @@ export class DisplayEntry extends Component {
               Cancel
             </Button>
 
-            <Button variant="primary" onClick={submitSelectImage} id="submitSelectImageBtn" disabled>
+            <Button variant="primary" onClick={() => submitSelectImage} id="submitSelectImageBtn" disabled>
               Submit
             </Button>
           </Modal.Footer>
@@ -704,7 +728,7 @@ export class DisplayEntry extends Component {
     }
 
     const deleteImage = (event) => {
-      // console.log("deleteImage:");
+      this.logIfDebug("deleteImage:");
       this.setState({
         event: {
           ...this.state.event,
@@ -733,7 +757,7 @@ export class DisplayEntry extends Component {
           {this.state.event.imageFilePath === this.state.selectImageTempStorageName ?
             <img className="event-image" src={sessionStorage.getItem(this.state.selectImageTempStorageName)} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
             :
-            <img className="event-image" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
+            <img className="event-image" src={this.state.event.imageFilePath} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
           }
 
           <div className="edit-event-img">
@@ -749,7 +773,7 @@ export class DisplayEntry extends Component {
         // Not in edit mode => only show image.
         <img
           className="event-image"
-          src={variables.PHOTO_URL + this.state.event.imageFilePath}
+          src={this.state.event.imageFilePath}
           alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!">
         </img>
     }
@@ -773,8 +797,8 @@ export class DisplayEntry extends Component {
   }
 
   regionHtml = () => {
-    console.log("regionHtml:");
-    // console.log(this.state.event.region);
+    this.logIfDebug("regionHtml:");
+    this.logIfDebug(this.state.event.region);
     return (
       <>
         <div>
@@ -796,11 +820,11 @@ export class DisplayEntry extends Component {
   }
 
   summaryHtml = () => {
-    console.log("summaryHtml:");
+    this.logIfDebug("summaryHtml:");
 
     const onSummaryChanged = (changeEvent) => {
       let value = changeEvent.target.value;
-      console.log(`onSummaryChanged: '${value}'`);
+      this.logIfDebug(`onSummaryChanged: '${value}'`);
 
       this.setEventValues({ summaryText: value });
       this.errorCheckSummaryOk();
@@ -827,7 +851,7 @@ export class DisplayEntry extends Component {
   }
 
   revisionInfoHtml = () => {
-    console.log("revisionInfoHtml:");
+    this.logIfDebug("revisionInfoHtml:");
 
     // Note: No editing this. This info will be automatically filled out upon submitting a new 
     // entry or editing an existing entry.
@@ -843,7 +867,7 @@ export class DisplayEntry extends Component {
   }
 
   render() {
-    console.log("rendering:");
+    this.logIfDebug("rendering:");
 
     return (
       <div id="main-container">
