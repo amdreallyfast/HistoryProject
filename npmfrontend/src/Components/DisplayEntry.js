@@ -21,19 +21,11 @@ export class DisplayEntry extends Component {
       summaryTextMinLen: 50,
       summaryTextMaxLen: 2048,
 
-      // By default, get image from the event.
-      // useNewImage: false,
       selectImageModal: {
         visible: false,
         uploadedFile: null,
-        // dataUrl: ""
         uploadedDataSrc: ""
       },
-      // currentImage: {
-      //   file: null,
-      //   // dataUrl: ""
-      //   dataSrc: ""
-      // },
 
       errMsgs: {
         eventTitleErrMsg: null,
@@ -46,7 +38,6 @@ export class DisplayEntry extends Component {
 
       event: {
         titleText: "",
-        // imageFilePath: "",
         image: {
           file: null,
           dataSrc: ""
@@ -653,16 +644,6 @@ export class DisplayEntry extends Component {
       });
     };
 
-    // const hideSelectImageModal = () => {
-    //   this.logIfDebug("hideSelectImageModal:");
-    //   this.setState({
-    //     selectImageModal: {
-    //       ...this.state.selectImageModal,
-    //       visible: false
-    //     }
-    //   });
-    // }
-
     // Thanks for react-bootstrap for this demo code. I've modified it to work in classes (replace 
     // "React.useState(...)" with "this.state.<property>"") and for my application.
     // Source:
@@ -672,16 +653,15 @@ export class DisplayEntry extends Component {
     const SelectImageModal = () => {
       this.logIfDebug("selectImageModal:");
 
+      // Convert the uploaded image object to dataUrl so that it can be easily used in an image 
+      // src, and also save the original file for later so that it can be sent to the server.
       const tempImageUpload = (event) => {
-        // Convert File object to dataUrl (and store in HTML5 web storage (for current session 
-        // only!)) so that it can be easily displayed.
         const reader = new FileReader();
 
         // After the file is converted to dataUrl, save both so that the file can be sent to the 
         // server (if the user submits it) and so that the temp image can be displayed on the 
         // main event display.
         reader.addEventListener("load", () => {
-          // And save the original file for later so that it can be sent to the server.
           this.setState({
             selectImageModal: {
               ...this.state.selectImageModal,
@@ -698,7 +678,6 @@ export class DisplayEntry extends Component {
       const cancelSelectImage = () => {
         this.logIfDebug("cancelSelectImage:");
 
-        // // Restore original imageFilePath (just in case it changed).
         this.setState({
           // useNewImage: false,
           selectImageModal: {
@@ -707,8 +686,6 @@ export class DisplayEntry extends Component {
             uploadedDataSrc: ""
           }
         });
-
-        // hideSelectImageModal();
       }
 
       const submitSelectedImage = () => {
@@ -732,8 +709,6 @@ export class DisplayEntry extends Component {
             uploadedDataSrc: ""
           }
         });
-
-        // hideSelectImageModal();
       }
 
       return (
@@ -743,16 +718,6 @@ export class DisplayEntry extends Component {
           </Modal.Header>
           <Modal.Body>
             <div>
-              {/* {this.state.newImage.dataUrl !== "" ?
-                <img width="250px" height="auto" src={this.state.newImage.dataUrl} alt="ERROR: Bad dataUrl." />
-                :
-                this.state.event.imageFilePath !== "" ?
-                  <img width="250px" height="auto" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="ERROR: File does not exist on server." />
-                  :
-                  <span>
-                    No image
-                  </span>
-              } */}
               {this.state.selectImageModal.uploadedDataSrc !== "" ?
                 // Use new values.
                 <img width="250px" height="auto" src={this.state.selectImageModal.uploadedDataSrc} alt="ERROR: Bad dataUrl." />
@@ -803,50 +768,6 @@ export class DisplayEntry extends Component {
       });
     }
 
-    // const WithNoImageHtml = () => {
-    //   return this.state.editMode === true ?
-    //     // Only show the "select image" button.
-    //     <Button variant="primary" onClick={showSelectImageModal}>
-    //       Select image
-    //     </Button>
-    //     :
-    //     // Not in edit mode => simple message.
-    //     <span>
-    //       No image
-    //     </span>
-    // }
-
-    // const WithImageHtml = () => {
-    //   return this.state.editMode === true ?
-    //     // Show the image with the "select image" button in the center.
-    //     <>
-    //       <img
-    //         className="event-image"
-    //         src={this.state.imageFromEventPath ? variables.PHOTO_URL + this.state.event.imageFilePath : this.state.newImage.dataUrl}
-    //         alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
-
-    //       <div className="edit-event-img">
-    //         <div>
-    //           <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
-    //             Select image
-    //           </Button>
-    //         </div>
-    //         <div>
-    //           <Button variant="secondary" onClick={deleteImage}>
-    //             Delete image
-    //           </Button>
-    //         </div>
-    //       </div>
-    //     </>
-    //     :
-    //     // Not in edit mode => only show image.
-    //     <img
-    //       className="event-image"
-    //       src={this.state.event.imageFilePath}
-    //       alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!">
-    //     </img>
-    // }
-
     return (
       <div className="display-image-container">
         {/* Data */}
@@ -888,40 +809,6 @@ export class DisplayEntry extends Component {
                 Select image
               </Button>
             }
-
-
-            {/* {this.state.useNewImage === true ?
-              // Use new image
-              <>
-                <img className="event-image" src={this.state.newImage.dataUrl} alt="ERROR: Bad dataUrl." />
-
-              </>
-              :
-              // Do _not_ use new image
-              this.state.event.imageFilePath !== "" ?
-                // Use image as given by event
-                <>
-                  <img className="event-image" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="ERROR: File does not exist on server." />
-
-                  <div className="edit-event-img">
-                    <div>
-                      <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
-                        Select image
-                      </Button>
-                    </div>
-                    <div>
-                      <Button variant="secondary" onClick={deleteImage} >
-                        Delete image
-                      </Button>
-                    </div>
-                  </div>
-                </>
-                :
-                // No image available. Only show the "select image" button.
-                <Button variant="primary" onClick={showSelectImageModal}>
-                  Select image
-                </Button>
-            } */}
           </>
         }
 
