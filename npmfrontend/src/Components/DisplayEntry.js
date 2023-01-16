@@ -656,6 +656,9 @@ export class DisplayEntry extends Component {
         reader.addEventListener("load", () => {
           sessionStorage.setItem(this.state.selectImageTempStorageName, reader.result);
           document.getElementById("modalSelectImagePreview").setAttribute("src", reader.result);
+
+          // Yes, I need to add the onClick handler here. If a button starts as disabled, the
+          // onClick handler won't register.
           document.getElementById("submitSelectedImageBtn").removeAttribute("disabled");
           document.getElementById("submitSelectedImageBtn").addEventListener("click", submitSelectedImage);
         })
@@ -758,12 +761,16 @@ export class DisplayEntry extends Component {
           <img className="event-image" src={this.state.event.imageFilePath} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
 
           <div className="edit-event-img">
-            <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
-              Select image
-            </Button>
-            <Button variant="secondary" onClick={deleteImage}>
-              Delete image
-            </Button>
+            <div>
+              <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
+                Select image
+              </Button>
+            </div>
+            <div>
+              <Button variant="secondary" onClick={deleteImage}>
+                Delete image
+              </Button>
+            </div>
           </div>
         </>
         :
