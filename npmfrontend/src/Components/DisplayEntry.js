@@ -22,6 +22,7 @@ export class DisplayEntry extends Component {
 
       selectImageModalVisible: false,
       defaultImagePath: variables.PHOTO_URL + "anonymous.png",
+      selectImageTempStorageName: "selectImageTempStorage",
 
       errMsgs: {
         eventTitleErrMsg: null,
@@ -55,7 +56,9 @@ export class DisplayEntry extends Component {
         region: [],
         revisionDateTime: null,
         revisionAuthor: null,
-      }
+      },
+
+      startingEvent: null,
     }
   }
 
@@ -154,7 +157,8 @@ export class DisplayEntry extends Component {
     newEvent.revisionAuthor = eventJson.revisionAuthor !== undefined ? eventJson.revisionAuthor : eventState.revisionAuthor;
 
     this.setState({
-      event: newEvent
+      event: newEvent,
+      startingEvent: newEvent
     });
   }
 
@@ -310,25 +314,32 @@ export class DisplayEntry extends Component {
   }
 
   submitChanges = () => {
-    // TODO: this
+    // console.log("submitChanges:");
+    // console.log("turning off edit mode");
 
-    console.log("submitChanges:");
-    console.log("turning off edit mode");
+    // TODO: save image
+    if (this.state.event.imageFilePath !== this.state.startingEvent.imageFilePath) {
+      // New image. Need to upload.
+      // Note: New images should be stored in session storage as a dataUrl. Convert that to a blob and send it.
+
+    }
+    // TODO: save event
+
     this.setState({
       ...this.state,
-      editMode: false
+      editMode: false,
+      startingEvent: this.state.event
     });
   }
 
   cancelChanges = () => {
-    // TODO: this
+    // console.log("cancelChanges:");
+    // console.log("turning off edit mode");
 
-    //??just re-fetch? keep a backup event state from when it was loaded and then restore that??
-    console.log("cancelling changes");
-    console.log("turning off edit mode");
     this.setState({
       ...this.state,
-      editMode: false
+      editMode: false,
+      event: this.state.startingEvent
     });
   }
 
@@ -597,16 +608,14 @@ export class DisplayEntry extends Component {
     console.log("imageHtml:")
 
     const showSelectImageModal = () => {
-      console.log("showSelectImageModal:");
-
+      // console.log("showSelectImageModal:");
       this.setState({
         selectImageModalVisible: true,
       });
     };
 
     const hideSelectImageModal = () => {
-      console.log("hideSelectImageModal:");
-
+      // console.log("hideSelectImageModal:");
       this.setState({
         selectImageModalVisible: false,
       });
@@ -619,64 +628,140 @@ export class DisplayEntry extends Component {
     // Note: For some reason has to use the "= () => {...}" syntax instead of normal function 
     // syntax in order for the "this" to work in the callbacks...??why u do this javascript??.
     const SelectImageModal = () => {
-      console.log("selectImageModal...")
+      // console.log("selectImageModal:");
 
-      const cancelImageUpload = () => {
-        console.log("cancelImageUpload:");
+      // Adapted from:
+      //  - How to Save Images to Local/Session Storage - JavaScript Tutorial
+      //    https://www.youtube.com/watch?v=8K2ihr3NC40
+      //  - https://www.w3schools.com/html/html5_webstorage.asp
+      const tempImageUpload = (event) => {
+        // Upload to HTML5 web storage (for current session only!).
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          sessionStorage.setItem(this.state.selectImageTempStorageName, reader.result);
+          document.getElementById("modalSelectImagePreview").setAttribute("src", reader.result);
+          document.getElementById("submitSelectImageBtn").removeAttribute("disabled");
+        })
+        reader.readAsDataURL(event.target.files[0]);
+      }
 
-        // TODO: this
+      const cancelSelectImage = () => {
+        console.log("cancelSelectImage:");
+
+        // Restore original imageFilePath (just in case it changed).
+        this.setState({
+          event: {
+            ...this.state.event,
+            imageFilePath: this.state.startingEvent.imageFilePath
+          }
+        });
+
         hideSelectImageModal();
       }
 
-      const confirmImageUpload = () => {
+      const submitSelectImage = () => {
         console.log("confirmImageUpload:");
 
-        // TODO: this
+        // Record something in the state to flag that the temp image needs to be accessed.
+        this.setState({
+          event: {
+            ...this.state.event,
+            imageFilePath: this.state.selectImageTempStorageName
+          }
+        });
+
         hideSelectImageModal();
       }
 
       return (
-        <Modal show={this.state.selectImageModalVisible} onHide={cancelImageUpload}>
+        <Modal show={this.state.selectImageModalVisible} onHide={cancelSelectImage}>
           <Modal.Header closeButton>
             <Modal.Title>Select image</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <p>hi there!</p>
+            <div>
+              {this.state.event.imageFilePath === this.state.selectImageTempStorageName ?
+                <img width="250px" height="auto" id="selectImagePreview" src={sessionStorage.getItem(this.state.selectImageTempStorageName)} alt="No image selected." />
+                :
+                <img width="250px" height="auto" id="modalSelectImagePreview" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="No image selected." />
+              }
+            </div>
+            <div>
+              <input className="m-2" type="file" onChange={tempImageUpload} />
+            </div>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={cancelImageUpload}>
+            <Button variant="secondary" onClick={cancelSelectImage}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={confirmImageUpload}>
+
+            <Button variant="primary" onClick={submitSelectImage} id="submitSelectImageBtn" disabled>
               Submit
             </Button>
           </Modal.Footer>
         </Modal>
       );
     }
+
+    const deleteImage = (event) => {
+      // console.log("deleteImage:");
+      this.setState({
+        event: {
+          ...this.state.event,
+          imageFilePath: ""
+        }
+      });
+    }
+
+    const WithNoImageHtml = () => {
+      return this.state.editMode === true ?
+        // Only show the "select image" button.
+        <Button variant="primary" onClick={showSelectImageModal}>
+          Select image
+        </Button>
+        :
+        // Not in edit mode => simple message.
+        <span>
+          No image
+        </span>
+    }
+
+    const WithImageHtml = () => {
+      return this.state.editMode === true ?
+        // Show the image with the "select image" button in the center.
+        <>
+          {this.state.event.imageFilePath === this.state.selectImageTempStorageName ?
+            <img className="event-image" src={sessionStorage.getItem(this.state.selectImageTempStorageName)} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
+            :
+            <img className="event-image" src={variables.PHOTO_URL + this.state.event.imageFilePath} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
+          }
+
+          <div className="edit-event-img">
+            <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
+              Select image
+            </Button>
+            <Button variant="secondary" onClick={deleteImage}>
+              Delete image
+            </Button>
+          </div>
+        </>
+        :
+        // Not in edit mode => only show image.
+        <img
+          className="event-image"
+          src={variables.PHOTO_URL + this.state.event.imageFilePath}
+          alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!">
+        </img>
+    }
+
     return (
       <div className="display-image-container">
         {/* Data */}
+        <SelectImageModal />
         {this.state.event.imageFilePath === "" ?
-          <span>No image</span>
+          <WithNoImageHtml />
           :
-          <>
-            <img
-              className="event-image"
-              src={variables.PHOTO_URL + this.state.event.imageFilePath}
-              alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!">
-            </img>
-
-            {this.state.editMode === true ?
-              <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
-                Select image
-              </Button>
-              :
-              null
-            }
-
-            <SelectImageModal />
-          </>
+          <WithImageHtml />
         }
 
         {/* Error */}
@@ -694,6 +779,9 @@ export class DisplayEntry extends Component {
       <>
         <div>
           {this.state.event.region.map((latLong, index) => (
+            // TODO: use string composed of item instead
+            // Source:
+            //  https://sentry.io/answers/unique-key-prop/
             <div key={index}>
               <span>'{latLong.lat}', '{latLong.long}'</span>
             </div>
