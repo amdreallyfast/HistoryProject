@@ -656,7 +656,8 @@ export class DisplayEntry extends Component {
         reader.addEventListener("load", () => {
           sessionStorage.setItem(this.state.selectImageTempStorageName, reader.result);
           document.getElementById("modalSelectImagePreview").setAttribute("src", reader.result);
-          document.getElementById("submitSelectImageBtn").removeAttribute("disabled");
+          document.getElementById("submitSelectedImageBtn").removeAttribute("disabled");
+          document.getElementById("submitSelectedImageBtn").addEventListener("click", submitSelectedImage);
         })
         reader.readAsDataURL(event.target.files[0]);
 
@@ -683,7 +684,7 @@ export class DisplayEntry extends Component {
         hideSelectImageModal();
       }
 
-      const submitSelectImage = () => {
+      const submitSelectedImage = () => {
         this.logIfDebug("confirmImageUpload:");
 
         // Record something in the state to flag that the temp image needs to be accessed.
@@ -704,11 +705,7 @@ export class DisplayEntry extends Component {
           </Modal.Header>
           <Modal.Body>
             <div>
-              {this.state.event.imageFilePath === this.state.selectImageTempStorageName ?
-                <img width="250px" height="auto" id="modalSelectImagePreview" src={this.state.event.imageFilePath} alt="Nothing selected." />
-                :
-                <img width="250px" height="auto" id="modalSelectImagePreview" src={this.state.event.imageFilePath} alt="Nothing selected." />
-              }
+              <img width="250px" height="auto" id="modalSelectImagePreview" src={this.state.event.imageFilePath} alt="Nothing selected." />
             </div>
             <div>
               <input className="m-2" type="file" onChange={tempImageUpload} />
@@ -719,7 +716,7 @@ export class DisplayEntry extends Component {
               Cancel
             </Button>
 
-            <Button variant="primary" onClick={() => submitSelectImage} id="submitSelectImageBtn" disabled>
+            <Button variant="primary" onClick={() => submitSelectedImage} id="submitSelectImageBtn" disabled>
               Submit
             </Button>
           </Modal.Footer>
@@ -754,11 +751,7 @@ export class DisplayEntry extends Component {
       return this.state.editMode === true ?
         // Show the image with the "select image" button in the center.
         <>
-          {this.state.event.imageFilePath === this.state.selectImageTempStorageName ?
-            <img className="event-image" src={sessionStorage.getItem(this.state.selectImageTempStorageName)} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
-            :
-            <img className="event-image" src={this.state.event.imageFilePath} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
-          }
+          <img className="event-image" src={this.state.event.imageFilePath} alt="If you're seeing this, then the event could not be loaded. BADBADBADPANIC!!" />
 
           <div className="edit-event-img">
             <Button variant="primary" className="select-event-img-btn" onClick={showSelectImageModal}>
