@@ -716,7 +716,11 @@ export class DisplayEntry extends Component {
               Cancel
             </Button>
 
-            <Button variant="primary" onClick={() => submitSelectedImage} id="submitSelectImageBtn" disabled>
+            {/* Note: Currently (1/16/2023), if a button starts with the "disabled" attribute, 
+            the onClick handlers do not get registered. I discovered this when removing the 
+            "disabled" attribute and found that the on-click handler never fired, but if 
+            "disabled" was not present in the first place, it _would_ fire. This is weird. */}
+            <Button variant="primary" id="submitSelectedImageBtn" disabled>
               Submit
             </Button>
           </Modal.Footer>
