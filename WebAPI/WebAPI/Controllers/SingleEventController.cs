@@ -118,7 +118,7 @@ namespace WebAPI.Controllers
         }
 
         [Route("Update")]
-        [HttpPost] 
+        [HttpPost]
         public async Task<ActionResult<HistoricalEventDto>> Update(HistoricalEventDto eventDto)
         {
             var existingEvent = await dbContext.Events
