@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 
@@ -271,6 +274,7 @@ namespace WebAPI.Models
 
         public string Title { get; set; } = string.Empty;
         public string ImageFilePath { get; set; } = string.Empty;
+        public IFormFile ImageFile { get; set; }
         public string Summary { get; set; } = string.Empty;
         public EventTime TimeRange { get; set; } = new EventTime();
         public EventRegion Region { get; set; } = new EventRegion();
@@ -288,6 +292,15 @@ namespace WebAPI.Models
 
             Title = historicalEvent.Title;
             ImageFilePath = historicalEvent.ImageFilePath;
+            using (var stream = File.OpenRead(ImageFilePath))
+            {
+                var filePath = Path.Combine(webHostEnvironment.ContentRootPath, "Photos", ImageFilePath);
+                ImageFile = new FormFile(stream, 0, stream.Length, null, filePath)
+                {
+                    Headers = new HeaderDictionary(),
+                    //ContentType = 
+                };
+            }
             Summary = historicalEvent.Summary.Text;
             TimeRange = historicalEvent.TimeRange;
             Region = historicalEvent.Region;

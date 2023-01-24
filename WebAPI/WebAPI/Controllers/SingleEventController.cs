@@ -5,6 +5,7 @@ using WebAPI.Models;
 
 namespace WebAPI.Controllers
 {
+    // TODO: rename -> "HistoricalEventController"
     [Route("api/[controller]")]
     [ApiController]
     public class EventController : ControllerBase
@@ -19,6 +20,7 @@ namespace WebAPI.Controllers
             this.webHostEnvironment = webHostEnvironment;
         }
 
+        // TODO: change to "get latest with eventId"
         [Route("Get/{revisionId}")]
         [HttpGet]
         public async Task<ActionResult<HistoricalEventDto>> Get(Guid revisionId)
@@ -167,12 +169,15 @@ namespace WebAPI.Controllers
             return Ok("Delete successful");
         }
 
-        [Route("SaveFile")]
+        [Route("SaveImage")]
         [HttpPost]
-        public async Task<ActionResult<string>> SaveFile(IFormFile formFile)
+        public async Task<ActionResult<string>> SaveImage(IFormFile formFile)
         {
             try
             {
+                throw new Exception("oh no the bads!");
+
+
                 var newFilePath = Path.Combine(webHostEnvironment.ContentRootPath, "Photos", formFile.FileName);
                 Console.WriteLine($"newFilePath: '{newFilePath}'");
                 using (var stream = new FileStream(newFilePath, FileMode.Create))
