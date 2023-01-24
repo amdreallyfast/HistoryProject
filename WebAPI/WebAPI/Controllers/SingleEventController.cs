@@ -118,7 +118,7 @@ namespace WebAPI.Controllers
         }
 
         [Route("Update")]
-        [HttpPut]
+        [HttpPost]
         public async Task<ActionResult<HistoricalEventDto>> Update(HistoricalEventDto eventDto)
         {
             var existingEvent = await dbContext.Events
@@ -175,7 +175,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                throw new Exception("oh no the bads!");
+                //throw new Exception("oh no the bads!");
 
 
                 var newFilePath = Path.Combine(webHostEnvironment.ContentRootPath, "Photos", formFile.FileName);
