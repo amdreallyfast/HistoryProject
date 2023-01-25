@@ -11,15 +11,15 @@ export class DisplayEntry extends Component {
   constructor(props) {
     super(props);
 
+    this.titleMinLen = 10;
+    this.titleMaxLen = 128;
+    this.imageFilePathMaxLen = 256;
+    this.summaryTextMinLen = 50;
+    this.summaryTextMaxLen = 2048;
+
     this.state = {
       debug: false,
       editMode: true,
-
-      titleMinLen: 10,
-      titleMaxLen: 128,
-      imageFilePathMaxLen: 256,
-      summaryTextMinLen: 50,
-      summaryTextMaxLen: 2048,
 
       selectImageModal: {
         visible: false,
@@ -36,34 +36,7 @@ export class DisplayEntry extends Component {
         eventRevisionInfoErrMsg: null,
       },
 
-      event: {
-        titleText: "",
-        image: {
-          file: null,
-          dataSrc: ""
-        },
-        summaryText: "",
-        timeRange: {
-          lowerBound: {
-            year: 0,
-            month: null,
-            day: null,
-            hour: null,
-            min: null,
-          },
-          upperBound: {
-            year: 0,
-            month: null,
-            day: null,
-            hour: null,
-            min: null,
-          }
-        },
-        region: [],
-        revisionDateTime: null,
-        revisionAuthor: null,
-      },
-
+      event: this.emptyEvent(),
       startingEvent: null,
     }
   }
@@ -74,134 +47,136 @@ export class DisplayEntry extends Component {
     }
   }
 
-  convertFromModelJson = (modelJson) => {
+  emptyEvent = () => {
     return {
-      // RevisionId: ??
-      // EventId: ??
-      titleText: modelJson.Title,
-      image: {
-        file: null,
-        dataSrc: variables.PHOTO_URL + modelJson.ImageFilePath
-      },
-      summaryText: modelJson.Summary,
-      timeRange: {
-        lowerBound: {
-          year: modelJson.TimeRange.LowerBoundYear,
-          month: modelJson.TimeRange.LowerBoundMonth,
-          day: modelJson.TimeRange.LowerBoundDay,
-          hour: modelJson.TimeRange.LowerBoundHour,
-          min: modelJson.TimeRange.LowerBoundMin,
-        },
-        upperBound: {
-          year: modelJson.TimeRange.UpperBoundYear,
-          month: modelJson.TimeRange.UpperBoundMonth,
-          day: modelJson.TimeRange.UpperBoundDay,
-          hour: modelJson.TimeRange.UpperBoundHour,
-          min: modelJson.TimeRange.UpperBoundMin,
-        }
-      },
-      region: modelJson.Region.Locations.map((item) => {
-        return {
-          lat: item.Latitude,
-          long: item.Longitude
-        }
-      }),
-      revisionDateTime: modelJson.RevisionDateTime,
-      revisionAuthor: modelJson.RevisionAuthor,
-    }
+      Id: null,
+      Revision: null,
+      RevisionDateTime: null,
+      RevisionAuthor: null,
+      Predecessor: null,
+      Title: "",
+      ImageFilePath: "",
+      Summary: "",
+      TimeLowerBoundYear: null,
+      TimeLowerBoundMonth: null,
+      TimeLowerBoundDay: null,
+      TimeLowerBoundHour: null,
+      TimeLowerBoundMin: null,
+      TimeUpperBoundYear: null,
+      TimeUpperBoundMonth: null,
+      TimeUpperBoundDay: null,
+      TimeUpperBoundHour: null,
+      TimeUpperBoundMin: null,
+      Locations: [],
+      Sources: [],
+    };
   }
 
-  convertToModelJson = () => {
-    var event = this.state.event;
-    var modelJson = {
-      // RevisionId: ??
-      RevisionDateTime: event.revisionDateTime,
-      RevisionAuthor: event.revisionAuthor,
-      // EventId: ??
-      Title: event.titleText,
-      ImageFilePath: event.image.dataSrc,
-      Summary: event.summaryText,
-      TimeRange: {
-        LowerBoundYear: event.timeRange.lowerBound.year,
-        LowerBoundMonth: event.timeRange.lowerBound.month,
-        LowerBoundDay: event.timeRange.lowerBound.day,
-        LowerBoundHour: event.timeRange.lowerBound.hour,
-        LowerBoundMin: event.timeRange.lowerBound.min,
-        UpperBoundYear: event.timeRange.upperBound.year,
-        UpperBoundMonth: event.timeRange.upperBound.month,
-        UpperBoundDay: event.timeRange.upperBound.day,
-        UpperBoundHour: event.timeRange.upperBound.hour,
-        UpperBoundMin: event.timeRange.upperBound.min,
-      },
-      Region: {
-        Locations: event.region.map((latLong) => {
-          return {
-            Latitude: latLong.lat,
-            Longitude: latLong.long
-          }
-        })
-      }
-    }
+  // convertFromModelJson = (modelJson) => {
+  //   return {
+  //     // RevisionId: ??
+  //     // EventId: ??
+  //     titleText: modelJson.Title,
+  //     image: {
+  //       file: null,
+  //       dataSrc: variables.PHOTO_URL + modelJson.ImageFilePath
+  //     },
+  //     summaryText: modelJson.Summary,
+  //     timeRange: {
+  //       lowerBound: {
+  //         year: modelJson.TimeRange.LowerBoundYear,
+  //         month: modelJson.TimeRange.LowerBoundMonth,
+  //         day: modelJson.TimeRange.LowerBoundDay,
+  //         hour: modelJson.TimeRange.LowerBoundHour,
+  //         min: modelJson.TimeRange.LowerBoundMin,
+  //       },
+  //       upperBound: {
+  //         year: modelJson.TimeRange.UpperBoundYear,
+  //         month: modelJson.TimeRange.UpperBoundMonth,
+  //         day: modelJson.TimeRange.UpperBoundDay,
+  //         hour: modelJson.TimeRange.UpperBoundHour,
+  //         min: modelJson.TimeRange.UpperBoundMin,
+  //       }
+  //     },
+  //     region: modelJson.Region.Locations.map((item) => {
+  //       return {
+  //         lat: item.Latitude,
+  //         long: item.Longitude
+  //       }
+  //     }),
+  //     revisionDateTime: modelJson.RevisionDateTime,
+  //     revisionAuthor: modelJson.RevisionAuthor,
+  //   }
+  // }
 
-    console.log("Model JSON:");
-    console.log(modelJson);
-    return modelJson;
-  }
+  // convertToModelJson = () => {
+  //   var event = this.state.event;
+  //   var modelJson = {
+  //     // RevisionId: ??
+  //     RevisionDateTime: event.revisionDateTime,
+  //     RevisionAuthor: event.revisionAuthor,
+  //     // EventId: ??
+  //     Title: event.titleText,
+  //     ImageFilePath: event.image.dataSrc,
+  //     Summary: event.summaryText,
+  //     TimeRange: {
+  //       LowerBoundYear: event.timeRange.lowerBound.year,
+  //       LowerBoundMonth: event.timeRange.lowerBound.month,
+  //       LowerBoundDay: event.timeRange.lowerBound.day,
+  //       LowerBoundHour: event.timeRange.lowerBound.hour,
+  //       LowerBoundMin: event.timeRange.lowerBound.min,
+  //       UpperBoundYear: event.timeRange.upperBound.year,
+  //       UpperBoundMonth: event.timeRange.upperBound.month,
+  //       UpperBoundDay: event.timeRange.upperBound.day,
+  //       UpperBoundHour: event.timeRange.upperBound.hour,
+  //       UpperBoundMin: event.timeRange.upperBound.min,
+  //     },
+  //     Region: {
+  //       Locations: event.region.map((latLong) => {
+  //         return {
+  //           Latitude: latLong.lat,
+  //           Longitude: latLong.long
+  //         }
+  //       })
+  //     }
+  //   }
+
+  //   console.log("Model JSON:");
+  //   console.log(modelJson);
+  //   return modelJson;
+  // }
 
   // Only sets values that have changed. If not changed on the incoming json, existing event 
   // values will persist.
-  setEventValues = (eventJson) => {
+  setEventValues = (changeJson) => {
     this.logIfDebug("setEventValues:");
-    this.logIfDebug("    eventJson:");
-    this.logIfDebug(eventJson);
+    this.logIfDebug("    changeJson:");
+    this.logIfDebug(changeJson);
 
     let eventState = this.state.event;
-    let newEvent = {};
-    newEvent.titleText = eventJson.titleText !== undefined ? eventJson.titleText : eventState.titleText;
-    newEvent.image = eventJson.image !== undefined ? eventJson.image : eventState.image;
-    newEvent.summaryText = eventJson.summaryText !== undefined ? eventJson.summaryText : eventState.summaryText;
+    let newEvent = this.emptyEvent();
 
-    // Time range
-    if (eventJson.timeRange === undefined) {
-      newEvent.timeRange = eventState.timeRange;
-    }
-    else {
-      newEvent.timeRange = {};
-
-      let jsonLowerBound = eventJson.timeRange.lowerBound;
-      let stateLowerBound = eventState.timeRange.lowerBound;
-      if (jsonLowerBound === undefined) {
-        newEvent.timeRange.lowerBound = stateLowerBound;
-      }
-      else {
-        newEvent.timeRange.lowerBound = {
-          year: jsonLowerBound.year !== undefined ? jsonLowerBound.year : stateLowerBound.year,
-          month: jsonLowerBound.month !== undefined ? jsonLowerBound.month : stateLowerBound.month,
-          day: jsonLowerBound.day !== undefined ? jsonLowerBound.day : stateLowerBound.day,
-          hour: jsonLowerBound.hour !== undefined ? jsonLowerBound.hour : stateLowerBound.hour,
-          min: jsonLowerBound.min !== undefined ? jsonLowerBound.min : stateLowerBound.min,
-        }
-      }
-
-      let jsonUpperBound = eventJson.timeRange.upperBound;
-      let stateUpperBound = eventState.timeRange.upperBound;
-      if (jsonUpperBound === undefined) {
-        newEvent.timeRange.upperBound = stateUpperBound;
-      }
-      else {
-        newEvent.timeRange.upperBound = {
-          year: jsonUpperBound.year !== undefined ? jsonUpperBound.year : stateUpperBound.year,
-          month: jsonUpperBound.month !== undefined ? jsonUpperBound.month : stateUpperBound.month,
-          day: jsonUpperBound.day !== undefined ? jsonUpperBound.day : stateUpperBound.day,
-          hour: jsonUpperBound.hour !== undefined ? jsonUpperBound.hour : stateUpperBound.hour,
-          min: jsonUpperBound.min !== undefined ? jsonUpperBound.min : stateUpperBound.min,
-        }
-      }
-    }
-
-    newEvent.region = eventJson.region !== undefined ? eventJson.region : eventState.region;
-    newEvent.revisionDateTime = eventJson.revisionDateTime !== undefined ? eventJson.revisionDateTime : eventState.revisionDateTime;
-    newEvent.revisionAuthor = eventJson.revisionAuthor !== undefined ? eventJson.revisionAuthor : eventState.revisionAuthor;
+    // Id, RevisionId, RevisionDateTime, and RevisionAuthor will be handled by the server.
+    newEvent.Id = changeJson.Id !== undefined ? changeJson.Id : eventState.Id;
+    newEvent.Revision = changeJson.Revision !== undefined ? changeJson.Revision : eventState.Revision;
+    newEvent.RevisionDateTime = changeJson.RevisionDateTime !== undefined ? changeJson.RevisionDateTime : eventState.RevisionDateTime;
+    newEvent.RevisionAuthor = changeJson.RevisionAuthor !== undefined ? changeJson.RevisionAuthor : eventState.RevisionAuthor;
+    newEvent.Predecessor = changeJson.Predecessor !== undefined ? changeJson.Predecessor : eventState.Predecessor;
+    newEvent.Title = changeJson.Title !== undefined ? changeJson.Title : eventState.Title;
+    newEvent.ImageFilePath = changeJson.ImageFilePath !== undefined ? changeJson.ImageFilePath : eventState.ImageFilePath;
+    newEvent.Summary = changeJson.Summary !== undefined ? changeJson.Summary : eventState.Summary;
+    newEvent.TimeLowerBoundYear = changeJson.TimeLowerBoundYear !== undefined ? changeJson.TimeLowerBoundYear : eventState.TimeLowerBoundYear;
+    newEvent.TimeLowerBoundMonth = changeJson.TimeLowerBoundMonth !== undefined ? changeJson.TimeLowerBoundMonth : eventState.TimeLowerBoundMonth;
+    newEvent.TimeLowerBoundDay = changeJson.TimeLowerBoundDay !== undefined ? changeJson.TimeLowerBoundDay : eventState.TimeLowerBoundDay;
+    newEvent.TimeLowerBoundHour = changeJson.TimeLowerBoundHour !== undefined ? changeJson.TimeLowerBoundHour : eventState.TimeLowerBoundHour;
+    newEvent.TimeLowerBoundMin = changeJson.TimeLowerBoundMin !== undefined ? changeJson.TimeLowerBoundMin : eventState.TimeLowerBoundMin;
+    newEvent.TimeUpperBoundYear = changeJson.TimeUpperBoundYear !== undefined ? changeJson.TimeUpperBoundYear : eventState.TimeUpperBoundYear;
+    newEvent.TimeUpperBoundMonth = changeJson.TimeUpperBoundMonth !== undefined ? changeJson.TimeUpperBoundMonth : eventState.TimeUpperBoundMonth;
+    newEvent.TimeUpperBoundDay = changeJson.TimeUpperBoundDay !== undefined ? changeJson.TimeUpperBoundDay : eventState.TimeUpperBoundDay;
+    newEvent.TimeUpperBoundHour = changeJson.TimeUpperBoundHour !== undefined ? changeJson.TimeUpperBoundHour : eventState.TimeUpperBoundHour;
+    newEvent.TimeUpperBoundMin = changeJson.TimeUpperBoundMin !== undefined ? changeJson.TimeUpperBoundMin : eventState.TimeUpperBoundMin;
+    newEvent.Locations = changeJson.Locations !== undefined ? changeJson.Locations : eventState.Locations;
+    newEvent.Sources = changeJson.Sources !== undefined ? changeJson.Sources : eventState.Sources;
 
     this.logIfDebug("    newEvent:");
     this.logIfDebug(newEvent);
@@ -210,6 +185,9 @@ export class DisplayEntry extends Component {
       event: newEvent,
     });
   }
+
+
+
 
   errorCheckTitleOk = () => {
     let errMsg = null;
@@ -365,6 +343,10 @@ export class DisplayEntry extends Component {
       ...this.state,
       editMode: true
     });
+  }
+
+  startNewEdit = () => {
+
   }
 
   submitChanges = () => {
@@ -1034,9 +1016,14 @@ export class DisplayEntry extends Component {
             </>
             :
             <>
-              <button type="button" onClick={this.turnOnEditMode}>
-                Edit
-              </button>
+              <div>
+                <button type="button" onClick={this.turnOnEditMode}>
+                  Edit
+                </button>
+                <button type="button" onClick={this.startNewEdit}>
+                  Create New
+                </button>
+              </div>
 
               {/* TODO: move this button elsewhere (??maybe even the App??) */}
               <button onClick={this.getEventOfTheDay}>
