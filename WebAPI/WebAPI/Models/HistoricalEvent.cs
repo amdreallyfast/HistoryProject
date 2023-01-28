@@ -29,7 +29,7 @@ namespace WebAPI.Models
         public Guid Id { get; set; }
 
         [Key]
-        public int RevisionId { get; set; }
+        public int Revision { get; set; }
 
         [Required]
         public DateTime RevisionDateTime { get; set; } = DateTime.Now;
@@ -37,12 +37,7 @@ namespace WebAPI.Models
         [Required, MaxLength(64)]
         public string RevisionAuthor { get; set; } = string.Empty;
 
-        // Note: Due to the complexity of having potentially multiple revisions per event, and
-        // each revision Id being part of the primary key, asking EF Core to handle the foreign
-        // relationship for me will be too complicated to expect it to do a good job. Instead,
-        // just keep a Guid and do the lookup yourself by matching Id, and then pick the latest
-        // revision.
-        public Guid? Predecessor { get; set; }
+        public List<HistoricalEvent2Reference> Predecessors { get; set; } = new List<HistoricalEvent2Reference>();
 
         [Required, MaxLength(128)]
         public string Title { get; set; } = string.Empty;
@@ -117,10 +112,11 @@ namespace WebAPI.Models
         public override int GetHashCode()
         {
             HashCode hash = new();
-            hash.Add(RevisionId);
+            hash.Add(Id);
+            hash.Add(Revision);
             hash.Add(RevisionDateTime);
             hash.Add(RevisionAuthor);
-            hash.Add(Predecessor);
+            hash.Add(Predecessors);
             hash.Add(Title);
             hash.Add(ImageFilePath);
             hash.Add(Summary);
@@ -143,10 +139,10 @@ namespace WebAPI.Models
         {
             bool same = true;
             same &= Id == other.Id;
-            same &= RevisionId == other.RevisionId;
+            same &= Revision == other.Revision;
             same &= RevisionDateTime == other.RevisionDateTime;
             same &= RevisionAuthor == other.RevisionAuthor;
-            same &= Predecessor == other.Predecessor;
+            same &= Predecessors == other.Predecessors;
             same &= Title == other.Title;
             same &= ImageFilePath == other.ImageFilePath;
             same &= Summary == other.Summary;

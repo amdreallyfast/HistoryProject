@@ -5,60 +5,89 @@ using WebAPI.Models;
 
 namespace WebAPI.Controllers
 {
-    // TODO: rename -> "HistoricalEventController"
     [Route("api/[controller]")]
     [ApiController]
-    public class EventController : ControllerBase
+    public class HistoricalEventController : ControllerBase
     {
         private readonly HistoryProjectDbContext dbContext;
         private readonly IWebHostEnvironment webHostEnvironment;
         private string uploadedFilePath = string.Empty;
 
-        public EventController(HistoryProjectDbContext dbContext, IWebHostEnvironment webHostEnvironment)
+        public HistoricalEventController(HistoryProjectDbContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
             this.dbContext = dbContext;
             this.webHostEnvironment = webHostEnvironment;
         }
 
-        // TODO: change to "get latest with eventId"
-        [Route("Get/{revisionId}")]
+        [Route("GetLatestRevision/{eventId}")]
         [HttpGet]
-        public async Task<ActionResult<HistoricalEventDto>> Get(Guid revisionId)
+        public async Task<ActionResult<HistoricalEvent2>> GetLatestRevision(Guid eventId)
         {
-            var existingEvent = await dbContext.Events
-                .Where(x => x.RevisionId == revisionId)
-                .Include(x => x.Summary)
-                .Include(x => x.TimeRange)
-                .Include(x => x.Region)
-                .Include(x => x.Region.Locations)
+            var latestEvent = await dbContext.HistoricalEvents
+                .Where(x => x.Id == eventId)
+                .OrderByDescending(x => x.Revision)   // biggest revision number first
+                .Take(1)
+                .Include(x => x.Predecessors)
+                .Include(x => x.Locations)
+                .Include(x => x.Sources)
                 .FirstOrDefaultAsync();
-            if (existingEvent == null)
+            if (latestEvent == null)
             {
-                return NotFound($"Unknown event RevisionId: '{revisionId}'");
+                return NotFound($"Unknown HistoricalEvent Id: '{eventId}'");
             }
 
-            var eventDto = new HistoricalEventDto(existingEvent);
-            return Ok(eventDto);
+            return Ok(latestEvent);
+        }
+
+        [Route("GetAllRevisions/{eventId}")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<HistoricalEvent2>>> GetAllRevisions(Guid eventId)
+        {
+            var eventRevisions = await dbContext.HistoricalEvents
+                .Where(x => x.Id == eventId)
+                .Include(x => x.Predecessors)
+                .Include(x => x.Locations)
+                .Include(x => x.Sources)
+                .ToListAsync();
+            if (eventRevisions == null)
+            {
+                return NotFound($"Unknown HistoricalEvent Id: '{eventId}'");
+            }
+
+            return Ok(eventRevisions);
+        }
+
+        [Route("GetSpecificRevision/{eventId}/{revisionId}")]
+        [HttpGet]
+        public async Task<ActionResult<HistoricalEvent2>> GetSpecificRevision(Guid eventId, int revision)
+        {
+            var specificRevision = await dbContext.HistoricalEvents
+                .Where(x => x.Id == eventId)
+                .Where(x => x.Revision == revision)
+                .Include(x => x.Predecessors)
+                .Include(x => x.Locations)
+                .Include(x => x.Sources)
+                .FirstOrDefaultAsync();
+            if (specificRevision == null)
+            {
+                return NotFound($"Unknown HistoricalEvent Id and revision: eventID: '{eventId}', revision: '{revision}'");
+            }
+
+            return Ok(specificRevision);
         }
 
         [Route("GetFirst100")]
         [HttpGet]
-        public async Task<ActionResult<List<HistoricalEventDto>>> GetFirst100()
+        public async Task<ActionResult<IEnumerable<HistoricalEvent2>>> GetFirst100()
         {
-            var existingEvents = await dbContext.Events
+            var first100Events = await dbContext.HistoricalEvents
                 .Take(100)
-                .Include(x => x.Summary)
-                .Include(x => x.TimeRange)
-                .Include(x => x.Region)
-                .Include(x => x.Region.Locations)
+                .Include(x => x.Predecessors)
+                .Include(x => x.Locations)
+                .Include(x => x.Sources)
                 .ToListAsync();
 
-            var existingEventDtos = new List<HistoricalEventDto>();
-            foreach (HistoricalEvent existingEvent in existingEvents)
-            {
-                existingEventDtos.Add(new HistoricalEventDto(existingEvent));
-            }
-            return Ok(existingEventDtos);
+            return Ok(first100Events);
         }
 
         [Route("GetEventOfTheDay")]
@@ -66,6 +95,7 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<HistoricalEventDto>> GetEventOfTheDay()
         {
             // TODO: get info from somewhere else
+            throw new NotImplementedException();
 
             // Until I figure that out, get a random element.
             var numEvents = await dbContext.Events.CountAsync();
@@ -88,6 +118,11 @@ namespace WebAPI.Controllers
             var randomEventDto = new HistoricalEventDto(randomEvent);
             return Ok(randomEventDto);
         }
+
+        // TODO: CreateNew
+        // TODO: CreateNewWithPredecessor/{eventId}
+        // TODO: CreateNewRevision/{eventId}
+        //https://stackoverflow.com/questions/39121358/route-with-multiple-ids-laravel
 
         [Route("Create")]
         [HttpPost]
