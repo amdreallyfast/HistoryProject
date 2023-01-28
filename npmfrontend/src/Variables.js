@@ -2,6 +2,7 @@
 //  -> "profiles": "WebAPI": "applicationUrl" for first choice of "localhost" that will be used 
 // when the application is launched.
 export const variables = {
-  API_URL: "https://localhost:7121/api/",
-  PHOTO_URL: "https://localhost:7121/Photos/"
+  HOST: "https://localhost:7121",
+  // API_URL: "https://localhost:7121/api",
+  // PHOTO_URL: "https://localhost:7121/Photos"
 }

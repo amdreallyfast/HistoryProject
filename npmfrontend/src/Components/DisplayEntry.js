@@ -13,13 +13,14 @@ export class DisplayEntry extends Component {
 
     this.titleMinLen = 10;
     this.titleMaxLen = 128;
-    this.imageFilePathMaxLen = 256;
+    // this.imageFilePathMaxLen = 256;
     this.summaryTextMinLen = 50;
     this.summaryTextMaxLen = 2048;
 
     this.state = {
       debug: false,
       editMode: true,
+      // editModeCancelCallback: null,
 
       selectImageModal: {
         visible: false,
@@ -29,15 +30,16 @@ export class DisplayEntry extends Component {
 
       errMsgs: {
         eventTitleErrMsg: null,
-        eventImgErrMsg: null,
+        // eventImgErrMsg: null,
         eventSummaryErrMsg: null,
         eventWhenErrMsg: null,
         eventRegionErrMsg: null,
         eventRevisionInfoErrMsg: null,
       },
 
-      event: this.emptyEvent(),
-      startingEvent: null,
+      event: this.createEmptyEvent(),
+      startingEvent: null,  // TODO: ??remove??
+      eventInEditing: null,
     }
   }
 
@@ -47,7 +49,7 @@ export class DisplayEntry extends Component {
     }
   }
 
-  emptyEvent = () => {
+  createEmptyEvent = () => {
     return {
       Id: null,
       Revision: null,
@@ -70,6 +72,36 @@ export class DisplayEntry extends Component {
       Locations: [],
       Sources: [],
     };
+  }
+
+  jsonDeepCopy = (obj) => {
+    return JSON.parse(obj.stringify());
+  }
+
+  jsonDeepCompareSame = (obj1, obj2) => {
+    // Source:
+    //	https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order
+    //	Answer by "ajit-jain".
+
+    // Same type?
+    if (Object.prototype.toString.call(obj1) === Object.prototype.toString.call(obj2)) {
+      // Object/array or primitive?
+      if (Object.prototype.toString.call(obj1) === '[object Object]' || Object.prototype.toString.call(obj1) === '[object Array]') {
+        // Same number of members/entries?
+        if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+          return false;
+        }
+
+        // For each member/entry, recursively compare.
+        return (Object.keys(obj1).every(function (key) {
+          return deepCompare(obj1[key], obj2[key]);
+        }));
+      }
+
+      // Primitives. Compare directly.
+      return (obj1 === obj2);
+    }
+    return false;
   }
 
   // convertFromModelJson = (modelJson) => {
@@ -149,12 +181,20 @@ export class DisplayEntry extends Component {
   // Only sets values that have changed. If not changed on the incoming json, existing event 
   // values will persist.
   setEventValues = (changeJson) => {
-    this.logIfDebug("setEventValues:");
+    this.logIfDebug("setEventValues: begin");
+
+
+    // DEBUG
+    throw "setEventValues is bad!";
+    // END DEBUG
+
+
+
     this.logIfDebug("    changeJson:");
     this.logIfDebug(changeJson);
 
     let eventState = this.state.event;
-    let newEvent = this.emptyEvent();
+    let newEvent = this.createEmptyEvent();
 
     // Id, RevisionId, RevisionDateTime, and RevisionAuthor will be handled by the server.
     newEvent.Id = changeJson.Id !== undefined ? changeJson.Id : eventState.Id;
@@ -178,24 +218,23 @@ export class DisplayEntry extends Component {
     newEvent.Locations = changeJson.Locations !== undefined ? changeJson.Locations : eventState.Locations;
     newEvent.Sources = changeJson.Sources !== undefined ? changeJson.Sources : eventState.Sources;
 
-    this.logIfDebug("    newEvent:");
+    this.logIfDebug("    newEvent (and new state):");
     this.logIfDebug(newEvent);
 
     this.setState({
       event: newEvent,
     });
+
+    this.logIfDebug("setEventValues: end");
   }
-
-
-
 
   errorCheckTitleOk = () => {
     let errMsg = null;
-    if (this.state.event.titleText.length === 0) {
-      errMsg = `Must be at least '${this.state.titleMinLen}' characters.`;
+    if (this.state.event.Title.length === 0) {
+      errMsg = `Must be at least '${this.titleMinLen}' characters.`;
     }
-    else if (this.state.event.titleText.length > this.state.titleMaxLen) {
-      errMsg = `Must be less than '${this.state.titleMaxLen}' characters.`;
+    else if (this.state.event.Title.length > this.titleMaxLen) {
+      errMsg = `Must be less than '${this.titleMaxLen}' characters.`;
     }
 
     this.setState({
@@ -211,29 +250,26 @@ export class DisplayEntry extends Component {
     return errMsg === null;
   }
 
-  errorCheckImageFilePathOk = () => {
-    //??anything? we don't enter the file path manually, so is there any source of error??
-    let errMsg = null;
-    // if (this.state.event.imageFilePath.length > this.state.imageFilePathMaxLen) {
-    //   errMsg = `Must be less than '${this.state.imageFilePathMaxLen} characters.`;
-    // }
+  // errorCheckImageFilePathOk = () => {
+  //   //??anything? we don't enter the file path manually, so is there any source of error??
+  //   let errMsg = null;
 
-    this.setState({
-      errMsgs: {
-        ...this.state.errMsgs,
-        eventImgErrMsg: errMsg
-      }
-    });
+  //   this.setState({
+  //     errMsgs: {
+  //       ...this.state.errMsgs,
+  //       eventImgErrMsg: errMsg
+  //     }
+  //   });
 
-    this.logIfDebug(`errorCheckImageFilePathOk: '${errMsg === null ? "Ok" : errMsg}'`);
+  //   this.logIfDebug(`errorCheckImageFilePathOk: '${errMsg === null ? "Ok" : errMsg}'`);
 
-    // Ok if no error.
-    return errMsg === null;
-  }
+  //   // Ok if no error.
+  //   return errMsg === null;
+  // }
 
   errorCheckTimeRangeOk = () => {
     let errMsg = null;
-    if (this.state.event.timeRange.lowerBound.year === null || this.state.event.timeRange.upperBound.year === null) {
+    if (this.state.event.TimeLowerBoundYear === null || this.state.event.TimeUpperBoundYear === null) {
       errMsg = "Must select both upper and lower time boundaries.";
     }
 
@@ -252,7 +288,7 @@ export class DisplayEntry extends Component {
 
   errorCheckRegionOk = () => {
     let errMsg = null;
-    if (this.state.event.region.length === 0) {
+    if (this.state.event.Locations.length === 0) {
       errMsg = "Must select at least one location.";
     }
 
@@ -271,11 +307,11 @@ export class DisplayEntry extends Component {
 
   errorCheckSummaryOk = () => {
     let errMsg = null;
-    if (this.state.event.summaryText.length < this.state.summaryTextMinLen) {
-      errMsg = `Must be at least '${this.state.summaryTextMinLen}' characters.`;
+    if (this.state.event.Summary.length < this.summaryTextMinLen) {
+      errMsg = `Must be at least '${this.summaryTextMinLen}' characters.`;
     }
-    else if (this.state.event.summaryText.length > this.state.summaryTextMaxLen) {
-      errMsg = `Must be at less than '${this.state.summaryTextMaxLen}' characters.`;
+    else if (this.state.event.Summary.length > this.summaryTextMaxLen) {
+      errMsg = `Must be at less than '${this.summaryTextMaxLen}' characters.`;
     }
 
     this.setState({
@@ -295,59 +331,206 @@ export class DisplayEntry extends Component {
     this.logIfDebug("errorCheckAllOk:");
 
     this.errorCheckTitleOk();
-    this.errorCheckImageFilePathOk();
+    // this.errorCheckImageFilePathOk();
     this.errorCheckTimeRangeOk();
     this.errorCheckRegionOk();
     this.errorCheckSummaryOk();
   }
 
-  getSelectedEvent = (eventId) => {
-    this.logIfDebug(`getSelectedEvent: '${eventId}'`);
+  // TODO: move out of DisplayEntry and to a more central place like App.js.
+  fetchAndLoadModel = (endpoint) => {
+    this.logIfDebug("`fetchAndLoadModel: begin");
+    this.logIfDebug("endpoint:");
+    this.logIfDebug(endpoint);
 
-    fetch(`${variables.API_URL}Event/Get/${eventId}`)
-      .then(response => response.json())
-      .then(eventJson => {
-        let convertedJson = this.convertFromModelJson(eventJson);
-        this.setEventValues(convertedJson);
-        this.errorCheckAllOk();
-      });
+    // let onFetchFulfilled = response => {
+    //   this.logIfDebug("response:");
+    //   this.logIfDebug(response);
+    //   return response.json();
+    // };
+    // let onFetchRejected = fetchError => {
+    //   console.log("ERROR: failed to fetch from endpoint.");
+    //   console.log(fetchError);
+    // };
+
+    // let onJsonParseFulfilled = modelJson => {
+    //   this.logIfDebug("modelJson:");
+    //   this.logIfDebug(modelJson);
+    //   this.setEventValues(modelJson);
+    //   this.errorCheckAllOk();
+    // };
+    // let onJsonParseRejected = jsonParseError => {
+    //   console.log("ERROR: Failed to parse response into json.");
+    //   console.log(jsonParseError);
+    // };
+
+    // let onModelSetFulfilled = null;
+
+    // fetch(endpoint)
+    //   .then(onFetchFulfilled, onFetchRejected)
+    //   .then(onJsonParseFulfilled, onJsonParseRejected)
+    //   .then(
+    //     // onfulfilled
+    //     () => {
+    //       this.logIfDebug("setting loaded event as the starting state");
+    //       this.setState({
+    //         startingEvent: this.state.event
+    //       });
+    //     });
+
+    fetch(endpoint)
+      // promise: fetch
+      .then(
+        // onfulfilled
+        response => {
+          this.logIfDebug("response:");
+          this.logIfDebug(response);
+          return response.json();
+        },
+        // onrejected
+        error => {
+          console.log("ERROR: failed to fetch from endpoint.");
+          console.log(error);
+        })
+
+      // promise: response parsed to json
+      .then(
+        // onfulfilled
+        modelJson => {
+          this.logIfDebug("modelJson:");
+          this.logIfDebug(modelJson);
+          this.setEventValues(modelJson);
+          this.errorCheckAllOk();
+        },
+        // onrejected
+        error => {
+          console.log("ERROR: Failed to parse response to json.");
+          console.log(error);
+        })
+
+      // promise: event set
+      .then(
+        // onfulfilled
+        () => {
+          this.logIfDebug("setting loaded event as the starting state");
+          this.setState({
+            editModeCancelCallback: () => {
+              this.setState({
+                event: this.state.startingEvent
+              });
+            },
+            startingEvent: this.state.event
+          });
+        },
+        // onrejected
+        error => {
+          console.log("ERROR: Failed to set event values");
+          console.log(error);
+        }
+      );
+
+    this.logIfDebug("`fetchAndLoadModel: end");
   }
 
-  getEventOfTheDay = () => {
-    this.logIfDebug("getEventOfTheDay:");
+  // TODO: move out of DisplayEntry and to a more central place like App.js.
+  getSelectedEvent = (eventId) => {
+    this.logIfDebug("getSelectedEvent: begin");
+    this.logIfDebug("eventId:");
+    this.logIfDebug(eventId);
 
-    fetch(`${variables.API_URL}Event/GetEventOfTheDay`)
-      .then(response => response.json())
-      .then(eventJson => {
-        let convertedJson = this.convertFromModelJson(eventJson);
-        this.setEventValues(convertedJson);
-        this.errorCheckAllOk();
-      });
-    this.logIfDebug(this.state);
+    let endpoint = `${variables.HOST}/api/GetLatestRevision/${eventId}`;
+    thie.fetchAndLoadModel(endpoint);
+    this.logIfDebug("getSelectedEvent: end");
+  }
+
+  // TODO: move out of DisplayEntry and to a more central place like App.js.
+  getEventOfTheDay = () => {
+    this.logIfDebug("getEventOfTheDay: begin");
+
+    //let endpoint = `${variables.HOST}/api/GetEventOfTheDay`;
+    // DEBUG
+    let endpoint = `${variables.HOST}/api/GetLatestRevision/be9aa2f5-1569-4a8e-b31f-08dae5392545`;
+    // END DEBUG
+    this.fetchAndLoadModel(endpoint);
+    this.logIfDebug("getEventOfTheDay: end");
   }
 
   componentDidMount() {
-    this.logIfDebug("componentDidMount:");
+    this.logIfDebug("componentDidMount: begin");
+    this.getEventOfTheDay();
+    this.logIfDebug("componentDidMount: end");
+  }
 
-    // this.getEventOfTheDay();
-    this.getSelectedEvent("be9aa2f5-1569-4a8e-b31f-08dae5392545");
-
+  startEditExisting = () => {
+    this.logIfDebug("startEditExisting: begin");
     this.setState({
-      startingEvent: this.state.event
+      eventInEditing: this.jsonDeepCopy(this.state.event)
     });
+    this.logIfDebug("startEditExisting: end");
   }
 
-  turnOnEditMode = () => {
-    this.logIfDebug("turnOnEditMode:");
+  startEditNew = () => {
+    this.logIfDebug("startNewEdit: begin");
     this.setState({
-      ...this.state,
-      editMode: true
+      eventInEditing: this.createEmptyEvent(),
+      // editModeCancelCallback: this.getEventOfTheDay(),
     });
+    this.logIfDebug("startNewEdit: end");
   }
 
-  startNewEdit = () => {
+  editModal = () => {
+    const submitChanges = () => {
+      console.log("submiting changes");
+      this.setState({
+        event: this.state.eventInEditing,
+        eventInEditing: null
+      });
+    }
+
+    const cancelChanges = () => {
+      console.log("canceling changes");
+      this.setState({
+        eventInEditing: null
+      });
+    }
+
+    const startingEvent = this.jsonDeepCopy(this.state.eventInEditing);
+
+    <Modal show={this.state.eventInEditing != null} onHide={cancelChanges}>
+      <Modal.Header closeButton>
+        <Modal.Title>Select image</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div>
+          {/* Left pane: predecessor events */}
+          {/* Central pane: all the details */}
+          {/* Right pane: successor events */}
+        </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={cancelChanges}>
+          Cancel
+        </Button>
+
+        {/* 
+        Only enable submit if data has been changed. 
+        Note: The "disabled" flag cannot be set to true or false. It either exists or it does not.
+        */}
+        {this.jsonDeepCompareSame(startingEvent, this.state.eventInEditing) ?
+          <Button variant="primary" disabled >
+            Submit
+          </Button>
+          :
+          <Button variant="primary" onClick={submitChanges} >
+            Submit
+          </Button>
+        }
+      </Modal.Footer>
+    </Modal>
 
   }
+
+
 
   submitChanges = () => {
     this.logIfDebug("submitChanges:");
