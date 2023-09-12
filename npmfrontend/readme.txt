@@ -14,35 +14,35 @@
 
     Install tailwindcss
       Guidance: 
-        https://tailwindcss.com/docs/installation
+        Official:
+          https://tailwindcss.com/docs/guides/vite
+        
+        How to use Tailwind CSS in React with Vite | Install TailwindCSS in React with ViteJS for Beginners
+          https://www.youtube.com/watch?v=fUXQXafPF1A
       
       npm:
-        npm install -D tailwindcss
-        npx tailwindcss init
+        npm install -D tailwindcss postcss autoprefixer
+        npx tailwindcss init --postcss
         Note: run "npx tailwindcss init --full" to create a file with all the defaults.
         Also Note: Delete/rename the old file first. The "init" command will do nothing if there already exists a file by that name.
     
       Update tailwind.config.js:
         From:
-          content: []
+          content: [],
         To:
-          content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}']
+          content: [
+            "./index.html",
+            "./src/**/*.{js,ts,jsx,tsx}",
+          ],
       
       Add tailwind directives to src/index.css
         @tailwind base;
         @tailwind components;
         @tailwind utilities;
+    
+    Recommended VSCode extension: 
+      Tailwind CSS IntelliSense
       
-      Build css:
-        npx tailwindcss --input .\src\index.css --output .\src\tailwindbuild.css
-      
-      Update to use tailwind:
-        Replace:
-          main.jsx -> import './index.css'
-        
-        With:
-          main.jsx -> import './tailwindbuild.css'
-
-# CSS
+# Tailwind CSS
   Source:
     https://v2.tailwindcss.com/docs/height
