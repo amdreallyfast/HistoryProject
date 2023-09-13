@@ -10,7 +10,10 @@
 		Select a framework: React
 		Select a variant: JavaScript
   cd npmfrontend
-    npm install save three @react-three/fiber @react-three/drei
+    npm install save three 
+    npm install save @react-three/fiber
+    npm install save @react-three/drei
+    npm install save uuid
 
     Install tailwindcss
       Guidance: 
