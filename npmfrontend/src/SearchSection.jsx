@@ -2,34 +2,8 @@ import { useRef, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 
 export function SearchSection({ displayItemsJson, searchResultsCallback, itemSelectedCallback, currSelectedUniqueId }) {
-  // const [searchText, setSearchText] = useState()
-  // const [searchResultsHtml, setSearchResultsHtml] = useState()
   const [searchErrorHtml, setSearchErrorHtml] = useState()
   const searchTextRef = useRef()
-  // const searchResultsHtmlRef = useRef()
-  // const searchErrorHtmlRef = useRef()
-  const prevSelectedHtmlElementRef = useRef()
-
-  // console.log({ msg: "SearchSection()", displayItemsJson: displayItemsJson })
-  // console.log({ msg: "SearchSection()", currSelectedUniqueId: currSelectedUniqueId })
-  console.log({ msg: "SearchSection()", prevSelectedHtmlElementRef: prevSelectedHtmlElementRef.current })
-
-
-  const onItemSelected = (htmlElement, json) => {
-    // console.log({ func: "onItemSelected", html: htmlElement, json: json })
-
-    // // De-bold current item, make new selection bold.
-    // // Note: If same item, this logic will cause no change.
-    // if (prevSelectedHtmlElementRef.current) {
-    //   let newClassName = prevSelectedHtmlElementRef.current.className.replace("font-bold", "")
-    //   prevSelectedHtmlElementRef.current.className = newClassName
-    // }
-
-    // htmlElement.className += " font-bold"
-    // prevSelectedHtmlElementRef.current = htmlElement
-
-    itemSelectedCallback(json)
-  }
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
     try {
@@ -61,25 +35,9 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
           return jsonValue
         })
 
-      // let asHtml = sortedJson.map((jsonValue) => {
-      //   return (
-      //     <p key={jsonValue.myUniqueId}
-      //       className="break-words text-ellipsis"
-      //       onClick={(e) => onItemSelected(e.target, jsonValue)}
-      //     >
-      //       {jsonValue.name.official}
-      //     </p>
-      //   )
-      // })
-
-      // setSearchResultsHtml(asHtml)
-      // searchResultsHtmlRef.current = asHtml
       searchResultsCallback(sortedJson)
       setSearchErrorHtml(null)
-      // searchErrorHtmlRef.current = null
     } catch (error) {
-      // setSearchResultsHtml(null)
-      // searchResultsCallback(null)
       let errorAsHtml = (
         // TODO: format error better (left-justify somehow; long, strings always word-wrap and center for some reason)
         <p className="font-bold text-red-500 align-">
@@ -87,7 +45,6 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
         </p>
       )
       setSearchErrorHtml(errorAsHtml)
-      // searchErrorHtmlRef.current = errorAsHtml
     }
   }
 
@@ -105,7 +62,6 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
   const onSearchTextChanged = (e) => {
     // TODO: auto-complete
     console.log({ onSearchTextChanged: e.target.value })
-    // setSearchText(e.target.value)
     searchTextRef.current = e.target.value
 
     // TODO: if input is return, search instantly
@@ -136,7 +92,7 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
     let html = (
       <p key={jsonValue.myUniqueId}
         className={className}
-        onClick={(e) => onItemSelected(e.target, jsonValue)}
+        onClick={(e) => itemSelectedCallback(jsonValue)}
       >
         {jsonValue.name.official}
       </p>
