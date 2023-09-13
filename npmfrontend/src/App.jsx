@@ -5,7 +5,32 @@ import './App.css'
 // TODO: consider using Flowbit instead of plain Tailwind
 //  https://flowbite.com/docs/getting-started/introduction/
 
+
+function GlobeSection({ displayItemsJson, itemSelectedCallback }) {
+  const [selectedItem, setSelectedItem] = useState()
+
+  const onItemSelected = (e) => {
+    setSelectedItem(item)
+    itemSelectedCallback(item)
+  }
+
+  if (displayItemsJson) console.log(displayItemsJson[0])
+
+  let asHtml = displayItemsJson?.map((json, index) => (
+    <p key={index} className='text-white' onClick={(e) => itemSelectedCallback(json)}>
+      {json.capital ? json.capital[0] : "no capital"}
+    </p>
+  ))
+
+  return (
+    <div>
+      {asHtml}
+    </div>
+  )
+}
+
 function App() {
+  const [searchResultsJson, setSearchResultsJson] = useState()
   /*
   TODO:
     Search -> fetch data -> 
@@ -23,9 +48,10 @@ function App() {
 
   const successfulSearchCallback = (jsonResults) => {
     console.log({ msg: "App(): successfulSearchCallback()", value: jsonResults })
+    setSearchResultsJson(jsonResults)
   }
-  const searchResultSelectedCallback = (selectedJson) => {
-    console.log({ msg: "App(): searchResultSelectedCallback()", value: selectedJson })
+  const itemSelectedCallback = (selectedJson) => {
+    console.log({ msg: "App(): itemSelectedCallback()", value: selectedJson })
   }
 
   return (
@@ -34,10 +60,13 @@ function App() {
         <div className='row-span-4 col-span-2 border-2 border-red-500 text-white'>
           <SearchSection
             successfulSearchCallback={successfulSearchCallback}
-            searchResultSelectedCallback={searchResultSelectedCallback} />
+            searchResultSelectedCallback={itemSelectedCallback} />
         </div>
         <div className='row-span-4 col-span-6 border-2 border-amber-500 text-white'>
           Globe
+          <GlobeSection
+            displayItemsJson={searchResultsJson}
+            itemSelectedCallback={itemSelectedCallback} />
         </div>
         <div className='row-span-4 col-span-2 border-2 border-emerald-500 text-white'>
           Details

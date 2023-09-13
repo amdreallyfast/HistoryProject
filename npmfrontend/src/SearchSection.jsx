@@ -23,28 +23,29 @@ export function SearchSection({ successfulSearchCallback, searchResultSelectedCa
         json = await response.json()
       }
       else {
-        const response = await fetch("https://restcountries.com/v3.1/allz")
+        const response = await fetch("https://restcountries.com/v3.1/all")
         if (!response.ok) {
           throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
         }
         json = await response.json()
       }
 
-      let asHtml = json.map((value, index) => (
+      let sorted = json.sort((a, b) => a.name.official.localeCompare(b.name.official))
+      let asHtml = sorted.map((value, index) => (
         <p key={index} className="break-words text-ellipsis" onClick={(e) => searchResultSelectedCallback(value)}>
           {value.name.official}
         </p>
       ))
       setSearchResultsHtml(asHtml)
-      successfulSearchCallback(json)
+      successfulSearchCallback(sorted)
       setSearchErrorHtml(null)
     } catch (error) {
       setSearchResultsHtml(null)
 
       let asHtml = (
         // TODO: format error better (left-justify somehow; long, strings always word-wrap and center for some reason)
-        <p className="font-bold text-red-500">
-          {error.message}
+        <p className="font-bold text-red-500 align-">
+          {error.stack}
         </p>
       )
       setSearchErrorHtml(asHtml)
@@ -90,44 +91,45 @@ export function SearchSection({ successfulSearchCallback, searchResultSelectedCa
   }
 
   return (
-    <>
-      {/* Search text */}
-      <div className='flex flex-col items-start m-1'>
-        <span >Search:</span>
-        <span >(titles, descriptions, sources, tags)</span>
+    <div className="h-full border-2 border-green-600">
+      {/* Search */}
+      <div className="h-auto flex flex-col border-2 border-gray-600 m-1">
+        {/* Keyword */}
+        <div className='flex flex-col items-start m-1'>
+          <span >Search:</span>
+          <span >(titles, descriptions, sources, tags)</span>
+          <input type='text'
+            className='w-full bg-gray-700'
+            onChange={(e) => onSearchTextChanged(e)}
+            onKeyUp={(e) => onSearchTextKeyUp(e)} ></input>
+        </div>
 
-        {/* allow null */}
-        <input type='text'
-          className='w-full bg-gray-700'
-          onChange={(e) => onSearchTextChanged(e)}
-          onKeyUp={(e) => onSearchTextKeyUp(e)} ></input>
+        {/* Date: Lower bound */}
+        {/* TODO: change to text boxes for year, month, day */}
+        <div className='flex flex-col items-start m-1'>
+          <span>Date: Lower bound</span>
+          <input type='datetime-local' className='w-full bg-gray-700' onChange={(e) => onSearchLowerBoundDateChanged(e)}></input>
+        </div>
+
+        {/* Date: Upper bound */}
+        {/* TODO: change to text boxes for year, month, day */}
+        <div className='flex flex-col items-start m-1'>
+          <span>Date: Upper bound</span>
+          <input type='datetime-local' className='w-full bg-gray-700' onChange={(e) => onSearchUpperBoundDateChanged(e)}></input>
+        </div>
+
+        {/* Search button */}
+        <div className='flex flex-row-reverse'>
+          <input type='button' className='w-1/4 text-white border-2 border-red-300' value={"Search"} onClick={(e) => onSearchClicked(e)}></input>
+        </div>
       </div>
 
-      {/* Search dates (lower bounds) */}
-      {/* TODO: change to text boxes for year, month, day */}
-      <div className='flex flex-col items-start m-1'>
-        <span>Lower bound</span>
-        <input type='datetime-local' className='w-full bg-gray-700' onChange={(e) => onSearchLowerBoundDateChanged(e)}></input>
-      </div>
-
-      {/* Search dates (upper bounds) */}
-      {/* TODO: change to text boxes for year, month, day */}
-      <div className='flex flex-col items-start m-1'>
-        <span>Upper bound</span>
-        <input type='datetime-local' className='w-full bg-gray-700' onChange={(e) => onSearchUpperBoundDateChanged(e)}></input>
-      </div>
-
-      {/* Search button */}
-      <div className='border-2 border-white'>
-        <input type='button' className='text-white border-2 border-red-300' value={"Search"} onClick={(e) => onSearchClicked(e)}></input>
-      </div>
-
-      {/* Search results */}
-      <div className='w-full flex flex-col items-start border-2 border-blue-600 m-1'>
+      {/* Results */}
+      <div className='flex flex-col items-start border-2 border-gray-600 m-1 overflow-auto'>
         {searchErrorHtml}
         {searchResultsHtml}
       </div>
-    </>
+    </div>
   )
 }
 
