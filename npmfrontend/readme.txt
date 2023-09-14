@@ -10,10 +10,12 @@
 		Select a framework: React
 		Select a variant: JavaScript
   cd npmfrontend
-    npm install save three 
-    npm install save @react-three/fiber
-    npm install save @react-three/drei
-    npm install save uuid
+    npm install --save three                              # For rendering the globe
+    npm install --save @react-three/fiber                 # For react-based variants of ThreeJs classes
+    npm install --save @react-three/drei                  # For OrbitControls, PerspectiveCamera
+    npm install --save uuid                               # For making unique keys for loop-generated elements
+    npm install --save @tanstack/react-query              # For abstracting away the complications of fetching data.
+    npm install --save-dev @tanstack/eslint-plugin-query  # For catching common errors in @tanstack/react-query
 
     Install tailwindcss
       Guidance: 
@@ -24,7 +26,7 @@
           https://www.youtube.com/watch?v=fUXQXafPF1A
       
       npm:
-        npm install -D tailwindcss postcss autoprefixer
+        npm install --save-dev tailwindcss postcss autoprefixer
         npx tailwindcss init --postcss
         Note: run "npx tailwindcss init --full" to create a file with all the defaults.
         Also Note: Delete/rename the old file first. The "init" command will do nothing if there already exists a file by that name.

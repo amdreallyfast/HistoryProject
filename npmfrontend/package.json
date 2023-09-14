@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/drei": "^9.83.9",
     "@react-three/fiber": "^8.14.1",
+    "@tanstack/react-query": "^4.35.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "save": "^2.9.0",
@@ -19,6 +20,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@tanstack/eslint-plugin-query": "^4.34.1",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.0.3",
