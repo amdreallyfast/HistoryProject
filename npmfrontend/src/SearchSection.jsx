@@ -11,6 +11,9 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
 
       // TODO: when using a "perspectives" dataset, search by other fields like time
       if (searchText) {
+        // Reference:
+        //  Fetch Data from API in React JS | Learn ReactJS
+        //  https://www.youtube.com/watch?v=9vvtO0S1KlY
         let response = await fetch(`https://restcountries.com/v3.1/name/${searchText}`)
         if (!response.ok) {
           // Note: For the country dataset, a 404 means "no results"
@@ -88,7 +91,7 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
 
   let displayItemsAsHtml = displayItemsJson?.map((jsonValue) => {
     let isCurrSelected = jsonValue.myUniqueId === currSelectedUniqueId
-    let className = `text-white${isCurrSelected ? " font-bold" : ""}`
+    let className = `text-white text-left border-2 border-gray-400 rounded-md mb-1 ${isCurrSelected ? " font-bold" : ""}`
     let html = (
       <p key={jsonValue.myUniqueId}
         className={className}
@@ -105,8 +108,8 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
     <div className="flex flex-col h-full border-2 border-green-500">
       <div className="flex flex-col border-2 border-gray-600">
         <div className="flex flex-col items-start m-1">
-          <span >Search:</span>
-          <span >(titles, descriptions, sources, tags)</span>
+          <span>Search:</span>
+          <span>(titles, descriptions, sources, tags)</span>
           <input type='text'
             className='w-full bg-gray-700'
             onChange={onSearchTextChanged}
