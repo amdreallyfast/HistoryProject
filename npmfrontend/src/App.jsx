@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { SearchSection } from "./SearchSection"
 import { GlobeSection } from "./GlobeSection"
+import { DetailsSection } from "./DetailsSection"
 import './App.css'
 
 // TODO: consider using Flowbit instead of plain Tailwind
 //  https://flowbite.com/docs/getting-started/introduction/
-
 
 function App() {
   const [searchResultsJson, setSearchResultsJson] = useState()
@@ -54,7 +54,7 @@ function App() {
             currSelectedUniqueId={selectedItemJson?.myUniqueId} />
         </div>
         <div className='row-span-4 col-span-2 border-2 border-emerald-500 text-white'>
-          Details
+          <DetailsSection currSelectedItemJson={selectedItemJson} />
         </div>
         <div className='row-span-1 col-span-12 border-2 border-fuchsia-500 text-white'>
           Timeline
