@@ -6,18 +6,8 @@ import './App.css'
 
 // TODO: consider using Flowbit instead of plain Tailwind
 //  https://flowbite.com/docs/getting-started/introduction/
-async function fetchImage(url) {
-  if (url) {
-    let response = await fetch(url)
-    if (!response.ok) {
-      throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
-    }
-    return response.blob()
-  }
-  else {
-    return new Promise.reject("No URL")
-  }
-}
+
+
 
 function App() {
   const [searchResultsJson, setSearchResultsJson] = useState()

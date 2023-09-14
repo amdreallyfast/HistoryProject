@@ -13,6 +13,7 @@
     npm install --save three                              # For rendering the globe
     npm install --save @react-three/fiber                 # For react-based variants of ThreeJs classes
     npm install --save @react-three/drei                  # For OrbitControls, PerspectiveCamera
+    npm install --save gsap                               # for nice looking changes between visual states
     npm install --save uuid                               # For making unique keys for loop-generated elements
     npm install --save @tanstack/react-query              # For abstracting away the complications of fetching data.
     npm install --save-dev @tanstack/eslint-plugin-query  # For catching common errors in @tanstack/react-query
