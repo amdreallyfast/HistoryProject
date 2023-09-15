@@ -12,7 +12,7 @@ const globeInfo = {
   radius: 5
 }
 
-function MyScene({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId, poiInfoPopupElementRef, poiInfoTitleElementRef, mousePosCanvasNormalized }) {
+function MyScene({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId, poiInfoPopupElementRef, poiInfoTitleElementRef, mousePosCanvasScreenSpace }) {
   const poiAndGlobeMeshesRef = useRef()
   const threeJsStateModelRef = useRef()
   threeJsStateModelRef.current = useThree((state) => state)
@@ -51,7 +51,7 @@ function MyScene({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId,
       return
     }
 
-    state.raycaster.setFromCamera(mousePosCanvasNormalized, state.camera)
+    state.raycaster.setFromCamera(mousePosCanvasScreenSpace, state.camera)
     // console.log({ "mouse.x": mousePosCanvasNormalized.x, "mouse.y": mousePosCanvasNormalized.y })
 
     // Only consider intersections that are:
@@ -123,7 +123,7 @@ function MyScene({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId,
 }
 
 export function GlobeSectionMain({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId }) {
-  const mousePosCanvasNormalizedRef = useRef({
+  const mousePosCanvasScreenSpaceRef = useRef({
     x: 0,
     y: 0
   })
@@ -143,37 +143,35 @@ export function GlobeSectionMain({ displayItemsJson, itemSelectedCallback, currS
     // space coordinates as follows:
     //  x: -1 (left) to +1 (right)
     //  y: -1 (bottom) to +1 (top)
-    // Note: Have to offset the event's "client" coordinates. They do not match up with the 
-    // physical location of the canvas. I expect clientX = 0 to be the left edge, and clientY to
-    // be the bottom edge, but they aren't. The calculations do not take into account when the
-    // canvas is _not_ anchored on the origin (upper left). Calculate the offset yourself.
-    // Also Note: Negate the Y when normalizing. This event reverses ThreeJs' default coordinate 
-    // system's Y axis. OpenGL, and consequently ThreeJs, have canvas y=0 at the bottom, but 
-    // this event puts y=0 at the top (like all modern visual coordinate systems). So we need to
-    // negate the Y axis when calculating OpenGL screen space coordinates.
-    let canvasX = e.clientX - canvasContainerDivRef.current.offsetLeft
-    let canvasY = e.clientY - canvasContainerDivRef.current.offsetTop
+    // Adjustments due to current (9/15/2023) quirks in React Three Fiber's canvas event system:
+    //  1. (e.clientX == 0) != left edge, and (e.clientY == 0) != top edge. The calculation does 
+    //    not take into account when the canvas is _not_ anchored in the upper left.
+    //  2. The canvas offset needs info from the containing <div> element. The <div> has an 
+    //    offset, and within there the div's "client" (in this case, the canvas) has an offset
+    //    from the <div>
+    //  3. Negate the Y when normalizing. This event reverses ThreeJs' default coordinate system's
+    //    Y axis. OpenGL, and consequently ThreeJs, have canvas y=0 at the bottom, but this event
+    //    puts y=0 at the top (like all modern visual coordinate systems). So we need to negate 
+    //    the Y axis when calculating OpenGL screen space coordinates.
+    let canvasX = e.clientX - canvasContainerDivRef.current.clientLeft - canvasContainerDivRef.current.offsetLeft + 1
+    let canvasY = e.clientY - canvasContainerDivRef.current.clientTop - canvasContainerDivRef.current.offsetTop
     let canvasNormalizedX = ((canvasX / canvasContainerDivRef.current.clientWidth) * 2) - 1
     let canvasNormalizedY = -((canvasY / canvasContainerDivRef.current.clientHeight) * 2) + 1
     // console.log({ "canvas.x": canvasNormalizedX, "canvas.y": canvasNormalizedY })
-    mousePosCanvasNormalizedRef.current.x = canvasNormalizedX
-    mousePosCanvasNormalizedRef.current.y = canvasNormalizedY
+    mousePosCanvasScreenSpaceRef.current.x = canvasNormalizedX
+    mousePosCanvasScreenSpaceRef.current.y = canvasNormalizedY
 
+    // The POI info popup, however, seems to be able to follow the unfiltered canvasX. 
+    // ...*shrug*
     if (poiInfoPopupElementRef) {
       poiInfoPopupElementRef.current.style.left = `${e.clientX}px`
       poiInfoPopupElementRef.current.style.top = `${e.clientY}px`
     }
-
-    // console.log({
-    //   "mouse.x": mousePosCanvasNormalizedRef.current.x,
-    //   "mouse.y": mousePosCanvasNormalizedRef.current.y
-    // })
   }
 
-  // useEffect(() => {
-  //   let htmlElement = document.getElementById("bergle")
-  //   console.log({ "htmlElement": htmlElement })
-  // }, [])
+  useEffect(() => {
+    console.log({ "canvasContainer": canvasContainerDivRef.current })
+  }, [])
 
   return (
     <>
@@ -183,7 +181,7 @@ export function GlobeSectionMain({ displayItemsJson, itemSelectedCallback, currS
         </h2>
       </div>
 
-      <div ref={canvasContainerDivRef} className='w-full h-full bg-blue-950 border-4 border-red-500'>
+      <div ref={canvasContainerDivRef} className='w-full h-full bg-black border-4 border-red-500'>
         <Canvas ref={canvasRef} onMouseMove={(e) => onMouseMoveCanvas(e)}>
           <MyScene
             displayItemsJson={displayItemsJson}
@@ -191,7 +189,7 @@ export function GlobeSectionMain({ displayItemsJson, itemSelectedCallback, currS
             currSelectedUniqueId={currSelectedUniqueId}
             poiInfoPopupElementRef={poiInfoPopupElementRef}
             poiInfoTitleElementRef={poiInfoTitleElementRef}
-            mousePosCanvasNormalized={mousePosCanvasNormalizedRef.current}
+            mousePosCanvasScreenSpace={mousePosCanvasScreenSpaceRef.current}
           >
           </MyScene>
         </Canvas>
