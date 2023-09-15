@@ -1,42 +1,11 @@
 import { useEffect, useMemo, useRef } from "react"
-import { Canvas, useLoader, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { gsap } from "gsap/gsap-core"
 import * as THREE from "three"
 
-const mousePosCanvasNormalized = {
-  x: 0,
-  y: 0
-}
-
-// Note: This event from React Three Fiber appears to have reversed ThreeJs' default coordinate 
-// system's "y" axis. OpenGL, and consequently ThreeJs, have canvas y=0 at the bottom, but 
-// this event puts y=0 at the top. When the ThreeJs raycaster performs its calculations, it is 
-// expecting the input coordinates to be on the range x,y=[-1,+1], and specifically y=-1 to be 
-// the bottom, just like with OpenGL. So we need to negate the y sign.
-const onMouseMoveCanvas = (e, poiPopupHtmlElement) => {
-  //??how do I fix this calculation for the mouse movement? why is the window bigger than the size of the div??
-  mousePosCanvasNormalized.x = ((e.clientX / window.innerWidth) * 2) - 1
-  mousePosCanvasNormalized.y = -((e.clientY / window.innerHeight) * 2) + 1
-
-  if (poiPopupHtmlElement) {
-    gsap.set(poiPopupHtmlElement, {
-      x: e.clientX,
-      y: e.clientY
-    })
-  }
-
-  // console.log({
-  //   "onMouseMoveCanvas.x": mousePosCanvasNormalized.x,
-  //   "onMouseMoveCanvas.y": mousePosCanvasNormalized.y
-  // })
-  // console.log({
-  //   clientX: e.clientX,
-  //   clientY: e.clientY,
-  //   windowWidth: window.innerWidth
-  // })
-  // console.log({
-  //   e: e
-  // })
+const globeInfo = {
+  pos: new THREE.Vector3(0, 0, 0),
+  radius: 5
 }
 
 import globeVertShaderText from "./assets/shaders/globe.vert?raw" // Plugin "vite-plugin-string" not necessary
@@ -135,12 +104,24 @@ function Globe({ globeRadius }) {
   )
 }
 
+function PointsOfInterest({ displayItemsJson, globePos, globeRadius }) {
+  const points = displayItemsJson?.map((poiInfoJson, index) => (
+    <PointOfInterest key={index} globePos={globePos} globeRadius={globeRadius} poiInfoJson={poiInfoJson} />
+  ))
+  return (<>
+    <group name="PoiGroup">
+      {points}
+    </group>
+  </>)
+}
 
 
 import { Stars } from "./Stars"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
+import { PointOfInterest } from "./PointOfInterest"
 
 export function GlobeSection({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId }) {
+
   // threeJsStateModelRef.current = useThree((state) => state)
 
   // let displayItemsAsHtml = displayItemsJson?.map((jsonValue, index) => {
@@ -161,28 +142,55 @@ export function GlobeSection({ displayItemsJson, itemSelectedCallback, currSelec
   //   return html
   // })
 
+  const mousePosCanvasNormalizedRef = useRef({
+    x: 0,
+    y: 0
+  })
   const poiInfoPopupElementRef = useRef()
   const poiInfoTitleElementRef = useRef()
 
+  // TODO: ??use canvas size instead of window size when calculating normalized mouse coordinates??
+  const canvasRef = useRef()
+
+  function onMouseMoveCanvas(e) {
+    // Normalize mouse coordinates to [-1,+1] on x and y.
+    // Note: This event from React Three Fiber appears to have reversed ThreeJs' default coordinate 
+    // system's "y" axis. OpenGL, and consequently ThreeJs, have canvas y=0 at the bottom, but 
+    // this event puts y=0 at the top. When the ThreeJs raycaster performs its calculations, it is 
+    // expecting the input coordinates to be on the range x,y=[-1,+1], and specifically y=-1 to be 
+    // the bottom, just like with OpenGL. So we need to negate the y sign.
+    mousePosCanvasNormalizedRef.current = {
+      x: ((e.clientX / window.innerWidth) * 2) - 1,
+      y: -((e.clientY / window.innerHeight) * 2) + 1
+    }
+
+    if (poiInfoPopupElementRef) {
+      poiInfoPopupElementRef.current.style.left = `${e.clientX}px`
+      poiInfoPopupElementRef.current.style.top = `${e.clientY}px`
+    }
+  }
+
   return (
     <>
+      <div ref={poiInfoPopupElementRef} className="fixed bg-gray-600 bg-opacity-75 px-4 py-2 w-1/6 rounded-lg">
+        <h2 ref={poiInfoTitleElementRef} className="text-white text-xs">
+          Title placeholder
+        </h2>
+      </div>
+
       <div className='flex flex-col h-full'>
         {/* <div name='GlobeItems' className='flex flex-col h-full overflow-auto'>
           {displayItemsAsHtml}
         </div> */}
-        <div ref={poiInfoPopupElementRef} className="fixed hidden bg-gray-600 bg-opacity-75 px-4 py-2 w-1/6 rounded-lg">
-          <h2 ref={poiInfoTitleElementRef} className="text-white text-xs">
-            Title placeholder
-          </h2>
-        </div>
 
         <div className="w-full h-full bg-blue-950 border-4 border-red-500">
-          <Canvas onMouseMove={(e) => onMouseMoveCanvas(e)}>
+          <Canvas ref={canvasRef} onMouseMove={(e) => onMouseMoveCanvas(e)}>
             <PerspectiveCamera makeDefault position={new THREE.Vector3(0, 0, 25)} fov={50} far={3000} />
             <OrbitControls />
             <spotLight position={(10, 15, 10)} angle={0.3} intensity={0.2} />
 
-            <Globe globeRadius={5} />
+            <Globe globeRadius={globeInfo.radius} />
+            <PointsOfInterest displayItemsJson={displayItemsJson} globePos={globeInfo.pos} globeRadius={globeInfo.radius} />
             <Stars />
           </Canvas>
         </div>

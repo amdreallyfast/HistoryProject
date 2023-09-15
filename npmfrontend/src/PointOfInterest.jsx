@@ -2,16 +2,11 @@ import gsap from "gsap"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 
-export function PointOfInterest({
-  debug,
-  globePos,
-  globeRadius,
-  jsonInfo
-}) {
-  debug && console.log("SinglePoint(): begin")
+export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
+  // debug && console.log("SinglePoint(): begin")
 
   const pointMemo = useMemo(() => {
-    debug && console.log("SinglePoint(): useMemo")
+    // debug && console.log("SinglePoint(): useMemo")
 
     const height = 0.8
     const width = 0.1
@@ -33,14 +28,15 @@ export function PointOfInterest({
   // Move the mesh into position once the mesh reference is available.
   // Note: Only do this once. The gsap transformations are cumulative.
   //??necessary since I'm using the "fromTo" approach??
+  const useEffectRanRef = useRef(false)
   const pointRef = useRef()
   useEffect(() => {
     if (useEffectRanRef.current === false) {
       // POI info for user
-      pointRef.current.userData.allInfo = jsonInfo
+      pointRef.current.userData.allInfo = poiInfoJson
 
-      let latRad = (jsonInfo.latlng[0] / 180.0) * Math.PI
-      let longRad = (jsonInfo.latlng[1] / 180.0) * Math.PI
+      let latRad = (poiInfoJson.latlng[0] / 180.0) * Math.PI
+      let longRad = (poiInfoJson.latlng[1] / 180.0) * Math.PI
 
       let sphericalPos = new THREE.Vector3()
       sphericalPos.x = globeRadius * Math.cos(latRad) * Math.sin(longRad)
@@ -82,7 +78,7 @@ export function PointOfInterest({
   }, [])
 
   return (
-    <mesh name={title} ref={pointRef} geometry={pointMemo.geometry}>
+    <mesh name={poiInfoJson.name.common} ref={pointRef} geometry={pointMemo.geometry}>
       <meshBasicMaterial color={0x3bf7ff} transparent={true} opacity={0.4} />
     </mesh>
   )
