@@ -1,9 +1,9 @@
 import { useLoader } from "@react-three/fiber"
 import { useEffect, useMemo, useRef } from "react"
-import globeVertShaderText from "./assets/shaders/globe.vert?raw" // Plugin "vite-plugin-string" not necessary
-import globeFragShaderText from "./assets/shaders/globe.frag?raw"
-import atmosphereVertShaderText from "./assets/shaders/atmosphere.vert?raw"
-import atmosphereFragShaderText from "./assets/shaders/atmosphere.frag?raw"
+import globeVertShaderText from "../assets/shaders/globe.vert?raw" // Plugin "vite-plugin-string" not necessary
+import globeFragShaderText from "../assets/shaders/globe.frag?raw"
+import atmosphereVertShaderText from "../assets/shaders/atmosphere.vert?raw"
+import atmosphereFragShaderText from "../assets/shaders/atmosphere.frag?raw"
 import * as THREE from "three"
 
 export function Globe({ globeRadius }) {
@@ -11,6 +11,7 @@ export function Globe({ globeRadius }) {
 
   const globeMemo = useMemo(() => {
     // console.log("Globe(): useMemo")
+    console.log({ msg: "Globe(): useMemo()", base_url: import.meta.env.BASE_URL })
 
     const widthSegments = 50
     const heightSegments = 50

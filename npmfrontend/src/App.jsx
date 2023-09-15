@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { SearchSection } from "./SearchSection"
-import { GlobeSection } from "./GlobeSection"
+import { GlobeSectionMain } from "./GlobeSection/GlobeSectionMain"
 import { DetailsSection } from "./DetailsSection"
 import './App.css'
 
@@ -50,7 +50,7 @@ function App() {
         </div>
         <div className='row-span-4 col-span-6 border-2 border-amber-500 text-white'>
           {/* Globe */}
-          <GlobeSection
+          <GlobeSectionMain
             displayItemsJson={searchResultsJson}
             itemSelectedCallback={itemSelectedCallback}
             currSelectedUniqueId={selectedItemJson?.myUniqueId} />

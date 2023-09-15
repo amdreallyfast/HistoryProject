@@ -11,7 +11,7 @@ const globeInfo = {
   radius: 5
 }
 
-export function GlobeSection({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId }) {
+export function GlobeSectionMain({ displayItemsJson, itemSelectedCallback, currSelectedUniqueId }) {
   const mousePosCanvasNormalizedRef = useRef({
     x: 0,
     y: 0
