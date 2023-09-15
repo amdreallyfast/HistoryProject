@@ -52,26 +52,26 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
   }
 
   const searchAndDisplay = async () => {
-    console.log({ searchAndDisplay: `searching for '${searchTextRef.current}'` })
+    // console.log({ searchAndDisplay: `searching for '${searchTextRef.current}'` })
     searchFunc({ searchText: searchTextRef.current })
   }
 
   const onSearchClicked = (e) => {
-    console.log({ onSearchClicked: e })
+    // console.log({ onSearchClicked: e })
     searchAndDisplay()
     // TODO: perform search, set results
   }
 
   const onSearchTextChanged = (e) => {
     // TODO: auto-complete
-    console.log({ onSearchTextChanged: e.target.value })
+    // console.log({ onSearchTextChanged: e.target.value })
     searchTextRef.current = e.target.value
 
     // TODO: if input is return, search instantly
   }
 
   const onSearchTextKeyUp = (e) => {
-    console.log({ onSearchTextKeyup: e.key })
+    // console.log({ onSearchTextKeyup: e.key })
     if (e.key == "Enter") {
       searchAndDisplay()
     }
@@ -91,7 +91,7 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
 
   let displayItemsAsHtml = displayItemsJson?.map((jsonValue) => {
     let isCurrSelected = jsonValue.myUniqueId === currSelectedUniqueId
-    let className = `text-white text-left border-2 border-gray-400 rounded-md mb-1 ${isCurrSelected ? " font-bold" : ""}`
+    let className = `w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 ${isCurrSelected ? " font-bold" : ""}`
     let html = (
       <p key={jsonValue.myUniqueId}
         className={className}

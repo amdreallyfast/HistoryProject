@@ -34,7 +34,7 @@ export function DetailsSection({ currSelectedItemJson }) {
     imageHtml = (<h1>Refreshing...</h1>)
   }
   else if (fetchImageQuery.isSuccess) {
-    console.log({ fetchImageQuery: "Success. Setting image" })
+    // console.log({ fetchImageQuery: "Success. Setting image" })
     // console.log({ "fetchImageQuery.data": fetchImageQuery.data })
     let dataUrl = URL.createObjectURL(fetchImageQuery.data)
     // console.log({ dataUrl: dataUrl })
@@ -43,7 +43,7 @@ export function DetailsSection({ currSelectedItemJson }) {
     imageHtml = (<img src={dataUrl} />)
   }
   else {
-    console.log("??something else going on??")
+    console.log({ msg: "DetailsSection()", fetchImageQuery: "??something else going on??" })
   }
 
   return (

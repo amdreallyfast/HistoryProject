@@ -29,11 +29,11 @@ function App() {
   */
 
   const searchResultsCallback = (jsonResults) => {
-    console.log({ msg: "App(): searchResultsCallback()", value: jsonResults })
+    // console.log({ msg: "App(): searchResultsCallback()", value: jsonResults })
     setSearchResultsJson(jsonResults)
   }
   const itemSelectedCallback = (selectedJson) => {
-    console.log({ msg: "App(): itemSelectedCallback()", value: selectedJson })
+    // console.log({ msg: "App(): itemSelectedCallback()", value: selectedJson })
     setSelectedItemJson(selectedJson)
   }
 
