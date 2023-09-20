@@ -31,7 +31,7 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, currSelect
   const pointRef = useRef()
   const materialRef = useRef()
   useEffect(() => {
-    // console.log("POI UseEffect")
+    console.log("POI UseEffect")
 
     // POI info for user
     pointRef.current.userData.allInfo = poiInfoJson

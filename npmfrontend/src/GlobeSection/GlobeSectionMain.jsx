@@ -26,7 +26,7 @@ function MyScene(
   const threeJsStateModelRef = useRef()
   threeJsStateModelRef.current = useThree((state) => state)
   useEffect(() => {
-    console.log({ msg: "GlobeSectionMain(): useEffect()" })
+    // console.log({ msg: "GlobeSectionMain(): useEffect()" })
 
     // Note: Extract the "Globe" mesh as well because the racaster's intersection calculations 
     // will get _all_ meshes in its path. I want to avoid intersections with POIs behind the
@@ -49,7 +49,7 @@ function MyScene(
 
     poiAndGlobeMeshesRef.current = poiGlobeMeshes
 
-    console.log({ "poiAndGlobeMeshesRef": poiAndGlobeMeshesRef.current })
+    // console.log({ "poiAndGlobeMeshesRef": poiAndGlobeMeshesRef.current })
   }, [threeJsStateModelRef.current])
 
   let lastMouseHoverPoiMeshRef = useRef()
@@ -78,7 +78,7 @@ function MyScene(
       currSelectedPoiMeshRef.current != null
 
     if (newPoiSelectedFromTheOutside) {
-      console.log({ msg: "newPoiSelectedFromTheOutside" })
+      // console.log({ msg: "newPoiSelectedFromTheOutside" })
 
       // Fade out the old (if it exists).
       if (currSelectedPoiMeshRef.current) {
@@ -109,7 +109,7 @@ function MyScene(
       return
     }
     else if (poiDeselectedFromTheOutside) {
-      console.log({ msg: "poiDeselectedFromTheOutside" })
+      // console.log({ msg: "poiDeselectedFromTheOutside" })
 
       // Fade out the old.
       gsap.to(currSelectedPoiMeshRef.current.material, {
@@ -135,7 +135,15 @@ function MyScene(
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
     const intersectedObjects = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
     // console.log({ intersectedPoiMesh: intersectedPoiMesh, lastIntersectedPoiMesh: lastIntersectedPoiMesh })
-    if (intersectedObjects.length > 0) {
+    let notHoveringOverAnyPois =
+      intersectedObjects.length == 0 || // Space
+      (intersectedObjects.length == 1 && intersectedObjects[0].object.name == "Globe")  // Just the earth
+    if (notHoveringOverAnyPois) {
+      // Ignore any mouse clicks.
+      // console.log({ msg: "Not hovering." })
+      mouseClickedCurrPosRef.current = false
+    }
+    else {
       let firstIntersection = intersectedObjects[0].object
       if (firstIntersection.name != "Globe") {
         mouseHoverPoiMesh = firstIntersection
@@ -172,7 +180,7 @@ function MyScene(
     // }
 
     if (newPoiHover) {
-      console.log({ msg: "newPoiHover" })
+      // console.log({ msg: "newPoiHover" })
 
       // Turn on the popup.
       gsap.set(poiInfoPopupElementRef.current, {
@@ -197,7 +205,7 @@ function MyScene(
       }
     }
     else if (leavingPoiHover) {
-      console.log({ msg: "leavingPoiHover" })
+      // console.log({ msg: "leavingPoiHover" })
 
       // Turn off the popup
       gsap.set(poiInfoPopupElementRef.current, {
@@ -230,7 +238,7 @@ function MyScene(
       }
     }
     else if (clickedSamePoiHover) {
-      console.log({ msg: "clickedSamePoiHover" })
+      // console.log({ msg: "clickedSamePoiHover" })
 
       // Only allow a single click to process
       mouseClickedCurrPosRef.current = false
@@ -344,7 +352,7 @@ export function GlobeSectionMain({ displayItemsJson, itemSelectedCallback, currS
   }
 
   function onMouseClickCanvas(e) {
-    console.log({ "canvas.x": e.clientX, "canvas.y": e.clientY })
+    // console.log({ "canvas.x": e.clientX, "canvas.y": e.clientY })
     mouseClickedCurrPosRef.current = true
   }
 
