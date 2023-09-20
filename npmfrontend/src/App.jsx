@@ -12,6 +12,7 @@ import './App.css'
 function App() {
   const [searchResultsJson, setSearchResultsJson] = useState()
   const [selectedItemJson, setSelectedItemJson] = useState()
+  const selectedItemRef = useRef()
 
   /*
   TODO:
@@ -33,8 +34,9 @@ function App() {
     setSearchResultsJson(jsonResults)
   }
   const itemSelectedCallback = (selectedJson) => {
-    // console.log({ msg: "App(): itemSelectedCallback()", value: selectedJson })
+    console.log({ msg: "App(): itemSelectedCallback()", value: selectedJson?.name.common })
     setSelectedItemJson(selectedJson)
+    selectedItemRef.current = selectedJson
   }
 
   return (
@@ -45,7 +47,7 @@ function App() {
             displayItemsJson={searchResultsJson}
             searchResultsCallback={searchResultsCallback}
             itemSelectedCallback={itemSelectedCallback}
-            currSelectedUniqueId={selectedItemJson?.myUniqueId}
+            currSelectedItemRef={selectedItemRef}
           />
         </div>
         <div className='row-span-4 col-span-6 border-2 border-amber-500 text-white'>
@@ -53,7 +55,7 @@ function App() {
           <GlobeSectionMain
             displayItemsJson={searchResultsJson}
             itemSelectedCallback={itemSelectedCallback}
-            currSelectedUniqueId={selectedItemJson?.myUniqueId} />
+            currSelectedItemRef={selectedItemRef} />
         </div>
         <div className='row-span-4 col-span-2 border-2 border-emerald-500 text-white'>
           <DetailsSection currSelectedItemJson={selectedItemJson} />

@@ -1,7 +1,8 @@
+import { useEffect } from "react"
 import { useRef, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 
-export function SearchSection({ displayItemsJson, searchResultsCallback, itemSelectedCallback, currSelectedUniqueId }) {
+export function SearchSection({ displayItemsJson, searchResultsCallback, itemSelectedCallback, currSelectedItemRef }) {
   const [searchErrorHtml, setSearchErrorHtml] = useState()
   const searchTextRef = useRef()
 
@@ -89,13 +90,29 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
     // TODO: set state value
   }
 
+  const onSearchResultClicked = (jsonValue) => {
+    if (jsonValue.myUniqueId == currSelectedItemRef.current?.myUniqueId) {
+      // Already selected. De-select.
+      itemSelectedCallback(null)
+    }
+    else {
+      // New selection.
+      itemSelectedCallback(jsonValue)
+    }
+  }
+
+  // console.log({ msg: "SearchSection()" })
+  // useEffect(() => {
+  //   console.log({ msg: "SearchSection(): useEffect()" })
+  // })
+
   let displayItemsAsHtml = displayItemsJson?.map((jsonValue) => {
-    let isCurrSelected = jsonValue.myUniqueId === currSelectedUniqueId
+    let isCurrSelected = jsonValue.myUniqueId === currSelectedItemRef.current?.myUniqueId
     let className = `w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 ${isCurrSelected ? " font-bold" : ""}`
     let html = (
       <p key={jsonValue.myUniqueId}
         className={className}
-        onClick={(e) => itemSelectedCallback(jsonValue)}
+        onClick={(e) => onSearchResultClicked(jsonValue)}
       >
         {jsonValue.name.official}
       </p>
