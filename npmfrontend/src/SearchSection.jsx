@@ -12,7 +12,7 @@ export function SearchSection() {
 
   const [pointsOfInterestHtml, setPointsOfInterestHtml] = useState()
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
-  const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold}"
+  const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
   const [searchErrorHtml, setSearchErrorHtml] = useState()
   const searchTextRef = useRef()
