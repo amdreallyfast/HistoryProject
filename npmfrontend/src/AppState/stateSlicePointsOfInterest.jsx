@@ -21,7 +21,7 @@ export const stateSlicePointsOfInterest = createSlice({
       }
     },
     setSelectedPoi: (state, action) => {
-      console.log({ msg: `setSelectedPoi()`, payload: action.payload.name.common })
+      console.log({ msg: `setSelectedPoi()`, payload: action.payload?.name.common })
       return {
         ...state,
         selectedPoi: action.payload

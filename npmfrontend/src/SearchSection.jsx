@@ -7,71 +7,58 @@ import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePoints
 export function SearchSection() {
   const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
   const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
-  const poiReducer = useSelector((state) => state.pointsOfInterestReducer)
   const reduxDispatch = useDispatch()
 
   const [pointsOfInterestHtml, setPointsOfInterestHtml] = useState()
+  const prevSelectedPoiHtmlRef = useRef()
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
   const [searchErrorHtml, setSearchErrorHtml] = useState()
   const searchTextRef = useRef()
 
-  // console.log({ msg: "SearchSection()", selectedPoi: selectedPoi })
-
-  const onSearchResultClicked = (e, poiJson) => {
-    // console.log({ msg: "onSearchResultClicked()", selectedPoi: currSelectedPoi?.myUniqueId, clickedPoi: poiJson.myUniqueId })
-    // console.log({ msg: "onSearchResultClicked()", selectedPoi: poiReducer.selectedPoi?.myUniqueId })
-    // console.log({ msg: "onSearchResultClicked()", e: e.target.className })
-
-
-    // if (poiJson.myUniqueId == selectedPoi?.myUniqueId) {
-    //   console.log({ msg: "onSearchResultClicked() - de-select" })
-    //   // Already selected. De-select.
-    //   reduxDispatch(setSelectedPoi(null))
-    //   e.target.className = searchResultHtmlClassNameNormal
-    // }
-    // else {
-    //   console.log({ msg: "onSearchResultClicked() - new selection" })
-    //   // New selection.
-    //   reduxDispatch(setSelectedPoi(poiJson))
-    //   e.target.className = searchResultHtmlClassNameHighlighted
-    // }
-
-    if (e.target.className.includes("font-bold")) {
-      console.log({ msg: "onSearchResultClicked() - de-select" })
-      // e.target.className = searchResultHtmlClassNameNormal
-      reduxDispatch(setSelectedPoi(null))
-    }
-    else {
-      console.log({ msg: "onSearchResultClicked() - new selection" })
-      // e.target.className = searchResultHtmlClassNameHighlighted
-      reduxDispatch(setSelectedPoi(poiJson))
-    }
-
-    //console.log({ msg: "onSearchResultClicked()", target: e.target, name: poiJson.name.common })
-  }
-
   useEffect(() => {
     // TODO: refector: "poiJsonValue" -> "poiJson"
-    console.log({ msg: "SearchSection()/useEffect()" })
+    console.log({ msg: "SearchSection()/useEffect()/setPointsOfInterestHtml" })
+
+    const onSearchResultClicked = (e, poiJson) => {
+      // Always de-highlight the previous item.
+      if (prevSelectedPoiHtmlRef.current) {
+        prevSelectedPoiHtmlRef.current.className = searchResultHtmlClassNameNormal
+      }
+
+      // Note: This function will only store the values of any external variables used in it (that 
+      // is, does _not_ store a reference). That means that I cannot rely on the "selectedPoi" state
+      // variable in this event handler. This is stupid, but so be it. 
+      // Also Note: A stand-in for "is selected" is the highlighted object's text being bold.
+      if (e.target.className.includes("font-bold")) {
+        // De-select. Already de-highlighted.
+        console.log({ msg: "onSearchResultClicked() - de-select" })
+        prevSelectedPoiHtmlRef.current = null
+        reduxDispatch(setSelectedPoi(null))
+      }
+      else {
+        // New selection. Highlight.
+        console.log({ msg: "onSearchResultClicked() - new selection" })
+        e.target.className = searchResultHtmlClassNameHighlighted
+        prevSelectedPoiHtmlRef.current = e.target
+        reduxDispatch(setSelectedPoi(poiJson))
+      }
+    }
 
     setPointsOfInterestHtml(
       pointsOfInterest?.map(
-        (poiJson) => {
-          let isCurrSelected = poiJson.myUniqueId == selectedPoi?.myUniqueId
-          return (
-            <p key={poiJson.myUniqueId}
-              className={isCurrSelected ? searchResultHtmlClassNameHighlighted : searchResultHtmlClassNameNormal}
-              onClick={(e) => onSearchResultClicked(e, poiJson)}
-            >
-              {poiJson.name.official}
-            </p>
-          )
-        }
+        (poiJson) => (
+          <p key={poiJson.myUniqueId}
+            className={searchResultHtmlClassNameNormal}
+            onClick={(e) => onSearchResultClicked(e, poiJson)}
+          >
+            {poiJson.name.official}
+          </p>
+        )
       )
     )
-  }, [pointsOfInterest, selectedPoi])
+  }, [pointsOfInterest])
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
     try {
@@ -90,7 +77,7 @@ export function SearchSection() {
         rawJson = await response.json()
       }
       else {
-        let response = await fetch("https://restcountries.com/v3.1/all")
+        let response = await fetch("https://restcountries.com/v3.1/allz")
         if (!response.ok) {
           throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
         }
@@ -157,8 +144,6 @@ export function SearchSection() {
     // TODO: set state value
   }
 
-
-
   return (
     <div className="flex flex-col h-full border-2 border-green-500">
       <div className="flex flex-col border-2 border-gray-600">
@@ -200,7 +185,6 @@ export function SearchSection() {
         <div>
           {pointsOfInterestHtml}
         </div>
-        {/* {searchErrorHtml ? searchErrorHtml : pointsOfInterestHtml} */}
       </div>
     </div>
   )
