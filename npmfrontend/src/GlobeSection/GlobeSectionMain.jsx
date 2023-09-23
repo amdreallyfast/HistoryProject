@@ -1,6 +1,9 @@
 import { useRef } from "react"
 import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
+import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
+import { Stars } from "./Stars"
+import { Vector3 } from "three"
 
 export function GlobeSectionMain() {
   const mousePosCanvasScreenSpaceRef = useRef({
@@ -61,14 +64,20 @@ export function GlobeSectionMain() {
 
   return (
     <>
-      <div ref={poiInfoPopupElementRef} className="fixed bg-gray-600 bg-opacity-75 px-4 py-2 w-1/6 rounded-lg">
-        <h2 ref={poiInfoTitleElementRef} className="text-white text-xs">
+      {/* TODO: ??how to make this opaque, or at least easier to read?? */}
+      <div ref={poiInfoPopupElementRef} className="fixed bg-gray-900 bg-opacity-0 px-4 py-2 w-1/6 rounded-lg bg-transparent">
+        <h2 ref={poiInfoTitleElementRef} className="text-white text-lg">
           Title placeholder
         </h2>
       </div>
 
       <div ref={canvasContainerDivRef} className='w-full h-full bg-black border-4 border-red-500'>
         <Canvas ref={canvasRef} onMouseMove={(e) => onMouseMoveCanvas(e)} onClick={(e) => onMouseClickCanvas(e)}>
+          <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} far={3000} />
+          <OrbitControls />
+          <spotLight position={(10, 15, 10)} angle={0.3} intensity={0.2} />
+          <Stars />
+
           <Scene
             poiInfoPopupElementRef={poiInfoPopupElementRef}
             poiInfoTitleElementRef={poiInfoTitleElementRef}

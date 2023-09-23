@@ -11,7 +11,7 @@ export function Globe({ globeRadius }) {
 
   const globeMemo = useMemo(() => {
     // console.log("Globe(): useMemo")
-    console.log({ msg: "Globe(): useMemo()", base_url: import.meta.env.BASE_URL })
+    console.log({ msg: "Globe()/useMemo()", base_url: import.meta.env.BASE_URL })
 
     const widthSegments = 50
     const heightSegments = 50

@@ -35,6 +35,7 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
     // console.log("POI UseEffect")
 
     // POI info for user
+    //TODO: refactor "allInfo" -> "poiInfoJson"
     pointRef.current.userData.allInfo = poiInfoJson
 
     let latRad = (poiInfoJson.latlng[0] / 180.0) * Math.PI
@@ -58,7 +59,11 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
     // }
     pointRef.current.userData.originalColor = new THREE.Color(0x3bf7ff)
     pointRef.current.userData.selectedColor = new THREE.Color(0xff0000)
+    pointRef.current.userData.originalOpacity = 0.4
+    pointRef.current.userData.highlightOpacity = 1
+
     materialRef.current.color = pointRef.current.userData.originalColor
+    materialRef.current.opacity = pointRef.current.userData.originalOpacity
 
     // let currSelected = pointRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current?.myUniqueId
     // if (currSelected) {
@@ -120,7 +125,7 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
 
   return (
     <mesh name={poiInfoJson.name.common} ref={pointRef} geometry={pointMemo.geometry}>
-      <meshBasicMaterial ref={materialRef} transparent={true} opacity={0.4} />
+      <meshBasicMaterial ref={materialRef} transparent={true} />
     </mesh>
   )
 }

@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   pointsOfInterest: null,
+
+  // TODO: ??rename -> "selectedPoiJson"??
   selectedPoi: null
 }
 
@@ -19,7 +21,7 @@ export const stateSlicePointsOfInterest = createSlice({
       }
     },
     setSelectedPoi: (state, action) => {
-      console.log({ msg: `setSelectedPoi()`, payload: action.payload })
+      console.log({ msg: `setSelectedPoi()`, payload: action.payload.name.common })
       return {
         ...state,
         selectedPoi: action.payload

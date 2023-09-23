@@ -7,10 +7,71 @@ import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePoints
 export function SearchSection() {
   const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
   const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
+  const poiReducer = useSelector((state) => state.pointsOfInterestReducer)
   const reduxDispatch = useDispatch()
+
+  const [pointsOfInterestHtml, setPointsOfInterestHtml] = useState()
+  const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
+  const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold}"
 
   const [searchErrorHtml, setSearchErrorHtml] = useState()
   const searchTextRef = useRef()
+
+  // console.log({ msg: "SearchSection()", selectedPoi: selectedPoi })
+
+  const onSearchResultClicked = (e, poiJson) => {
+    // console.log({ msg: "onSearchResultClicked()", selectedPoi: currSelectedPoi?.myUniqueId, clickedPoi: poiJson.myUniqueId })
+    // console.log({ msg: "onSearchResultClicked()", selectedPoi: poiReducer.selectedPoi?.myUniqueId })
+    // console.log({ msg: "onSearchResultClicked()", e: e.target.className })
+
+
+    // if (poiJson.myUniqueId == selectedPoi?.myUniqueId) {
+    //   console.log({ msg: "onSearchResultClicked() - de-select" })
+    //   // Already selected. De-select.
+    //   reduxDispatch(setSelectedPoi(null))
+    //   e.target.className = searchResultHtmlClassNameNormal
+    // }
+    // else {
+    //   console.log({ msg: "onSearchResultClicked() - new selection" })
+    //   // New selection.
+    //   reduxDispatch(setSelectedPoi(poiJson))
+    //   e.target.className = searchResultHtmlClassNameHighlighted
+    // }
+
+    if (e.target.className.includes("font-bold")) {
+      console.log({ msg: "onSearchResultClicked() - de-select" })
+      // e.target.className = searchResultHtmlClassNameNormal
+      reduxDispatch(setSelectedPoi(null))
+    }
+    else {
+      console.log({ msg: "onSearchResultClicked() - new selection" })
+      // e.target.className = searchResultHtmlClassNameHighlighted
+      reduxDispatch(setSelectedPoi(poiJson))
+    }
+
+    //console.log({ msg: "onSearchResultClicked()", target: e.target, name: poiJson.name.common })
+  }
+
+  useEffect(() => {
+    // TODO: refector: "poiJsonValue" -> "poiJson"
+    console.log({ msg: "SearchSection()/useEffect()" })
+
+    setPointsOfInterestHtml(
+      pointsOfInterest?.map(
+        (poiJson) => {
+          let isCurrSelected = poiJson.myUniqueId == selectedPoi?.myUniqueId
+          return (
+            <p key={poiJson.myUniqueId}
+              className={isCurrSelected ? searchResultHtmlClassNameHighlighted : searchResultHtmlClassNameNormal}
+              onClick={(e) => onSearchResultClicked(e, poiJson)}
+            >
+              {poiJson.name.official}
+            </p>
+          )
+        }
+      )
+    )
+  }, [pointsOfInterest, selectedPoi])
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
     try {
@@ -96,32 +157,7 @@ export function SearchSection() {
     // TODO: set state value
   }
 
-  const onSearchResultClicked = (jsonValue) => {
-    console.log({ msg: "onSearchResultClicked()", value: jsonValue })
-    if (jsonValue.myUniqueId == selectedPoi?.myUniqueId) {
-      // Already selected. De-select.
-      reduxDispatch(setSelectedPoi(null))
-    }
-    else {
-      // New selection.
-      reduxDispatch(setSelectedPoi(jsonValue))
-    }
-  }
 
-  let displayItemsAsHtml = pointsOfInterest?.map((jsonValue) => {
-    let isCurrSelected = jsonValue.myUniqueId === selectedPoi?.myUniqueId
-    let className = `w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 ${isCurrSelected ? " font-bold" : ""}`
-    let html = (
-      <p key={jsonValue.myUniqueId}
-        className={className}
-        onClick={(e) => onSearchResultClicked(jsonValue)}
-      >
-        {jsonValue.name.official}
-      </p>
-    )
-
-    return html
-  })
 
   return (
     <div className="flex flex-col h-full border-2 border-green-500">
@@ -158,7 +194,13 @@ export function SearchSection() {
       </div>
 
       <div className='flex flex-col items-start border-2 border-gray-600 m-1 h-full overflow-auto'>
-        {searchErrorHtml ? searchErrorHtml : displayItemsAsHtml}
+        <div>
+          {searchErrorHtml}
+        </div>
+        <div>
+          {pointsOfInterestHtml}
+        </div>
+        {/* {searchErrorHtml ? searchErrorHtml : pointsOfInterestHtml} */}
       </div>
     </div>
   )
