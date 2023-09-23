@@ -3,7 +3,8 @@ import gsap from "gsap"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 
-export function PointOfInterest({ globePos, globeRadius, poiInfoJson, currSelectedItemRef }) {
+// TODO: rename -> "POIBox"
+export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
   // debug && console.log("SinglePoint(): begin")
 
   const pointMemo = useMemo(() => {
@@ -31,7 +32,7 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, currSelect
   const pointRef = useRef()
   const materialRef = useRef()
   useEffect(() => {
-    console.log("POI UseEffect")
+    // console.log("POI UseEffect")
 
     // POI info for user
     pointRef.current.userData.allInfo = poiInfoJson
@@ -57,14 +58,15 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, currSelect
     // }
     pointRef.current.userData.originalColor = new THREE.Color(0x3bf7ff)
     pointRef.current.userData.selectedColor = new THREE.Color(0xff0000)
+    materialRef.current.color = pointRef.current.userData.originalColor
 
-    let currSelected = pointRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current?.myUniqueId
-    if (currSelected) {
-      materialRef.current.color = pointRef.current.userData.selectedColor
-    }
-    else {
-      materialRef.current.color = pointRef.current.userData.originalColor
-    }
+    // let currSelected = pointRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current?.myUniqueId
+    // if (currSelected) {
+    //   materialRef.current.color = pointRef.current.userData.selectedColor
+    // }
+    // else {
+    //   materialRef.current.color = pointRef.current.userData.originalColor
+    // }
 
     // Animate the height
     // Source:
@@ -91,30 +93,30 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, currSelect
   }, [])
 
 
-  useFrame(() => {
-    // if (pointRef.current.material.color.red < 0.04) {
-    //   console.log({
-    //     r: pointRef.current.material.color.r,
-    //     g: pointRef.current.material.color.g,
-    //     b: pointRef.current.material.color.b,
-    //     opacity: pointRef.current.material.opacity
-    //   })
-    // }
+  // useFrame(() => {
+  //   // if (pointRef.current.material.color.red < 0.04) {
+  //   //   console.log({
+  //   //     r: pointRef.current.material.color.r,
+  //   //     g: pointRef.current.material.color.g,
+  //   //     b: pointRef.current.material.color.b,
+  //   //     opacity: pointRef.current.material.opacity
+  //   //   })
+  //   // }
 
 
-    // if (pointRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current.myUniqueId) {
-    //   // console.log({ msg: "it's a me!", name: pointRef.current.userData.allInfo.name.common })
-    //   pointRef.current.material.color = new THREE.Color(0xff0000)
-    //   pointRef.current.opacity = 1
-    // }
-    // else {
-    //   // pointRef.current.material.color = new THREE.Color(0x3bf7ff)
-    //   pointRef.current.material.color = new THREE.Color(0x00ff00)
-    //   pointRef.current.opacity = 0.4
-    // }
+  //   // if (pointRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current.myUniqueId) {
+  //   //   // console.log({ msg: "it's a me!", name: pointRef.current.userData.allInfo.name.common })
+  //   //   pointRef.current.material.color = new THREE.Color(0xff0000)
+  //   //   pointRef.current.opacity = 1
+  //   // }
+  //   // else {
+  //   //   // pointRef.current.material.color = new THREE.Color(0x3bf7ff)
+  //   //   pointRef.current.material.color = new THREE.Color(0x00ff00)
+  //   //   pointRef.current.opacity = 0.4
+  //   // }
 
-    // console.log(currSelectedUniqueId)
-  })
+  //   // console.log(currSelectedUniqueId)
+  // })
 
   return (
     <mesh name={poiInfoJson.name.common} ref={pointRef} geometry={pointMemo.geometry}>

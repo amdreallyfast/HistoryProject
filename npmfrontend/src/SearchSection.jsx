@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid"
 import { useSelector, useDispatch } from "react-redux"
 import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
 
-// export function SearchSection({ displayItemsJson, searchResultsCallback, itemSelectedCallback, currSelectedItemRef }) {
 export function SearchSection() {
   const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
   const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
