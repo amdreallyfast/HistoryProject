@@ -77,7 +77,7 @@ export function SearchSection() {
         rawJson = await response.json()
       }
       else {
-        let response = await fetch("https://restcountries.com/v3.1/allz")
+        let response = await fetch("https://restcountries.com/v3.1/all")
         if (!response.ok) {
           throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
         }
@@ -97,8 +97,7 @@ export function SearchSection() {
       setSearchErrorHtml(null)
     } catch (error) {
       let errorAsHtml = (
-        // TODO: format error better (left-justify somehow; long, strings always word-wrap and center for some reason)
-        <p className="font-bold text-red-500 align-">
+        <p className="font-bold text-red-500 text-left">
           {error.stack}
         </p>
       )
