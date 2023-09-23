@@ -4,15 +4,18 @@ import { v4 as uuidv4 } from "uuid"
 import { useSelector, useDispatch } from "react-redux"
 import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
 
-export function SearchSection({ displayItemsJson, searchResultsCallback, itemSelectedCallback, currSelectedItemRef }) {
+// export function SearchSection({ displayItemsJson, searchResultsCallback, itemSelectedCallback, currSelectedItemRef }) {
+export function SearchSection() {
   const reduxPointsOfInterest = useSelector((state) => {
     // console.log({ state: state.pointsOfInterestReducer.pointsOfInterest })
     return state.pointsOfInterestReducer.pointsOfInterest
   })
+  const reduxSelectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
+
   const reduxDispatch = useDispatch()
 
-  reduxDispatch(setPointsOfInterest(["jango", "first"]))
-  reduxDispatch(setSelectedPoi({ msg: "onetwo" }))
+  // reduxDispatch(setPointsOfInterest(["jango", "first"]))
+  // reduxDispatch(setSelectedPoi({ msg: "onetwo" }))
 
 
 
@@ -24,7 +27,7 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
   const searchTextRef = useRef()
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
-    console.log({ reduxPointsOfInterest: reduxPointsOfInterest })
+    console.log({ msg: "searchFunc()", reduxPointsOfInterest: reduxPointsOfInterest })
 
 
     try {
@@ -59,7 +62,8 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
           return jsonValue
         })
 
-      searchResultsCallback(sortedJson)
+      reduxDispatch(setPointsOfInterest(sortedJson))
+      // searchResultsCallback(sortedJson)
       setSearchErrorHtml(null)
     } catch (error) {
       let errorAsHtml = (
@@ -111,23 +115,39 @@ export function SearchSection({ displayItemsJson, searchResultsCallback, itemSel
   }
 
   const onSearchResultClicked = (jsonValue) => {
-    if (jsonValue.myUniqueId == currSelectedItemRef.current?.myUniqueId) {
+    console.log({ msg: "onSearchResultClicked()", value: jsonValue })
+    if (jsonValue.myUniqueId == reduxSelectedPoi?.myUniqueId) {
       // Already selected. De-select.
-      itemSelectedCallback(null)
+      // itemSelectedCallback(null)
+      reduxDispatch(setSelectedPoi(null))
     }
     else {
       // New selection.
-      itemSelectedCallback(jsonValue)
+      // itemSelectedCallback(jsonValue)
+      reduxDispatch(setSelectedPoi(jsonValue))
     }
   }
 
   // console.log({ msg: "SearchSection()" })
-  // useEffect(() => {
-  //   console.log({ msg: "SearchSection(): useEffect()" })
+  useEffect(() => {
+    console.log({ msg: "SearchSection(): useEffect()", reduxPointsOfInterest: reduxPointsOfInterest })
+  })
+
+  // let displayItemsAsHtml = displayItemsJson?.map((jsonValue) => {
+  //   let isCurrSelected = jsonValue.myUniqueId === currSelectedItemRef.current?.myUniqueId
+  //   let className = `w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 ${isCurrSelected ? " font-bold" : ""}`
+  //   let html = (
+  //     <p key={jsonValue.myUniqueId}
+  //       className={className}
+  //       onClick={(e) => onSearchResultClicked(jsonValue)}
+  //     >
+  //       {jsonValue.name.official}
+  //     </p>
+  //   )
   // })
 
-  let displayItemsAsHtml = displayItemsJson?.map((jsonValue) => {
-    let isCurrSelected = jsonValue.myUniqueId === currSelectedItemRef.current?.myUniqueId
+  let displayItemsAsHtml = reduxPointsOfInterest?.map((jsonValue) => {
+    let isCurrSelected = jsonValue.myUniqueId === reduxSelectedPoi?.myUniqueId
     let className = `w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 ${isCurrSelected ? " font-bold" : ""}`
     let html = (
       <p key={jsonValue.myUniqueId}

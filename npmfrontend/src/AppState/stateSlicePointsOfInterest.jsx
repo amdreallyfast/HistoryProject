@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  pointsOfInterest: ["boogie"],
-  selectedPoi: "the POI"
+  pointsOfInterest: null,
+  selectedPoi: null
 }
 
 //??is "export" needed here??
@@ -11,13 +11,19 @@ export const stateSlicePointsOfInterest = createSlice({
   initialState,
   reducers: {
     setPointsOfInterest: (state, action) => {
-      // state.pointsOfInterest = action.pointsOfInterest
-      // state.selectedPoi = null
-      console.log({ msg: `setPointsOfInterest()`, action: action.payload })
+      console.log({ msg: `setPointsOfInterest()`, payload: action.payload })
+      return {
+        ...state,
+        pointsOfInterest: action.payload,
+        selectedPoi: null
+      }
     },
     setSelectedPoi: (state, action) => {
-      // state.selectedPoi = action.selectedPoi
-      console.log({ msg: `setSelectedPoi()`, action: action.payload })
+      console.log({ msg: `setSelectedPoi()`, payload: action.payload })
+      return {
+        ...state,
+        selectedPoi: action.payload
+      }
     }
   }
 })
