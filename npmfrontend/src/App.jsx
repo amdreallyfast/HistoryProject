@@ -41,12 +41,7 @@ function App() {
     <>
       <div className='grid grid-rows-5 grid-cols-10 w-screen h-screen bg-black border-4 border-yellow-500'>
         <div className='row-span-4 col-span-2 border-2 border-red-500 text-white'>
-          <SearchSection
-            displayItemsJson={searchResultsJson}
-            searchResultsCallback={searchResultsCallback}
-            itemSelectedCallback={itemSelectedCallback}
-            currSelectedItemRef={selectedItemRef}
-          />
+          <SearchSection />
         </div>
         <div className='row-span-4 col-span-6 border-2 border-amber-500 text-white'>
           {/* Globe */}
