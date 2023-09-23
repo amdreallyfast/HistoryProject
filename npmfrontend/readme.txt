@@ -16,9 +16,19 @@
     npm install --save gsap                               # for nice looking changes between visual states
     npm install --save uuid                               # For making unique keys for loop-generated elements
     npm install --save @tanstack/react-query              # For abstracting away the complications of fetching data.
-    npm install --save-dev @tanstack/eslint-plugin-query  # For catching common errors in @tanstack/react-query
+    npm install --save-dev @tanstack/eslint-plugin-query  # Dev tool: catch common errors in @tanstack/react-query
 
-    Install tailwindcss
+    Redux Toolkit
+      Start management.
+      npm install --save react-redux @reduxjs/toolkit
+
+      ??
+      redux toolkit
+      redux dev tools
+
+
+
+    TailwindCSS
       Guidance: 
         Official:
           https://tailwindcss.com/docs/guides/vite
@@ -26,6 +36,9 @@
         How to use Tailwind CSS in React with Vite | Install TailwindCSS in React with ViteJS for Beginners
           https://www.youtube.com/watch?v=fUXQXafPF1A
       
+        Source:
+          https://v2.tailwindcss.com/docs/height
+
       npm:
         npm install --save-dev tailwindcss postcss autoprefixer
         npx tailwindcss init --postcss
@@ -48,7 +61,3 @@
     
     Recommended VSCode extension: 
       Tailwind CSS IntelliSense
-      
-# Tailwind CSS
-  Source:
-    https://v2.tailwindcss.com/docs/height

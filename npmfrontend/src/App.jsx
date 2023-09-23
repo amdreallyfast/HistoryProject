@@ -7,8 +7,6 @@ import './App.css'
 // TODO: consider using Flowbit instead of plain Tailwind
 //  https://flowbite.com/docs/getting-started/introduction/
 
-
-
 function App() {
   const [searchResultsJson, setSearchResultsJson] = useState()
   const [selectedItemJson, setSelectedItemJson] = useState()

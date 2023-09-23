@@ -1,12 +1,32 @@
 import { useEffect } from "react"
 import { useRef, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
+import { useSelector, useDispatch } from "react-redux"
+import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
 
 export function SearchSection({ displayItemsJson, searchResultsCallback, itemSelectedCallback, currSelectedItemRef }) {
+  const reduxPointsOfInterest = useSelector((state) => {
+    // console.log({ state: state.pointsOfInterestReducer.pointsOfInterest })
+    return state.pointsOfInterestReducer.pointsOfInterest
+  })
+  const reduxDispatch = useDispatch()
+
+  reduxDispatch(setPointsOfInterest(["jango", "first"]))
+  reduxDispatch(setSelectedPoi({ msg: "onetwo" }))
+
+
+
+
+
+
+
   const [searchErrorHtml, setSearchErrorHtml] = useState()
   const searchTextRef = useRef()
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
+    console.log({ reduxPointsOfInterest: reduxPointsOfInterest })
+
+
     try {
       let rawJson = null
 
