@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 
 // TODO: rename -> "POIBox"
-export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
+export function PointOfInterest({ globePos, globeRadius, poiInfoJson, isSelected }) {
   // debug && console.log("SinglePoint(): begin")
 
   const pointMemo = useMemo(() => {
@@ -32,7 +32,7 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
   const pointRef = useRef()
   const materialRef = useRef()
   useEffect(() => {
-    // console.log("POI UseEffect")
+    console.log("POI UseEffect")
 
     // POI info for user
     //TODO: refactor "allInfo" -> "poiInfoJson"
@@ -62,16 +62,19 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
     pointRef.current.userData.originalOpacity = 0.4
     pointRef.current.userData.highlightOpacity = 1
 
-    materialRef.current.color = pointRef.current.userData.originalColor
-    materialRef.current.opacity = pointRef.current.userData.originalOpacity
+    // materialRef.current.color = pointRef.current.userData.originalColor
+    // materialRef.current.opacity = pointRef.current.userData.originalOpacity
 
     // let currSelected = pointRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current?.myUniqueId
-    // if (currSelected) {
-    //   materialRef.current.color = pointRef.current.userData.selectedColor
-    // }
-    // else {
-    //   materialRef.current.color = pointRef.current.userData.originalColor
-    // }
+    if (isSelected) {
+      console.log(`selected '${poiInfoJson.name.common}'`)
+      materialRef.current.color = pointRef.current.userData.selectedColor
+      materialRef.current.opacity = pointRef.current.userData.highlightOpacity
+    }
+    else {
+      materialRef.current.color = pointRef.current.userData.originalColor
+      materialRef.current.opacity = pointRef.current.userData.originalOpacity
+    }
 
     // Animate the height
     // Source:
@@ -95,7 +98,7 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
         ease: "linear",
         delay: Math.random(1)
       })
-  }, [])
+  })
 
 
   // useFrame(() => {

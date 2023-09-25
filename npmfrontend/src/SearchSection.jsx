@@ -2,14 +2,18 @@ import { useEffect } from "react"
 import { useRef, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { useSelector, useDispatch } from "react-redux"
-import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
+import { setPointsOfInterest } from "./AppState/stateSlicePointsOfInterest"
+import { setSelectedPoi } from "./AppState/StateSliceSelectedPoi"
 
 export function SearchSection() {
   const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
-  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
+  const selectedPoi = useSelector((state) => state.selectedPoiReducer.selectedPoi)
+  const prevSelectedPoi = useSelector((state) => state.selectedPoiReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
 
-  const [pointsOfInterestHtml, setPointsOfInterestHtml] = useState()
+  // Not strictly HTML.
+  const [pointsOfInterestReactElement, setPointsOfInterestReactElement] = useState()
+
   const prevSelectedPoiHtmlRef = useRef()
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
@@ -18,38 +22,22 @@ export function SearchSection() {
   const searchTextRef = useRef()
 
   useEffect(() => {
-    // TODO: refector: "poiJsonValue" -> "poiJson"
-    console.log({ msg: "SearchSection()/useEffect()/setPointsOfInterestHtml" })
+    console.log({ msg: "SearchSection()/useEffect()/pointsOfInterest" })
 
     const onSearchResultClicked = (e, poiJson) => {
-      // Always de-highlight the previous item.
-      if (prevSelectedPoiHtmlRef.current) {
-        prevSelectedPoiHtmlRef.current.className = searchResultHtmlClassNameNormal
-      }
-
-      // Note: This function will only store the values of any external variables used in it (that 
-      // is, does _not_ store a reference). That means that I cannot rely on the "selectedPoi" state
-      // variable in this event handler. This is stupid, but so be it. 
-      // Also Note: A stand-in for "is selected" is the highlighted object's text being bold.
+      // If already selected, de-select.
       if (e.target.className.includes("font-bold")) {
-        // De-select. Already de-highlighted.
-        console.log({ msg: "onSearchResultClicked() - de-select" })
-        prevSelectedPoiHtmlRef.current = null
         reduxDispatch(setSelectedPoi(null))
       }
       else {
-        // New selection. Highlight.
-        console.log({ msg: "onSearchResultClicked() - new selection" })
-        e.target.className = searchResultHtmlClassNameHighlighted
-        prevSelectedPoiHtmlRef.current = e.target
         reduxDispatch(setSelectedPoi(poiJson))
       }
     }
 
-    setPointsOfInterestHtml(
+    setPointsOfInterestReactElement(
       pointsOfInterest?.map(
         (poiJson) => (
-          <p key={poiJson.myUniqueId}
+          <p id={poiJson.myUniqueId} key={poiJson.myUniqueId}
             className={searchResultHtmlClassNameNormal}
             onClick={(e) => onSearchResultClicked(e, poiJson)}
           >
@@ -58,7 +46,83 @@ export function SearchSection() {
         )
       )
     )
+
   }, [pointsOfInterest])
+
+  useEffect(() => {
+    console.log({ msg: "SearchSection()/useEffect()/selectedPoi" })
+    // let thing = document.getElementsByName("pointsOfInterestSearchResults")
+    // console.log({ selectedPoiId: selectedPoi?.myUniqueId })
+    if (selectedPoi) {
+      let selectedPoiHtml = document.getElementById(selectedPoi.myUniqueId)
+      selectedPoiHtml.className = searchResultHtmlClassNameHighlighted
+    }
+
+    if (prevSelectedPoi) {
+      let prevSelectedPoiHtml = document.getElementById(prevSelectedPoi.myUniqueId)
+      prevSelectedPoiHtml.classList = searchResultHtmlClassNameNormal
+    }
+
+    // console.log(thing.className)
+    // console.log(poiHtmlDiv.getElementsByName("children"))
+    // console.log(document.getElementsByName("_reactFiber*"))
+
+    // pointsOfInterestReactElement?.forEach((poiReactElement) => {
+    //   // Highlight selected item
+    //   if (poiReactElement.key == selectedPoi?.myUniqueId) {
+    //     console.log(poiReactElement)
+    //     poiReactElement.props.className = searchResultHtmlClassNameHighlighted
+    //   }
+
+    //   // De-highlight previous item
+    //   if (poiReactElement.key == prevSelectedPoi?.myUniqueId) {
+    //     poiReactElement.props.className = searchResultHtmlClassNameNormal
+    //   }
+    // })
+  }, [selectedPoi])
+
+  // useEffect(() => {
+  //   // TODO: refector: "poiJsonValue" -> "poiJson"
+  //   console.log({ msg: "SearchSection()/useEffect()/setPointsOfInterestHtml" })
+
+  //   const onSearchResultClicked = (e, poiJson) => {
+  //     // Always de-highlight the previous item.
+  //     if (prevSelectedPoiHtmlRef.current) {
+  //       prevSelectedPoiHtmlRef.current.className = searchResultHtmlClassNameNormal
+  //     }
+
+  //     // Note: This function will only store the values of any external variables used in it (that 
+  //     // is, does _not_ store a reference). That means that I cannot rely on the "selectedPoi" state
+  //     // variable in this event handler. This is stupid, but so be it. 
+  //     // Also Note: A stand-in for "is selected" is the highlighted object's text being bold.
+  //     if (e.target.className.includes("font-bold")) {
+  //       // De-select. Already de-highlighted.
+  //       console.log({ msg: "onSearchResultClicked() - de-select" })
+  //       prevSelectedPoiHtmlRef.current = null
+  //       reduxDispatch(setSelectedPoi(null))
+  //     }
+  //     else {
+  //       // New selection. Highlight.
+  //       console.log({ msg: "onSearchResultClicked() - new selection" })
+  //       e.target.className = searchResultHtmlClassNameHighlighted
+  //       prevSelectedPoiHtmlRef.current = e.target
+  //       reduxDispatch(setSelectedPoi(poiJson))
+  //     }
+  //   }
+
+  //   setPointsOfInterestHtml(
+  //     pointsOfInterest?.map(
+  //       (poiJson) => (
+  //         <p key={poiJson.myUniqueId}
+  //           className={searchResultHtmlClassNameNormal}
+  //           onClick={(e) => onSearchResultClicked(e, poiJson)}
+  //         >
+  //           {poiJson.name.official}
+  //         </p>
+  //       )
+  //     )
+  //   )
+  // }, [pointsOfInterest])
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
     try {
@@ -181,8 +245,8 @@ export function SearchSection() {
         <div>
           {searchErrorHtml}
         </div>
-        <div>
-          {pointsOfInterestHtml}
+        <div name="pointsOfInterestSearchResults">
+          {pointsOfInterestReactElement}
         </div>
       </div>
     </div>
