@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// TODO: ??does this really need to be a separate state slice? does it matter??
 const initialState = {
   selectedPoi: null,
   prevSelectedPoi: null

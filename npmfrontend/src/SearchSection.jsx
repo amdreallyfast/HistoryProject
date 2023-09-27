@@ -12,7 +12,7 @@ export function SearchSection() {
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
-  const [pointsOfInterestReactElement, setPointsOfInterestReactElement] = useState()
+  const [poiReactElements, setPoiReactElements] = useState()
 
   const prevSelectedPoiHtmlRef = useRef()
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
@@ -22,6 +22,7 @@ export function SearchSection() {
   const searchTextRef = useRef()
 
   useEffect(() => {
+    // Create interactable HTML elements out of the JSON objects.
     console.log({ msg: "SearchSection()/useEffect()/pointsOfInterest" })
 
     const onSearchResultClicked = (e, poiJson) => {
@@ -34,7 +35,7 @@ export function SearchSection() {
       }
     }
 
-    setPointsOfInterestReactElement(
+    setPoiReactElements(
       pointsOfInterest?.map(
         (poiJson) => (
           <p id={poiJson.myUniqueId} key={poiJson.myUniqueId}
@@ -67,7 +68,7 @@ export function SearchSection() {
     // console.log(poiHtmlDiv.getElementsByName("children"))
     // console.log(document.getElementsByName("_reactFiber*"))
 
-    // pointsOfInterestReactElement?.forEach((poiReactElement) => {
+    // poiReactElements?.forEach((poiReactElement) => {
     //   // Highlight selected item
     //   if (poiReactElement.key == selectedPoi?.myUniqueId) {
     //     console.log(poiReactElement)
@@ -246,7 +247,7 @@ export function SearchSection() {
           {searchErrorHtml}
         </div>
         <div name="pointsOfInterestSearchResults">
-          {pointsOfInterestReactElement}
+          {poiReactElements}
         </div>
       </div>
     </div>

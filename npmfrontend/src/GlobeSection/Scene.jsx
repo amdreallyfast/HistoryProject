@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from "react-redux"
 import { Vector3 } from "three"
 import { Globe } from "./Globe"
 import { PointOfInterest } from "./PointOfInterest"
+import { setSelectedPoi } from "../AppState/StateSliceSelectedPoi"
+import gsap from "gsap"
 
 const globeInfo = {
   pos: new Vector3(0, 0, 0),
@@ -19,39 +21,45 @@ export function Scene(
     mouseClickedCurrPosRef
   }) {
 
-  const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
-  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
+  const poiJsonObjects = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
+  const selectedPoi = useSelector((state) => state.selectedPoiReducer.selectedPoi)
+  const prevSelectedPoi = useSelector((state) => state.selectedPoiReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
 
-  const [pointsOfInterestHtml, setPointsOfInterestHtml] = useState()
+  // Not strictly HTML.
+  const [poiReactElements, setPoiReactElements] = useState()
 
   const poiAndGlobeMeshesRef = useRef()
-  const threeJsStateModelRef = useRef()
+  // const threeJsStateModelRef = useRef()
   const getThreeJsState = useThree((state) => state.get)
 
+  // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    console.log("Scene()/useEffect()/setPointsOfInterestHtml")
-    // console.log(poiAndGlobeMeshesRef.current.length)
-    setPointsOfInterestHtml(
-      pointsOfInterest?.map(
+    console.log({ msg: "Scene()/useEffect()/poiJsonObjects" })
+
+    setPoiReactElements(
+      poiJsonObjects?.map(
         (poiInfoJson, index) => {
           console.log("creating new HTML")
-          let isSelected = poiInfoJson.myUniqueId == selectedPoi?.myUniqueId
+          // let isSelected = poiInfoJson.myUniqueId == selectedPoi?.myUniqueId
           return (
             <PointOfInterest
               key={index}
               globePos={globeInfo.pos}
               globeRadius={globeInfo.radius}
               poiInfoJson={poiInfoJson}
-              isSelected={isSelected} />
+            // isSelected={isSelected}
+            />
           )
         }
       )
     )
+    // console.log({ poiReactElements: poiReactElements })
+  }, [poiJsonObjects])
 
-    // console.log({ "poiAndGlobeMeshesRef": poiAndGlobeMeshesRef.current })
-  }, [pointsOfInterest, selectedPoi])
-
+  // Once the interactable points of interest are part of the scene, get a collection of them 
+  // for the raycaster to analyze every frame.
+  // Note: This is for performance reasons.
   useEffect(() => {
     console.log("Scene()/useEffect()/sceneChildren")
     // console.log(getThreeJsState().scene.children.length)
@@ -61,22 +69,80 @@ export function Scene(
     // behind the globe, but in order to do that, I need to have the globe in the list of 
     // objects that the raytracer considers.
     const poiGlobeMeshes = []
+    // let count = 0
     getThreeJsState().scene.children.forEach(component => {
       if (component.name === "PoiGroup") {
         component.children.forEach(child => {
+          // console.log({ count: count, name: child.userData.allInfo.myUniqueId })
+          // count++
           poiGlobeMeshes.push(child)
         })
       }
       else if (component.name === "GlobeGroup") {
         component.children.forEach(child => {
           if (child.name === "Globe") {
+            // console.log({ count: count, name: child.userData })
+            // count++
             poiGlobeMeshes.push(child)
           }
         })
       }
     });
     poiAndGlobeMeshesRef.current = poiGlobeMeshes
-  }, [pointsOfInterestHtml])
+    // console.log({ poiAndGlobeMeshesRef: poiAndGlobeMeshesRef.current })
+  }, [poiReactElements])
+
+  useEffect(() => {
+    // Update which item is highlighted.
+    // Note: This useEffect() will only trigger (if I got this right) _after_ the poiJsonObjects
+    // and the follow-up poiReactElements are created, so they should all be there.
+    console.log({ msg: "SearchSection()/useEffect()/selectedPoi" })
+
+    if (selectedPoi) {
+      // Should have exactly 1 matching element.
+      // Note: If there is more or less than 1, then there is a serious problem.
+      let result = poiAndGlobeMeshesRef.current.filter((mesh) => mesh.userData.allInfo?.myUniqueId == selectedPoi.myUniqueId)
+      // console.log({ "selectedElement": result[0].userData.allInfo.name.common })
+      let selectedPoiMesh = result[0]
+      selectedPoiMesh.material.color = selectedPoiMesh.userData.highlightColor
+      selectedPoiMesh.material.opacity = selectedPoiMesh.userData.highlightOpacity
+
+      //??why does using gsap.to(...) cause all the colors to flicker??
+
+      // gsap.to(selectedPoiMesh.material, {
+      //   color: selectedPoiMesh.userData.highlightColor,
+      //   opacity: selectedPoiMesh.userData.highlightOpacity,
+      //   duration: 0.15
+      // })
+    }
+
+    if (prevSelectedPoi) {
+      // let prevSelectedEement = document.getElementById(prevSelectedPoi.myUniqueId)
+      let result = poiAndGlobeMeshesRef.current.filter((mesh) => mesh.userData.allInfo?.myUniqueId == prevSelectedPoi.myUniqueId)
+      console.log({ "prevSelectedElement": result[0].userData.allInfo.name.common })
+      let selectedPoiMesh = result[0]
+      selectedPoiMesh.material.color = selectedPoiMesh.userData.originalColor
+      selectedPoiMesh.material.opacity = selectedPoiMesh.userData.originalOpacity
+
+      //??why does using gsap.to(...) cause all the colors to flicker??
+
+      // gsap.to(selectedPoiMesh.material, {
+      //   color: selectedPoiMesh.userData.originalColor,
+      //   opacity: selectedPoiMesh.userData.originalOpacity,
+      //   duration: 0.15
+      // })
+    }
+
+  }, [selectedPoi])
+
+  // useEffect(() => {
+  //   console.log("Scene()/useEffect()/setPoiReactElements")
+  //   // console.log(poiAndGlobeMeshesRef.current.length)
+
+  //   // console.log({ "poiAndGlobeMeshesRef": poiAndGlobeMeshesRef.current })
+  // }, [poiJsonObjects, selectedPoi])
+
+
 
   let prevMouseHoverPoiMeshRef = useRef()
   // let prevSelectedPoiMeshRef = useRef()
@@ -306,7 +372,7 @@ export function Scene(
     <>
       <Globe globeRadius={globeInfo.radius} />
       <group name="PoiGroup">
-        {pointsOfInterestHtml}
+        {poiReactElements}
       </group>
     </>
   )
