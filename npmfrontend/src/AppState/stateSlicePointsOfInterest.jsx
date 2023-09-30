@@ -13,9 +13,9 @@ export const stateSlicePointsOfInterest = createSlice({
   initialState,
   reducers: {
     setPointsOfInterest: (state, action) => {
-      console.log({ msg: `setPointsOfInterest()`, payload: action.payload })
-      // console.log(gsap.globalTimeline)
-      gsap.globalTimeline.clear()
+      // console.log({ msg: `setPointsOfInterest()`, payload: action.payload })
+
+      // Reset selectedPoi along with recording the new collection.
       return {
         ...state,
         pointsOfInterest: action.payload,
@@ -24,7 +24,8 @@ export const stateSlicePointsOfInterest = createSlice({
       }
     },
     setSelectedPoi: (state, action) => {
-      console.log({ msg: `setSelectedPoi()`, payload: action.payload })
+      // console.log({ msg: `setSelectedPoi()`, payload: action.payload })
+
       return {
         ...state,
         selectedPoi: action.payload,

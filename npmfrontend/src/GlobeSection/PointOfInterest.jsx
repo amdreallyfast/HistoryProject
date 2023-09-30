@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 
 // TODO: rename -> "POIBox"
-export function PointOfInterest({ globePos, globeRadius, poiInfoJson, isSelected }) {
+export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
   // debug && console.log("SinglePoint(): begin")
 
   const pointMemo = useMemo(() => {
@@ -34,10 +34,13 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, isSelected
   useEffect(() => {
     console.log("POI UseEffect")
 
-    // POI info for user
-    //TODO: refactor "allInfo" -> "poiInfoJson"
-    meshRef.current.userData.allInfo = poiInfoJson
+    meshRef.current.userData.poiInfoJson = poiInfoJson  // all info about the object
+    meshRef.current.userData.originalColor = new THREE.Color(0x3bf7ff)
+    meshRef.current.userData.highlightColor = new THREE.Color(0xff0000)
+    meshRef.current.userData.originalOpacity = 0.4
+    meshRef.current.userData.highlightOpacity = 1
 
+    // Move the POI box to the location on the globe indicated by lat/long.
     let latRad = (poiInfoJson.latlng[0] / 180.0) * Math.PI
     let longRad = (poiInfoJson.latlng[1] / 180.0) * Math.PI
 
@@ -50,33 +53,12 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, isSelected
     meshRef.current.position.y = sphericalPos.y
     meshRef.current.position.z = sphericalPos.z
 
-    // Point into the globe so that the box stands on end relative to the surface.
+    // Rotate the box to look at the globe so that the box stands on end relative to the surface.
     meshRef.current.lookAt(globePos)
 
-    // // If this POI was already selected (ex: via search results), color it differently.
-    // if (poiInfoJson.myUniqueId == currSelectedUniqueId) {
-    //   console.log({ alreadySelected: poiInfoJson.name.common })
-    // }
-    meshRef.current.userData.originalColor = new THREE.Color(0x3bf7ff)
-    meshRef.current.userData.highlightColor = new THREE.Color(0xff0000)
-    meshRef.current.userData.originalOpacity = 0.4
-    meshRef.current.userData.highlightOpacity = 1
-
-    // materialRef.current.color = meshRef.current.userData.originalColor
-    // materialRef.current.opacity = meshRef.current.userData.originalOpacity
-
-    // let currSelected = meshRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current?.myUniqueId
-
-    //??necessary??
-    if (isSelected) {
-      console.log(`selected '${poiInfoJson.name.common}'`)
-      materialRef.current.color = meshRef.current.userData.selectedColor
-      materialRef.current.opacity = meshRef.current.userData.highlightOpacity
-    }
-    else {
-      materialRef.current.color = meshRef.current.userData.originalColor
-      materialRef.current.opacity = meshRef.current.userData.originalOpacity
-    }
+    // Default
+    materialRef.current.color = meshRef.current.userData.originalColor
+    materialRef.current.opacity = meshRef.current.userData.originalOpacity
 
     // Animate the height
     // Source:
@@ -88,49 +70,22 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, isSelected
     // Also Note: It takes a few frames to clean up the old animation objects, during which time 
     // there will be a couple frames with flicker betweent he old and the new value, but after 
     // that it will be smooth again.
-
-    // gsap.fromTo(meshRef.current.scale,
-    //   {
-    //     z: 1
-    //   },
-    //   {
-    //     z: 0,
-    //     duration: 2,
-    //     yoyo: true,
-    //     repeat: -1,
-    //     ease: "linear",
-    //     delay: Math.random(1)
-    //   })
+    gsap.fromTo(meshRef.current.scale,
+      {
+        z: 1
+      },
+      {
+        z: 0,
+        duration: 2,
+        yoyo: true,
+        repeat: -1,
+        ease: "linear",
+        delay: Math.random(1)
+      })
   })
 
-
-  // useFrame(() => {
-  //   // if (meshRef.current.material.color.red < 0.04) {
-  //   //   console.log({
-  //   //     r: meshRef.current.material.color.r,
-  //   //     g: meshRef.current.material.color.g,
-  //   //     b: meshRef.current.material.color.b,
-  //   //     opacity: meshRef.current.material.opacity
-  //   //   })
-  //   // }
-
-
-  //   // if (meshRef.current.userData.allInfo.myUniqueId == currSelectedItemRef.current.myUniqueId) {
-  //   //   // console.log({ msg: "it's a me!", name: meshRef.current.userData.allInfo.name.common })
-  //   //   meshRef.current.material.color = new THREE.Color(0xff0000)
-  //   //   meshRef.current.opacity = 1
-  //   // }
-  //   // else {
-  //   //   // meshRef.current.material.color = new THREE.Color(0x3bf7ff)
-  //   //   meshRef.current.material.color = new THREE.Color(0x00ff00)
-  //   //   meshRef.current.opacity = 0.4
-  //   // }
-
-  //   // console.log(currSelectedUniqueId)
-  // })
-
   return (
-    <mesh name={"POI"} ref={meshRef} geometry={pointMemo.geometry}>
+    <mesh name={"PoiMesh"} ref={meshRef} geometry={pointMemo.geometry}>
       <meshBasicMaterial ref={materialRef} transparent={true} />
     </mesh>
   )
