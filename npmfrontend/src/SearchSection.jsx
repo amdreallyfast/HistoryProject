@@ -2,13 +2,12 @@ import { useEffect } from "react"
 import { useRef, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { useSelector, useDispatch } from "react-redux"
-import { setPointsOfInterest } from "./AppState/stateSlicePointsOfInterest"
-import { setSelectedPoi } from "./AppState/StateSliceSelectedPoi"
+import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
 
 export function SearchSection() {
   const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
-  const selectedPoi = useSelector((state) => state.selectedPoiReducer.selectedPoi)
-  const prevSelectedPoi = useSelector((state) => state.selectedPoiReducer.prevSelectedPoi)
+  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
+  const prevSelectedPoi = useSelector((state) => state.pointsOfInterestReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.

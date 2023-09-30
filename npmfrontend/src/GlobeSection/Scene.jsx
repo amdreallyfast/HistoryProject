@@ -1,10 +1,10 @@
 import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { Vector3 } from "three"
+import { Vector3, Color } from "three"
 import { Globe } from "./Globe"
 import { PointOfInterest } from "./PointOfInterest"
-import { setSelectedPoi } from "../AppState/StateSliceSelectedPoi"
+import { setSelectedPoi } from "../AppState/stateSlicePointsOfInterest"
 import gsap from "gsap"
 
 const globeInfo = {
@@ -22,8 +22,8 @@ export function Scene(
   }) {
 
   const poiJsonObjects = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
-  const selectedPoi = useSelector((state) => state.selectedPoiReducer.selectedPoi)
-  const prevSelectedPoi = useSelector((state) => state.selectedPoiReducer.prevSelectedPoi)
+  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
+  const prevSelectedPoi = useSelector((state) => state.pointsOfInterestReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
@@ -69,27 +69,27 @@ export function Scene(
     // calculations will get _all_ meshes in its path. I want to avoid intersections with POIs 
     // behind the globe, but in order to do that, I need to have the globe in the list of 
     // objects that the raytracer considers.
+
     const poiGlobeMeshes = []
-    // let count = 0
-    getThreeJsState().scene.children.forEach(component => {
+    getThreeJsState().scene.children.filter(component => {
       if (component.name === "PoiGroup") {
         component.children.forEach(child => {
-          // console.log({ count: count, name: child.userData.allInfo.myUniqueId })
-          // count++
           poiGlobeMeshes.push(child)
         })
       }
       else if (component.name === "GlobeGroup") {
         component.children.forEach(child => {
           if (child.name === "Globe") {
-            // console.log({ count: count, name: child.userData })
-            // count++
             poiGlobeMeshes.push(child)
           }
         })
       }
     });
+    // console.log({ poiGlobeMeshes: poiGlobeMeshes })
+
     poiAndGlobeMeshesRef.current = poiGlobeMeshes
+
+
     // console.log({ poiAndGlobeMeshesRef: poiAndGlobeMeshesRef.current })
   }, [poiReactElements])
 
@@ -148,12 +148,35 @@ export function Scene(
 
 
 
+  let mouseHoverPoiMeshRef = useRef()
   let prevMouseHoverPoiMeshRef = useRef()
   // let prevSelectedPoiMeshRef = useRef()
 
 
   useFrame((state, delta) => {
     // console.log("useFrame()")
+
+    // const poiGlobeMeshes = []
+    // state.scene.children.filter(component => {
+    //   if (component.name === "PoiGroup") {
+    //     component.children.forEach(child => {
+    //       poiGlobeMeshes.push(child)
+    //     })
+    //   }
+    //   else if (component.name === "GlobeGroup") {
+    //     component.children.forEach(child => {
+    //       if (child.name === "Globe") {
+    //         poiGlobeMeshes.push(child)
+    //       }
+    //     })
+    //   }
+    // });
+    // // console.log(poiGlobeMeshes)
+    // poiAndGlobeMeshesRef.current = poiGlobeMeshes
+
+
+
+
 
     // Construction of the group of points of interest and the ThreeJs state model may take a 
     // couple frames. Wait until then.
@@ -203,62 +226,70 @@ export function Scene(
       mouseClickedCurrPosRef.current == true
 
     if (newPoiHover) {
-      console.log({ msg: "newPoiHover" })
+      // console.log({ msg: "newPoiHover" })
 
       // Turn on the popup.
-      gsap.set(poiInfoPopupElementRef.current, {
-        display: "block"
-      })
-      gsap.set(poiInfoTitleElementRef.current, {
-        innerHTML: mouseHoverPoiMesh.userData.allInfo.name.common
-      })
+      // gsap.set(poiInfoPopupElementRef.current, {
+      //   display: "block"
+      // })
+      // gsap.set(poiInfoTitleElementRef.current, {
+      //   innerHTML: mouseHoverPoiMesh.userData.allInfo.name.common
+      // })
+      poiInfoPopupElementRef.current.display = "block"
+      poiInfoTitleElementRef.current.innerHTML = mouseHoverPoiMesh.userData.allInfo.name.common
 
       // Fade-in highlight the POI.
       // Note: Ignore if it is the currently selected POI. Leave that alone.
       if (mouseHoverPoiMesh.uuid != currSelectedPoiMeshRef.current?.uuid) {
-        gsap.to(mouseHoverPoiMesh.material, {
-          opacity: 1.0,
-          duration: 0.15
-        })
+        // gsap.to(mouseHoverPoiMesh.material, {
+        //   opacity: 1.0,
+        //   duration: 0.15
+        // })
+        mouseHoverPoiMesh.material.opacity = 1.0
       }
     }
     else if (leavingPoiHover) {
-      console.log({ msg: "leavingPoiHover" })
+      // console.log({ msg: "leavingPoiHover" })
 
       // Turn off the popup
-      gsap.set(poiInfoPopupElementRef.current, {
-        display: "none"
-      })
+      // gsap.set(poiInfoPopupElementRef.current, {
+      //   display: "none"
+      // })
+      poiInfoPopupElementRef.current.display = "none"
 
       // Fade-out the POI highlight.
       // Note: Ignore if it was the currently selected POI. Leave that alone.
       if (prevMouseHoverPoiMeshRef.current.uuid != currSelectedPoiMeshRef.current?.uuid) {
-        gsap.to(prevMouseHoverPoiMeshRef.current.material, {
-          opacity: 0.4,
-          duration: 0.15
-        })
+        // gsap.to(prevMouseHoverPoiMeshRef.current.material, {
+        //   opacity: 0.4,
+        //   duration: 0.15
+        // })
+        prevMouseHoverPoiMeshRef.current.material.opacity = prevMouseHoverPoiMeshRef.current.userData.originalOpacity
       }
     }
     else if (changingPoiHover) {
-      console.log({ msg: "changingPoiHover" })
+      // console.log({ msg: "changingPoiHover" })
 
       // Change the popup's info:
-      gsap.set(poiInfoTitleElementRef.current, {
-        innerHTML: mouseHoverPoiMesh.userData.allInfo.name.common
-      })
+      // gsap.set(poiInfoTitleElementRef.current, {
+      //   innerHTML: mouseHoverPoiMesh.userData.allInfo.name.common
+      // })
+      poiInfoTitleElementRef.current.innerHTML = mouseHoverPoiMesh.userData.allInfo.name.common
 
       // Fade in the new
-      gsap.to(mouseHoverPoiMesh.material, {
-        opacity: 1.0,
-        duration: 0.15
-      })
+      // gsap.to(mouseHoverPoiMesh.material, {
+      //   opacity: 1.0,
+      //   duration: 0.15
+      // })
+      mouseHoverPoiMesh.material.opacity = mouseHoverPoiMesh.userData.highlightOpacity
 
       // Fade out the old (unless it's the currently selected POI).
       if (prevMouseHoverPoiMeshRef.current.uuid != currSelectedPoiMeshRef.current?.uuid) {
-        gsap.to(prevMouseHoverPoiMeshRef.current.material, {
-          opacity: 0.4,
-          duration: 0.15
-        })
+        // gsap.to(prevMouseHoverPoiMeshRef.current.material, {
+        //   opacity: 0.4,
+        //   duration: 0.15
+        // })
+        prevMouseHoverPoiMeshRef.current.material.opacity = prevMouseHoverPoiMeshRef.current.userData.originalOpacity
       }
     }
     else if (clickedSamePoiHover) {
@@ -272,10 +303,11 @@ export function Scene(
 
         // Fade to original color.
         // Note: The mouse hover still demands the "highlight" opacity, so leave opacity as-is.
-        gsap.set(mouseHoverPoiMesh.material, {
-          color: mouseHoverPoiMesh.userData.originalColor,
-          duration: 2.0
-        })
+        // gsap.to(mouseHoverPoiMesh.material, {
+        //   color: mouseHoverPoiMesh.userData.originalColor,
+        //   duration: 2.0
+        // })
+        // mouseHoverPoiMesh.material.color = mouseHoverPoiMesh.userData.originalColor
 
         // And de-select.
         currSelectedPoiMeshRef.current = null
@@ -286,21 +318,41 @@ export function Scene(
 
         // Fade in highlight color.
         // Note: High opacity already set by the mouse hovering, so leave opacity as-is.
-        gsap.set(mouseHoverPoiMesh.material, {
-          color: mouseHoverPoiMesh.userData.selectedColor,
-          duration: 2.0
-        })
+        // gsap.to(currSelectedPoiMeshRef.current.material, {
+        //   color: currSelectedPoiMeshRef.current.userData.highlightColor,
+        //   duration: 2.0
+        // })
+        // gsap.fromTo(mouseHoverPoiMesh.material,
+        //   {
+        //     color: mouseHoverPoiMesh.userData.originalColor
+        //   },
+        //   {
+        //     color: mouseHoverPoiMesh.userData.highlightColor,
+        //     duration: 2.0
+        //   })
+        // console.log({ before: mouseHoverPoiMesh.material })
+        // gsap.set(mouseHoverPoiMesh, {
+        //   material: {
+        //     ...mouseHoverPoiMesh.material,
+        //     color: mouseHoverPoiMesh.userData.highlightColor,
+        //   },
+        //   duration: 2.0
+        // })
+        // console.log({ after: mouseHoverPoiMesh.material })
+        // mouseHoverPoiMesh.material.color = mouseHoverPoiMesh.userData.highlightColor
 
-        // Fade out the old.
-        // Note: The mouse is no longer hovering over it, so the "hover opacity" is no longer 
-        // needed and we need to reset both color + opacity.
-        if (currSelectedPoiMeshRef.current) {
-          gsap.set(currSelectedPoiMeshRef.current.material, {
-            color: currSelectedPoiMeshRef.current.userData.originalColor,
-            opacity: currSelectedPoiMeshRef.current.userData.originalOpacity,
-            duration: 2.0
-          })
-        }
+        // // Fade out the old.
+        // // Note: The mouse is no longer hovering over it, so the "hover opacity" is no longer 
+        // // needed and we need to reset both color + opacity.
+        // if (currSelectedPoiMeshRef.current) {
+        //   // gsap.to(currSelectedPoiMeshRef.current.material, {
+        //   //   color: currSelectedPoiMeshRef.current.userData.originalColor,
+        //   //   opacity: currSelectedPoiMeshRef.current.userData.originalOpacity,
+        //   //   duration: 2.0
+        //   // })
+        //   currSelectedPoiMeshRef.current.material.color = currSelectedPoiMeshRef.current.userData.originalColor
+        //   currSelectedPoiMeshRef.current.material.opacity = currSelectedPoiMeshRef.current.userData.originalOpacity
+        // }
 
         // And select the new one.
         currSelectedPoiMeshRef.current = mouseHoverPoiMesh
@@ -314,7 +366,8 @@ export function Scene(
       // Not hovering over any POI. Ignore.
     }
 
-    prevMouseHoverPoiMeshRef.current = mouseHoverPoiMesh
+    prevMouseHoverPoiMeshRef.current = mouseHoverPoiMeshRef.current
+    mouseHoverPoiMeshRef.current = mouseHoverPoiMesh
   })
 
 

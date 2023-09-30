@@ -88,18 +88,19 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, isSelected
     // Also Note: It takes a few frames to clean up the old animation objects, during which time 
     // there will be a couple frames with flicker betweent he old and the new value, but after 
     // that it will be smooth again.
-    gsap.fromTo(meshRef.current.scale,
-      {
-        z: 1
-      },
-      {
-        z: 0,
-        duration: 2,
-        yoyo: true,
-        repeat: -1,
-        ease: "linear",
-        delay: Math.random(1)
-      })
+
+    // gsap.fromTo(meshRef.current.scale,
+    //   {
+    //     z: 1
+    //   },
+    //   {
+    //     z: 0,
+    //     duration: 2,
+    //     yoyo: true,
+    //     repeat: -1,
+    //     ease: "linear",
+    //     delay: Math.random(1)
+    //   })
   })
 
 
@@ -129,7 +130,7 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson, isSelected
   // })
 
   return (
-    <mesh name={poiInfoJson.name.common} ref={meshRef} geometry={pointMemo.geometry}>
+    <mesh name={"POI"} ref={meshRef} geometry={pointMemo.geometry}>
       <meshBasicMaterial ref={materialRef} transparent={true} />
     </mesh>
   )

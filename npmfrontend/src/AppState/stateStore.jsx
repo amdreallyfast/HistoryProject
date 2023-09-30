@@ -5,6 +5,6 @@ import { stateSliceReducerSelectedPoi } from "./StateSliceSelectedPoi";
 export const stateStore = configureStore({
   reducer: {
     pointsOfInterestReducer: stateSliceReducerPointsOfInterest,
-    selectedPoiReducer: stateSliceReducerSelectedPoi
+    // selectedPoiReducer: stateSliceReducerSelectedPoi
   }
 })
