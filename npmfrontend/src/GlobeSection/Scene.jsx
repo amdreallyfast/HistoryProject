@@ -32,6 +32,7 @@ export function Scene(
   const poiAndGlobeMeshesRef = useRef()
   // const threeJsStateModelRef = useRef()
   const getThreeJsState = useThree((state) => state.get)
+  let currSelectedPoiMeshRef = useRef()
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
@@ -96,7 +97,7 @@ export function Scene(
     // Update which item is highlighted.
     // Note: This useEffect() will only trigger (if I got this right) _after_ the poiJsonObjects
     // and the follow-up poiReactElements are created, so they should all be there.
-    console.log({ msg: "SearchSection()/useEffect()/selectedPoi" })
+    console.log({ msg: "Scene()/useEffect()/selectedPoi" })
 
     if (selectedPoi) {
       // Should have exactly 1 matching element.
@@ -106,6 +107,9 @@ export function Scene(
       let selectedPoiMesh = result[0]
       selectedPoiMesh.material.color = selectedPoiMesh.userData.highlightColor
       selectedPoiMesh.material.opacity = selectedPoiMesh.userData.highlightOpacity
+
+      // Record for later use during "useFrame".
+      currSelectedPoiMeshRef.current = selectedPoiMesh
 
       //??why does using gsap.to(...) cause all the colors to flicker??
 
@@ -146,7 +150,176 @@ export function Scene(
 
   let prevMouseHoverPoiMeshRef = useRef()
   // let prevSelectedPoiMeshRef = useRef()
-  let currSelectedPoiMeshRef = useRef()
+
+
+  useFrame((state, delta) => {
+    // console.log("useFrame()")
+
+    // Construction of the group of points of interest and the ThreeJs state model may take a 
+    // couple frames. Wait until then.
+    if (poiAndGlobeMeshesRef.current == null || poiInfoPopupElementRef.current == null) {
+      return
+    }
+
+    // Only consider "mouse hover" intersections that are:
+    // 1. Not the globe
+    // 2. Not behind the globe
+    // Note: Intersections are organized by increasing distance, making item 0 the closest.
+    let mouseHoverPoiMesh = null
+    state.raycaster.setFromCamera(mousePosCanvasScreenSpaceRef.current, state.camera)
+    const intersectedObjects = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
+    let notHoveringOverAnyPois =
+      intersectedObjects.length == 0 || // Space
+      (intersectedObjects.length == 1 && intersectedObjects[0].object.name == "Globe")  // Just the earth
+    if (notHoveringOverAnyPois) {
+      // Ignore all mouse clicks.
+      mouseClickedCurrPosRef.current = false
+    }
+    else {
+      let firstIntersection = intersectedObjects[0].object
+      if (firstIntersection.name != "Globe") {
+        mouseHoverPoiMesh = firstIntersection
+      }
+    }
+
+    // Occurs when the mouse drifts from the world (or space) to a POI.
+    let newPoiHover =
+      mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current == null
+
+    // Occurs when the mouse drifts from a POI to the world (or space).
+    let leavingPoiHover =
+      mouseHoverPoiMesh == null && prevMouseHoverPoiMeshRef.current != null
+
+    // Occurs when the mouse drifts from one POI to another without going through open space 
+    // in-between. Need to shift focus w/out turning off the info popup.
+    let changingPoiHover =
+      mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
+      mouseHoverPoiMesh?.uuid != prevMouseHoverPoiMeshRef.current?.uuid
+
+    // Occurs when the mouse is stationary over a POI and is clicked. Creates new selectedPoi.
+    let clickedSamePoiHover =
+      mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
+      mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid &&
+      mouseClickedCurrPosRef.current == true
+
+    if (newPoiHover) {
+      console.log({ msg: "newPoiHover" })
+
+      // Turn on the popup.
+      gsap.set(poiInfoPopupElementRef.current, {
+        display: "block"
+      })
+      gsap.set(poiInfoTitleElementRef.current, {
+        innerHTML: mouseHoverPoiMesh.userData.allInfo.name.common
+      })
+
+      // Fade-in highlight the POI.
+      // Note: Ignore if it is the currently selected POI. Leave that alone.
+      if (mouseHoverPoiMesh.uuid != currSelectedPoiMeshRef.current?.uuid) {
+        gsap.to(mouseHoverPoiMesh.material, {
+          opacity: 1.0,
+          duration: 0.15
+        })
+      }
+    }
+    else if (leavingPoiHover) {
+      console.log({ msg: "leavingPoiHover" })
+
+      // Turn off the popup
+      gsap.set(poiInfoPopupElementRef.current, {
+        display: "none"
+      })
+
+      // Fade-out the POI highlight.
+      // Note: Ignore if it was the currently selected POI. Leave that alone.
+      if (prevMouseHoverPoiMeshRef.current.uuid != currSelectedPoiMeshRef.current?.uuid) {
+        gsap.to(prevMouseHoverPoiMeshRef.current.material, {
+          opacity: 0.4,
+          duration: 0.15
+        })
+      }
+    }
+    else if (changingPoiHover) {
+      console.log({ msg: "changingPoiHover" })
+
+      // Change the popup's info:
+      gsap.set(poiInfoTitleElementRef.current, {
+        innerHTML: mouseHoverPoiMesh.userData.allInfo.name.common
+      })
+
+      // Fade in the new
+      gsap.to(mouseHoverPoiMesh.material, {
+        opacity: 1.0,
+        duration: 0.15
+      })
+
+      // Fade out the old (unless it's the currently selected POI).
+      if (prevMouseHoverPoiMeshRef.current.uuid != currSelectedPoiMeshRef.current?.uuid) {
+        gsap.to(prevMouseHoverPoiMeshRef.current.material, {
+          opacity: 0.4,
+          duration: 0.15
+        })
+      }
+    }
+    else if (clickedSamePoiHover) {
+      console.log({ msg: "clickedSamePoiHover" })
+
+      // Only allow a single click to process
+      mouseClickedCurrPosRef.current = false
+
+      if (mouseHoverPoiMesh.uuid == currSelectedPoiMeshRef.current?.uuid) {
+        // The currently selected item is clicked again => de-selected
+
+        // Fade to original color.
+        // Note: The mouse hover still demands the "highlight" opacity, so leave opacity as-is.
+        gsap.set(mouseHoverPoiMesh.material, {
+          color: mouseHoverPoiMesh.userData.originalColor,
+          duration: 2.0
+        })
+
+        // And de-select.
+        currSelectedPoiMeshRef.current = null
+        reduxDispatch(setSelectedPoi(null))
+      }
+      else {
+        // A new item is clicked.
+
+        // Fade in highlight color.
+        // Note: High opacity already set by the mouse hovering, so leave opacity as-is.
+        gsap.set(mouseHoverPoiMesh.material, {
+          color: mouseHoverPoiMesh.userData.selectedColor,
+          duration: 2.0
+        })
+
+        // Fade out the old.
+        // Note: The mouse is no longer hovering over it, so the "hover opacity" is no longer 
+        // needed and we need to reset both color + opacity.
+        if (currSelectedPoiMeshRef.current) {
+          gsap.set(currSelectedPoiMeshRef.current.material, {
+            color: currSelectedPoiMeshRef.current.userData.originalColor,
+            opacity: currSelectedPoiMeshRef.current.userData.originalOpacity,
+            duration: 2.0
+          })
+        }
+
+        // And select the new one.
+        currSelectedPoiMeshRef.current = mouseHoverPoiMesh
+        reduxDispatch(setSelectedPoi(mouseHoverPoiMesh.userData.allInfo))
+      }
+    }
+    else {
+      // console.log({ msg: "no POI hover" })
+      // console.log("no POI hover")
+
+      // Not hovering over any POI. Ignore.
+    }
+
+    prevMouseHoverPoiMeshRef.current = mouseHoverPoiMesh
+  })
+
+
+
+
   // useFrame((state, delta) => {
   //   // console.log("useFrame()")
 
