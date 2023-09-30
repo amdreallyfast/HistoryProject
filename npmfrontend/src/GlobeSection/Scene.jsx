@@ -171,7 +171,7 @@ export function Scene(
 
       // Turn on the popup.
       //??use GSAP somehow??
-      poiInfoPopupElementRef.current.display = "block"
+      poiInfoPopupElementRef.current.style.display = "block"
       poiInfoTitleElementRef.current.innerHTML = mouseHoverPoiMesh.userData.poiInfoJson.name.common
 
       // Fade-in a highlight of the hovered item.
@@ -186,7 +186,7 @@ export function Scene(
 
       // Turn off the popup
       //??use GSAP somehow??
-      poiInfoPopupElementRef.current.display = "none"
+      poiInfoPopupElementRef.current.style.display = "none"
 
       // Fade-out the POI highlight.
       // Note: Ignore if it was the currently selected POI. Leave that alone.
