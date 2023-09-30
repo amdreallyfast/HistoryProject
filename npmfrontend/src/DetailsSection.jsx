@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
+import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
 
 async function fetchImage(url) {
   let response = await fetch(url)
@@ -8,20 +10,23 @@ async function fetchImage(url) {
   return response.blob()
 }
 
-export function DetailsSection({ currSelectedItemJson }) {
-  let title = currSelectedItemJson?.name.official
-  let description = currSelectedItemJson?.flags.alt
+export function DetailsSection({ }) {
+  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
 
-  // Note: Don't even try to run the query until there is a selected item. Null values mess it up.
+  let title = selectedPoi?.name.official
+  let description = selectedPoi?.flags.alt
+
+  // Note: Set the selectedPoi as a dependency so that the query does not run until the value is 
+  // not null.
   const fetchImageQuery = useQuery({
-    queryKey: ["getFlagImg", currSelectedItemJson],
-    queryFn: () => fetchImage(currSelectedItemJson?.flags.svg),
-    enabled: !!currSelectedItemJson
+    queryKey: ["getFlagImg", selectedPoi],
+    queryFn: () => fetchImage(selectedPoi?.flags.svg),
+    enabled: !!selectedPoi
   })
 
   let imageHtml = (<h1>No flag</h1>)
   if (fetchImageQuery.isLoading) {
-    // console.log({ fetchImageQuery: "Loading" })
+    console.log({ fetchImageQuery: "Loading" })
     //??is this the default state? why does it say "loading" when there the query isn't running??
     imageHtml = (<h1>Loading...</h1>)
   }
