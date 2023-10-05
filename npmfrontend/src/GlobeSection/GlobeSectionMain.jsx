@@ -58,9 +58,6 @@ export function GlobeSectionMain() {
     mouseClickedCurrPosRef.current = true
   }
 
-  // useEffect(() => {
-  //   console.log({ "canvasContainer": canvasContainerDivRef.current })
-  // }, [])
 
   return (
     <>
