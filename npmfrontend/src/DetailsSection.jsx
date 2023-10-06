@@ -26,7 +26,7 @@ export function DetailsSection({ }) {
 
   let imageHtml = (<h1>No flag</h1>)
   if (fetchImageQuery.isLoading) {
-    console.log({ fetchImageQuery: "Loading" })
+    // console.log({ fetchImageQuery: "Loading" })
     //??is this the default state? why does it say "loading" when there the query isn't running??
     imageHtml = (<h1>Loading...</h1>)
   }

@@ -35,7 +35,7 @@ export function Scene(
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    console.log({ msg: "Scene()/useEffect()/poiJsonObjects" })
+    // console.log({ msg: "Scene()/useEffect()/poiJsonObjects", value: poiJsonObjects })
 
     setPoiReactElements(
       poiJsonObjects?.map(
@@ -57,7 +57,7 @@ export function Scene(
   // for the raycaster to analyze every frame.
   // Note: This up-front collection is for performance reasons.
   useEffect(() => {
-    console.log("Scene()/useEffect()/sceneChildren")
+    // console.log({ msg: "Scene()/useEffect()/poiReactElements", value: poiReactElements })
 
     // Note: Extract the POI meshes and_ the "Globe" mesh because the racaster's intersection 
     // calculations will get _all_ meshes in its path. I want to avoid intersections with POIs 
@@ -82,11 +82,11 @@ export function Scene(
   }, [poiReactElements])
 
   useEffect(() => {
+    // console.log({ msg: "Scene()/useEffect()/selectedPoi", value: selectedPoi })
+
     // Update which item is highlighted.
     // Note: This useEffect() will only trigger (if I got this right) _after_ the poiJsonObjects
     // and the follow-up poiReactElements are created, so they should all be there.
-    console.log({ msg: "Scene()/useEffect()/selectedPoi" })
-
     if (selectedPoi) {
       // Should have exactly 1 matching element.
       // Note: If there is more or less than 1 with the same guid, then there is a problem.

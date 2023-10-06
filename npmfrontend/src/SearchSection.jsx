@@ -3,38 +3,82 @@ import { useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
 import { v4 as uuidv4 } from "uuid"
+import { useQuery } from "@tanstack/react-query"
+
+async function getSearchResults(url) {
+  let response = await fetch(url)
+  if (!response.ok) {
+    throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
+  }
+  return response.json()
+}
 
 export function SearchSection() {
-  const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
+  const [searchUri, setSearchUri] = useState()
+  // const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
   const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
   const prevSelectedPoi = useSelector((state) => state.pointsOfInterestReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
-  const [poiReactElements, setPoiReactElements] = useState()
-
+  const [searchResultReactElements, setSearchResultsReactElements] = useState()
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
-  const [searchErrorHtml, setSearchErrorHtml] = useState()
   const searchTextRef = useRef()
 
+  // Construct query hook as dependant on searchUri (that is, will re-run whenever it changes).
+  const getSearchResultsQuery = useQuery({
+    queryKey: ["getSearchResults", searchUri],
+    queryFn: () => getSearchResults(searchUri),
+    enabled: !!searchUri  // only run once searchUri is set
+  })
+
   useEffect(() => {
-    // Create interactable HTML elements out of the JSON objects.
-    console.log({ msg: "SearchSection()/useEffect()/pointsOfInterest" })
+    // console.log({ msg: "SearchSection()/useEffect()/getSearchResultsQuery.status", value: getSearchResultsQuery.status })
 
-    const onSearchResultClicked = (e, poiJson) => {
-      // If already selected, de-select.
-      if (e.target.className.includes("font-bold")) {
-        reduxDispatch(setSelectedPoi(null))
-      }
-      else {
-        reduxDispatch(setSelectedPoi(poiJson))
-      }
+    if (!searchUri) {
+      // Startup, no search results. The "useQuery" hook defaults to (for some reason) 
+      // isLoading = true, but it is _not_ loading (and so I argue that it should be false), so 
+      // ignore the query status and don't print anything.
     }
+    else if (getSearchResultsQuery.isLoading) {
+      // console.log("Loading...")
+      setSearchResultsReactElements((<h1>Loading...</h1>))
+    }
+    else if (getSearchResultsQuery.isError) {
+      // console.log("Error...")
+      setSearchResultsReactElements((<pre>{JSON.stringify(getSearchResultsQuery.error)}</pre>))
+    }
+    else if (getSearchResultsQuery.isFetching) {
+      // console.log("Refreshing...")
+      setSearchResultsReactElements((<h1>Refreshing...</h1>))
+    }
+    else if (getSearchResultsQuery.isSuccess) {
+      // console.log("Success...")
+      let rawJson = getSearchResultsQuery.data
+      let sortedJson = rawJson
+        .sort((a, b) => a.name.official.localeCompare(b.name.official))
+        .map((jsonValue) => {
+          // Note 9/13/2023: It took me an hour to figure out, but apparently the fetch processing
+          // adds an immutable "key" field. So make your own key field to store this uniqueId.
+          jsonValue.myUniqueId = uuidv4()
+          return jsonValue
+        })
 
-    setPoiReactElements(
-      pointsOfInterest?.map(
+      // Callback
+      const onSearchResultClicked = (e, poiJson) => {
+        // If already selected, de-select.
+        if (e.target.className.includes("font-bold")) {
+          reduxDispatch(setSelectedPoi(null))
+        }
+        else {
+          reduxDispatch(setSelectedPoi(poiJson))
+        }
+      }
+
+      // Construct HTML for the search results.
+      let htmlReactElements = sortedJson?.map(
         (poiJson) => (
           <p
             id={poiJson.myUniqueId}
@@ -46,14 +90,28 @@ export function SearchSection() {
           </p>
         )
       )
-    )
 
-  }, [pointsOfInterest])
+      // Notify this component to re-render with the new values.
+      setSearchResultsReactElements(htmlReactElements)
 
+      // Finally, notify the global state of the change in available POIs.
+      reduxDispatch(setPointsOfInterest(sortedJson))
+    }
+    else {
+      console.log({ msg: "Unknown query status", error: getSearchResultsQuery.status })
+      searchResultReactElements = (
+        <p className="font-bold text-red-500 text-left">
+          Unknown query status: '{getSearchResultsQuery.status}'
+        </p>
+      )
+    }
+
+  }, [getSearchResultsQuery.status])
+
+  // selectedPoi changes => highlight
   useEffect(() => {
-    console.log({ msg: "SearchSection()/useEffect()/selectedPoi" })
-    // let thing = document.getElementsByName("pointsOfInterestSearchResults")
-    // console.log({ selectedPoiId: selectedPoi?.myUniqueId })
+    // console.log({ msg: "SearchSection()/useEffect()/selectedPoi", value: selectedPoi })
+
     if (selectedPoi) {
       let selectedPoiHtml = document.getElementById(selectedPoi.myUniqueId)
       selectedPoiHtml.className = searchResultHtmlClassNameHighlighted
@@ -66,48 +124,15 @@ export function SearchSection() {
   }, [selectedPoi])
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
-    try {
-      let rawJson = null
+    // Fetch all results.
+    const defaultQuery = "https://restcountries.com/v3.1/all"
 
-      // TODO: when using a "perspectives" dataset, search by other fields like time
-      if (searchText) {
-        // Reference:
-        //  Fetch Data from API in React JS | Learn ReactJS
-        //  https://www.youtube.com/watch?v=9vvtO0S1KlY
-        let response = await fetch(`https://restcountries.com/v3.1/name/${searchText}`)
-        if (!response.ok) {
-          // Note: For the country dataset, a 404 means "no results"
-          throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
-        }
-        rawJson = await response.json()
-      }
-      else {
-        let response = await fetch("https://restcountries.com/v3.1/all")
-        if (!response.ok) {
-          throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
-        }
-        rawJson = await response.json()
-      }
-
-      let sortedJson = rawJson
-        .sort((a, b) => a.name.official.localeCompare(b.name.official))
-        .map((jsonValue) => {
-          // Note 9/13/2023: It took me an hour to figure out, but apparently the fetch processing
-          // adds an immutable "key" field. So make your own key field to store this uniqueId.
-          jsonValue.myUniqueId = uuidv4()
-          return jsonValue
-        })
-
-      reduxDispatch(setPointsOfInterest(sortedJson))
-      setSearchErrorHtml(null)
-    } catch (error) {
-      let errorAsHtml = (
-        <p className="font-bold text-red-500 text-left">
-          {error.stack}
-        </p>
-      )
-      setSearchErrorHtml(errorAsHtml)
+    let searchUri = defaultQuery
+    if (searchText) {
+      searchUri = `https://restcountries.com/v3.1/name/${searchText}`
     }
+
+    setSearchUri(searchUri)
   }
 
   const searchAndDisplay = async () => {
@@ -148,6 +173,8 @@ export function SearchSection() {
     // TODO: set state value
   }
 
+
+
   return (
     <div className="flex flex-col h-full border-2 border-green-500">
       <div className="flex flex-col border-2 border-gray-600">
@@ -183,12 +210,7 @@ export function SearchSection() {
       </div>
 
       <div className='flex flex-col items-start border-2 border-gray-600 m-1 h-full overflow-auto'>
-        <div>
-          {searchErrorHtml}
-        </div>
-        <div name="pointsOfInterestSearchResults">
-          {poiReactElements}
-        </div>
+        {searchResultReactElements}
       </div>
     </div>
   )
