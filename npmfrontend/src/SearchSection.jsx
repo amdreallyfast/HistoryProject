@@ -99,11 +99,11 @@ export function SearchSection() {
     }
     else {
       console.log({ msg: "Unknown query status", error: getSearchResultsQuery.status })
-      searchResultReactElements = (
+      setSearchResultsReactElements((
         <p className="font-bold text-red-500 text-left">
           Unknown query status: '{getSearchResultsQuery.status}'
         </p>
-      )
+      ))
     }
 
   }, [getSearchResultsQuery.status])
@@ -125,13 +125,15 @@ export function SearchSection() {
 
   const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
     // Fetch all results.
-    const defaultQuery = "https://restcountries.com/v3.1/all"
+    // const defaultQuery = "https://restcountries.com/v3.1/all"
+    const defaultQuery = "./countryData.json"
 
     let searchUri = defaultQuery
     if (searchText) {
       searchUri = `https://restcountries.com/v3.1/name/${searchText}`
     }
 
+    console.log({ searchUri: searchUri })
     setSearchUri(searchUri)
   }
 
