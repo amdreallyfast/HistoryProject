@@ -17,6 +17,7 @@
     npm install --save uuid                               # For making unique keys for loop-generated elements
     npm install --save @tanstack/react-query              # For abstracting away the complications of fetching data.
     npm install --save-dev @tanstack/eslint-plugin-query  # Dev tool: catch common errors in @tanstack/react-query
+    npm install --save lodash                             # For comparing re-fetched json with current json
 
     Redux Toolkit
       Start management.

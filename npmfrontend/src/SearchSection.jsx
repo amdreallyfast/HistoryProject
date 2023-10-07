@@ -3,7 +3,8 @@ import { useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
 import { v4 as uuidv4 } from "uuid"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import _ from "lodash"
 
 async function getSearchResults(url) {
   let response = await fetch(url)
@@ -16,6 +17,7 @@ async function getSearchResults(url) {
 export function SearchSection() {
   const [searchUri, setSearchUri] = useState()
   // const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
+  const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
   const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
   const prevSelectedPoi = useSelector((state) => state.pointsOfInterestReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
@@ -27,12 +29,42 @@ export function SearchSection() {
 
   const searchTextRef = useRef()
 
+  // Keep this around to reset the query cache and force a re-search.
+  // Note: Without reset, the query will forever use the cached results. The cached 
+  // results are useful when dealing with cached or sleeping browser tabs, but when the user 
+  // clicks "Search", it _should_ perform the search again. In that case, we'll need to force a
+  // re-search.
+  const queryClient = useQueryClient()
+
   // Construct query hook as dependant on searchUri (that is, will re-run whenever it changes).
   const getSearchResultsQuery = useQuery({
     queryKey: ["getSearchResults", searchUri],
     queryFn: () => getSearchResults(searchUri),
     enabled: !!searchUri  // only run once searchUri is set
   })
+
+  const forceResetSearchResults = () => {
+    // Reset the query cache
+    queryClient.resetQueries({ queryKey: ["getSearchResults"] })
+
+    // Reset the POI collection.
+    // Problem: If it is _not_ set to null, then clicking "search" when the searchQuery has not
+    // changed will result in the same search results as are current, and therefore the search 
+    // result comparison in the "getSearchResultsQuery"-dependent useEffect() will determine 
+    // that there is no change, and therefore the UI will not update, giving no indication that
+    //  anything was done. This appearance of unresponsiveness is bad. 
+    // Solution: reset the search results and start again, because that's what the user wants.
+    reduxDispatch(setPointsOfInterest(null))
+  }
+
+  // console.log({
+  //   status: getSearchResultsQuery.status,
+  //   fetching: getSearchResultsQuery.isFetching,
+  //   error: getSearchResultsQuery.error,
+  //   data: getSearchResultsQuery.data
+  // })
+
+  // If searchUri changes, then the query will run, but _only_ if it hasn't seen that result before. It's caching the result. ??work with caching? circumvent it??
 
   useEffect(() => {
     // console.log({ msg: "SearchSection()/useEffect()/getSearchResultsQuery.status", value: getSearchResultsQuery.status })
@@ -52,7 +84,9 @@ export function SearchSection() {
     }
     else if (getSearchResultsQuery.isFetching) {
       // console.log("Refreshing...")
-      setSearchResultsReactElements((<h1>Refreshing...</h1>))
+      // setSearchResultsReactElements((<h1>Refreshing...</h1>))
+
+      // Ignore. Carry on.
     }
     else if (getSearchResultsQuery.isSuccess) {
       // console.log("Success...")
@@ -66,36 +100,53 @@ export function SearchSection() {
           return jsonValue
         })
 
-      // Callback
-      const onSearchResultClicked = (e, poiJson) => {
-        // If already selected, de-select.
-        if (e.target.className.includes("font-bold")) {
-          reduxDispatch(setSelectedPoi(null))
-        }
-        else {
-          reduxDispatch(setSelectedPoi(poiJson))
-        }
-      }
+      // Figure out if the new data is actually a change.
+      // Note: Data refreshes may or may not result in a change. Recursively compare the two 
+      // arrays (except for the myUniqueId field, which I am creating) to see if anything changed.
+      // If nothing changes, then don't bother re-creating everything and changing the POI.
+      //TODO: ??how to handle the case that there is a change server-side? I don't want to stomp all over the user's current experience, but how do I handle this??
+      let searchResultsChanged = !_.isEqualWith(pointsOfInterest, sortedJson, (value1, value2, key) => {
+        // Note: Returning "true" for a given JSON key without any other logic is effectively 
+        // skipping it. 
+        // Also Note: Returning undefined will cause the comparison to be handled by 
+        // "isEqualWith(...)" itself, which will default to recursing through the object.
+        return key === "myUniqueId" ? true : undefined
+      })
 
-      // Construct HTML for the search results.
-      let htmlReactElements = sortedJson?.map(
-        (poiJson) => (
-          <p
-            id={poiJson.myUniqueId}
-            key={poiJson.myUniqueId}
-            className={searchResultHtmlClassNameNormal}
-            onClick={(e) => onSearchResultClicked(e, poiJson)}
-          >
-            {poiJson.name.official}
-          </p>
+      if (searchResultsChanged) {
+        // Re-create the POIs.
+
+        // Callback
+        const onSearchResultClicked = (e, poiJson) => {
+          // If already selected, de-select.
+          if (e.target.className.includes("font-bold")) {
+            reduxDispatch(setSelectedPoi(null))
+          }
+          else {
+            reduxDispatch(setSelectedPoi(poiJson))
+          }
+        }
+
+        // Construct HTML for the search results.
+        let htmlReactElements = sortedJson?.map(
+          (poiJson) => (
+            <p
+              id={poiJson.myUniqueId}
+              key={poiJson.myUniqueId}
+              className={searchResultHtmlClassNameNormal}
+              onClick={(e) => onSearchResultClicked(e, poiJson)}
+            >
+              {poiJson.name.official}
+            </p>
+          )
         )
-      )
 
-      // Notify this component to re-render with the new values.
-      setSearchResultsReactElements(htmlReactElements)
+        // Notify this component to re-render with the new values.
+        setSearchResultsReactElements(htmlReactElements)
 
-      // Finally, notify the global state of the change in available POIs.
-      reduxDispatch(setPointsOfInterest(sortedJson))
+        // Finally, notify the global state of the change in available POIs.
+        reduxDispatch(setPointsOfInterest(sortedJson))
+      }
     }
     else {
       console.log({ msg: "Unknown query status", error: getSearchResultsQuery.status })
@@ -106,7 +157,11 @@ export function SearchSection() {
       ))
     }
 
-  }, [getSearchResultsQuery.status])
+  }, [getSearchResultsQuery.isLoading,
+  getSearchResultsQuery.isError,
+  getSearchResultsQuery.isSuccess,
+  getSearchResultsQuery.isFetching,
+  getSearchResultsQuery.data])
 
   // selectedPoi changes => highlight
   useEffect(() => {
@@ -133,8 +188,9 @@ export function SearchSection() {
       searchUri = `https://restcountries.com/v3.1/name/${searchText}`
     }
 
-    console.log({ searchUri: searchUri })
+    // console.log({ searchUri: searchUri })
     setSearchUri(searchUri)
+    forceResetSearchResults()
   }
 
   const searchAndDisplay = async () => {

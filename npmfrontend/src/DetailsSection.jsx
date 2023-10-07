@@ -23,9 +23,19 @@ export function DetailsSection({ }) {
     queryFn: () => fetchImage(selectedPoi?.flags.svg),
     enabled: !!selectedPoi
   })
+  console.log({
+    status: fetchImageQuery.status,
+    fetching: fetchImageQuery.isFetching,
+    error: fetchImageQuery.error,
+    data: fetchImageQuery.data
+  })
 
   let imageHtml = (<h1>No flag</h1>)
-  if (fetchImageQuery.isLoading) {
+  if (fetchImageQuery.isLoading && !fetchImageQuery.isFetching) {
+    // Idle query. It seems that "loading" is the default state, but only means that it is actually loading when combined with "isFetching" == true.
+    imageHtml = (<h1>Nothing selected</h1>)
+  }
+  else if (fetchImageQuery.isLoading) {
     // console.log({ fetchImageQuery: "Loading" })
     //??is this the default state? why does it say "loading" when there the query isn't running??
     imageHtml = (<h1>Loading...</h1>)
@@ -60,7 +70,7 @@ export function DetailsSection({ }) {
         {imageHtml}
       </div>
       <p className='m-1 break-all text-left'>
-        {description ? description : "<no description>"}
+        {description}
       </p>
     </div>
   )
