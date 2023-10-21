@@ -81,12 +81,12 @@ export function Scene(
     poiAndGlobeMeshesRef.current = poiAndGlobeMeshes
   }, [poiReactElements])
 
+  // Update POI highlight.
+  // Note: This useEffect() will only trigger (if I got this right) _after_ the poiJsonObjects
+  // and the follow-up poiReactElements are created, so they should all be there.
   useEffect(() => {
     // console.log({ msg: "Scene()/useEffect()/selectedPoi", value: selectedPoi })
 
-    // Update which item is highlighted.
-    // Note: This useEffect() will only trigger (if I got this right) _after_ the poiJsonObjects
-    // and the follow-up poiReactElements are created, so they should all be there.
     if (selectedPoi) {
       // Should have exactly 1 matching element.
       // Note: If there is more or less than 1 with the same guid, then there is a problem.
@@ -115,6 +115,7 @@ export function Scene(
 
   }, [selectedPoi])
 
+  // Handle mouse hover and mouse click.
   let prevMouseHoverPoiMeshRef = useRef()
   useFrame((state) => {
     // console.log("useFrame()")
@@ -131,19 +132,33 @@ export function Scene(
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mousePosCanvasScreenSpaceRef.current, state.camera)
-    const intersectedObjects = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
+    const intersections = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
     let notHoveringOverAnyPois =
-      intersectedObjects.length == 0 || // Space
-      (intersectedObjects.length == 1 && intersectedObjects[0].object.name == "Globe")  // Just the earth
+      intersections.length == 0
+    // || // Space
+    // (intersections.length == 1 && intersections[0].object.name == "Globe")  // Just the earth
     if (notHoveringOverAnyPois) {
       // Ignore all mouse clicks.
       mouseClickedCurrPosRef.current = false
     }
     else {
-      let firstIntersection = intersectedObjects[0].object
+      let things = intersections.filter((intersection) => intersection.object.name == "Globe")
+      // console.log({ things: things })
+      console.log(things[0].uv)
+
+
+
+
+
+      // TODO disable when you need to get a click on the world surface
+      let firstIntersection = intersections[0].object
       if (firstIntersection.name != "Globe") {
         mouseHoverPoiMesh = firstIntersection
       }
+
+
+
+
     }
 
     // Occurs when the mouse drifts from the world (or space) to a POI.
