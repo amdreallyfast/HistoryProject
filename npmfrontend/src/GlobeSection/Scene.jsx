@@ -15,7 +15,6 @@ const globeInfo = {
 
 function MyPolygon() {
 
-
   const meshRef = useRef()
   useEffect(() => {
     let values = [
@@ -39,49 +38,17 @@ function MyPolygon() {
     console.log({ typedArray: verticesTypedArray })
 
     let delaunator = new Delaunator(verticesTypedArray)
-    // console.log({ triangles: delaunator.triangles })
-    // let vertexIndices = []
-    // delaunator.triangles.forEach((vertexIndex) => {
-    //   // Create a new vertex array with the third dimension (because this Delaunator thing only 
-    //   // does 2D).
-    //   // Note: Array of vertices was an array of _pairs_ of floats. The starting index of the 
-    //   // first float for any 2D vertex is therefore 2 * vertexIndex.
-    //   let first 
+    let vertexIndices = delaunator.triangles
 
-
-    //   // Triangles comes in triplets of vertices.
-
-    // })
-
-    // let coordinate = []
-    // coordinate.push(delaunator.triangles[0])
-    // coordinate.push(delaunator.triangles[1])
-    // coordinate.push(delaunator.triangles[2])
-    // console.log({ coordinate: coordinate })
-
-    // indices should still work because the 3D vertices are in the exact same order as the 2D, but with one more value (Z coordinate)
-    let valuesPerPoint = 3
-    let positionAttribute = new THREE.Float32BufferAttribute(vertices3D, valuesPerPoint)
-    // const indices = new Uint32Array(
-    //   [2, 0, 3,
-    //     2, 1, 0,
-    //     0, 4, 3]
-    // )
-    let indicesAttribute = new THREE.Uint32BufferAttribute(delaunator.triangles, 1)
-    // let thing = new THREE.BufferGeometry()
-    // console.log({ meshRef: meshRef.current })
-    // console.log({ triangles: delaunator.triangles })
-    // console.log({ indices: indices })
-    meshRef.current.geometry.setIndex(indicesAttribute)
+    // Note: Indices should still work because the 3D vertices are in the exact same order as the 
+    // 2D, but with one more value (Z coordinate)
+    let posValuesPerPoint = 3
+    let positionAttribute = new THREE.Float32BufferAttribute(vertices3D, posValuesPerPoint)
     meshRef.current.geometry.setAttribute("position", positionAttribute)
 
-    // // let thing = new THREE.BoxGeometry(5, 5, 5, 2, 2, 2)
-    // let thing = new THREE.PlaneGeometry(5, 5, 5, 5)
-    // console.log({ geometry: thing })
-    // let valuesPerPoint = 3
-    // let positionAttribute = new THREE.Float32BufferAttribute(thing.attributes.position.array, valuesPerPoint)
-    // meshRef.current.geometry.setIndex(thing.index)
-    // meshRef.current.geometry.setAttribute("position", positionAttribute)
+    let indexValuesPerPoint = 1
+    let indicesAttribute = new THREE.Uint32BufferAttribute(vertexIndices, indexValuesPerPoint)
+    meshRef.current.geometry.setIndex(indicesAttribute)
   })
 
 
