@@ -1,15 +1,105 @@
 import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { Vector3, Color } from "three"
+import * as THREE from "three"
 import { Globe } from "./Globe"
 import { PointOfInterest } from "./PointOfInterest"
 import { setSelectedPoi } from "../AppState/stateSlicePointsOfInterest"
 import gsap from "gsap"
+import Delaunator from "delaunator"
 
 const globeInfo = {
-  pos: new Vector3(0, 0, 0),
+  pos: new THREE.Vector3(0, 0, 0),
   radius: 5
+}
+
+function MyPolygon() {
+
+
+  const meshRef = useRef()
+  useEffect(() => {
+    let values = [
+      { name: "one", lat: 0, long: +1, alt: 0 },
+      { name: "two", lat: -1.5, long: +0.2, alt: 0 },
+      { name: "three", lat: -0.3, long: -1, alt: 0 },
+      { name: "four", lat: +0.3, long: -1, alt: 0 },
+      { name: "five", lat: +1.5, long: +0.2, alt: 0 }
+    ]
+
+    // Note: The Delaunator library here only works for 2D, but we need 3D coordinates.
+    // ?? use 3D version instead? (https://github.com/d3/d3-delaunay) it seems to compute a lot more than I want??
+    let vertices2D = []
+    let vertices3D = []
+    values.forEach((point) => {
+      vertices2D.push(point.lat, point.long)
+      vertices3D.push(point.lat, point.long, point.alt)
+    })
+
+    const verticesTypedArray = new Float32Array(vertices2D)
+    console.log({ typedArray: verticesTypedArray })
+
+    let delaunator = new Delaunator(verticesTypedArray)
+    // console.log({ triangles: delaunator.triangles })
+    // let vertexIndices = []
+    // delaunator.triangles.forEach((vertexIndex) => {
+    //   // Create a new vertex array with the third dimension (because this Delaunator thing only 
+    //   // does 2D).
+    //   // Note: Array of vertices was an array of _pairs_ of floats. The starting index of the 
+    //   // first float for any 2D vertex is therefore 2 * vertexIndex.
+    //   let first 
+
+
+    //   // Triangles comes in triplets of vertices.
+
+    // })
+
+    // let coordinate = []
+    // coordinate.push(delaunator.triangles[0])
+    // coordinate.push(delaunator.triangles[1])
+    // coordinate.push(delaunator.triangles[2])
+    // console.log({ coordinate: coordinate })
+
+    // indices should still work because the 3D vertices are in the exact same order as the 2D, but with one more value (Z coordinate)
+    let valuesPerPoint = 3
+    let positionAttribute = new THREE.Float32BufferAttribute(vertices3D, valuesPerPoint)
+    // const indices = new Uint32Array(
+    //   [2, 0, 3,
+    //     2, 1, 0,
+    //     0, 4, 3]
+    // )
+    let indicesAttribute = new THREE.Uint32BufferAttribute(delaunator.triangles, 1)
+    // let thing = new THREE.BufferGeometry()
+    // console.log({ meshRef: meshRef.current })
+    // console.log({ triangles: delaunator.triangles })
+    // console.log({ indices: indices })
+    meshRef.current.geometry.setIndex(indicesAttribute)
+    meshRef.current.geometry.setAttribute("position", positionAttribute)
+
+    // // let thing = new THREE.BoxGeometry(5, 5, 5, 2, 2, 2)
+    // let thing = new THREE.PlaneGeometry(5, 5, 5, 5)
+    // console.log({ geometry: thing })
+    // let valuesPerPoint = 3
+    // let positionAttribute = new THREE.Float32BufferAttribute(thing.attributes.position.array, valuesPerPoint)
+    // meshRef.current.geometry.setIndex(thing.index)
+    // meshRef.current.geometry.setAttribute("position", positionAttribute)
+  })
+
+
+
+  // 1 convert lat-long to vertices
+  // create triangles
+  // if more than three points, create center vertex 
+  // create polygon
+  // make transparent
+  // make Wed
+
+  return (
+    <>
+      <mesh name="TestRegion" ref={meshRef}>
+        <meshBasicMaterial color={0xff007f} side={THREE.DoubleSide} />
+      </mesh>
+    </>
+  )
 }
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
@@ -144,13 +234,12 @@ export function Scene(
     else {
       let things = intersections.filter((intersection) => intersection.object.name == "Globe")
       // console.log({ things: things })
-      console.log(things[0].uv)
-
 
 
 
 
       // TODO disable when you need to get a click on the world surface
+      // console.log(things[0].uv)
       let firstIntersection = intersections[0].object
       if (firstIntersection.name != "Globe") {
         mouseHoverPoiMesh = firstIntersection
@@ -254,10 +343,11 @@ export function Scene(
 
   return (
     <>
-      <Globe globeRadius={globeInfo.radius} />
+      {/* <Globe globeRadius={globeInfo.radius} /> */}
       <group name="PoiGroup">
         {poiReactElements}
       </group>
+      <MyPolygon />
     </>
   )
 }

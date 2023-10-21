@@ -18,6 +18,7 @@
     npm install --save @tanstack/react-query              # For abstracting away the complications of fetching data.
     npm install --save-dev @tanstack/eslint-plugin-query  # Dev tool: catch common errors in @tanstack/react-query
     npm install --save lodash                             # For comparing re-fetched json with current json
+    npm install --save delaunator                         # For creating a triangular mesh of unordered vertices
 
     Redux Toolkit
       Start management.
