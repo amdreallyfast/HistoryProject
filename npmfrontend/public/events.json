@@ -1,0 +1,29 @@
+[
+  {
+    "name": {
+      "common": "test",
+      "official": "test for regions"
+    },
+    "flags": {
+      "alt": "This is the test description"
+    },
+    "where": [
+      [
+        5,
+        5
+      ],
+      [
+        12.5,
+        10
+      ],
+      [
+        12.5,
+        12.5
+      ],
+      [
+        5,
+        12.5
+      ]
+    ]
+  }
+]

@@ -7,6 +7,7 @@ import { PointOfInterest } from "./PointOfInterest"
 import { setSelectedPoi } from "../AppState/stateSlicePointsOfInterest"
 import gsap from "gsap"
 import Delaunator from "delaunator"
+import * as d3Geo from "@d3-geo-voronoi"
 
 const globeInfo = {
   pos: new THREE.Vector3(0, 0, 0),
@@ -15,8 +16,9 @@ const globeInfo = {
 
 function MyPolygon() {
 
-  const meshRef = useRef()
+  const regionMeshRef = useRef()
   useEffect(() => {
+    console.log("MyPolygon -> useEffect -> regionMeshRef")
     let values = [
       { name: "one", lat: 0, long: +1, alt: 0 },
       { name: "two", lat: -1.5, long: +0.2, alt: 0 },
@@ -34,22 +36,105 @@ function MyPolygon() {
       vertices3D.push(point.lat, point.long, point.alt)
     })
 
-    const verticesTypedArray = new Float32Array(vertices2D)
-    console.log({ typedArray: verticesTypedArray })
+    const vertices2DTypedArray = new Float32Array(vertices2D)
+    const vertices3DTypedArray = new Float32Array(vertices3D)
 
-    let delaunator = new Delaunator(verticesTypedArray)
+    let delaunator = new Delaunator(vertices2DTypedArray)
     let vertexIndices = delaunator.triangles
+
+    // const d3Delaunay = new d3.Delaunay(vertices3DTypedArray)
+    // console.log(d3Delaunay)
 
     // Note: Indices should still work because the 3D vertices are in the exact same order as the 
     // 2D, but with one more value (Z coordinate)
     let posValuesPerPoint = 3
     let positionAttribute = new THREE.Float32BufferAttribute(vertices3D, posValuesPerPoint)
-    meshRef.current.geometry.setAttribute("position", positionAttribute)
+    regionMeshRef.current.geometry.setAttribute("position", positionAttribute)
 
     let indexValuesPerPoint = 1
     let indicesAttribute = new THREE.Uint32BufferAttribute(vertexIndices, indexValuesPerPoint)
-    meshRef.current.geometry.setIndex(indicesAttribute)
-  })
+    regionMeshRef.current.geometry.setIndex(indicesAttribute)
+  }, [regionMeshRef.current])
+
+  const sphereMeshRef = useRef()
+  const pointsMeshRef = useRef()
+  useEffect(() => {
+    console.log("MyPolygon -> useEffect -> sphereMeshRef")
+
+    // see if this thing works with a sphere
+    let radius = 3
+    let widthSegments = 32
+    let heightSegments = 16
+    let myGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
+    const vertices3DTypedArray = new Float32Array(myGeometry.attributes.position.array)
+
+    let longLatCoordinates = []
+    let long = 0  // Prime Meridian
+    let lat = 90  // north pole
+    longLatCoordinates.push([long, lat])
+    for (let lat = 80; lat >= 0; lat -= 10) {
+      // 0 -> -180 = West
+      for (let long = 0; long >= -180; long -= 10) {
+        longLatCoordinates.push([long, lat])
+      }
+
+      // 0 -> +180 = East
+      for (let long = 0; long <= 180; long += 10) {
+        longLatCoordinates.push([long, lat])
+      }
+    }
+    // console.log({ longLatCoordinates: longLatCoordinates })
+    // console.log({ "longLatCoordinates[0]": longLatCoordinates[0] })
+
+    // ??why does "for (let i in arrayOfArrays)" end up flattening the array??
+    let sphereVertices = []
+    longLatCoordinates.forEach((longLat) => {
+      // console.log({ longLat: longLat })
+      let longRad = (longLat[0] / 180.0) * Math.PI  // 90 => 1.570795
+      let latRad = (longLat[1] / 180.0) * Math.PI   // 0  => 0
+
+      let x = radius * Math.cos(latRad) * Math.sin(longRad)
+      let y = radius * Math.sin(latRad)
+      let z = radius * Math.cos(latRad) * Math.cos(longRad)
+      sphereVertices.push(x, y, z)
+
+      // console.log({
+      //   longLat: longLat,
+      //   long: longLat[0],
+      //   lat: longLat[1],
+      //   longRad: longRad,
+      //   latRad: latRad,
+      //   x: x,
+      //   y: y,
+      //   z: z
+      // })
+
+    })
+
+    // console.log({ vertices: vertices })
+
+    let valuesPerVertex = 3
+    let pointsPositionAttribute = new THREE.Float32BufferAttribute(sphereVertices, valuesPerVertex)
+    pointsMeshRef.current.geometry.setAttribute("position", pointsPositionAttribute)
+
+    let delaunay = d3Geo.geoDelaunay(longLatCoordinates)
+    // let delaunay = d3Geo.geoDelaunay(myGeometry.attributes.position.array)
+    let vertexIndices = delaunay.triangles.flat()
+
+    // let myGeometry = new THREE.BoxGeometry(3, 3, 3, 3)
+    // console.log(myGeometry)
+    // let vertices = myGeometry.attributes.position.array
+    // let vertexIndices = myGeometry.index.array
+
+    // let valuesPerVertex = 3
+    let spherePositionAttribute = new THREE.Float32BufferAttribute(sphereVertices, valuesPerVertex)
+    sphereMeshRef.current.geometry.setAttribute("position", spherePositionAttribute)
+
+    let indexValuesPerPoint = 1
+    let sphereIndicesAttribute = new THREE.Uint32BufferAttribute(vertexIndices, indexValuesPerPoint)
+    sphereMeshRef.current.geometry.setIndex(sphereIndicesAttribute)
+  }, [sphereMeshRef.current])
+
 
 
 
@@ -62,9 +147,17 @@ function MyPolygon() {
 
   return (
     <>
-      <mesh name="TestRegion" ref={meshRef}>
+      <mesh name="TestRegion" ref={regionMeshRef}>
         <meshBasicMaterial color={0xff007f} side={THREE.DoubleSide} />
       </mesh>
+
+      <mesh name="TestSphere" ref={sphereMeshRef}>
+        <meshBasicMaterial color={0x0fff0} side={THREE.DoubleSide} wireframe={true} />
+      </mesh>
+
+      <points name="TestPointsRef" ref={pointsMeshRef}>
+        <pointsMaterial color={0x00fff0} size={0.3} />
+      </points>
     </>
   )
 }

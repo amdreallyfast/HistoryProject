@@ -19,6 +19,8 @@
     npm install --save-dev @tanstack/eslint-plugin-query  # Dev tool: catch common errors in @tanstack/react-query
     npm install --save lodash                             # For comparing re-fetched json with current json
     npm install --save delaunator                         # For creating a triangular mesh of unordered vertices
+                                                          #   Note: https://github.com/mapbox/delaunator
+    npm install --save d3                                 # ??https://d3js.org/getting-started
 
     Redux Toolkit
       Start management.
