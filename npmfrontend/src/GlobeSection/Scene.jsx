@@ -7,7 +7,7 @@ import { PointOfInterest } from "./PointOfInterest"
 import { setSelectedPoi } from "../AppState/stateSlicePointsOfInterest"
 import gsap from "gsap"
 import Delaunator from "delaunator"
-import * as d3Geo from "@d3-geo-voronoi"
+import * as d3Geo from "d3-geo-voronoi"
 
 const globeInfo = {
   pos: new THREE.Vector3(0, 0, 0),
