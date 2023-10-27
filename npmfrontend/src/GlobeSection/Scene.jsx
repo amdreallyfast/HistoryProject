@@ -72,7 +72,7 @@ function MyPolygon() {
     let long = 0  // Prime Meridian
     let lat = 90  // north pole
     longLatCoordinates.push([long, lat])
-    for (let lat = 80; lat >= 0; lat -= 10) {
+    for (let lat = 80; lat >= -30; lat -= 10) {
       // 0 -> -180 = West
       for (let long = 0; long >= -180; long -= 10) {
         longLatCoordinates.push([long, lat])
@@ -299,7 +299,26 @@ export function Scene(
 
 
       // TODO disable when you need to get a click on the world surface
-      // console.log(things[0].uv)
+      if (mouseClickedCurrPosRef.current) {
+        // console.log(things[0].point)
+
+        let clickedPoint = things[0].point
+        let x = clickedPoint.x
+        let y = clickedPoint.y
+        let z = clickedPoint.z
+
+        let lenHypotenuseProjectionOntoXZPlane = Math.sqrt((x * x) + (z * z))
+        // let long = Math.acos(z / lenHypotenuseProjectionOntoXZPlane) * (180.0 / Math.PI)
+        let long = Math.asin(x / lenHypotenuseProjectionOntoXZPlane) * (180.0 / Math.PI)
+
+        let lenHypotenuse = Math.sqrt((x * x) + (y * y) + (z * z))
+        let lat = Math.asin(y / 5) * (180.0 / Math.PI)
+
+        // console.log({ point: [x, y, z], h: lenHypotenuse, hP: lenHypotenuseProjectionOntoXZPlane, lat: lat, long: long, })
+        console.log({ lat: lat, long: long })
+
+        mouseClickedCurrPosRef.current = false
+      }
       let firstIntersection = intersections[0].object
       if (firstIntersection.name != "Globe") {
         mouseHoverPoiMesh = firstIntersection
@@ -403,11 +422,11 @@ export function Scene(
 
   return (
     <>
-      {/* <Globe globeRadius={globeInfo.radius} /> */}
+      <Globe globeRadius={globeInfo.radius} />
       <group name="PoiGroup">
         {poiReactElements}
       </group>
-      <MyPolygon />
+      {/* <MyPolygon /> */}
     </>
   )
 }

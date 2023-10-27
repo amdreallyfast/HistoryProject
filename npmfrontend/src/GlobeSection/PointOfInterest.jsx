@@ -45,9 +45,10 @@ export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
     let longRad = (poiInfoJson.latlng[1] / 180.0) * Math.PI
 
     let sphericalPos = new THREE.Vector3()
-    sphericalPos.x = globeRadius * Math.cos(latRad) * Math.sin(longRad)
-    sphericalPos.y = globeRadius * Math.sin(latRad)
-    sphericalPos.z = globeRadius * Math.cos(latRad) * Math.cos(longRad)
+    let projectionOfRadiusOntoXZPlane = globeRadius * Math.cos(latRad)
+    sphericalPos.x = Math.sin(longRad) * projectionOfRadiusOntoXZPlane
+    sphericalPos.y = Math.sin(latRad) * globeRadius
+    sphericalPos.z = Math.cos(longRad) * projectionOfRadiusOntoXZPlane
 
     meshRef.current.position.x = sphericalPos.x
     meshRef.current.position.y = sphericalPos.y
