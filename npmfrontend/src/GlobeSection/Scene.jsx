@@ -8,6 +8,7 @@ import { setSelectedPoi } from "../AppState/stateSlicePointsOfInterest"
 import gsap from "gsap"
 import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
+import { addLocation } from "../AppState/stateSliceClickedPoints"
 
 const globeInfo = {
   pos: new THREE.Vector3(0, 0, 0),
@@ -315,7 +316,9 @@ export function Scene(
         let lat = Math.asin(y / 5) * (180.0 / Math.PI)
 
         // console.log({ point: [x, y, z], h: lenHypotenuse, hP: lenHypotenuseProjectionOntoXZPlane, lat: lat, long: long, })
-        console.log({ lat: lat, long: long })
+        // console.log({ lat: lat, long: long })
+
+        reduxDispatch(addLocation({ lat: lat, long: long }))
 
         mouseClickedCurrPosRef.current = false
       }
