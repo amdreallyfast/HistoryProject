@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { setPointsOfInterest, setSelectedPoi } from "./AppState/stateSlicePointsOfInterest"
+import { setAllPois, setSelectedPoi } from "./AppState/stateSlicePoi"
 import { v4 as uuidv4 } from "uuid"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import _ from "lodash"
@@ -16,10 +16,9 @@ async function getSearchResults(url) {
 
 export function SearchSection() {
   const [searchUri, setSearchUri] = useState()
-  // const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
-  const pointsOfInterest = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
-  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
-  const prevSelectedPoi = useSelector((state) => state.pointsOfInterestReducer.prevSelectedPoi)
+  const allCurrentPois = useSelector((state) => state.poiReducer.allPois)
+  const selectedPoi = useSelector((state) => state.poiReducer.selectedPoi)
+  const prevSelectedPoi = useSelector((state) => state.poiReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
@@ -54,7 +53,7 @@ export function SearchSection() {
     // that there is no change, and therefore the UI will not update, giving no indication that
     //  anything was done. This appearance of unresponsiveness is bad. 
     // Solution: reset the search results and start again, because that's what the user wants.
-    reduxDispatch(setPointsOfInterest(null))
+    reduxDispatch(setAllPois(null))
   }
 
   // console.log({
@@ -105,7 +104,7 @@ export function SearchSection() {
       // arrays (except for the myUniqueId field, which I am creating) to see if anything changed.
       // If nothing changes, then don't bother re-creating everything and changing the POI.
       //TODO: ??how to handle the case that there is a change server-side? I don't want to stomp all over the user's current experience, but how do I handle this??
-      let searchResultsChanged = !_.isEqualWith(pointsOfInterest, sortedJson, (value1, value2, key) => {
+      let searchResultsChanged = !_.isEqualWith(allCurrentPois, sortedJson, (value1, value2, key) => {
         // Note: Returning "true" for a given JSON key without any other logic is effectively 
         // skipping it. 
         // Also Note: Returning undefined will cause the comparison to be handled by 
@@ -145,7 +144,7 @@ export function SearchSection() {
         setSearchResultsReactElements(htmlReactElements)
 
         // Finally, notify the global state of the change in available POIs.
-        reduxDispatch(setPointsOfInterest(sortedJson))
+        reduxDispatch(setAllPois(sortedJson))
       }
     }
     else {

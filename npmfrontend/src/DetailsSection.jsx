@@ -11,7 +11,7 @@ async function fetchImage(url) {
 }
 
 export function DetailsSection({ }) {
-  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
+  const selectedPoi = useSelector((state) => state.poiReducer.selectedPoi)
 
   let title = selectedPoi?.name.official
   let description = selectedPoi?.flags.alt

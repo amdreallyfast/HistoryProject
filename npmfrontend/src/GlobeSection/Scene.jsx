@@ -3,12 +3,11 @@ import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import * as THREE from "three"
 import { Globe } from "./Globe"
-import { PointOfInterest } from "./PointOfInterest"
-import { setSelectedPoi } from "../AppState/stateSlicePointsOfInterest"
-import gsap from "gsap"
+import { Poi } from "./Poi"
+import { setSelectedPoi } from "../AppState/stateSlicePoi"
 import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
-import { addLocation } from "../AppState/stateSliceClickedPoints"
+import { addLocation } from "../AppState/stateSliceEditPoi"
 
 const globeInfo = {
   pos: new THREE.Vector3(0, 0, 0),
@@ -172,9 +171,9 @@ export function Scene(
     mouseClickedCurrPosRef
   }) {
 
-  const poiJsonObjects = useSelector((state) => state.pointsOfInterestReducer.pointsOfInterest)
-  const selectedPoi = useSelector((state) => state.pointsOfInterestReducer.selectedPoi)
-  const prevSelectedPoi = useSelector((state) => state.pointsOfInterestReducer.prevSelectedPoi)
+  const poiJsonObjects = useSelector((state) => state.poiReducer.allPois)
+  const selectedPoi = useSelector((state) => state.poiReducer.selectedPoi)
+  const prevSelectedPoi = useSelector((state) => state.poiReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
@@ -192,7 +191,7 @@ export function Scene(
       poiJsonObjects?.map(
         (poiInfoJson, index) => {
           return (
-            <PointOfInterest
+            <Poi
               key={index}
               globePos={globeInfo.pos}
               globeRadius={globeInfo.radius}

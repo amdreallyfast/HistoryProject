@@ -1,10 +1,9 @@
-import { useFrame } from "@react-three/fiber"
 import gsap from "gsap"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 
 // TODO: rename -> "POIBox"
-export function PointOfInterest({ globePos, globeRadius, poiInfoJson }) {
+export function Poi({ globePos, globeRadius, poiInfoJson }) {
   // debug && console.log("SinglePoint(): begin")
 
   const pointMemo = useMemo(() => {

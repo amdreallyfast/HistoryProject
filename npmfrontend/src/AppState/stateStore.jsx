@@ -1,10 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { stateSliceReducerPointsOfInterest } from "./stateSlicePointsOfInterest";
-import { stateSliceReducerClickedPoints } from "./stateSliceClickedPoints";
+import { stateSlicePoi } from "./stateSlicePoi";
+import { stateSliceEditPoi } from "./stateSliceEditPoi";
 
 export const stateStore = configureStore({
   reducer: {
-    pointsOfInterestReducer: stateSliceReducerPointsOfInterest,
-    clickedPointsReducer: stateSliceReducerClickedPoints,
+    poiReducer: stateSlicePoi.reducer,
+    editPoiReducer: stateSliceEditPoi.reducer
   }
 })

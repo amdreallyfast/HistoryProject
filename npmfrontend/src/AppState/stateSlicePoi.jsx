@@ -1,30 +1,28 @@
 import { createSlice } from "@reduxjs/toolkit"
-import gsap from "gsap"
 
 const initialState = {
-  pointsOfInterest: null,
+  allPois: null,
   selectedPoi: null,
   prevSelectedPoi: null
 }
 
-//??is "export" needed here??
-export const stateSlicePointsOfInterest = createSlice({
-  name: "stateSlicePointsOfInterest",
+export const stateSlicePoi = createSlice({
+  name: "stateSlicePoi",
   initialState,
   reducers: {
-    setPointsOfInterest: (state, action) => {
-      // console.log({ msg: `setPointsOfInterest()`, payload: action.payload })
+    setAvailablePois: (state, action) => {
+      console.log({ stateSlicePoi_setAvailablePois: action.payload })
 
       // Reset selectedPoi along with recording the new collection.
       return {
         ...state,
-        pointsOfInterest: action.payload,
+        allPois: action.payload,
         selectedPoi: null,
         prevSelectedPoi: null
       }
     },
     setSelectedPoi: (state, action) => {
-      // console.log({ msg: `setSelectedPoi()`, payload: action.payload })
+      console.log({ stateSlicePoi_setSelectedPoi: action.payload })
 
       return {
         ...state,
@@ -35,7 +33,4 @@ export const stateSlicePointsOfInterest = createSlice({
   }
 })
 
-export const { setPointsOfInterest, setSelectedPoi } = stateSlicePointsOfInterest.actions
-
-// Note: Export the state slice's "reducer" property as a longer name
-export const { reducer: stateSliceReducerPointsOfInterest } = stateSlicePointsOfInterest
+export const { setAvailablePois: setAllPois, setSelectedPoi } = stateSlicePoi.actions
