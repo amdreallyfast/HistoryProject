@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import _ from "lodash"
 import { setAllPois, setSelectedPoi } from "../AppState/stateSlicePoi"
 import { v4 as uuidv4 } from "uuid"
-import { SearchPois } from "./SearchPois"
+import { damp } from "three/src/math/MathUtils"
 
 async function getSearchResults(url) {
   let response = await fetch(url)
@@ -23,6 +23,23 @@ async function writeSearchResults(url, jsonData) {
     throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
   }
   return response.json()
+}
+
+function ParseDateTimeStr(str) {
+  // Parse the datetime string manually.
+  // Ex: "2023-11-17T15:44"
+  // Note: Yes, the date selector outputs a single string. N, the JavaScript "Date" constructor can't parse it into a Date object.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
+  let dateTimePair = str.split("T")
+  let dateArr = dateTimePair[0].split("-")
+  let timeArr = dateTimePair[1].split(":")
+  return {
+    year: dateArr[0],
+    month: dateArr[1],
+    day: dateArr[2],
+    hour: timeArr[0],
+    min: timeArr[1]
+  }
 }
 
 export function SearchSectionMain() {
@@ -98,15 +115,10 @@ export function SearchSectionMain() {
     writeSearchResultsQuery.status
   ])
 
-  // search
+  // react to search
   useEffect(() => {
     // console.log({ msg: "SearchSection()/useEffect()/getSearchResultsQuery.status", value: getSearchResultsQuery.status })
 
-    // if (!searchUri) {
-    //   // Startup, no search results. The "useQuery" hook defaults to (for some reason) 
-    //   // isLoading = true, but it is _not_ loading (and so I argue that it should be false), so 
-    //   // ignore the query status and don't print anything.
-    // }
     if (!searchUri) {
       // Ignore
       // Note: Per the docs, the status is "loading" if there's no cached data and no query 
@@ -129,7 +141,6 @@ export function SearchSectionMain() {
     }
     else if (getSearchResultsQuery.isSuccess) {
       console.log("Search success...")
-      // setRunningSearch(false)
 
       let rawJson = getSearchResultsQuery.data
       let sortedJson = rawJson
@@ -204,8 +215,7 @@ export function SearchSectionMain() {
     getSearchResultsQuery.isError,
     getSearchResultsQuery.isSuccess,
     getSearchResultsQuery.isFetching,
-    getSearchResultsQuery.status,
-    getSearchResultsQuery.data
+    getSearchResultsQuery.status
   ])
 
   // selectedPoi changes => highlight
@@ -223,10 +233,18 @@ export function SearchSectionMain() {
     }
   }, [selectedPoi])
 
-  const searchAndDisplay = async () => {
+  const onSearchClicked = async (e) => {
     console.log({ searchAndDisplay: `searching for '${searchTextRef.current}'` })
 
     // Fetch all results.
+
+    // TODO: ??incorporate these somehow??
+    // lowerBoundYear
+    // lowerBoundMon
+    // lowerBoundDay
+    // upperBoundYear
+    // upperBoundMon
+    // upperBoundDay
 
     const defaultQuery = "https://restcountries.com/v3.1/all"
     let searchUri = defaultQuery
@@ -253,18 +271,11 @@ export function SearchSectionMain() {
     reduxDispatch(setAllPois(null))
   }
 
-  const onSearchClicked = (e) => {
-    // console.log({ onSearchClicked: e })
-    searchAndDisplay()
-    // TODO: perform search, set results
-  }
-
   const onSearchTextChanged = (e) => {
-    // TODO: auto-complete
     // console.log({ onSearchTextChanged: e.target.value })
-    searchTextRef.current = e.target.value
+    setSearchText(e.target.value)
 
-    // TODO: if input is return, search instantly
+    // TODO: auto-complete
   }
 
   const onSearchTextKeyUp = (e) => {
@@ -275,18 +286,20 @@ export function SearchSectionMain() {
   }
 
   const onSearchLowerBoundDateChanged = (e) => {
-    // TODO: set default value in the far past
-    console.log({ onSearchLowerBoundDateChanged: e.target.value })
-    // TODO: set state value
+    // console.log({ onSearchLowerBoundDateChanged: e.target.value })
+    let parsedDateTime = ParseDateTimeStr(e.target.value)
+    setLowerBoundYear(parsedDateTime.year)
+    setLowerBoundMon(parsedDateTime.month)
+    setLowerBoundDay(parsedDateTime.day)
   }
 
   const onSearchUpperBoundDateChanged = (e) => {
-    // TODO: set default value today
-    console.log({ onSearchUpperBoundDateChanged: e.target.value })
-    // TODO: set state value
+    // console.log({ onSearchUpperBoundDateChanged: e.target.value })
+    let parsedDateTime = ParseDateTimeStr(e.target.value)
+    setUpperBoundYear(parsedDateTime.year)
+    setUpperBoundMon(parsedDateTime.month)
+    setUpperBoundDay(parsedDateTime.day)
   }
-
-
 
   return (
     <div className="flex flex-col h-full border-2 border-green-500">
@@ -301,6 +314,7 @@ export function SearchSectionMain() {
         </div>
 
         <div className="flex flex-col items-start m-1">
+          {/* TODO: set default value in the far past */}
           <span>Date: Lower bound</span>
           <input type='datetime-local'
             className='w-full bg-gray-700'
@@ -308,6 +322,7 @@ export function SearchSectionMain() {
         </div>
 
         <div className="flex flex-col items-start m-1">
+          {/* TODO: set default value today */}
           <span>Date: Upper bound</span>
           <input type='datetime-local'
             className='w-full bg-gray-700'
