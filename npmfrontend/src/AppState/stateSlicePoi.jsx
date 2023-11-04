@@ -10,8 +10,8 @@ export const stateSlicePoi = createSlice({
   name: "stateSlicePoi",
   initialState,
   reducers: {
-    setAvailablePois: (state, action) => {
-      console.log({ stateSlicePoi_setAvailablePois: action.payload })
+    setAllPois: (state, action) => {
+      console.log({ stateSlicePoi_setAllPois: action.payload })
 
       // Reset selectedPoi along with recording the new collection.
       return {
@@ -33,4 +33,4 @@ export const stateSlicePoi = createSlice({
   }
 })
 
-export const { setAvailablePois: setAllPois, setSelectedPoi } = stateSlicePoi.actions
+export const { setAllPois, setSelectedPoi } = stateSlicePoi.actions

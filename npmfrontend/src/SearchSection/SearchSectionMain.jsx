@@ -1,10 +1,10 @@
-import { useEffect } from "react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { setAllPois, setSelectedPoi } from "./AppState/stateSlicePoi"
-import { v4 as uuidv4 } from "uuid"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import _ from "lodash"
+import { setAllPois, setSelectedPoi } from "../AppState/stateSlicePoi"
+import { v4 as uuidv4 } from "uuid"
+import { SearchPois } from "./SearchPois"
 
 async function getSearchResults(url) {
   let response = await fetch(url)
@@ -14,17 +14,43 @@ async function getSearchResults(url) {
   return response.json()
 }
 
-export function SearchSection() {
+async function writeSearchResults(url, jsonData) {
+  let response = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify(jsonData, null, 4)
+  })
+  if (!response.ok) {
+    throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
+  }
+  return response.json()
+}
+
+export function SearchSectionMain() {
+  // const [startNewSearch, setStartNewSearch] = useState(false)
+  // const [runningSearch, setRunningSearch] = useState(false)
   const [searchUri, setSearchUri] = useState()
+
+  // const [startWrite, setStartWrite] = useState(false)
+  // const [runningWrite, setRunningWrite] = useState(false)
+  const [writeUri, setWriteUri] = useState(import.meta.env.BASE_URL + "countryData.json")
+
+  const [searchText, setSearchText] = useState()
+  const [lowerBoundYear, setLowerBoundYear] = useState()
+  const [lowerBoundMon, setLowerBoundMon] = useState()
+  const [lowerBoundDay, setLowerBoundDay] = useState()
+  const [upperBoundYear, setUpperBoundYear] = useState()
+  const [upperBoundMon, setUpperBoundMon] = useState()
+  const [upperBoundDay, setUpperBoundDay] = useState()
+
+  // Not strictly HTML, but still a state.
+  const [searchResultReactElements, setSearchResultsReactElements] = useState()
+  const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
+  const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
+
   const allCurrentPois = useSelector((state) => state.poiReducer.allPois)
   const selectedPoi = useSelector((state) => state.poiReducer.selectedPoi)
   const prevSelectedPoi = useSelector((state) => state.poiReducer.prevSelectedPoi)
   const reduxDispatch = useDispatch()
-
-  // Not strictly HTML.
-  const [searchResultReactElements, setSearchResultsReactElements] = useState()
-  const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
-  const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
   const searchTextRef = useRef()
 
@@ -42,53 +68,69 @@ export function SearchSection() {
     enabled: !!searchUri  // only run once searchUri is set
   })
 
-  const forceResetSearchResults = () => {
-    // Reset the query cache
-    queryClient.resetQueries({ queryKey: ["getSearchResults"] })
+  const writeSearchResultsQuery = useQuery({
+    queryKey: ["writeSearchResults", writeUri, allCurrentPois],
+    queryFn: () => writeSearchResults(writeUri, allCurrentPois),
+    enabled: !!writeUri && !!allCurrentPois
+  })
 
-    // Reset the POI collection.
-    // Problem: If it is _not_ set to null, then clicking "search" when the searchQuery has not
-    // changed will result in the same search results as are current, and therefore the search 
-    // result comparison in the "getSearchResultsQuery"-dependent useEffect() will determine 
-    // that there is no change, and therefore the UI will not update, giving no indication that
-    //  anything was done. This appearance of unresponsiveness is bad. 
-    // Solution: reset the search results and start again, because that's what the user wants.
-    reduxDispatch(setAllPois(null))
-  }
+  useEffect(() => {
+    if (writeSearchResultsQuery.isLoading) {
+      console.log("Write loading...")
+    }
+    else if (writeSearchResultsQuery.isError) {
+      console.log("Write error...")
+    }
+    else if (writeSearchResultsQuery.isFetching) {
+      console.log("Write refreshing...")
+    }
+    else if (writeSearchResultsQuery.isSuccess) {
+      console.log("Write success...")
+    }
+    else {
+      console.log({ msg: "Unknown query status", error: writeSearchResultsQuery.status })
+    }
+  }, [
+    writeSearchResultsQuery.isLoading,
+    writeSearchResultsQuery.isError,
+    writeSearchResultsQuery.isFetching,
+    writeSearchResultsQuery.isSuccess,
+    writeSearchResultsQuery.status
+  ])
 
-  // console.log({
-  //   status: getSearchResultsQuery.status,
-  //   fetching: getSearchResultsQuery.isFetching,
-  //   error: getSearchResultsQuery.error,
-  //   data: getSearchResultsQuery.data
-  // })
-
-  // If searchUri changes, then the query will run, but _only_ if it hasn't seen that result before. It's caching the result. ??work with caching? circumvent it??
-
+  // search
   useEffect(() => {
     // console.log({ msg: "SearchSection()/useEffect()/getSearchResultsQuery.status", value: getSearchResultsQuery.status })
 
+    // if (!searchUri) {
+    //   // Startup, no search results. The "useQuery" hook defaults to (for some reason) 
+    //   // isLoading = true, but it is _not_ loading (and so I argue that it should be false), so 
+    //   // ignore the query status and don't print anything.
+    // }
     if (!searchUri) {
-      // Startup, no search results. The "useQuery" hook defaults to (for some reason) 
-      // isLoading = true, but it is _not_ loading (and so I argue that it should be false), so 
-      // ignore the query status and don't print anything.
+      // Ignore
+      // Note: Per the docs, the status is "loading" if there's no cached data and no query 
+      // attempt has been finished. Consequently, this means that "never tried searching at all" 
+      // is indistinguishable from "started my first search, but haven't cached the results". If
+      // we don't catch this, then the default test in the search area will be "Loading", even 
+      // though it isn't loading anything.
     }
     else if (getSearchResultsQuery.isLoading) {
-      // console.log("Loading...")
+      console.log("Search loading...")
       setSearchResultsReactElements((<h1>Loading...</h1>))
     }
     else if (getSearchResultsQuery.isError) {
-      // console.log("Error...")
+      console.log("Search error...")
       setSearchResultsReactElements((<pre>{JSON.stringify(getSearchResultsQuery.error)}</pre>))
     }
     else if (getSearchResultsQuery.isFetching) {
-      // console.log("Refreshing...")
-      // setSearchResultsReactElements((<h1>Refreshing...</h1>))
-
-      // Ignore. Carry on.
+      console.log("Search refreshing...")
+      // Ignore. Let it finish. Only update when there is success.
     }
     else if (getSearchResultsQuery.isSuccess) {
-      // console.log("Success...")
+      console.log("Search success...")
+      // setRunningSearch(false)
+
       let rawJson = getSearchResultsQuery.data
       let sortedJson = rawJson
         .sort((a, b) => a.name.official.localeCompare(b.name.official))
@@ -106,14 +148,14 @@ export function SearchSection() {
       //TODO: ??how to handle the case that there is a change server-side? I don't want to stomp all over the user's current experience, but how do I handle this??
       let searchResultsChanged = !_.isEqualWith(allCurrentPois, sortedJson, (value1, value2, key) => {
         // Note: Returning "true" for a given JSON key without any other logic is effectively 
-        // skipping it. 
+        // skipping it. Skip "myUniqueId", which should never change.
         // Also Note: Returning undefined will cause the comparison to be handled by 
         // "isEqualWith(...)" itself, which will default to recursing through the object.
         return key === "myUniqueId" ? true : undefined
       })
 
       if (searchResultsChanged) {
-        // Re-create the POIs.
+        // Create/re-create the POIs.
 
         // Callback
         const onSearchResultClicked = (e, poiJson) => {
@@ -156,11 +198,15 @@ export function SearchSection() {
       ))
     }
 
-  }, [getSearchResultsQuery.isLoading,
-  getSearchResultsQuery.isError,
-  getSearchResultsQuery.isSuccess,
-  getSearchResultsQuery.isFetching,
-  getSearchResultsQuery.data])
+  }, [
+    searchUri,
+    getSearchResultsQuery.isLoading,
+    getSearchResultsQuery.isError,
+    getSearchResultsQuery.isSuccess,
+    getSearchResultsQuery.isFetching,
+    getSearchResultsQuery.status,
+    getSearchResultsQuery.data
+  ])
 
   // selectedPoi changes => highlight
   useEffect(() => {
@@ -177,24 +223,34 @@ export function SearchSection() {
     }
   }, [selectedPoi])
 
-  const searchFunc = async ({ searchText, lowerBoundYear, lowerBoundMon, lowerBoundDay, upperBoundYear, upperBoundMon, upperBoundDay }) => {
-    // Fetch all results.
-    // const defaultQuery = "https://restcountries.com/v3.1/all"
-    const defaultQuery = "./countryData.json"
+  const searchAndDisplay = async () => {
+    console.log({ searchAndDisplay: `searching for '${searchTextRef.current}'` })
 
+    // Fetch all results.
+
+    const defaultQuery = "https://restcountries.com/v3.1/all"
     let searchUri = defaultQuery
     if (searchText) {
       searchUri = `https://restcountries.com/v3.1/name/${searchText}`
     }
-
+    // searchUri = import.meta.env.BASE_URL + "countryData.json"
     // console.log({ searchUri: searchUri })
-    setSearchUri(searchUri)
-    forceResetSearchResults()
-  }
 
-  const searchAndDisplay = async () => {
-    // console.log({ searchAndDisplay: `searching for '${searchTextRef.current}'` })
-    searchFunc({ searchText: searchTextRef.current })
+    console.log("Search starting...")
+    setSearchUri(searchUri)
+    // setRunningSearch(true)
+
+    // Reset the query cache so that the next run of the query won't simply update the cache.
+    queryClient.resetQueries({ queryKey: ["getSearchResults"] })
+
+    // Reset the POI collection.
+    // Problem: If it is _not_ set to null, then clicking "search" when the searchQuery has not
+    // changed will result in the same search results as are current, and therefore the search 
+    // result comparison in the "getSearchResultsQuery"-dependent useEffect() will determine 
+    // that there is no change, and therefore the UI will not update, giving no indication that
+    // anything was done. This appearance of unresponsiveness is bad. 
+    // Solution: reset the search results and start again, because that's what the user wants.
+    reduxDispatch(setAllPois(null))
   }
 
   const onSearchClicked = (e) => {

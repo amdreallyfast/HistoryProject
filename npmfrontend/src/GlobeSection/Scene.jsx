@@ -1,13 +1,13 @@
 import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
+import { setSelectedPoi } from "../AppState/stateSlicePoi"
+import { addLocation } from "../AppState/stateSliceEditPoi"
 import * as THREE from "three"
 import { Globe } from "./Globe"
 import { Poi } from "./Poi"
-import { setSelectedPoi } from "../AppState/stateSlicePoi"
 import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
-import { addLocation } from "../AppState/stateSliceEditPoi"
 
 const globeInfo = {
   pos: new THREE.Vector3(0, 0, 0),
