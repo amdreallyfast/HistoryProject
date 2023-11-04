@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { SearchSectionMain } from './SearchSection/SearchSectionMain'
 import { GlobeSectionMain } from "./GlobeSection/GlobeSectionMain"
-import { DetailsSection } from "./DetailsSection"
+import { DetailsSection } from './DetailsSection/DetailsSectionMain'
 import './App.css'
 
 // TODO: consider using Flowbit instead of plain Tailwind
