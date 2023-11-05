@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import * as THREE from "three"
+import { meshNames } from "./constValues"
 
 // Source:
 //  https://karthikkaranth.me/blog/generating-random-points-in-a-sphere/#better-choice-of-spherical-coordinates
@@ -59,7 +60,7 @@ export function Stars({ debug }) {
   }, [])
 
   return (
-    <points name="Stars" geometry={starsMemo.geometry}>
+    <points name={meshNames.Stars} geometry={starsMemo.geometry}>
       <pointsMaterial color={0xffffff} />
     </points>
   )

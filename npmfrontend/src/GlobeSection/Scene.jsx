@@ -8,11 +8,7 @@ import { Globe } from "./Globe"
 import { Poi } from "./Poi"
 import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
-
-const globeInfo = {
-  pos: new THREE.Vector3(0, 0, 0),
-  radius: 5
-}
+import { globeInfo, meshNames } from "./constValues"
 
 function MyPolygon() {
 
@@ -162,6 +158,37 @@ function MyPolygon() {
   )
 }
 
+function ConvertLatLongToXYZ({ lat, long }) {
+
+}
+
+function ConvertXYZToLatLong(x, y, z) {
+  // Note: Camera defaults to being on the Z axis (and backed up negative). With that perspective:
+  //  -X is left, +X is right
+  //  -Y is down, +Y is up
+  //  -Z is towards the camera, +Z is away from camera
+  // That makes XZ the horizontal plane.
+  const radToDeg = 180.0 / Math.PI
+
+  //??why is this not exactly equal to globe radius??
+  //let lenHypotenuse = Math.sqrt((x * x) + (y * y) + (z * z))
+  let lenHypotenuse = globeInfo.radius
+  let latRad = Math.asin(y / lenHypotenuse)
+
+  // let lenHypotenuseProjectionOntoXZPlane = Math.sqrt((x * x) + (z * z))
+  let lenHypotenuseProjectionOntoXZPlane = lenHypotenuse * Math.cos(latRad)
+  let longRad = Math.asin(x / lenHypotenuseProjectionOntoXZPlane)
+
+  console.log(x, y, z)
+
+  // console.log({ point: [x, y, z], h: lenHypotenuse, hP: lenHypotenuseProjectionOntoXZPlane, lat: lat, long: long, })
+  // console.log({ lat: lat, long: long })
+  return [
+    latRad * radToDeg,
+    longRad * radToDeg,
+  ]
+}
+
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
   {
@@ -283,52 +310,30 @@ export function Scene(
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mousePosCanvasScreenSpaceRef.current, state.camera)
     const intersections = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
-    let notHoveringOverAnyPois =
-      intersections.length == 0
-    // || // Space
-    // (intersections.length == 1 && intersections[0].object.name == "Globe")  // Just the earth
-    if (notHoveringOverAnyPois) {
-      // Ignore all mouse clicks.
-      mouseClickedCurrPosRef.current = false
+    if (intersections.length == 0) {
+      // Mouse is in space. Ignore.
+      // console.log("hover nothing")
     }
     else {
-      let things = intersections.filter((intersection) => intersection.object.name == "Globe")
-      // console.log({ things: things })
-
-
-
-
-      // TODO disable when you need to get a click on the world surface
-      if (mouseClickedCurrPosRef.current) {
-        // console.log(things[0].point)
-
-        let clickedPoint = things[0].point
-        let x = clickedPoint.x
-        let y = clickedPoint.y
-        let z = clickedPoint.z
-
-        let lenHypotenuseProjectionOntoXZPlane = Math.sqrt((x * x) + (z * z))
-        // let long = Math.acos(z / lenHypotenuseProjectionOntoXZPlane) * (180.0 / Math.PI)
-        let long = Math.asin(x / lenHypotenuseProjectionOntoXZPlane) * (180.0 / Math.PI)
-
-        let lenHypotenuse = Math.sqrt((x * x) + (y * y) + (z * z))
-        let lat = Math.asin(y / 5) * (180.0 / Math.PI)
-
-        // console.log({ point: [x, y, z], h: lenHypotenuse, hP: lenHypotenuseProjectionOntoXZPlane, lat: lat, long: long, })
-        // console.log({ lat: lat, long: long })
-
-        reduxDispatch(addLocation({ lat: lat, long: long }))
-
-        mouseClickedCurrPosRef.current = false
+      let firstIntersection = intersections[0]
+      if (firstIntersection.object.name == meshNames.Globe) {
+        // console.log("hover globe")
+        if (mouseClickedCurrPosRef.current) {
+          let clickedPoint = firstIntersection.point
+          let x = clickedPoint.x
+          let y = clickedPoint.y
+          let z = clickedPoint.z
+          const [lat, long] = ConvertXYZToLatLong(x, y, z)
+          reduxDispatch(addLocation({ lat, long }))
+        }
       }
-      let firstIntersection = intersections[0].object
-      if (firstIntersection.name != "Globe") {
-        mouseHoverPoiMesh = firstIntersection
+      else if (firstIntersection.object.name == meshNames.Poi) {
+        // console.log("hover poi")
+        mouseHoverPoiMesh = intersections[0].object
       }
-
-
-
-
+      else {
+        // Ignore other objects (stars, atmosphere, etc.)
+      }
     }
 
     // Occurs when the mouse drifts from the world (or space) to a POI.
@@ -400,8 +405,8 @@ export function Scene(
     else if (clickedSamePoiHover) {
       console.log({ msg: "clickedSamePoiHover" })
 
-      // Only allow a single click to process
-      mouseClickedCurrPosRef.current = false
+      // // Only allow a single click to process
+      // mouseClickedCurrPosRef.current = false
 
       if (mouseHoverPoiMesh.uuid == currSelectedPoiMeshRef.current?.uuid) {
         // The currently selected item is clicked again => de-selected
@@ -420,6 +425,7 @@ export function Scene(
     }
 
     prevMouseHoverPoiMeshRef.current = mouseHoverPoiMesh
+    mouseClickedCurrPosRef.current = false
   })
 
   return (

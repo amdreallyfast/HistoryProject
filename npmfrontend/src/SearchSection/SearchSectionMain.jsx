@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import _ from "lodash"
 import { setAllPois, setSelectedPoi } from "../AppState/stateSlicePoi"
-import { v4 as uuidv4 } from "uuid"
+import { v4 as uuid } from "uuid"
 import { damp } from "three/src/math/MathUtils"
 
 async function getSearchResults(url) {
@@ -148,7 +148,7 @@ export function SearchSectionMain() {
         .map((jsonValue) => {
           // Note 9/13/2023: It took me an hour to figure out, but apparently the fetch processing
           // adds an immutable "key" field. So make your own key field to store this uniqueId.
-          jsonValue.myUniqueId = uuidv4()
+          jsonValue.myUniqueId = uuid()
           return jsonValue
         })
 
@@ -171,6 +171,7 @@ export function SearchSectionMain() {
         // Callback
         const onSearchResultClicked = (e, poiJson) => {
           // If already selected, de-select.
+          // Note: Using bold text as a proxy for "is selected".
           if (e.target.className.includes("font-bold")) {
             reduxDispatch(setSelectedPoi(null))
           }
@@ -223,13 +224,13 @@ export function SearchSectionMain() {
     // console.log({ msg: "SearchSection()/useEffect()/selectedPoi", value: selectedPoi })
 
     if (selectedPoi) {
-      let selectedPoiHtml = document.getElementById(selectedPoi.myUniqueId)
-      selectedPoiHtml.className = searchResultHtmlClassNameHighlighted
+      let selectedHtmlElement = document.getElementById(selectedPoi.myUniqueId)
+      selectedHtmlElement.className = searchResultHtmlClassNameHighlighted
     }
 
     if (prevSelectedPoi) {
-      let prevSelectedPoiHtml = document.getElementById(prevSelectedPoi.myUniqueId)
-      prevSelectedPoiHtml.classList = searchResultHtmlClassNameNormal
+      let prevSelectedHtmlElement = document.getElementById(prevSelectedPoi.myUniqueId)
+      prevSelectedHtmlElement.className = searchResultHtmlClassNameNormal
     }
   }, [selectedPoi])
 
@@ -303,6 +304,7 @@ export function SearchSectionMain() {
 
   return (
     <div className="flex flex-col h-full border-2 border-green-500">
+      {/* Search info */}
       <div className="flex flex-col border-2 border-gray-600">
         <div className="flex flex-col items-start m-1">
           <span>Search:</span>
@@ -337,6 +339,7 @@ export function SearchSectionMain() {
         </div>
       </div>
 
+      {/* Search results */}
       <div className='flex flex-col items-start border-2 border-gray-600 m-1 h-full overflow-auto'>
         {searchResultReactElements}
       </div>

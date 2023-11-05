@@ -1,6 +1,7 @@
 import gsap from "gsap"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
+import { meshNames } from "./constValues"
 
 // TODO: rename -> "POIBox"
 export function Poi({ globePos, globeRadius, poiInfoJson }) {
@@ -85,7 +86,7 @@ export function Poi({ globePos, globeRadius, poiInfoJson }) {
   })
 
   return (
-    <mesh name={"PoiMesh"} ref={meshRef} geometry={pointMemo.geometry}>
+    <mesh name={meshNames.Poi} ref={meshRef} geometry={pointMemo.geometry}>
       <meshBasicMaterial ref={materialRef} transparent={true} />
     </mesh>
   )
