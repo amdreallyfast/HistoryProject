@@ -2,6 +2,7 @@ import gsap from "gsap"
 import { useEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
 import { meshNames } from "./constValues"
+import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
 
 // TODO: rename -> "POIBox"
 export function Poi({ globePos, globeRadius, poiInfoJson }) {
@@ -41,18 +42,12 @@ export function Poi({ globePos, globeRadius, poiInfoJson }) {
     meshRef.current.userData.highlightOpacity = 1
 
     // Move the POI box to the location on the globe indicated by lat/long.
-    let latRad = (poiInfoJson.latlng[0] / 180.0) * Math.PI
-    let longRad = (poiInfoJson.latlng[1] / 180.0) * Math.PI
-
-    let sphericalPos = new THREE.Vector3()
-    let projectionOfRadiusOntoXZPlane = globeRadius * Math.cos(latRad)
-    sphericalPos.x = Math.sin(longRad) * projectionOfRadiusOntoXZPlane
-    sphericalPos.y = Math.sin(latRad) * globeRadius
-    sphericalPos.z = Math.cos(longRad) * projectionOfRadiusOntoXZPlane
-
-    meshRef.current.position.x = sphericalPos.x
-    meshRef.current.position.y = sphericalPos.y
-    meshRef.current.position.z = sphericalPos.z
+    let lat = poiInfoJson.latlng[0]
+    let long = poiInfoJson.latlng[1]
+    const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeRadius)
+    meshRef.current.position.x = x
+    meshRef.current.position.y = y
+    meshRef.current.position.z = z
 
     // Rotate the box to look at the globe so that the box stands on end relative to the surface.
     meshRef.current.lookAt(globePos)

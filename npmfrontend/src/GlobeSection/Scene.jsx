@@ -6,188 +6,9 @@ import { addLocation } from "../AppState/stateSliceEditPoi"
 import * as THREE from "three"
 import { Globe } from "./Globe"
 import { Poi } from "./Poi"
-import Delaunator from "delaunator"
-import * as d3Geo from "d3-geo-voronoi"
 import { globeInfo, meshNames, groupNames } from "./constValues"
-
-function MyPolygon() {
-
-  const regionMeshRef = useRef()
-  useEffect(() => {
-    console.log("MyPolygon -> useEffect -> regionMeshRef")
-    let values = [
-      { name: "one", lat: 0, long: +1, alt: 0 },
-      { name: "two", lat: -1.5, long: +0.2, alt: 0 },
-      { name: "three", lat: -0.3, long: -1, alt: 0 },
-      { name: "four", lat: +0.3, long: -1, alt: 0 },
-      { name: "five", lat: +1.5, long: +0.2, alt: 0 }
-    ]
-
-    // Note: The Delaunator library here only works for 2D, but we need 3D coordinates.
-    // ?? use 3D version instead? (https://github.com/d3/d3-delaunay) it seems to compute a lot more than I want??
-    let vertices2D = []
-    let vertices3D = []
-    values.forEach((point) => {
-      vertices2D.push(point.lat, point.long)
-      vertices3D.push(point.lat, point.long, point.alt)
-    })
-
-    const vertices2DTypedArray = new Float32Array(vertices2D)
-    const vertices3DTypedArray = new Float32Array(vertices3D)
-
-    let delaunator = new Delaunator(vertices2DTypedArray)
-    let vertexIndices = delaunator.triangles
-
-    // const d3Delaunay = new d3.Delaunay(vertices3DTypedArray)
-    // console.log(d3Delaunay)
-
-    // Note: Indices should still work because the 3D vertices are in the exact same order as the 
-    // 2D, but with one more value (Z coordinate)
-    let posValuesPerPoint = 3
-    let positionAttribute = new THREE.Float32BufferAttribute(vertices3D, posValuesPerPoint)
-    regionMeshRef.current.geometry.setAttribute("position", positionAttribute)
-
-    let indexValuesPerPoint = 1
-    let indicesAttribute = new THREE.Uint32BufferAttribute(vertexIndices, indexValuesPerPoint)
-    regionMeshRef.current.geometry.setIndex(indicesAttribute)
-  }, [regionMeshRef.current])
-
-  const sphereMeshRef = useRef()
-  const pointsMeshRef = useRef()
-  useEffect(() => {
-    console.log("MyPolygon -> useEffect -> sphereMeshRef")
-
-    // see if this thing works with a sphere
-    let radius = 3
-    let widthSegments = 32
-    let heightSegments = 16
-    let myGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
-    const vertices3DTypedArray = new Float32Array(myGeometry.attributes.position.array)
-
-    let longLatCoordinates = []
-    let long = 0  // Prime Meridian
-    let lat = 90  // north pole
-    longLatCoordinates.push([long, lat])
-    for (let lat = 80; lat >= -30; lat -= 10) {
-      // 0 -> -180 = West
-      for (let long = 0; long >= -180; long -= 10) {
-        longLatCoordinates.push([long, lat])
-      }
-
-      // 0 -> +180 = East
-      for (let long = 0; long <= 180; long += 10) {
-        longLatCoordinates.push([long, lat])
-      }
-    }
-    // console.log({ longLatCoordinates: longLatCoordinates })
-    // console.log({ "longLatCoordinates[0]": longLatCoordinates[0] })
-
-    // ??why does "for (let i in arrayOfArrays)" end up flattening the array??
-    let sphereVertices = []
-    longLatCoordinates.forEach((longLat) => {
-      // console.log({ longLat: longLat })
-      let longRad = (longLat[0] / 180.0) * Math.PI  // 90 => 1.570795
-      let latRad = (longLat[1] / 180.0) * Math.PI   // 0  => 0
-
-      let x = radius * Math.cos(latRad) * Math.sin(longRad)
-      let y = radius * Math.sin(latRad)
-      let z = radius * Math.cos(latRad) * Math.cos(longRad)
-      sphereVertices.push(x, y, z)
-
-      // console.log({
-      //   longLat: longLat,
-      //   long: longLat[0],
-      //   lat: longLat[1],
-      //   longRad: longRad,
-      //   latRad: latRad,
-      //   x: x,
-      //   y: y,
-      //   z: z
-      // })
-
-    })
-
-    // console.log({ vertices: vertices })
-
-    let valuesPerVertex = 3
-    let pointsPositionAttribute = new THREE.Float32BufferAttribute(sphereVertices, valuesPerVertex)
-    pointsMeshRef.current.geometry.setAttribute("position", pointsPositionAttribute)
-
-    let delaunay = d3Geo.geoDelaunay(longLatCoordinates)
-    // let delaunay = d3Geo.geoDelaunay(myGeometry.attributes.position.array)
-    let vertexIndices = delaunay.triangles.flat()
-
-    // let myGeometry = new THREE.BoxGeometry(3, 3, 3, 3)
-    // console.log(myGeometry)
-    // let vertices = myGeometry.attributes.position.array
-    // let vertexIndices = myGeometry.index.array
-
-    // let valuesPerVertex = 3
-    let spherePositionAttribute = new THREE.Float32BufferAttribute(sphereVertices, valuesPerVertex)
-    sphereMeshRef.current.geometry.setAttribute("position", spherePositionAttribute)
-
-    let indexValuesPerPoint = 1
-    let sphereIndicesAttribute = new THREE.Uint32BufferAttribute(vertexIndices, indexValuesPerPoint)
-    sphereMeshRef.current.geometry.setIndex(sphereIndicesAttribute)
-  }, [sphereMeshRef.current])
-
-
-
-
-  // 1 convert lat-long to vertices
-  // create triangles
-  // if more than three points, create center vertex 
-  // create polygon
-  // make transparent
-  // make Wed
-
-  return (
-    <>
-      <mesh name="TestRegion" ref={regionMeshRef}>
-        <meshBasicMaterial color={0xff007f} side={THREE.DoubleSide} />
-      </mesh>
-
-      <mesh name="TestSphere" ref={sphereMeshRef}>
-        <meshBasicMaterial color={0x0fff0} side={THREE.DoubleSide} wireframe={true} />
-      </mesh>
-
-      <points name="TestPointsRef" ref={pointsMeshRef}>
-        <pointsMaterial color={0x00fff0} size={0.3} />
-      </points>
-    </>
-  )
-}
-
-function ConvertLatLongToXYZ({ lat, long }) {
-
-}
-
-function ConvertXYZToLatLong(x, y, z) {
-  // Note: Camera defaults to being on the Z axis (and backed up negative). With that perspective:
-  //  -X is left, +X is right
-  //  -Y is down, +Y is up
-  //  -Z is towards the camera, +Z is away from camera
-  // That makes XZ the horizontal plane.
-  const radToDeg = 180.0 / Math.PI
-
-  //??why is this not exactly equal to globe radius??
-  //let lenHypotenuse = Math.sqrt((x * x) + (y * y) + (z * z))
-  let lenHypotenuse = globeInfo.radius
-  let latRad = Math.asin(y / lenHypotenuse)
-
-  // let lenHypotenuseProjectionOntoXZPlane = Math.sqrt((x * x) + (z * z))
-  let lenHypotenuseProjectionOntoXZPlane = lenHypotenuse * Math.cos(latRad)
-  let longRad = Math.asin(x / lenHypotenuseProjectionOntoXZPlane)
-
-  console.log(x, y, z)
-
-  // console.log({ point: [x, y, z], h: lenHypotenuse, hP: lenHypotenuseProjectionOntoXZPlane, lat: lat, long: long, })
-  // console.log({ lat: lat, long: long })
-  return [
-    latRad * radToDeg,
-    longRad * radToDeg,
-  ]
-}
+import { Region } from "./Region"
+import { ConvertXYZToLatLong } from "./convertLatLongXYZ"
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
@@ -325,7 +146,7 @@ export function Scene(
           let x = clickedPoint.x
           let y = clickedPoint.y
           let z = clickedPoint.z
-          const [lat, long] = ConvertXYZToLatLong(x, y, z)
+          const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
           reduxDispatch(addLocation({ lat, long }))
         }
       }
@@ -434,7 +255,7 @@ export function Scene(
       <group name={groupNames.PoiGroup}>
         {poiReactElements}
       </group>
-      {/* <MyPolygon /> */}
+      <Region />
     </>
   )
 }
