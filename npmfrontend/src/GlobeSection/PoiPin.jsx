@@ -4,12 +4,12 @@ import * as THREE from "three"
 import { meshNames } from "./constValues"
 import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
 
-// TODO: rename -> "POIBox"
-export function Poi({ globePos, globeRadius, poiInfoJson }) {
-  // debug && console.log("SinglePoint(): begin")
+export function PoiPin({ globePos, globeRadius, poiInfoJson }) {
+  // debug && console.log("PoiPin(): begin")
 
-  const pointMemo = useMemo(() => {
-    // debug && console.log("SinglePoint(): useMemo")
+  // Geometry is identical for all PoiPins, so only need to make it once.
+  const memo = useMemo(() => {
+    // debug && console.log("PoiPin(): useMemo")
 
     const height = 0.8
     const width = 0.1
@@ -33,7 +33,7 @@ export function Poi({ globePos, globeRadius, poiInfoJson }) {
   const meshRef = useRef()
   const materialRef = useRef()
   useEffect(() => {
-    console.log("POI UseEffect")
+    // console.log("PoiPin -> meshRef useEffect()")
 
     meshRef.current.userData.poiInfoJson = poiInfoJson  // all info about the object
     meshRef.current.userData.originalColor = new THREE.Color(0x3bf7ff)
@@ -78,10 +78,10 @@ export function Poi({ globePos, globeRadius, poiInfoJson }) {
         ease: "linear",
         delay: Math.random(1)
       })
-  })
+  }, [meshRef.current, materialRef.current])
 
   return (
-    <mesh name={meshNames.Poi} ref={meshRef} geometry={pointMemo.geometry}>
+    <mesh name={meshNames.PoiPin} ref={meshRef} geometry={memo.geometry}>
       <meshBasicMaterial ref={materialRef} transparent={true} />
     </mesh>
   )

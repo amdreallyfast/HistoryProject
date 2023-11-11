@@ -5,7 +5,7 @@ import { setSelectedPoi } from "../AppState/stateSlicePoi"
 import { addLocation } from "../AppState/stateSliceEditPoi"
 import * as THREE from "three"
 import { Globe } from "./Globe"
-import { Poi } from "./Poi"
+import { PoiPin } from "./PoiPin"
 import { globeInfo, meshNames, groupNames } from "./constValues"
 import { Region } from "./Region"
 import { ConvertXYZToLatLong } from "./convertLatLongXYZ"
@@ -38,7 +38,7 @@ export function Scene(
       poiJsonObjects?.map(
         (poiInfoJson, index) => {
           return (
-            <Poi
+            <PoiPin
               key={index}
               globePos={globeInfo.pos}
               globeRadius={globeInfo.radius}
@@ -150,7 +150,7 @@ export function Scene(
           reduxDispatch(addLocation({ lat, long }))
         }
       }
-      else if (firstIntersection.object.name == meshNames.Poi) {
+      else if (firstIntersection.object.name == meshNames.PoiPin) {
         // console.log("hover poi")
         mouseHoverPoiMesh = intersections[0].object
       }

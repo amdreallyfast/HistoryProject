@@ -7,7 +7,8 @@ export const globeInfo = {
 
 export const meshNames = {
   Stars: "Stars",
-  Poi: "Poi",
+  PoiPin: "PoiPin",
+  LatLongPin: "LatLongPin",
   Globe: "Globe",
   GlobeAtmosphere: "GlobeAtmosphere"
 }
