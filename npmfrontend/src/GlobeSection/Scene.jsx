@@ -8,7 +8,7 @@ import { Globe } from "./Globe"
 import { Poi } from "./Poi"
 import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
-import { globeInfo, meshNames } from "./constValues"
+import { globeInfo, meshNames, groupNames } from "./constValues"
 
 function MyPolygon() {
 
@@ -194,8 +194,7 @@ export function Scene(
   {
     poiInfoPopupElementRef,
     poiInfoTitleElementRef,
-    mousePosCanvasScreenSpaceRef,
-    mouseClickedCurrPosRef
+    mouseInfoRef
   }) {
 
   const poiJsonObjects = useSelector((state) => state.poiReducer.allPois)
@@ -242,14 +241,16 @@ export function Scene(
     // objects that the raytracer considers.
     const poiAndGlobeMeshes = []
     getThreeJsState().scene.children.filter(component => {
-      if (component.name === "PoiGroup") {
+      if (component.name === groupNames.PoiGroup) {
+        // Collect all POIs.
         component.children.forEach(child => {
           poiAndGlobeMeshes.push(child)
         })
       }
-      else if (component.name === "GlobeGroup") {
+      else if (component.name === groupNames.GlobeGroup) {
+        // Collect only the globe mesh (not the atmosphere).
         component.children.forEach(child => {
-          if (child.name === "Globe") {
+          if (child.name === meshNames.Globe) {
             poiAndGlobeMeshes.push(child)
           }
         })
@@ -308,7 +309,7 @@ export function Scene(
     // 2. Not behind the globe
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
     let mouseHoverPoiMesh = null
-    state.raycaster.setFromCamera(mousePosCanvasScreenSpaceRef.current, state.camera)
+    state.raycaster.setFromCamera(mouseInfoRef.current.currPos, state.camera)
     const intersections = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
     if (intersections.length == 0) {
       // Mouse is in space. Ignore.
@@ -318,7 +319,8 @@ export function Scene(
       let firstIntersection = intersections[0]
       if (firstIntersection.object.name == meshNames.Globe) {
         // console.log("hover globe")
-        if (mouseClickedCurrPosRef.current) {
+        if (mouseInfoRef.current.mouseClickedCurrPos) {
+          // Clicked _where_ on globe?
           let clickedPoint = firstIntersection.point
           let x = clickedPoint.x
           let y = clickedPoint.y
@@ -354,7 +356,7 @@ export function Scene(
     let clickedSamePoiHover =
       mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
       mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid &&
-      mouseClickedCurrPosRef.current == true
+      mouseInfoRef.current.mouseClickedCurrPos
 
     if (newPoiHover) {
       // console.log({ msg: "newPoiHover" })
@@ -405,9 +407,6 @@ export function Scene(
     else if (clickedSamePoiHover) {
       console.log({ msg: "clickedSamePoiHover" })
 
-      // // Only allow a single click to process
-      // mouseClickedCurrPosRef.current = false
-
       if (mouseHoverPoiMesh.uuid == currSelectedPoiMeshRef.current?.uuid) {
         // The currently selected item is clicked again => de-selected
         currSelectedPoiMeshRef.current = null
@@ -424,14 +423,15 @@ export function Scene(
       // console.log("no POI hover")
     }
 
+    // End of frame. Mouse handling done.
     prevMouseHoverPoiMeshRef.current = mouseHoverPoiMesh
-    mouseClickedCurrPosRef.current = false
+    mouseInfoRef.current.mouseClickedCurrPos = false
   })
 
   return (
     <>
       <Globe globeRadius={globeInfo.radius} />
-      <group name="PoiGroup">
+      <group name={groupNames.PoiGroup}>
         {poiReactElements}
       </group>
       {/* <MyPolygon /> */}

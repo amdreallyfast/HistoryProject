@@ -11,3 +11,8 @@ export const meshNames = {
   Globe: "Globe",
   GlobeAtmosphere: "GlobeAtmosphere"
 }
+
+export const groupNames = {
+  PoiGroup: "PoiGroup",
+  GlobeGroup: "GlobeGroup"
+}

@@ -5,7 +5,7 @@ import globeFragShaderText from "../assets/shaders/globe.frag?raw"
 import atmosphereVertShaderText from "../assets/shaders/atmosphere.vert?raw"
 import atmosphereFragShaderText from "../assets/shaders/atmosphere.frag?raw"
 import * as THREE from "three"
-import { meshNames } from "./constValues"
+import { meshNames, groupNames } from "./constValues"
 
 export function Globe({ globeRadius }) {
   // console.log("Globe(): begin")
@@ -64,7 +64,7 @@ export function Globe({ globeRadius }) {
   }, [])
 
   return (
-    <group name="GlobeGroup" ref={groupRef}>
+    <group name={groupNames.GlobeGroup} ref={groupRef}>
       <mesh name={meshNames.Globe} ref={sphereRef} geometry={globeMemo.geometry}>
         <shaderMaterial
           vertexShader={globeVertShaderText}
