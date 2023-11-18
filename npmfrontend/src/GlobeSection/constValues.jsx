@@ -6,7 +6,7 @@ export const globeInfo = {
 
   // Let the rendered region sit a little above the surface of the globe so that it doesn't 
   // interfere with the surface.
-  regionRadius: 5.05
+  regionRadius: 5.5
 }
 
 export const meshNames = {

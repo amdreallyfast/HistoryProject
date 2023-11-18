@@ -103,7 +103,7 @@ export function LatLongPin({ latLong }) {
     // </mesh>
 
     <mesh ref={meshRef}>
-      <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.5} />
+      <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={true} wireframe={true} />
     </mesh>
   )
 }
