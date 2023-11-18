@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
 import { globeInfo } from "./constValues"
 import { LatLongPin } from "./LatLongPin"
+import Delaunator from "delaunator"
 
 // TODO: latlong grid to fill in gaps >1deg
 // TODO: latlong pin object
@@ -90,8 +91,11 @@ export function Region({ latLongArr }) {
       miniPointRegionLongLatArr.push([latLong.long + x45DegLength, latLong.lat - y45DegLength])
 
       // Triangulate the filler points to make a mesh.
-      let delaunay = d3Geo.geoDelaunay(miniPointRegionLongLatArr)
-      let indices = delaunay.triangles.flat()
+      // let delaunay = d3Geo.geoDelaunay(miniPointRegionLongLatArr)
+      // let indices = delaunay.triangles.flat()
+      const typedArr = new Float32Array(miniPointRegionLongLatArr.flat())
+      let delaunator = new Delaunator(typedArr)
+      let indices = delaunator.triangles
       // console.log(typedArr)
       let numExistingVertices = fillerPointsArr.length / 3
       let poiMiniRegionIndices = indices.map((index) => index + numExistingVertices)
@@ -179,16 +183,25 @@ export function Region({ latLongArr }) {
         // interpolatedLongLatArr.push(...parallelInterpolatedLongLat2)
       }
 
-      // console.log({ interpolatedLongLatArr: interpolatedLongLatArr })
+      // // console.log({ interpolatedLongLatArr: interpolatedLongLatArr })
+      // // Triangulate the filler points to make a mesh.
+      // let delaunay = d3Geo.geoDelaunay(interpolatedLongLatArr)
+      // let indices = delaunay.triangles.flat()
+      // let numExistingVertices = fillerPointsArr.length / 3
+      // let poiMiniRegionIndices = indices.map((index) => index + numExistingVertices)
+      // fillerIndicesArr.push(...poiMiniRegionIndices)
+      // console.log(poiMiniRegionIndices)
+
       // Triangulate the filler points to make a mesh.
-      let delaunay = d3Geo.geoDelaunay(interpolatedLongLatArr)
-      let indices = delaunay.triangles.flat()
+      // let delaunay = d3Geo.geoDelaunay(miniPointRegionLongLatArr)
+      // let indices = delaunay.triangles.flat()
+      const typedArr = new Float32Array(interpolatedLongLatArr.flat())
+      let delaunator = new Delaunator(typedArr)
+      let indices = delaunator.triangles
+      // console.log(typedArr)
       let numExistingVertices = fillerPointsArr.length / 3
       let poiMiniRegionIndices = indices.map((index) => index + numExistingVertices)
       fillerIndicesArr.push(...poiMiniRegionIndices)
-      console.log(poiMiniRegionIndices)
-
-
 
       interpolatedLongLatArr.forEach((longLat) => {
         let lat = longLat[1]
