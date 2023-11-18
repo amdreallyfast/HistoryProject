@@ -10,6 +10,8 @@ export function ConvertLatLongToXYZ(lat, long, globeRadius) {
   let x = Math.sin(longRad) * projectionOfRadiusOntoXZPlane
   let y = Math.sin(latRad) * globeRadius
   let z = Math.cos(longRad) * projectionOfRadiusOntoXZPlane
+  console.log({ x: x, y: y, z: z })
+  // let z = 6
 
   return [x, y, z,]
 }
@@ -30,8 +32,15 @@ export function ConvertXYZToLatLong(x, y, z, globeRadius) {
   // let lenHypotenuseProjectionOntoXZPlane = Math.sqrt((x * x) + (z * z))
   let lenHypotenuseProjectionOntoXZPlane = lenHypotenuse * Math.cos(latRad)
   let longRad = Math.asin(x / lenHypotenuseProjectionOntoXZPlane)
+  // console.log({ longRad: longRad })
+  // if (z < 0) {
+  //   longRad = longRad * -1
+  // }
+  // console.log(x, y, z)
+  // console.log({ longRad: longRad })
 
-  console.log(x, y, z)
+  // console.log({ lat: latRad * radToDeg, long: longRad * radToDeg })
+
 
   // console.log({ point: [x, y, z], h: lenHypotenuse, hP: lenHypotenuseProjectionOntoXZPlane, lat: lat, long: long, })
   // console.log({ lat: lat, long: long })
