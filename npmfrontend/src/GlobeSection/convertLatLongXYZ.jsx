@@ -44,7 +44,7 @@ export function ConvertXYZToLatLong(x, y, z, globeRadius) {
   let longRad = Math.acos(z / lenHypotenuseProjectionOntoXZPlane)
   longRad = longRad * (x < 0 ? -1 : 1)
 
-  console.log({ x: x, y: y, z: z, lat: latRad * radToDeg, long: longRad * radToDeg })
+  // console.log({ x: x, y: y, z: z, lat: latRad * radToDeg, long: longRad * radToDeg })
   return [
     latRad * radToDeg,
     longRad * radToDeg,

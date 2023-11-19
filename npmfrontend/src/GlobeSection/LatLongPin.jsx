@@ -38,7 +38,7 @@ export function LatLongPin({ latLong }) {
   const meshRef = useRef()
   const materialRef = useRef()
   useEffect(() => {
-    console.log("LatLongPin -> meshRef useEffect()")
+    // console.log("LatLongPin -> useEffect [meshRef]")
 
     // Make a triangle column with a point.
     let vertices = []
