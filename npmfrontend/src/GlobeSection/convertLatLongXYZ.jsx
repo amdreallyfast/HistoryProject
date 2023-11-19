@@ -10,7 +10,7 @@ export function ConvertLatLongToXYZ(lat, long, globeRadius) {
   let x = Math.sin(longRad) * projectionOfRadiusOntoXZPlane
   let y = Math.sin(latRad) * globeRadius
   let z = Math.cos(longRad) * projectionOfRadiusOntoXZPlane
-  console.log({ x: x, y: y, z: z })
+  // console.log({ x: x, y: y, z: z })
   // let z = 6
 
   return [x, y, z,]
@@ -24,26 +24,27 @@ export function ConvertXYZToLatLong(x, y, z, globeRadius) {
   // That makes XZ the horizontal plane.
   const radToDeg = 180.0 / Math.PI
 
-  //??why is this not exactly equal to globe radius??
-  //let lenHypotenuse = Math.sqrt((x * x) + (y * y) + (z * z))
+  // Note: The "arcus" trigonometry functions are only capable of calculating an angle on the range [0, Pi].
+  //  The latitude is the verticle angle between the "earth center -> north pole" vector and the vertical 
+  //  component of a point on the globe. By definition, the north pole is 0 degrees, and the 
+  //  south pole is 180 degrees, and so the latitude is _always_ defined on the range [0, 180]
+  //  degrees, and therefore the arcus function is always defined.
   let lenHypotenuse = globeRadius
   let latRad = Math.asin(y / lenHypotenuse)
 
-  // let lenHypotenuseProjectionOntoXZPlane = Math.sqrt((x * x) + (z * z))
+  // Note: In contrast, the longitude is defined as the horizontal angle between the 
+  //  "earth center -> Greenwich Meridian" vector and the horizontal component of a point on the
+  //  globe, and therefore it spans 360 degrees. Longitude is split into "west of the meridian" 
+  //  (that is, negative) and "east of the meridian" (that is, positive), which creates 2x 180 
+  //  degree halves of the earth. This globe is centered on the origin and is rotated so that the
+  //  "Greenwich Meridian" vector is pointing straight down the +Z axis towards the camera. 
+  //  Therefore, use the arcus function to calculate the angle on the range [0,180] degrees, and 
+  //  then use the X axis' "left or right of origin" to determine "west" or "east".
   let lenHypotenuseProjectionOntoXZPlane = lenHypotenuse * Math.cos(latRad)
-  let longRad = Math.asin(x / lenHypotenuseProjectionOntoXZPlane)
-  // console.log({ longRad: longRad })
-  // if (z < 0) {
-  //   longRad = longRad * -1
-  // }
-  // console.log(x, y, z)
-  // console.log({ longRad: longRad })
+  let longRad = Math.acos(z / lenHypotenuseProjectionOntoXZPlane)
+  longRad = longRad * (x < 0 ? -1 : 1)
 
-  // console.log({ lat: latRad * radToDeg, long: longRad * radToDeg })
-
-
-  // console.log({ point: [x, y, z], h: lenHypotenuse, hP: lenHypotenuseProjectionOntoXZPlane, lat: lat, long: long, })
-  // console.log({ lat: lat, long: long })
+  console.log({ x: x, y: y, z: z, lat: latRad * radToDeg, long: longRad * radToDeg })
   return [
     latRad * radToDeg,
     longRad * radToDeg,
