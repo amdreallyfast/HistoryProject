@@ -2,8 +2,6 @@ import { useRef, useState } from "react"
 import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
-import { Stars } from "./Stars"
-import { PlaneGeometry, Vector3 } from "three"
 
 export function GlobeSectionMain() {
   // Toggle with CTRL key.
@@ -164,8 +162,6 @@ export function GlobeSectionMain() {
           <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} near={0.5} far={3000} />
           <OrbitControls enableRotate={cameraRotateEnabled} enablePan={cameraPanEnabled} />
           <spotLight position={(10, 15, 10)} angle={0.3} intensity={0.2} />
-          <Stars />
-
           <Scene
             poiInfoPopupElementRef={poiInfoPopupElementRef}
             poiInfoTitleElementRef={poiInfoTitleElementRef}

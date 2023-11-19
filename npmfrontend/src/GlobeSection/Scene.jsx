@@ -9,6 +9,7 @@ import { PoiPin } from "./PoiPin"
 import { globeInfo, meshNames, groupNames } from "./constValues"
 import { Region } from "./Region"
 import { ConvertXYZToLatLong } from "./convertLatLongXYZ"
+import { Stars } from "@react-three/drei"
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
@@ -251,6 +252,7 @@ export function Scene(
 
   return (
     <>
+      <Stars />
       <Globe globeRadius={globeInfo.radius} />
       <group name={groupNames.PoiGroup}>
         {poiReactElements}
