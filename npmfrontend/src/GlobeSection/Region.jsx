@@ -90,8 +90,146 @@ export function Region() {
     // let delaunator = new Delaunator(testTypedArr)
     // let indicesArr = delaunator.triangles
     let delaunator = new d3Geo.geoDelaunay(testLongLatArr)
-    let indicesArr = delaunator.triangles.flat()
-    console.log({ edges: delaunator.edges })
+    // let indicesArr = delaunator.triangles.flat()
+    // console.log(indicesArr)
+
+    let start = performance.now()
+
+    // // Create an association between the edges and the triangles that contain them.
+    // let edgeToTriangles = {}
+    // delaunator.edges.forEach((edge, edgeIndex) => {
+    //   // Note: This string only works as an ID as long as each pair only appears in that order. 
+    //   // If the pair ever appears again in the opposite order, then we will effectively have a 
+    //   // duplicate. But edges only appear once, so we're good.
+    //   let key = JSON.stringify(edge)
+    //   edgeToTriangles[key] = []
+
+    //   // Find the triangles.
+    //   // Note: A single edge should be part of exactly 2x triangles.
+    //   delaunator.triangles.forEach((triangle, triangleIndex) => {
+    //     if (triangle.includes(edge[0]) && triangle.includes(edge[1])) {
+    //       edgeToTriangles[key].push(triangle)
+    //     }
+    //   })
+    // })
+    // // console.log({ edgeToTriangles: Object.keys(edgeToTriangles) })
+    let indicesArr2 = []
+    let triangles2 = {}
+    delaunator.triangles.forEach((triangle, index) => {
+      triangles2[index] = triangle
+    })
+
+    // Only select triangles where the edges are not too long.
+    let maxDist = 1
+    let maxDistSqrd = maxDist * maxDist
+    delaunator.edges.forEach((edge, index) => {
+      let pointsStartIndex = edge[0] * 3
+      let pointsEndIndex = edge[1] * 3
+
+      let p1 = new THREE.Vector3(
+        pointsArr[pointsStartIndex + 0],
+        pointsArr[pointsStartIndex + 1],
+        pointsArr[pointsStartIndex + 2])
+      let p2 = new THREE.Vector3(
+        pointsArr[pointsEndIndex + 0],
+        pointsArr[pointsEndIndex + 1],
+        pointsArr[pointsEndIndex + 2])
+      let v = (new THREE.Vector3).subVectors(p1, p2)
+      let distSqrd = v.dot(v)
+      if (distSqrd > maxDistSqrd) {
+        // Delete triangles with this edge.
+        delaunator.triangles.forEach((triangle, triangleIndex) => {
+          if (triangle.includes(edge[0]) && triangle.includes(edge[1])) {
+            delete triangles2[triangleIndex]
+          }
+        })
+      }
+    })
+
+
+
+    // // Only select triangles where the edges are not too long.
+    // let maxDist = 3
+    // let maxDistSqrd = maxDist * maxDist
+
+    // delaunator.edges.forEach((edge, index) => {
+    //   let pointsStartIndex = edge[0] * 3
+    //   let pointsEndIndex = edge[1] * 3
+
+    //   let p1 = new THREE.Vector3(
+    //     pointsArr[pointsStartIndex + 0],
+    //     pointsArr[pointsStartIndex + 1],
+    //     pointsArr[pointsStartIndex + 2])
+    //   let p2 = new THREE.Vector3(
+    //     pointsArr[pointsEndIndex + 0],
+    //     pointsArr[pointsEndIndex + 1],
+    //     pointsArr[pointsEndIndex + 2])
+    //   let v = (new THREE.Vector3).subVectors(p1, p2)
+    //   let distSqrd = v.dot(v)
+    //   if (distSqrd > maxDistSqrd) {
+    //     // Delete triangles with this edge.
+
+    //     let key = JSON.stringify(edge)
+    //     delete edgeToTriangles[key]
+    //   }
+    // })
+    // // console.log({ edgeToTriangles: Object.keys(edgeToTriangles) })
+
+    // Assemble the final array of triangle indices.
+    let indicesArr = []
+    // Object.keys(edgeToTriangles).forEach((key) => {
+    //   edgeToTriangles[key].forEach((triangle) => {
+    //     indicesArr.push(...triangle)
+    //   })
+    //   // indicesArr.push(edgeToTriangles[key].flat())
+    // })
+    // console.log(indicesArr)
+    Object.keys(triangles2).forEach((key) => {
+      indicesArr.push(...(triangles2[key]))
+    })
+
+    let end = performance.now()
+    console.log({ time: end - start })
+
+
+
+    // delaunator.edges.forEach((edgePair, index) => {
+    //   let pointsStartIndex = edgePair[0] * 3
+    //   let pointsEndIndex = edgePair[1] * 3
+
+    //   let p1 = new THREE.Vector3(
+    //     pointsArr[pointsStartIndex + 0],
+    //     pointsArr[pointsStartIndex + 1],
+    //     pointsArr[pointsStartIndex + 2])
+    //   let p2 = new THREE.Vector3(
+    //     pointsArr[pointsEndIndex + 0],
+    //     pointsArr[pointsEndIndex + 1],
+    //     pointsArr[pointsEndIndex + 2])
+    //   let v = (new THREE.Vector3).subVectors(p1, p2)
+    //   let distSqrd = v.dot(v)
+
+    //   // Remove triangles with an edge that is too long.
+    //   if (distSqrd < maxDistSqrd) {
+    //     // console.log({
+    //     //   // pointsArr: pointsArr,
+    //     //   // index: index,
+    //     //   // edge: edgePair,
+    //     //   // index1: pointsStartIndex,
+    //     //   // index2: pointsEndIndex,
+    //     //   // p1: p1,
+    //     //   // p2: p2,
+    //     //   // v: v,
+    //     //   distSqrd: distSqrd
+    //     // })
+    //   }
+
+    //   // let startVertex = delaunator.triangles[startIndex]
+    //   // let endVertex = delaunator.triangles[endIndex]
+
+    //   // console.log({ index: index, value: value })
+    // })
+
+    // console.log({ edges: delaunator.edges })
     // TODO: go through all index pairs of vertices and remove pairs that are longer than 3
 
     // Create geometry for the points

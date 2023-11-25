@@ -52,7 +52,7 @@ export function DetailsEdit() {
 
   // If selected latLong changes, change highlight.
   useEffect(() => {
-    console.log({ "DetailsEdit_useEffect_selectedLatLongChanged": selectedLatLong })
+    // console.log({ "DetailsEdit_useEffect_selectedLatLongChanged": selectedLatLong })
 
     if (selectedLatLong) {
       let selectedHtmlElement = document.getElementById(selectedLatLong.id)
