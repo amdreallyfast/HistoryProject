@@ -1,14 +1,14 @@
 
-export function ConvertLatLongToXYZ(lat, long, globeRadius) {
+export function ConvertLatLongToXYZ(lat, long, sphereRadius) {
   // console.log({ lat: lat, long: long, radius: globeRadius })
 
   // Move the POI box to the location on the globe indicated by lat/long.
   let latRad = (lat / 180.0) * Math.PI
   let longRad = (long / 180.0) * Math.PI
 
-  let projectionOfRadiusOntoXZPlane = globeRadius * Math.cos(latRad)
+  let projectionOfRadiusOntoXZPlane = sphereRadius * Math.cos(latRad)
   let x = Math.sin(longRad) * projectionOfRadiusOntoXZPlane
-  let y = Math.sin(latRad) * globeRadius
+  let y = Math.sin(latRad) * sphereRadius
   let z = Math.cos(longRad) * projectionOfRadiusOntoXZPlane
   // console.log({ x: x, y: y, z: z })
   // let z = 6
@@ -16,7 +16,7 @@ export function ConvertLatLongToXYZ(lat, long, globeRadius) {
   return [x, y, z,]
 }
 
-export function ConvertXYZToLatLong(x, y, z, globeRadius) {
+export function ConvertXYZToLatLong(x, y, z, sphereRadius) {
   // Note: Camera defaults to being on the Z axis (and backed up negative). With that perspective:
   //  -X is left, +X is right
   //  -Y is down, +Y is up
@@ -29,7 +29,7 @@ export function ConvertXYZToLatLong(x, y, z, globeRadius) {
   //  component of a point on the globe. By definition, the north pole is 0 degrees, and the 
   //  south pole is 180 degrees, and so the latitude is _always_ defined on the range [0, 180]
   //  degrees, and therefore the arcus function is always defined.
-  let lenHypotenuse = globeRadius
+  let lenHypotenuse = sphereRadius
   let latRad = Math.asin(y / lenHypotenuse)
 
   // Note: In contrast, the longitude is defined as the horizontal angle between the 

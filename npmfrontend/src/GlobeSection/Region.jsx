@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useSelector } from "react-redux"
-import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
+import { ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
 import { globeInfo } from "./constValues"
 import { LatLongPin } from "./LatLongPin"
 import Delaunator from "delaunator"
+import { sum } from "lodash"
 
 // TODO: latlong grid to fill in gaps >1deg
 // TODO: latlong pin object
@@ -42,6 +43,58 @@ const interpolateArc = (startLat, startLong, endLat, endLong, interpolationAngle
   return interpolatedPoints
 }
 
+const findMidpointOnSurface = (latLongArr) => {
+  // create average point
+  let minX = 0, maxX = 0
+  let minY = 0, maxY = 0
+  let minZ = 0, maxZ = 0
+  latLongArr.forEach((latLongJson, index) => {
+    const [x, y, z] = ConvertLatLongToXYZ(latLongJson.lat, latLongJson.long, globeInfo.radius)
+
+    if (index == 0) {
+      // first time; assign min/max
+      minX = x
+      maxX = x
+      minY = y
+      maxY = y
+      minZ = z
+      maxZ = z
+    }
+    else {
+      if (x < minX) {
+        minX = x
+      }
+      else if (x > maxX) {
+        maxX = x
+      }
+
+      if (y < minY) {
+        minY = y
+      }
+      else if (y > maxY) {
+        maxY = y
+      }
+
+      if (z < minZ) {
+        minZ = z
+      }
+      else if (z > maxZ) {
+        maxZ = z
+      }
+    }
+  })
+
+  let midpointX = (minX + maxX) * 0.5
+  let midpointY = (minY + maxY) * 0.5
+  let midpointZ = (minZ + maxZ) * 0.5
+  let midpoint = new THREE.Vector3(midpointX, midpointY, midpointZ)
+  let midpointVector = (new THREE.Vector3()).subVectors(midpoint, globeInfo.pos)
+  midpointVector = midpointVector.normalize()
+  midpointVector = midpointVector.multiplyScalar(globeInfo.radius)
+  const [lat, long] = ConvertXYZToLatLong(midpointVector.x, midpointVector.y, midpointVector.z, globeInfo.radius)
+  return [lat, long]
+}
+
 export function Region({ latLongArr }) {
   const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
   const [latLongPinReactElements, setLatLongPinReactElements] = useState()
@@ -51,13 +104,51 @@ export function Region({ latLongArr }) {
   useEffect(() => {
     console.log("MyPolygon -> useEffect -> regionMeshRef")
 
-    let userAddedPointsArr = []
+    // let userAddedPointsArr = []
     let fillerPointsArr = []
     let fillerIndicesArr = []
     let allPoints = []
 
+    let copyLatlongArr = []
+    whereLatLongArr.forEach((latLongJson, index) => {
+      copyLatlongArr.push({
+        lat: latLongJson.lat,
+        long: latLongJson.long
+      })
+    })
+
+    if (copyLatlongArr.length > 1) {
+      // console.log("more than 2 points")
+
+      const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
+      copyLatlongArr.push({
+        lat: midpointLat,
+        long: midpointLong
+      })
+
+      let thingPoint = whereLatLongArr[0]
+
+
+      // Nope. 
+      //  Lat/long are spherical coordinates and start collapsing together around the poles. 
+      //  Need a different way to create an angle coordinate system.
+      //  ??start with "up" being defined as "from midpoint towards the north pole" and "left" being defined as "west of midpoints"? how then do I get these spherical coordinates into a square UV grid??
+
+      // horizontal component
+      copyLatlongArr.push({
+        lat: midpointLat,
+        long: thingPoint.long
+      })
+
+      // vertical component
+      copyLatlongArr.push({
+        lat: thingPoint.lat,
+        long: midpointLong
+      })
+    }
+
     setLatLongPinReactElements(
-      whereLatLongArr?.map(
+      copyLatlongArr?.map(
         (latLongJson, index) => {
           return (
             <LatLongPin
@@ -68,12 +159,15 @@ export function Region({ latLongArr }) {
       )
     )
 
-    // User-added points
-    whereLatLongArr.forEach((latLong, index) => {
-      const [x, y, z] = ConvertLatLongToXYZ(latLong.lat, latLong.long, globeInfo.regionRadius)
-      userAddedPointsArr.push(x, y, z)
-    })
+    // // User-added points
+    // whereLatLongArr.forEach((latLong, index) => {
+    //   const [x, y, z] = ConvertLatLongToXYZ(latLong.lat, latLong.long, globeInfo.regionRadius)
+    //   userAddedPointsArr.push(x, y, z)
+    // })
 
+    // TODO: replace this algorithm or get rid of mini region altogether. It stretches near the poles.
+
+    // Mini region filler points around each user-added point
     const miniRegionWidthScalar = 3
     let x00DegLength = Math.cos(0) * miniRegionWidthScalar
     let x45DegLength = Math.cos(Math.PI / 4) * miniRegionWidthScalar
@@ -81,10 +175,6 @@ export function Region({ latLongArr }) {
     let y00DegLength = Math.sin(0) * miniRegionWidthScalar
     let y45DegLength = Math.sin(Math.PI / 4) * miniRegionWidthScalar
     let y90DegLength = Math.sin(Math.PI / 2) * miniRegionWidthScalar
-
-    // TODO: replace this algorithm or get rid of mini region altogether. It stretches near the poles.
-
-    // Mini region filler points around each user-added point
     whereLatLongArr.forEach((latLong, index) => {
       // Make each user-added point a tiny region on its own by adding 8x extra points from the
       // 45 degrees around the unit circle.

@@ -3,7 +3,10 @@ import { v4 as uuid } from "uuid";
 
 const initialState = {
   editModeOn: true,
+
+  // TODO: replace "whereLatLongArr" with just "where", and have each point store lat, long, x, y, z
   whereLatLongArr: [],
+
   selectedLatLong: null,
   prevSelectedLatLong: null
 }
