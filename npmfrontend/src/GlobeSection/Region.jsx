@@ -10,13 +10,13 @@ import Delaunator from "delaunator"
 // TODO: latlong pin object
 // TODO: click latlong pin and drag to move point
 
-const interpolateArc = (startLat, startLong, endLat, endLong, numSegments, interpolationAngleDeg) => {
+const interpolateArc = (startLat, startLong, endLat, endLong, interpolationAngleDeg) => {
   const [startX, startY, startZ] = ConvertLatLongToXYZ(startLat, startLong, globeInfo.regionRadius)
   const [endX, endY, endZ] = ConvertLatLongToXYZ(endLat, endLong, globeInfo.regionRadius)
 
   let startVec3 = new THREE.Vector3(startX, startY, startZ)
   let endVec3 = new THREE.Vector3(endX, endY, endZ)
-  console.log({ start: startVec3, end: endVec3 })
+  // console.log({ start: startVec3, end: endVec3 })
 
   let unitStartVec3 = startVec3.clone().normalize()
   let unitEndVec3 = endVec3.clone().normalize()
@@ -24,14 +24,10 @@ const interpolateArc = (startLat, startLong, endLat, endLong, numSegments, inter
   let angleRad = Math.acos(cosAngle)
   let angle = angleRad * (180.0 / Math.PI)
 
-  // let numSegments = 10
   let arcSegments = Math.round(angle / interpolationAngleDeg) + 1
-  console.log({ angle: angle, interp: interpolationAngleDeg, arcSegments: arcSegments })
+  // console.log({ angle: angle, interp: interpolationAngleDeg, arcSegments: arcSegments })
   let interpolatedPoints = []
   for (let i = 0; i <= arcSegments; i++) {
-    // let arcAngle = arcSegmentLength * i
-    // interpolatedAngles.push(arcAngle)
-
     // Should vary from 0 -> 1
     let fraction = i / arcSegments
     let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
@@ -86,6 +82,8 @@ export function Region({ latLongArr }) {
     let y45DegLength = Math.sin(Math.PI / 4) * miniRegionWidthScalar
     let y90DegLength = Math.sin(Math.PI / 2) * miniRegionWidthScalar
 
+    // TODO: replace this algorithm or get rid of mini region altogether. It stretches near the poles.
+
     // Mini region filler points around each user-added point
     whereLatLongArr.forEach((latLong, index) => {
       // Make each user-added point a tiny region on its own by adding 8x extra points from the
@@ -135,140 +133,11 @@ export function Region({ latLongArr }) {
       let startLong = whereLatLongArr[i].long
       let endLat = whereLatLongArr[i - 1].lat
       let endLong = whereLatLongArr[i - 1].long
-      let interpolatedPoints = interpolateArc(startLat, startLong, endLat, endLong, 10, 3)
+      let interpolatedPoints = interpolateArc(startLat, startLong, endLat, endLong, 3)
       interpolatedPoints.forEach((point) => {
         fillerPointsArr.push(...point)
       })
-      // fillerPointsArr.push(...interpolated)
-      // console.log(...interpolatedPoints)
-
-      // const [startX, startY, startZ] = ConvertLatLongToXYZ(startLat, startLong, globeInfo.regionRadius)
-      // const [endX, endY, endZ] = ConvertLatLongToXYZ(endLat, endLong, globeInfo.regionRadius)
-
-      // let startVec3 = new THREE.Vector3(startX, startY, startZ)
-      // let endVec3 = new THREE.Vector3(endX, endY, endZ)
-      // console.log({ start: startVec3, end: endVec3 })
-
-      // let unitStartVec3 = startVec3.clone().normalize()
-      // let unitEndVec3 = endVec3.clone().normalize()
-      // let cosAngle = unitStartVec3.dot(unitEndVec3)
-      // let angleRad = Math.acos(cosAngle)
-      // let angle = angleRad * (180.0 / Math.PI)
-
-      // let numPoints = 10
-      // let arcSegmentLength = angle / numPoints
-      // let interpolatedPoints = []
-      // for (let i = 0; i <= numPoints; i++) {
-      //   // let arcAngle = arcSegmentLength * i
-      //   // interpolatedAngles.push(arcAngle)
-
-      //   // Should vary from 0 -> 1
-      //   let fraction = i / numPoints
-      //   let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
-      //   let scaledStartVec3 = startVec3.clone().multiplyScalar(startScaler)
-
-      //   let endScalar = Math.sin(fraction * angleRad) / Math.sin(angleRad)
-      //   let scaledEndVec3 = endVec3.clone().multiplyScalar(endScalar)
-
-      //   let interpolated = (new THREE.Vector3()).addVectors(scaledStartVec3, scaledEndVec3)
-      //   interpolatedPoints.push(interpolated)
-      //   fillerPointsArr.push(...interpolated)
     }
-    // console.log({ angle: angle, interpolated: interpolatedPoints })
-
-
-
-    // console.log({ cos: cosAngle, angle: angle })
-    // let dot = startVec3.normalize().dot(endVec3.normalize())
-    // console.log({ start: startVec3, end: endVec3, dot: dot })
-
-
-
-    //   let endLatLong = whereLatLongArr[i]
-    //   let endPoint = new THREE.Vector2(endLatLong.long, endLatLong.lat)
-
-    //   let startLatLong = whereLatLongArr[i - 1]
-    //   let startPoint = new THREE.Vector2(startLatLong.long, startLatLong.lat)
-
-    //   let dirVector = new THREE.Vector2()
-    //   dirVector.subVectors(endPoint, startPoint)
-    //   let lengthAToB = dirVector.length()
-    //   let unitDirVector = dirVector.clone().normalize()
-
-    //   // console.log({ lengthAToB: lengthAToB })
-
-    //   // Get 2x parallel vectors a little ways off the center.
-    //   let perpendicular1 = new THREE.Vector2(-unitDirVector.y, unitDirVector.x).multiplyScalar(miniRegionWidthScalar)
-    //   let parallelStart1 = (new THREE.Vector2()).addVectors(startPoint, perpendicular1)
-    //   let parallelEnd1 = (new THREE.Vector2()).addVectors(endPoint, perpendicular1)
-    //   let parallelDirVector1 = (new THREE.Vector2()).subVectors(parallelEnd1, parallelStart1)
-
-    //   let perpendicular2 = new THREE.Vector2(unitDirVector.y, -unitDirVector.x).multiplyScalar(miniRegionWidthScalar)
-    //   let parallelStart2 = (new THREE.Vector2()).addVectors(startPoint, perpendicular2)
-    //   let parallelEnd2 = (new THREE.Vector2()).addVectors(endPoint, perpendicular2)
-    //   let parallelDirVector2 = (new THREE.Vector2()).subVectors(parallelEnd2, parallelStart2)
-
-    //   let fillerLongLatArr = []
-    //   fillerLongLatArr.push(parallelStart1)
-    //   fillerLongLatArr.push(parallelEnd1)
-    //   fillerLongLatArr.push(parallelStart2)
-    //   fillerLongLatArr.push(parallelEnd2)
-    //   fillerLongLatArr.forEach((longLat) => {
-    //     let lat = longLat.y
-    //     let long = longLat.x
-    //     const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
-    //     fillerPointsArr.push(x, y, z)
-    //   })
-
-    //   // Want 1 point approximately every 1 degree of lat and long.
-    //   // Ex: 
-    //   //  Distance between points is 10.347 => 9 segments => 8 interpolated points
-    //   let maxInterpolatedDist = 3
-    //   // let numInterpolationPoints = (Math.floor(lengthAToB) - 1) / maxInterpolatedDist
-    //   // let distFractionPerInterpolatedPoint = (lengthAToB / numInterpolationPoints) / lengthAToB
-    //   // let interpolatedLongLatArr = []
-    //   // for (let pointCount = 0; pointCount <= numInterpolationPoints; pointCount++) {
-    //   //   let distFraction = distFractionPerInterpolatedPoint * pointCount
-    //   let numInterpolationPoints = Math.floor(lengthAToB / maxInterpolatedDist)
-    //   let distFractionPerInterpolatedPoint = (lengthAToB / numInterpolationPoints) / lengthAToB
-    //   let interpolatedLongLatArr = []
-    //   for (let pointCount = 0; pointCount <= numInterpolationPoints; pointCount++) {
-    //     let distFraction = distFractionPerInterpolatedPoint * pointCount
-
-    //     // Direct interpolation longLat between start and end.
-    //     let direct = (new THREE.Vector2()).lerpVectors(startPoint, endPoint, distFraction)
-    //     interpolatedLongLatArr.push([direct.x, direct.y])
-    //     let directXYZ = ConvertLatLongToXYZ(direct.y, direct.x, globeInfo.regionRadius)
-    //     fillerPointsArr.push(...directXYZ)
-
-    //     let parallel1 = (new THREE.Vector2()).lerpVectors(parallelStart1, parallelEnd1, distFraction)
-    //     interpolatedLongLatArr.push([parallel1.x, parallel1.y])
-    //     let parallelXYZ1 = ConvertLatLongToXYZ(parallel1.y, parallel1.x, globeInfo.regionRadius)
-    //     fillerPointsArr.push(...parallelXYZ1)
-
-    //     let parallel2 = (new THREE.Vector2()).lerpVectors(parallelStart2, parallelEnd2, distFraction)
-    //     interpolatedLongLatArr.push([parallel2.x, parallel2.y])
-    //     let parallelXYZ2 = ConvertLatLongToXYZ(parallel2.y, parallel2.x, globeInfo.regionRadius)
-    //     fillerPointsArr.push(...parallelXYZ2)
-    //   }
-
-    //   // Triangulate the filler points to make a mesh.
-    //   // TODO: _start_ with a pre-allocated typed array and fill it in
-    //   const typedArr = new Float32Array(interpolatedLongLatArr.flat())
-    //   let delaunator = new Delaunator(typedArr)
-    //   let indices = delaunator.triangles
-    //   let numExistingVertices = fillerPointsArr.length / 3
-    //   let poiMiniRegionIndices = indices.map((index) => index + numExistingVertices)
-    //   fillerIndicesArr.push(...poiMiniRegionIndices)
-
-    //   interpolatedLongLatArr.forEach((longLat) => {
-    //     let lat = longLat[1]
-    //     let long = longLat[0]
-    //     const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
-    //     fillerPointsArr.push(x, y, z)
-    //   })
-
-
 
     let valuesPerVertex = 3
     let valuesPerIndex = 1
