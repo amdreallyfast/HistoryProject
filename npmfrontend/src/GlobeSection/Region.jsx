@@ -182,7 +182,7 @@ const makeMiniRegionFillerPoints = (lat, long) => {
 const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
   // console.log(p1Vec3)
   let v1 = (new THREE.Vector3()).subVectors(p2Vec3, p1Vec3)
-  let v2 = (new THREE.Vector3()).subVectors(p3Vec3, p2Vec3)
+  let v2 = (new THREE.Vector3()).subVectors(p3Vec3, p1Vec3)
   // console.log({ v1To2: v1To2, v2To3: v2To3 })
 
   let points = []
@@ -193,9 +193,13 @@ const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
     // let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
     // let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
 
-    let fractionV1 = v1.clone().multiplyScalar(0.4)
-    for (let j = 0.0; j <= 1.0; j += 0.1) {
-      let fractionV2 = v2.clone().multiplyScalar(0.4 - (j / 2))
+    let fractionV1 = v1.clone().multiplyScalar(i)
+    // let fractionV2 = v2.clone().multiplyScalar(0)
+    // let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
+    // let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
+    // points.push(...newPoint)
+    for (let j = 0.0; j <= (1 - i); j += 0.1) {
+      let fractionV2 = v2.clone().multiplyScalar(j)
       let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
       let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
       points.push(...newPoint)
