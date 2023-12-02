@@ -65,6 +65,7 @@ export function Globe({ globeRadius }) {
 
   return (
     <group name={groupNames.GlobeGroup} ref={groupRef}>
+      {/* Planet */}
       <mesh name={meshNames.Globe} ref={sphereRef} geometry={globeMemo.geometry}>
         <shaderMaterial
           vertexShader={globeVertShaderText}
@@ -81,6 +82,9 @@ export function Globe({ globeRadius }) {
         >
         </shaderMaterial>
       </mesh >
+
+      {/* Atmosphere */}
+      {/* ??what is wrong with the atmosphere? why does it stop being transparent when the camera is near the south pole and looking up?? */}
       <mesh name={meshNames.GlobeAtmosphere} geometry={globeAtmosphereMemo.geometry}>
         <shaderMaterial
           vertexShader={atmosphereVertShaderText}

@@ -4,7 +4,8 @@ import { useSelector } from "react-redux"
 import { ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
 import { globeInfo } from "./constValues"
 import { LatLongPin } from "./LatLongPin"
-import Delaunator from "delaunator"
+// import Delaunator from "delaunator"
+import * as d3Geo from "d3-geo-voronoi"
 import { sum } from "lodash"
 
 // TODO: latlong grid to fill in gaps >1deg
@@ -52,7 +53,7 @@ const findMidpointOnSurface = (latLongArr) => {
     const [x, y, z] = ConvertLatLongToXYZ(latLongJson.lat, latLongJson.long, globeInfo.radius)
 
     if (index == 0) {
-      // first time; assign min/max
+      // first loop; assign min/max
       minX = x
       maxX = x
       minY = y
@@ -107,7 +108,7 @@ const x90DegLength = Math.cos(Math.PI / 2) * miniRegionWidthScalar
 const y00DegLength = Math.sin(0) * miniRegionWidthScalar
 const y45DegLength = Math.sin(Math.PI / 4) * miniRegionWidthScalar
 const y90DegLength = Math.sin(Math.PI / 2) * miniRegionWidthScalar
-const makeMiniRegionFillerPoints = ((lat, long) => {
+const makeMiniRegionFillerPoints = (lat, long) => {
   // Mini region filler points around each user-added point
   let miniPointRegionLongLatArr = []
   miniPointRegionLongLatArr.push([long, lat])
@@ -122,9 +123,11 @@ const makeMiniRegionFillerPoints = ((lat, long) => {
 
   // Triangulate the filler points to make a mesh.
   // TODO: _start_ with a pre-allocated typed array and fill it in
-  const typedArr = new Float32Array(miniPointRegionLongLatArr.flat())
-  let delaunator = new Delaunator(typedArr)
-  let indices = delaunator.triangles
+  // const typedArr = new Float32Array(miniPointRegionLongLatArr.flat())
+  // let delaunator = new Delaunator(typedArr)
+  // let indices = delaunator.triangles
+  let delaunay = d3Geo.geoDelaunay(miniPointRegionLongLatArr)
+  let indices = delaunay.triangles.flat()
 
   // Convert the filler points to their own vertices.
   let points = []
@@ -136,8 +139,32 @@ const makeMiniRegionFillerPoints = ((lat, long) => {
   })
 
   return [indices, points]
-})
+}
 
+const triangleThing = (p1, p2, p3) => {
+
+}
+
+const makeRegion = (latLongArr) => {
+  let longLatArr = latLongArr?.map(
+    (latLongJson) => {
+      return [latLongJson.long, latLongJson.lat]
+    }
+  )
+
+  let delaunay = d3Geo.geoDelaunay(longLatArr)
+  let indices = delaunay.triangles.flat()
+
+  let points = []
+  longLatArr.forEach((longLat) => {
+    let lat = longLat[1]
+    let long = longLat[0]
+    const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
+    points.push(x, y, z)
+  })
+
+  return [indices, points]
+}
 
 export function Region({ latLongArr }) {
   const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
@@ -178,17 +205,17 @@ export function Region({ latLongArr }) {
 
       //??go triangle by triangle and fill in? how can you tell where an "open" spot is??
 
-      // horizontal component
-      copyLatlongArr.push({
-        lat: midpointLat,
-        long: thingPoint.long
-      })
+      // // horizontal component
+      // copyLatlongArr.push({
+      //   lat: midpointLat,
+      //   long: thingPoint.long
+      // })
 
-      // vertical component
-      copyLatlongArr.push({
-        lat: thingPoint.lat,
-        long: midpointLong
-      })
+      // // vertical component
+      // copyLatlongArr.push({
+      //   lat: thingPoint.lat,
+      //   long: midpointLong
+      // })
     }
 
     setLatLongPinReactElements(
@@ -203,16 +230,12 @@ export function Region({ latLongArr }) {
       )
     )
 
-    // Mini region filler points around each user-added point
-    whereLatLongArr.forEach((latlong) => {
-      const [indices, points] = makeMiniRegionFillerPoints(latlong.lat, latlong.long)
-      // console.log({ indices: indices, points: points })
+    const [regionIndices, regionPoints] = makeRegion(whereLatLongArr)
+    let numExistingVertices = fillerPointsArr.length / 3
+    let shiftedIndices = regionIndices.map((value) => value + numExistingVertices)
+    fillerIndicesArr.push(...shiftedIndices)
+    fillerPointsArr.push(...regionPoints)
 
-      let numExistingVertices = fillerPointsArr.length / 3
-      let shiftedIndices = indices.map((value) => value + numExistingVertices)
-      fillerIndicesArr.push(...shiftedIndices)
-      fillerPointsArr.push(...points)
-    })
 
     // Interpolated region between points
     for (let i = 1; i < whereLatLongArr.length; i++) {
@@ -244,8 +267,11 @@ export function Region({ latLongArr }) {
     let fillerPointsIndicesAttr = new THREE.Uint32BufferAttribute(fillerIndicesArr, valuesPerIndex)
 
     fillerPointsRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
+    fillerPointsRef.current.geometry.attributes.position.needsUpdate = true
+
     fillerPointsMeshRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
     fillerPointsMeshRef.current.geometry.setIndex(fillerPointsIndicesAttr)
+    fillerPointsMeshRef.current.geometry.attributes.position.needsUpdate = true
   }, [whereLatLongArr])
 
   return (
@@ -254,13 +280,29 @@ export function Region({ latLongArr }) {
         <pointsMaterial color={0x00fff0} size={0.08} />
       </points>
 
-      <mesh name="IntermediatePointsMesh" ref={fillerPointsMeshRef}>
-        <meshBasicMaterial color={0x00ff00} side={THREE.DoubleSide} wireframe={false} />
-      </mesh>
-
       <group name="LatLongPins">
         {latLongPinReactElements}
       </group>
+
+      {/* 
+        Note: "Transparency" and wireframe are messed up. 
+          In order to make transparency work with the "LatLongPins", you have to:
+            Render
+            Cut out the "LatLongPins" elements
+            Save to re-render
+            Paste the "LatLongPins" elements back in
+            Save to re-render again.
+          In order to make wireframe work, you have to:
+            Render with "wireframe={false}"
+            Set it to true
+            Save to re-render.
+          If you start with "wireframe={true}", it will never work, even if you set it to false, 
+          save, change back to true, and save again.
+      */}
+      <mesh name="IntermediatePointsMesh" ref={fillerPointsMeshRef}>
+        <meshPhongMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={false} transparent={true} opacity={0.1} />
+      </mesh>
+
     </>
   )
 }
