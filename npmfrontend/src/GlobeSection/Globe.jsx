@@ -84,7 +84,15 @@ export function Globe({ globeRadius }) {
       </mesh >
 
       {/* Atmosphere */}
-      {/* ??what is wrong with the atmosphere? why does it stop being transparent when the camera is near the south pole and looking up?? */}
+      {/* 
+        ??what is wrong with the atmosphere? 
+        why does it sometimes stop being transparent if you reload enough, and sometimes only when the camera is near the south pole and looking up?? 
+
+        try this?
+        https://stackoverflow.com/questions/15994944/transparent-objects-in-three-js
+
+        ??is it even rotating? try wireframe??
+      */}
       <mesh name={meshNames.GlobeAtmosphere} geometry={globeAtmosphereMemo.geometry}>
         <shaderMaterial
           vertexShader={atmosphereVertShaderText}
@@ -96,6 +104,7 @@ export function Globe({ globeRadius }) {
 
           // Only render the inside of the sphere so that the color appears behind the globe
           side={THREE.BackSide}
+          wireframe={false}
         >
         </shaderMaterial>
       </mesh>
