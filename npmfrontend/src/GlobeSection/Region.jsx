@@ -95,6 +95,50 @@ const findMidpointOnSurface = (latLongArr) => {
   return [lat, long]
 }
 
+
+// TODO: replace this algorithm or get rid of mini region altogether. It stretches near the poles.
+
+// Make each user-added point a tiny region on its own by adding 8x extra points from the
+// 45 degrees around the unit circle.
+const miniRegionWidthScalar = 3
+const x00DegLength = Math.cos(0) * miniRegionWidthScalar
+const x45DegLength = Math.cos(Math.PI / 4) * miniRegionWidthScalar
+const x90DegLength = Math.cos(Math.PI / 2) * miniRegionWidthScalar
+const y00DegLength = Math.sin(0) * miniRegionWidthScalar
+const y45DegLength = Math.sin(Math.PI / 4) * miniRegionWidthScalar
+const y90DegLength = Math.sin(Math.PI / 2) * miniRegionWidthScalar
+const makeMiniRegionFillerPoints = ((lat, long) => {
+  // Mini region filler points around each user-added point
+  let miniPointRegionLongLatArr = []
+  miniPointRegionLongLatArr.push([long, lat])
+  miniPointRegionLongLatArr.push([long + x00DegLength, lat + y00DegLength]) // (x+1,y+0)
+  miniPointRegionLongLatArr.push([long + x45DegLength, lat + y45DegLength])
+  miniPointRegionLongLatArr.push([long + x90DegLength, lat + y90DegLength]) // (x+0,y+1)
+  miniPointRegionLongLatArr.push([long - x45DegLength, lat + y45DegLength])
+  miniPointRegionLongLatArr.push([long - x00DegLength, lat + y00DegLength]) // (x-1,y+0)
+  miniPointRegionLongLatArr.push([long - x45DegLength, lat - y45DegLength])
+  miniPointRegionLongLatArr.push([long + x90DegLength, lat - y90DegLength]) // (x+0,y-1)
+  miniPointRegionLongLatArr.push([long + x45DegLength, lat - y45DegLength])
+
+  // Triangulate the filler points to make a mesh.
+  // TODO: _start_ with a pre-allocated typed array and fill it in
+  const typedArr = new Float32Array(miniPointRegionLongLatArr.flat())
+  let delaunator = new Delaunator(typedArr)
+  let indices = delaunator.triangles
+
+  // Convert the filler points to their own vertices.
+  let points = []
+  miniPointRegionLongLatArr.forEach((longLat) => {
+    let lat = longLat[1]
+    let long = longLat[0]
+    const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
+    points.push(x, y, z)
+  })
+
+  return [indices, points]
+})
+
+
 export function Region({ latLongArr }) {
   const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
   const [latLongPinReactElements, setLatLongPinReactElements] = useState()
@@ -104,10 +148,8 @@ export function Region({ latLongArr }) {
   useEffect(() => {
     console.log("MyPolygon -> useEffect -> regionMeshRef")
 
-    // let userAddedPointsArr = []
     let fillerPointsArr = []
     let fillerIndicesArr = []
-    let allPoints = []
 
     let copyLatlongArr = []
     whereLatLongArr.forEach((latLongJson, index) => {
@@ -134,6 +176,8 @@ export function Region({ latLongArr }) {
       //  Need a different way to create an angle coordinate system.
       //  ??start with "up" being defined as "from midpoint towards the north pole" and "left" being defined as "west of midpoints"? how then do I get these spherical coordinates into a square UV grid??
 
+      //??go triangle by triangle and fill in? how can you tell where an "open" spot is??
+
       // horizontal component
       copyLatlongArr.push({
         lat: midpointLat,
@@ -159,52 +203,15 @@ export function Region({ latLongArr }) {
       )
     )
 
-    // // User-added points
-    // whereLatLongArr.forEach((latLong, index) => {
-    //   const [x, y, z] = ConvertLatLongToXYZ(latLong.lat, latLong.long, globeInfo.regionRadius)
-    //   userAddedPointsArr.push(x, y, z)
-    // })
-
-    // TODO: replace this algorithm or get rid of mini region altogether. It stretches near the poles.
-
     // Mini region filler points around each user-added point
-    const miniRegionWidthScalar = 3
-    let x00DegLength = Math.cos(0) * miniRegionWidthScalar
-    let x45DegLength = Math.cos(Math.PI / 4) * miniRegionWidthScalar
-    let x90DegLength = Math.cos(Math.PI / 2) * miniRegionWidthScalar
-    let y00DegLength = Math.sin(0) * miniRegionWidthScalar
-    let y45DegLength = Math.sin(Math.PI / 4) * miniRegionWidthScalar
-    let y90DegLength = Math.sin(Math.PI / 2) * miniRegionWidthScalar
-    whereLatLongArr.forEach((latLong, index) => {
-      // Make each user-added point a tiny region on its own by adding 8x extra points from the
-      // 45 degrees around the unit circle.
-      let miniPointRegionLongLatArr = []
-      miniPointRegionLongLatArr.push([latLong.long, latLong.lat])
-      miniPointRegionLongLatArr.push([latLong.long + x00DegLength, latLong.lat + y00DegLength]) // (x+1,y+0)
-      miniPointRegionLongLatArr.push([latLong.long + x45DegLength, latLong.lat + y45DegLength])
-      miniPointRegionLongLatArr.push([latLong.long + x90DegLength, latLong.lat + y90DegLength]) // (x+0,y+1)
-      miniPointRegionLongLatArr.push([latLong.long - x45DegLength, latLong.lat + y45DegLength])
-      miniPointRegionLongLatArr.push([latLong.long - x00DegLength, latLong.lat + y00DegLength]) // (x-1,y+0)
-      miniPointRegionLongLatArr.push([latLong.long - x45DegLength, latLong.lat - y45DegLength])
-      miniPointRegionLongLatArr.push([latLong.long + x90DegLength, latLong.lat - y90DegLength]) // (x+0,y-1)
-      miniPointRegionLongLatArr.push([latLong.long + x45DegLength, latLong.lat - y45DegLength])
+    whereLatLongArr.forEach((latlong) => {
+      const [indices, points] = makeMiniRegionFillerPoints(latlong.lat, latlong.long)
+      // console.log({ indices: indices, points: points })
 
-      // Triangulate the filler points to make a mesh.
-      // TODO: _start_ with a pre-allocated typed array and fill it in
-      const typedArr = new Float32Array(miniPointRegionLongLatArr.flat())
-      let delaunator = new Delaunator(typedArr)
-      let indices = delaunator.triangles
       let numExistingVertices = fillerPointsArr.length / 3
-      let poiMiniRegionIndices = indices.map((index) => index + numExistingVertices)
-      fillerIndicesArr.push(...poiMiniRegionIndices)
-
-      // Convert the filler points to their own vertices.
-      miniPointRegionLongLatArr.forEach((longLat) => {
-        let lat = longLat[1]
-        let long = longLat[0]
-        const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
-        fillerPointsArr.push(x, y, z)
-      })
+      let shiftedIndices = indices.map((value) => value + numExistingVertices)
+      fillerIndicesArr.push(...shiftedIndices)
+      fillerPointsArr.push(...points)
     })
 
     // Interpolated region between points
