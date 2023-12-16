@@ -188,16 +188,20 @@ const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
   let points = []
   // points.push(...p1Vec3)
   for (let i = 0.0; i <= 1.0; i += 0.1) {
-    // let fractionV1 = v1.clone().multiplyScalar(0.8)
-    // let fractionV2 = v2.clone().multiplyScalar(1)
-    // let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
-    // let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
-
-    let fractionV1 = v1.clone().multiplyScalar(i)
+    // let fractionV1 = v1.clone().multiplyScalar(i)
     // let fractionV2 = v2.clone().multiplyScalar(0)
     // let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
     // let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
     // points.push(...newPoint)
+
+    // from p1:
+    //  evenly spaced from p1 -> p2
+    //    v1To2(0) + v1To3(i)
+    //  evenly spaced from p2 -> p3
+    //    v1To2(i) + v1To3(1-i)
+    //  evenly spaced from p2 -> p3
+    //    v1To2(i) + v1To3(0)
+    let fractionV1 = v1.clone().multiplyScalar(i)
     for (let j = 0.0; j <= (1 - i); j += 0.1) {
       let fractionV2 = v2.clone().multiplyScalar(j)
       let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
@@ -221,6 +225,8 @@ const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
 }
 
 const makeRegion = (latLongArr) => {
+  let points = []
+
   const userLongLatArr = new Array(latLongArr.length)
   const userPointsArr = new Array(latLongArr.length)
   latLongArr.forEach((latLongJson, index) => {
@@ -228,17 +234,36 @@ const makeRegion = (latLongArr) => {
 
     const [x, y, z] = ConvertLatLongToXYZ(latLongJson.lat, latLongJson.long, globeInfo.radius)
     userPointsArr[index] = new THREE.Vector3(x, y, z)
+    points.push(x, y, z)
     // console.log(x, y, z)
   })
   // console.log({ userPointsArr: userPointsArr })
 
   // let points = userPointsArr.map((vec3, index) => [...vec3]).flat()
-  let points = []
+  // let points = []
   // console.log(points)
 
   let delaunay = d3Geo.geoDelaunay(userLongLatArr)
 
-  let indices = delaunay.triangles.flat()
+
+  //??why are there duplicate triangles??
+  let myUniqueTrianglesDict = {}
+  // console.log(delaunay.triangles)
+  // delaunay.triangles.forEach((triangleIndicesArr, index) => {
+  //   let copyArr = [...triangleIndicesArr]
+  //   copyArr.sort()
+  //   let key = JSON.stringify(copyArr)
+  //   if (myUniqueTrianglesDict[key] == undefined) {
+  //     myUniqueTrianglesDict[key] = triangleIndicesArr
+  //   }
+  // })
+  // let myUniqueTriangles = Object.values(myUniqueTrianglesDict)
+  let myUniqueTriangles = delaunay.triangles
+  console.log(myUniqueTriangles)
+
+
+  // let indices = delaunay.triangles.flat()
+  let indices = myUniqueTriangles.flat()
 
   // delaunay.edges.forEach((startEndArr) => {
   //   let startPointIndex = startEndArr[0]
@@ -260,12 +285,13 @@ const makeRegion = (latLongArr) => {
     let key = JSON.stringify(startEndArr)
     completedEdges[key] = false
   })
-  delaunay.triangles.forEach((triangleIndicesArr, index) => {
-    if (index > 0) {
-      return
-    }
+  // delaunay.triangles.forEach((triangleIndicesArr, index) => {
+  myUniqueTriangles.forEach((triangleIndicesArr, index) => {
+    // if (index > 0) {
+    //   return
+    // }
 
-    console.log(triangleIndicesArr)
+    // console.log(triangleIndicesArr)
     let edge1 = [triangleIndicesArr[0], triangleIndicesArr[1]]
     let edge2 = [triangleIndicesArr[1], triangleIndicesArr[2]]
     let edge3 = [triangleIndicesArr[2], triangleIndicesArr[0]]
@@ -274,8 +300,10 @@ const makeRegion = (latLongArr) => {
     let p2 = userPointsArr[triangleIndicesArr[1]]
     let p3 = userPointsArr[triangleIndicesArr[2]]
     // console.log({ p1: p1, p2: p2, p3: p3 })
-    let interpolatedCoordinates = triangleThing(p1, p2, p3)
-    points.push(...interpolatedCoordinates)
+
+    // let interpolatedCoordinates = triangleThing(p1, p2, p3)
+    // points.push(...interpolatedCoordinates)
+
     // console.log({ things: things })
   })
 
@@ -344,9 +372,6 @@ const makeRegion = (latLongArr) => {
   //     fillerPointsArr.push(...point)
   //   })
   // }
-
-
-
 
 
 
@@ -425,7 +450,9 @@ export function Region({ latLongArr }) {
     fillerIndicesArr.push(...shiftedIndices)
     fillerPointsArr.push(...regionPoints)
 
+    console.log({ whereLatLongArr: whereLatLongArr })
     const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
+    console.log({ midpointLat: midpointLat, midpointLong: midpointLong })
     const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
     fillerPointsArr.push(x, y, z)
 
@@ -466,6 +493,9 @@ export function Region({ latLongArr }) {
     fillerPointsMeshRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
     fillerPointsMeshRef.current.geometry.setIndex(fillerPointsIndicesAttr)
     fillerPointsMeshRef.current.geometry.attributes.position.needsUpdate = true
+
+    console.log({ fillerPointsArr: fillerPointsArr })
+    console.log({ fillerIndicesArr: fillerIndicesArr })
   }, [whereLatLongArr])
 
   return (
@@ -494,7 +524,8 @@ export function Region({ latLongArr }) {
           save, change back to true, and save again.
       */}
       <mesh name="IntermediatePointsMesh" ref={fillerPointsMeshRef}>
-        <meshPhongMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={true} transparent={true} opacity={0.1} />
+        {/* <meshPhongMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={false} transparent={true} opacity={0.9} /> */}
+        <meshBasicMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={true} />
       </mesh>
 
     </>
