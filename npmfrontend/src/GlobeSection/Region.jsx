@@ -180,44 +180,143 @@ const makeMiniRegionFillerPoints = (lat, long) => {
 }
 
 const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
-  // console.log(p1Vec3)
   let v1 = (new THREE.Vector3()).subVectors(p2Vec3, p1Vec3)
   let v2 = (new THREE.Vector3()).subVectors(p3Vec3, p1Vec3)
-  // console.log({ v1To2: v1To2, v2To3: v2To3 })
 
   let points = []
-  // points.push(...p1Vec3)
-  for (let i = 0.0; i <= 1.0; i += 0.1) {
-    // let fractionV1 = v1.clone().multiplyScalar(i)
-    // let fractionV2 = v2.clone().multiplyScalar(0)
-    // let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
-    // let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
-    // points.push(...newPoint)
+  // for (let i = 0.0; i <= 1.0; i += 0.1) {
+  //   // from p1:
+  //   //  evenly spaced from p1 -> p2
+  //   //    v1To2(0) + v1To3(i)
+  //   //  evenly spaced from p2 -> p3
+  //   //    v1To2(i) + v1To3(1-i)
+  //   //  evenly spaced from p2 -> p3
+  //   //    v1To2(i) + v1To3(0)
+  //   let fractionV1 = v1.clone().multiplyScalar(i)
+  //   for (let j = 0.0; j <= (1 - i); j += 0.1) {
+  //     let fractionV2 = v2.clone().multiplyScalar(j)
+  //     let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
+  //     let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
+  //     points.push(...newPoint)
+  //   }
+  // }
 
-    // from p1:
-    //  evenly spaced from p1 -> p2
-    //    v1To2(0) + v1To3(i)
-    //  evenly spaced from p2 -> p3
-    //    v1To2(i) + v1To3(1-i)
-    //  evenly spaced from p2 -> p3
-    //    v1To2(i) + v1To3(0)
-    let fractionV1 = v1.clone().multiplyScalar(i)
-    for (let j = 0.0; j <= (1 - i); j += 0.1) {
-      let fractionV2 = v2.clone().multiplyScalar(j)
-      let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
-      let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
-      points.push(...newPoint)
-    }
-  }
-  // let fractionV1 = undefined
-  // let fractionV2 = undefined
-  // fractionV1 = v1.clone().multiplyScalar(0.9)
-  // fractionV2 = v2.clone().multiplyScalar(0.6)
-  // let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
-  // let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
-  // // let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, fractionV1)
-  // // let newPoint = (new THREE.Vector3()).addVectors(p2Vec3, fractionV2)
-  // points.push(...newPoint)
+  let unitV1 = p1Vec3.clone().normalize()
+  let unitV2 = p2Vec3.clone().normalize()
+  let unitV3 = p3Vec3.clone().normalize()
+
+  let interpolationAngleDeg = 5
+
+  // between v1 and v2
+  let cosAngleV1V2 = unitV1.dot(unitV2)
+  let angleV1V2Rad = Math.acos(cosAngleV1V2)
+  let angleV1V2Deg = angleV1V2Rad * (180.0 / Math.PI)
+
+
+  // between v1 and v3
+  let cosAngleV1V3 = unitV1.dot(unitV3)
+  let angleV1V3Rad = Math.acos(cosAngleV1V3)
+  let angleV1V3Deg = angleV1V3Rad * (180.0 / Math.PI)
+
+  // interpolate
+
+  // vector style
+  let v1v2Fraction = 0.5
+  let v1v3Fraction = 0.5
+
+  let v1Scaler = (Math.sin((1 - v1v2Fraction) * angleV1V2Rad) * Math.sin((1 - v1v3Fraction) * angleV1V3Rad)) / (Math.sin(angleV1V2Rad) * Math.sin(angleV1V3Rad))
+  let v1Interpolated = p1Vec3.clone().multiplyScalar(v1Scaler)
+
+  let v1v2ScalerV1 = Math.sin((1 - v1v2Fraction) * angleV1V2Rad) / Math.sin(angleV1V2Rad)
+  let v1v2ScalerV2 = Math.sin((v1v2Fraction) * angleV1V2Rad) / Math.sin(angleV1V2Rad)
+  // console.log({
+  //   v1v2ScalerV1: v1v2ScalerV1,
+  //   v1v2ScalerV2: v1v2ScalerV2
+  // })
+  let v1v2ScaledV1 = p1Vec3.clone().multiplyScalar(v1v2ScalerV1)
+  let v1v2ScaledV2 = p2Vec3.clone().multiplyScalar(v1v2ScalerV2)
+  let v1v2Interpolated = (new THREE.Vector3()).addVectors(v1v2ScaledV1, v1v2ScaledV2)
+
+  let v1v3ScalerV1 = Math.sin((1 - v1v3Fraction) * angleV1V3Rad) / Math.sin(angleV1V3Rad)
+  let v1v3ScalerV3 = Math.sin((v1v3Fraction) * angleV1V3Rad) / Math.sin(angleV1V3Rad)
+  // console.log({
+  //   v1v3ScalerV1: v1v3ScalerV1,
+  //   v1v3ScalerV3: v1v3ScalerV3
+  // })
+  let v1v3ScaledV1 = p1Vec3.clone().multiplyScalar(v1v3ScalerV1)
+  let v1v3ScaledV3 = p3Vec3.clone().multiplyScalar(v1v3ScalerV3)
+  let v1v3Interpolated = (new THREE.Vector3()).addVectors(v1v3ScaledV1, v1v3ScaledV3)
+
+
+  let thingP1 = p1Vec3.clone().multiplyScalar(1 - v1v2Fraction - v1v3Fraction)
+  let sum = new THREE.Vector3()
+  // sum.addVectors(v1v2Interpolated, v1v3Interpolated)
+  sum.addVectors(v1v2Interpolated.clone().multiplyScalar(0.5), v1v3Interpolated.clone().multiplyScalar(0.5))
+  sum.addVectors(sum, thingP1)
+  // let thing = (new THREE.Vector3()).addVectors(v1v2Interpolated, v1v3Interpolated).multiplyScalar(0.5)
+  // sum.addVectors(thingP1, thing)
+
+  // console.log({ thingP1: thingP1 })
+  // console.log({ v1v2Interpolated: v1v2Interpolated })
+  // console.log({ v1v3Interpolated: v1v3Interpolated })
+  // console.log({ sum: sum })
+  points.push(...v1v2Interpolated)
+  points.push(...v1v3Interpolated)
+  points.push(...sum)
+
+  // // // (x,y)=(1−u−v)(x0,y0)+u(x1,y1)+v(x2,y2)
+  // let u = 0.8
+  // let v = 0.2
+  // let v1Scaler = (Math.sin((1 - u) * angleV1V2Rad) * Math.sin((1 - v) * angleV1V3Rad)) / (Math.sin(angleV1V2Rad) * Math.sin(angleV1V3Rad))
+  // let v2Scaler = Math.sin(u * angleV1V2Rad) / Math.sin(angleV1V2Rad)
+  // let v3Scaler = Math.sin(v * angleV1V3Rad) / Math.sin(angleV1V3Rad)
+  // console.log({
+  //   v1Scaler: v1Scaler,
+  //   v2Scaler: v2Scaler,
+  //   v3Scaler: v3Scaler,
+  //   sum: v1Scaler + v2Scaler + v3Scaler
+  // })
+
+  // let thing1 = p1Vec3.clone().multiplyScalar(v1Scaler)
+  // let thing2 = p2Vec3.clone().multiplyScalar(v2Scaler)
+  // let thing3 = p3Vec3.clone().multiplyScalar(v3Scaler)
+  // //??addScaledVector easier??
+  // let sum = new THREE.Vector3()
+  // sum.addVectors(thing1, thing2)
+  // sum.addVectors(sum, thing3)
+
+  // points.push(...thing1)
+  // points.push(...thing2)
+  // points.push(...thing3)
+  // points.push(...sum)
+
+
+  // const interpolateArcFromVertices = (startVec3, endVec3, interpolationAngleDeg) => {
+  //   // console.log({ start: startVec3, end: endVec3 })
+
+  //   let unitStartVec3 = startVec3.clone().normalize()
+  //   let unitEndVec3 = endVec3.clone().normalize()
+  //   let cosAngle = unitStartVec3.dot(unitEndVec3)
+  //   let angleRad = Math.acos(cosAngle)
+  //   let angle = angleRad * (180.0 / Math.PI)
+
+  //   let arcSegments = Math.round(angle / interpolationAngleDeg) + 1
+  //   // console.log({ angle: angle, interp: interpolationAngleDeg, arcSegments: arcSegments })
+  //   let interpolatedPoints = []
+  //   for (let i = 0; i <= arcSegments; i++) {
+  //     // Should vary from 0 -> 1
+  //     let fraction = i / arcSegments
+  //     let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
+  //     let scaledStartVec3 = startVec3.clone().multiplyScalar(startScaler)
+
+  //     let endScalar = Math.sin(fraction * angleRad) / Math.sin(angleRad)
+  //     let scaledEndVec3 = endVec3.clone().multiplyScalar(endScalar)
+
+  //     let interpolated = (new THREE.Vector3()).addVectors(scaledStartVec3, scaledEndVec3)
+  //     interpolatedPoints.push(interpolated)
+  //   }
+  //   return interpolatedPoints
+  // }
 
   return points
 
@@ -235,30 +334,26 @@ const makeRegion = (latLongArr) => {
     const [x, y, z] = ConvertLatLongToXYZ(latLongJson.lat, latLongJson.long, globeInfo.radius)
     userPointsArr[index] = new THREE.Vector3(x, y, z)
     points.push(x, y, z)
-    // console.log(x, y, z)
   })
-  // console.log({ userPointsArr: userPointsArr })
 
-  // let points = userPointsArr.map((vec3, index) => [...vec3]).flat()
-  // let points = []
-  // console.log(points)
-
+  // ??why??
+  // - 2x triangles when there are 3 points
+  // - 4x triangles when there are 4 points
+  // - 6x triangles when there are 5 points
+  // - why are there shortcuts across the triangle at a different depth, 
   let delaunay = d3Geo.geoDelaunay(userLongLatArr)
-
-
-  //??why are there duplicate triangles??
   let myUniqueTrianglesDict = {}
   // console.log(delaunay.triangles)
-  // delaunay.triangles.forEach((triangleIndicesArr, index) => {
-  //   let copyArr = [...triangleIndicesArr]
-  //   copyArr.sort()
-  //   let key = JSON.stringify(copyArr)
-  //   if (myUniqueTrianglesDict[key] == undefined) {
-  //     myUniqueTrianglesDict[key] = triangleIndicesArr
-  //   }
-  // })
-  // let myUniqueTriangles = Object.values(myUniqueTrianglesDict)
-  let myUniqueTriangles = delaunay.triangles
+  delaunay.triangles.forEach((triangleIndicesArr, index) => {
+    let copyArr = [...triangleIndicesArr]
+    copyArr.sort()
+    let key = JSON.stringify(copyArr)
+    if (myUniqueTrianglesDict[key] == undefined) {
+      myUniqueTrianglesDict[key] = triangleIndicesArr
+    }
+  })
+  let myUniqueTriangles = Object.values(myUniqueTrianglesDict)
+  // let myUniqueTriangles = delaunay.triangles
   console.log(myUniqueTriangles)
 
 
@@ -301,8 +396,8 @@ const makeRegion = (latLongArr) => {
     let p3 = userPointsArr[triangleIndicesArr[2]]
     // console.log({ p1: p1, p2: p2, p3: p3 })
 
-    // let interpolatedCoordinates = triangleThing(p1, p2, p3)
-    // points.push(...interpolatedCoordinates)
+    let interpolatedCoordinates = triangleThing(p1, p2, p3)
+    points.push(...interpolatedCoordinates)
 
     // console.log({ things: things })
   })
@@ -452,9 +547,8 @@ export function Region({ latLongArr }) {
 
     if (whereLatLongArr.length > 1) {
       const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
-      console.log({ midpointLat: midpointLat, midpointLong: midpointLong })
       const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
-      fillerPointsArr.push(x, y, z)
+      // fillerPointsArr.push(x, y, z)
     }
 
 
@@ -494,9 +588,6 @@ export function Region({ latLongArr }) {
     fillerPointsMeshRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
     fillerPointsMeshRef.current.geometry.setIndex(fillerPointsIndicesAttr)
     fillerPointsMeshRef.current.geometry.attributes.position.needsUpdate = true
-
-    console.log({ fillerPointsArr: fillerPointsArr })
-    console.log({ fillerIndicesArr: fillerIndicesArr })
   }, [whereLatLongArr])
 
   return (
@@ -528,7 +619,6 @@ export function Region({ latLongArr }) {
         {/* <meshPhongMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={false} transparent={true} opacity={0.9} /> */}
         <meshBasicMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={true} />
       </mesh>
-
     </>
   )
 }
