@@ -450,11 +450,12 @@ export function Region({ latLongArr }) {
     fillerIndicesArr.push(...shiftedIndices)
     fillerPointsArr.push(...regionPoints)
 
-    console.log({ whereLatLongArr: whereLatLongArr })
-    const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
-    console.log({ midpointLat: midpointLat, midpointLong: midpointLong })
-    const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
-    fillerPointsArr.push(x, y, z)
+    if (whereLatLongArr.length > 1) {
+      const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
+      console.log({ midpointLat: midpointLat, midpointLong: midpointLong })
+      const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
+      fillerPointsArr.push(x, y, z)
+    }
 
 
 
