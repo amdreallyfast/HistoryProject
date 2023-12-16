@@ -9,8 +9,6 @@ import * as d3Geo from "d3-geo-voronoi"
 import { sum } from "lodash"
 import { v1 } from "uuid"
 
-// TODO: latlong grid to fill in gaps >1deg
-// TODO: latlong pin object
 // TODO: click latlong pin and drag to move point
 
 const interpolateArcFromLatLong = (startLat, startLong, endLat, endLong, maxArcSegmentAngleDeg, includeEndpoints = false) => {
@@ -23,55 +21,54 @@ const interpolateArcFromLatLong = (startLat, startLong, endLat, endLong, maxArcS
   return interpolateArcFromVertices(start, end, maxArcSegmentAngleDeg, includeEndpoints)
 }
 
-const interpolateArcFromVertices = (start, end, fraction) => {
-  let unitStart = start.clone().normalize()
-  let unitEnd = end.clone().normalize()
-  let cosAngle = unitStart.dot(unitEnd)
-  let angleRad = Math.acos(cosAngle)
-  let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
-  let endScalar = Math.sin(fraction * angleRad) / Math.sin(angleRad)
-  let interpolated = (new THREE.Vector3()).addScaledVector(start, startScaler).addScaledVector(end, endScalar)
-
-  return interpolated
-}
-
-// const interpolateArcFromVertices = (startVec3, endVec3, maxArcSegmentAngleDeg, includeEndpoints = false) => {
-//   // console.log({ start: startVec3, end: endVec3 })
-
-//   let unitStartVec3 = startVec3.clone().normalize()
-//   let unitEndVec3 = endVec3.clone().normalize()
-//   let cosAngle = unitStartVec3.dot(unitEndVec3)
+// const interpolateArcFromVertices = (start, end, fraction) => {
+//   let unitStart = start.clone().normalize()
+//   let unitEnd = end.clone().normalize()
+//   let cosAngle = unitStart.dot(unitEnd)
 //   let angleRad = Math.acos(cosAngle)
-//   let angle = angleRad * (180.0 / Math.PI)
+//   let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
+//   let endScalar = Math.sin(fraction * angleRad) / Math.sin(angleRad)
+//   let interpolated = (new THREE.Vector3()).addScaledVector(start, startScaler).addScaledVector(end, endScalar)
 
-//   let numArcSegments = Math.round(angle / maxArcSegmentAngleDeg) + 1
-//   // console.log({ angle: angle, interp: interpolationAngleDeg, arcSegments: arcSegments })
-//   let interpolatedPoints = []
-//   let arcSegmentCount = 1
-//   if (includeEndpoints) {
-//     arcSegmentCount = 0
-//     numArcSegments += 1
-//   }
-//   while (arcSegmentCount < numArcSegments) {
-//     let fraction = arcSegmentCount / numArcSegments
-
-//     let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
-//     let scaledStartVec3 = startVec3.clone().multiplyScalar(startScaler)
-
-//     let endScalar = Math.sin(fraction * angleRad) / Math.sin(angleRad)
-//     let scaledEndVec3 = endVec3.clone().multiplyScalar(endScalar)
-
-//     let interpolated = (new THREE.Vector3()).addVectors(scaledStartVec3, scaledEndVec3)
-//     interpolatedPoints.push(interpolated)
-
-//     arcSegmentCount++
-//   }
-
-//   return interpolatedPoints
+//   return interpolated
 // }
 
+const interpolateArcFromVertices = (startVec3, endVec3, maxArcSegmentAngleDeg, includeEndpoints = false) => {
+  // console.log({ start: startVec3, end: endVec3 })
+
+  let unitStartVec3 = startVec3.clone().normalize()
+  let unitEndVec3 = endVec3.clone().normalize()
+  let cosAngle = unitStartVec3.dot(unitEndVec3)
+  let angleRad = Math.acos(cosAngle)
+  let angle = angleRad * (180.0 / Math.PI)
+
+  let numArcSegments = Math.round(angle / maxArcSegmentAngleDeg) + 1
+  let interpolatedVectorPoints = []
+  let arcSegmentCount = 1
+  if (includeEndpoints) {
+    arcSegmentCount = 0
+    numArcSegments += 1
+  }
+  while (arcSegmentCount < numArcSegments) {
+    let fraction = arcSegmentCount / numArcSegments
+
+    let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
+    let scaledStartVec3 = startVec3.clone().multiplyScalar(startScaler)
+
+    let endScalar = Math.sin(fraction * angleRad) / Math.sin(angleRad)
+    let scaledEndVec3 = endVec3.clone().multiplyScalar(endScalar)
+
+    let interpolated = (new THREE.Vector3()).addVectors(scaledStartVec3, scaledEndVec3)
+    interpolatedVectorPoints.push(interpolated)
+
+    arcSegmentCount++
+  }
+
+  return interpolatedVectorPoints
+}
+
 const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
-  let points = []
+  let interpolatedVectorPoints = []
 
   let unitV1 = v1.clone().normalize()
   let unitV2 = v2.clone().normalize()
@@ -134,7 +131,7 @@ const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
       let vScaler = Math.sin((uvFraction) * angleUVRad) / Math.sin(angleUVRad)
       let uvInterpolated = (new THREE.Vector3()).addScaledVector(u, uScalar).addScaledVector(v, vScaler)
       // let uvInterpolated = interpolateArcFromVertices(u, v, uvFraction)
-      points.push(uvInterpolated)
+      interpolatedVectorPoints.push(uvInterpolated)
     }
 
     // points.push(...v1v2Interpolated)
@@ -142,7 +139,7 @@ const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
     // points.push(...uvInterpolated)
   }
 
-  return points
+  return interpolatedVectorPoints
 }
 
 // TODO: ??re-think this algorithm? it doesn't work well with triangles; do we even need it??
@@ -274,217 +271,8 @@ const makeMiniRegionFillerPoints = (lat, long) => {
   return [indices, points]
 }
 
-const triangleThing = (v1, v2, v3) => {
-  let points = []
-  // for (let i = 0.0; i <= 1.0; i += 0.1) {
-  //   // from p1:
-  //   //  evenly spaced from p1 -> p2
-  //   //    v1To2(0) + v1To3(i)
-  //   //  evenly spaced from p2 -> p3
-  //   //    v1To2(i) + v1To3(1-i)
-  //   //  evenly spaced from p2 -> p3
-  //   //    v1To2(i) + v1To3(0)
-  //   let fractionV1 = v1.clone().multiplyScalar(i)
-  //   for (let j = 0.0; j <= (1 - i); j += 0.1) {
-  //     let fractionV2 = v2.clone().multiplyScalar(j)
-  //     let vCombination = (new THREE.Vector3()).addVectors(fractionV1, fractionV2)
-  //     let newPoint = (new THREE.Vector3()).addVectors(p1Vec3, vCombination)
-  //     points.push(...newPoint)
-  //   }
-  // }
-
-  let maxArcSegmentAngleDeg = 3
-  let vectorPoints = interpolateAcrossTriangle(v1, v2, v3, maxArcSegmentAngleDeg)
-  vectorPoints.forEach((v) => {
-    points.push(...v)
-  })
-
-  // let unitV1 = v1.clone().normalize()
-  // let unitV2 = v2.clone().normalize()
-  // let unitV3 = v3.clone().normalize()
-  // const radToDeg = 180.0 / Math.PI
-
-  // // between v1 and v2
-  // let cosAngleV1V2 = unitV1.dot(unitV2)
-  // let angleV1V2Rad = Math.acos(cosAngleV1V2)
-  // let angleV1V2Deg = angleV1V2Rad * radToDeg
-
-  // // between v1 and v3
-  // let cosAngleV1V3 = unitV1.dot(unitV3)
-  // let angleV1V3Rad = Math.acos(cosAngleV1V3)
-  // let angleV1V3Deg = angleV1V3Rad * radToDeg
-
-  // // The shortest side of the triangle will dictate how many arc segments we create
-  // let minArcAngleRad = angleV1V2Rad
-  // if (angleV1V3Rad < angleV1V2Rad) {
-  //   minArcAngleRad = angleV1V3Rad
-  // }
-  // let minArcAngleDeg = minArcAngleRad * radToDeg
-  // let maxArcSegmentAngleDeg = 3
-  // let numArcSegments = Math.round(minArcAngleDeg / maxArcSegmentAngleDeg) + 1
-  // // console.log({ numArcSegments: numArcSegments })
-
-  // // let v1v2Points = interpolateArcFromVertices(v1, v2, maxArcSegmentAngleDeg)
-  // // v1v2Points.forEach((point) => {
-  // //   points.push(...point)
-  // // })
-
-  // // let v1v3Points = interpolateArcFromVertices(v1, v3, maxArcSegmentAngleDeg)
-  // // v1v3Points.forEach((point) => {
-  // //   points.push(...point)
-  // // })
-
-  // // interpolate
-  // for (let i = 1; i < numArcSegments; i++) {
-  //   // Should vary from 0 -> 1
-  //   let fraction = i / numArcSegments
-
-  //   let v1v2Interpolated = interpolateArcFromVertices(v1, v2, fraction)
-  //   let v1v3Interpolated = interpolateArcFromVertices(v1, v3, fraction)
-
-  //   // now interpolate another arc across the interpolated midpoints
-  //   let u = v1v2Interpolated
-  //   let v = v1v3Interpolated
-  //   let unitU = u.clone().normalize()
-  //   let unitV = v.clone().normalize()
-  //   let cosAngleUV = unitU.dot(unitV)
-  //   let angleUVRad = Math.acos(cosAngleUV)
-  //   let angleUVDeg = angleUVRad * radToDeg
-  //   let numUVArcSegments = Math.round(angleUVDeg / maxArcSegmentAngleDeg) + 1
-  //   for (let uvArcSegmentCount = 1; uvArcSegmentCount < numUVArcSegments; uvArcSegmentCount++) {
-  //     let uvFraction = uvArcSegmentCount / numUVArcSegments
-  //     // console.log(uvFraction)
-  //     // let uScalar = Math.sin((1 - uvFraction) * angleUVRad) / Math.sin(angleUVRad)
-  //     // let vScaler = Math.sin((uvFraction) * angleUVRad) / Math.sin(angleUVRad)
-  //     // let uvInterpolated = (new THREE.Vector3()).addScaledVector(u, uScalar).addScaledVector(v, vScaler)
-  //     let uvInterpolated = interpolateArcFromVertices(u, v, uvFraction)
-  //     points.push(...uvInterpolated)
-  //   }
-
-  // points.push(...v1v2Interpolated)
-  // points.push(...v1v3Interpolated)
-  // points.push(...uvInterpolated)
-  // }
-
-
-
-  // let v1v2Fraction = 0.9
-  // let v1v3Fraction = 0.9
-
-  // // between v1 and v2
-  // let v1v2ScalerV1 = Math.sin((1 - v1v2Fraction) * angleV1V2Rad) / Math.sin(angleV1V2Rad)
-  // let v1v2ScalerV2 = Math.sin((v1v2Fraction) * angleV1V2Rad) / Math.sin(angleV1V2Rad)
-  // let v1v2ScaledV1 = v1.clone().multiplyScalar(v1v2ScalerV1)
-  // let v1v2ScaledV2 = v2.clone().multiplyScalar(v1v2ScalerV2)
-  // let v1v2Interpolated = (new THREE.Vector3()).addVectors(v1v2ScaledV1, v1v2ScaledV2)
-
-  // // between v1 and v3
-  // let v1v3ScalerV1 = Math.sin((1 - v1v3Fraction) * angleV1V3Rad) / Math.sin(angleV1V3Rad)
-  // let v1v3ScalerV3 = Math.sin((v1v3Fraction) * angleV1V3Rad) / Math.sin(angleV1V3Rad)
-  // let v1v3ScaledV1 = v1.clone().multiplyScalar(v1v3ScalerV1)
-  // let v1v3ScaledV3 = v3.clone().multiplyScalar(v1v3ScalerV3)
-  // let v1v3Interpolated = (new THREE.Vector3()).addVectors(v1v3ScaledV1, v1v3ScaledV3)
-
-  // // now interpolate another arc across the interpolated midpoints
-  // let u = v1v2Interpolated
-  // let v = v1v3Interpolated
-  // let uvFraction = 0.5
-  // let unitU = u.clone().normalize()
-  // let unitV = v.clone().normalize()
-  // let cosAngleUV = unitU.dot(unitV)
-  // let angleUVRad = Math.acos(cosAngleUV)
-  // let angleUVDeg = angleUVRad * (180.0 / Math.PI)
-  // let uScalar = Math.sin((1 - uvFraction) * angleUVRad) / Math.sin(angleUVRad)
-  // let vScaler = Math.sin((uvFraction) * angleUVRad) / Math.sin(angleUVRad)
-  // let uvInterpolated = (new THREE.Vector3()).addScaledVector(u, uScalar).addScaledVector(v, vScaler)
-
-  // points.push(...v1v2Interpolated)
-  // points.push(...v1v3Interpolated)
-  // points.push(...uvInterpolated)
-
-
-
-
-
-
-
-  // let thingP1 = p1Vec3.clone().multiplyScalar(1 - v1v2Fraction - v1v3Fraction)
-  // let sum = new THREE.Vector3()
-  // // sum.addVectors(v1v2Interpolated, v1v3Interpolated)
-  // sum.addVectors(v1v2Interpolated.clone().multiplyScalar(0.5), v1v3Interpolated.clone().multiplyScalar(0.5))
-  // sum.addVectors(sum, thingP1)
-  // // let thing = (new THREE.Vector3()).addVectors(v1v2Interpolated, v1v3Interpolated).multiplyScalar(0.5)
-  // // sum.addVectors(thingP1, thing)
-
-  // console.log({ thingP1: thingP1 })
-  // console.log({ v1v2Interpolated: v1v2Interpolated })
-  // console.log({ v1v3Interpolated: v1v3Interpolated })
-  // console.log({ sum: sum })
-  // points.push(...v1v2Interpolated)
-  // points.push(...v1v3Interpolated)
-  // points.push(...sum)
-
-  // // // (x,y)=(1−u−v)(x0,y0)+u(x1,y1)+v(x2,y2)
-  // let u = 0.8
-  // let v = 0.2
-  // let v1Scaler = (Math.sin((1 - u) * angleV1V2Rad) * Math.sin((1 - v) * angleV1V3Rad)) / (Math.sin(angleV1V2Rad) * Math.sin(angleV1V3Rad))
-  // let v2Scaler = Math.sin(u * angleV1V2Rad) / Math.sin(angleV1V2Rad)
-  // let v3Scaler = Math.sin(v * angleV1V3Rad) / Math.sin(angleV1V3Rad)
-  // console.log({
-  //   v1Scaler: v1Scaler,
-  //   v2Scaler: v2Scaler,
-  //   v3Scaler: v3Scaler,
-  //   sum: v1Scaler + v2Scaler + v3Scaler
-  // })
-
-  // let thing1 = p1Vec3.clone().multiplyScalar(v1Scaler)
-  // let thing2 = p2Vec3.clone().multiplyScalar(v2Scaler)
-  // let thing3 = p3Vec3.clone().multiplyScalar(v3Scaler)
-  // //??addScaledVector easier??
-  // let sum = new THREE.Vector3()
-  // sum.addVectors(thing1, thing2)
-  // sum.addVectors(sum, thing3)
-
-  // points.push(...thing1)
-  // points.push(...thing2)
-  // points.push(...thing3)
-  // points.push(...sum)
-
-
-  // const interpolateArcFromVertices = (startVec3, endVec3, interpolationAngleDeg) => {
-  //   // console.log({ start: startVec3, end: endVec3 })
-
-  //   let unitStartVec3 = startVec3.clone().normalize()
-  //   let unitEndVec3 = endVec3.clone().normalize()
-  //   let cosAngle = unitStartVec3.dot(unitEndVec3)
-  //   let angleRad = Math.acos(cosAngle)
-  //   let angle = angleRad * (180.0 / Math.PI)
-
-  //   let arcSegments = Math.round(angle / interpolationAngleDeg) + 1
-  //   // console.log({ angle: angle, interp: interpolationAngleDeg, arcSegments: arcSegments })
-  //   let interpolatedPoints = []
-  //   for (let i = 0; i <= arcSegments; i++) {
-  //     // Should vary from 0 -> 1
-  //     let fraction = i / arcSegments
-  //     let startScaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
-  //     let scaledStartVec3 = startVec3.clone().multiplyScalar(startScaler)
-
-  //     let endScalar = Math.sin(fraction * angleRad) / Math.sin(angleRad)
-  //     let scaledEndVec3 = endVec3.clone().multiplyScalar(endScalar)
-
-  //     let interpolated = (new THREE.Vector3()).addVectors(scaledStartVec3, scaledEndVec3)
-  //     interpolatedPoints.push(interpolated)
-  //   }
-  //   return interpolatedPoints
-  // }
-
-  return points
-
-  // TODO: if you can interpolate between a combination of 2x vectors, why can't you interpolate between a combination of 2x arcs?
-}
-
 const makeRegion = (latLongArr) => {
-  let points = []
+  let vectorPoints = []
 
   const userLongLatArr = new Array(latLongArr.length)
   const userPointsArr = new Array(latLongArr.length)
@@ -492,8 +280,9 @@ const makeRegion = (latLongArr) => {
     userLongLatArr[index] = [latLongJson.long, latLongJson.lat]
 
     const [x, y, z] = ConvertLatLongToXYZ(latLongJson.lat, latLongJson.long, globeInfo.radius)
-    userPointsArr[index] = new THREE.Vector3(x, y, z)
-    points.push(x, y, z)
+    let v = new THREE.Vector3(x, y, z)
+    userPointsArr[index] = v
+    vectorPoints.push(v)
   })
 
   // ??why??
@@ -503,7 +292,6 @@ const makeRegion = (latLongArr) => {
   // - why are there shortcuts across the triangle at a different depth, 
   let delaunay = d3Geo.geoDelaunay(userLongLatArr)
   let myUniqueTrianglesDict = {}
-  // console.log(delaunay.triangles)
   delaunay.triangles.forEach((triangleIndicesArr, index) => {
     let copyArr = [...triangleIndicesArr]
     copyArr.sort()
@@ -520,18 +308,6 @@ const makeRegion = (latLongArr) => {
   // let indices = delaunay.triangles.flat()
   let indices = myUniqueTriangles.flat()
 
-  // delaunay.edges.forEach((startEndArr) => {
-  //   let startPointIndex = startEndArr[0]
-  //   let endPointIndex = startEndArr[1]
-  //   let startPoint = userPointsArr[startPointIndex]
-  //   let endPoint = userPointsArr[endPointIndex]
-  //   // console.log({ start: startPoint, end: endPoint })
-  //   let interpolatedPoints = interpolateArcFromVertices(startPoint, endPoint, 3)
-  //   let coordinates = interpolatedPoints.map((vec3, index) => [...vec3]).flat()
-  //   // console.log(coordinates)
-  //   points.push(...coordinates)
-  // })
-
   // TODO: use this when iterating over the triangles to avoid doing the expensive interpolationArc calculation twice on the same edge
   // Note: Inner edges always appear twice as the boundary between 2x triangles.
   //??interpolate between _pairs_ of edges and only check those, rather than strictly triangles??
@@ -540,13 +316,10 @@ const makeRegion = (latLongArr) => {
     let key = JSON.stringify(startEndArr)
     completedEdges[key] = false
   })
+  const maxArcSegmentAngleDeg = 3
+
   // delaunay.triangles.forEach((triangleIndicesArr, index) => {
   myUniqueTriangles.forEach((triangleIndicesArr, index) => {
-    // if (index > 0) {
-    //   return
-    // }
-
-    // console.log(triangleIndicesArr)
     let edge1 = [triangleIndicesArr[0], triangleIndicesArr[1]]
     let edge2 = [triangleIndicesArr[1], triangleIndicesArr[2]]
     let edge3 = [triangleIndicesArr[2], triangleIndicesArr[0]]
@@ -556,17 +329,16 @@ const makeRegion = (latLongArr) => {
     let p3 = userPointsArr[triangleIndicesArr[2]]
     // console.log({ p1: p1, p2: p2, p3: p3 })
 
-    let interpolatedCoordinates = triangleThing(p1, p2, p3)
-    points.push(...interpolatedCoordinates)
-
-    // console.log({ things: things })
+    let interpolatedVectorPoints = interpolateAcrossTriangle(p1, p2, p3, maxArcSegmentAngleDeg)
+    vectorPoints.push(...interpolatedVectorPoints)
   })
 
-  // console.log(edges)
-
-  // console.log({ userPoints: userPoints })
-
-
+  delaunay.edges.forEach((edgeIndicesArr) => {
+    let p1 = userPointsArr[edgeIndicesArr[0]]
+    let p2 = userPointsArr[edgeIndicesArr[1]]
+    let interpolatedVectorPoints = interpolateArcFromVertices(p1, p2, maxArcSegmentAngleDeg)
+    vectorPoints.push(...interpolatedVectorPoints)
+  })
 
   // // Delete triangles where the edges are not too long.
   // let triangleIndices = {}
@@ -603,35 +375,10 @@ const makeRegion = (latLongArr) => {
   //   indicesArr.push(...(triangleIndices[key]))
   // })
 
-
-
-
-  // // Interpolated region between points
-  // for (let i = 1; i < whereLatLongArr.length; i++) {
-  //   // Source:
-  //   //  https://en.wikipedia.org/wiki/Slerp
-  //   // Summary:
-  //   //  Convert latLong -> 3D vectors
-  //   //  Get unit vectors
-  //   //  Use dot product + acos(...) to get angle
-  //   //  Interpolate fraction from 0 -> 1
-  //   //    fractionStartVector = sin((1 - fraction) * angle) / sin(angle)
-  //   //    fractionEndVector = sin(fraction * angle) / sin(angle)
-  //   //    interpolatedVector = fractionStartVector * startVector + fractionEndVector * endVector
-  //   let startLat = whereLatLongArr[i].lat
-  //   let startLong = whereLatLongArr[i].long
-  //   let endLat = whereLatLongArr[i - 1].lat
-  //   let endLong = whereLatLongArr[i - 1].long
-  //   let interpolatedPoints = interpolateArc(startLat, startLong, endLat, endLong, 3)
-  //   interpolatedPoints.forEach((point) => {
-  //     fillerPointsArr.push(...point)
-  //   })
-  // }
-
-
-
-
-
+  let points = []
+  vectorPoints.forEach((value) => {
+    points.push(...value)
+  })
   return [indices, points]
 }
 
@@ -647,48 +394,8 @@ export function Region({ latLongArr }) {
     let fillerPointsArr = []
     let fillerIndicesArr = []
 
-    let copyLatlongArr = []
-    whereLatLongArr.forEach((latLongJson, index) => {
-      copyLatlongArr.push({
-        lat: latLongJson.lat,
-        long: latLongJson.long
-      })
-    })
-
-    if (copyLatlongArr.length > 1) {
-      // console.log("more than 2 points")
-
-      // const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
-      // copyLatlongArr.push({
-      //   lat: midpointLat,
-      //   long: midpointLong
-      // })
-
-      // let thingPoint = whereLatLongArr[0]
-
-
-      // Nope. 
-      //  Lat/long are spherical coordinates and start collapsing together around the poles. 
-      //  Need a different way to create an angle coordinate system.
-      //  ??start with "up" being defined as "from midpoint towards the north pole" and "left" being defined as "west of midpoints"? how then do I get these spherical coordinates into a square UV grid??
-
-      //??go triangle by triangle and fill in? how can you tell where an "open" spot is??
-
-      // // horizontal component
-      // copyLatlongArr.push({
-      //   lat: midpointLat,
-      //   long: thingPoint.long
-      // })
-
-      // // vertical component
-      // copyLatlongArr.push({
-      //   lat: thingPoint.lat,
-      //   long: midpointLong
-      // })
-    }
-
     setLatLongPinReactElements(
-      copyLatlongArr?.map(
+      whereLatLongArr?.map(
         (latLongJson, index) => {
           return (
             <LatLongPin
@@ -705,34 +412,11 @@ export function Region({ latLongArr }) {
     fillerIndicesArr.push(...shiftedIndices)
     fillerPointsArr.push(...regionPoints)
 
-    if (whereLatLongArr.length > 1) {
-      const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
-      const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
-      // fillerPointsArr.push(x, y, z)
-    }
-
-
-
-    // // Interpolated region between points
-    // for (let i = 1; i < whereLatLongArr.length; i++) {
-    //   // Source:
-    //   //  https://en.wikipedia.org/wiki/Slerp
-    //   // Summary:
-    //   //  Convert latLong -> 3D vectors
-    //   //  Get unit vectors
-    //   //  Use dot product + acos(...) to get angle
-    //   //  Interpolate fraction from 0 -> 1
-    //   //    fractionStartVector = sin((1 - fraction) * angle) / sin(angle)
-    //   //    fractionEndVector = sin(fraction * angle) / sin(angle)
-    //   //    interpolatedVector = fractionStartVector * startVector + fractionEndVector * endVector
-    //   let startLat = whereLatLongArr[i].lat
-    //   let startLong = whereLatLongArr[i].long
-    //   let endLat = whereLatLongArr[i - 1].lat
-    //   let endLong = whereLatLongArr[i - 1].long
-    //   let interpolatedPoints = interpolateArc(startLat, startLong, endLat, endLong, 3)
-    //   interpolatedPoints.forEach((point) => {
-    //     fillerPointsArr.push(...point)
-    //   })
+    // //??useful at all??
+    // if (whereLatLongArr.length > 1) {
+    //   const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
+    //   const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
+    //   fillerPointsArr.push(x, y, z)
     // }
 
     let valuesPerVertex = 3
@@ -743,7 +427,7 @@ export function Region({ latLongArr }) {
     let fillerPointsIndicesAttr = new THREE.Uint32BufferAttribute(fillerIndicesArr, valuesPerIndex)
 
     fillerPointsRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
-    // fillerPointsRef.current.geometry.attributes.position.needsUpdate = true
+    fillerPointsRef.current.geometry.attributes.position.needsUpdate = true
 
     fillerPointsMeshRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
     fillerPointsMeshRef.current.geometry.setIndex(fillerPointsIndicesAttr)
