@@ -212,7 +212,6 @@ const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
   let angleV1V2Rad = Math.acos(cosAngleV1V2)
   let angleV1V2Deg = angleV1V2Rad * (180.0 / Math.PI)
 
-
   // between v1 and v3
   let cosAngleV1V3 = unitV1.dot(unitV3)
   let angleV1V3Rad = Math.acos(cosAngleV1V3)
@@ -221,40 +220,42 @@ const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
   // interpolate
 
   // vector style
-  let v1v2Fraction = 0.5
-  let v1v3Fraction = 0.5
-
-  let v1Scaler = (Math.sin((1 - v1v2Fraction) * angleV1V2Rad) * Math.sin((1 - v1v3Fraction) * angleV1V3Rad)) / (Math.sin(angleV1V2Rad) * Math.sin(angleV1V3Rad))
-  let v1Interpolated = p1Vec3.clone().multiplyScalar(v1Scaler)
+  let v1v2Fraction = 0.9
+  let v1v3Fraction = 0.9
 
   let v1v2ScalerV1 = Math.sin((1 - v1v2Fraction) * angleV1V2Rad) / Math.sin(angleV1V2Rad)
   let v1v2ScalerV2 = Math.sin((v1v2Fraction) * angleV1V2Rad) / Math.sin(angleV1V2Rad)
-  // console.log({
-  //   v1v2ScalerV1: v1v2ScalerV1,
-  //   v1v2ScalerV2: v1v2ScalerV2
-  // })
   let v1v2ScaledV1 = p1Vec3.clone().multiplyScalar(v1v2ScalerV1)
   let v1v2ScaledV2 = p2Vec3.clone().multiplyScalar(v1v2ScalerV2)
   let v1v2Interpolated = (new THREE.Vector3()).addVectors(v1v2ScaledV1, v1v2ScaledV2)
 
   let v1v3ScalerV1 = Math.sin((1 - v1v3Fraction) * angleV1V3Rad) / Math.sin(angleV1V3Rad)
   let v1v3ScalerV3 = Math.sin((v1v3Fraction) * angleV1V3Rad) / Math.sin(angleV1V3Rad)
-  // console.log({
-  //   v1v3ScalerV1: v1v3ScalerV1,
-  //   v1v3ScalerV3: v1v3ScalerV3
-  // })
   let v1v3ScaledV1 = p1Vec3.clone().multiplyScalar(v1v3ScalerV1)
   let v1v3ScaledV3 = p3Vec3.clone().multiplyScalar(v1v3ScalerV3)
   let v1v3Interpolated = (new THREE.Vector3()).addVectors(v1v3ScaledV1, v1v3ScaledV3)
 
+  // now interpolate another arc across these points
+  let u = v1v2Interpolated
+  let v = v1v3Interpolated
+  let uvFraction = 0.5
+  let unitU = u.clone().normalize()
+  let unitV = v.clone().normalize()
+  let cosAngleUV = unitU.dot(unitV)
+  let angleUVRad = Math.acos(cosAngleUV)
+  let angleUVDeg = angleUVRad * (180.0 / Math.PI)
+  let uScalar = Math.sin((1 - uvFraction) * angleUVRad) / Math.sin(angleUVRad)
+  let vScaler = Math.sin((uvFraction) * angleUVRad) / Math.sin(angleUVRad)
+  let uvInterpolated = (new THREE.Vector3()).addScaledVector(u, uScalar).addScaledVector(v, vScaler)
 
-  let thingP1 = p1Vec3.clone().multiplyScalar(1 - v1v2Fraction - v1v3Fraction)
-  let sum = new THREE.Vector3()
-  // sum.addVectors(v1v2Interpolated, v1v3Interpolated)
-  sum.addVectors(v1v2Interpolated.clone().multiplyScalar(0.5), v1v3Interpolated.clone().multiplyScalar(0.5))
-  sum.addVectors(sum, thingP1)
-  // let thing = (new THREE.Vector3()).addVectors(v1v2Interpolated, v1v3Interpolated).multiplyScalar(0.5)
-  // sum.addVectors(thingP1, thing)
+
+  // let thingP1 = p1Vec3.clone().multiplyScalar(1 - v1v2Fraction - v1v3Fraction)
+  // let sum = new THREE.Vector3()
+  // // sum.addVectors(v1v2Interpolated, v1v3Interpolated)
+  // sum.addVectors(v1v2Interpolated.clone().multiplyScalar(0.5), v1v3Interpolated.clone().multiplyScalar(0.5))
+  // sum.addVectors(sum, thingP1)
+  // // let thing = (new THREE.Vector3()).addVectors(v1v2Interpolated, v1v3Interpolated).multiplyScalar(0.5)
+  // // sum.addVectors(thingP1, thing)
 
   // console.log({ thingP1: thingP1 })
   // console.log({ v1v2Interpolated: v1v2Interpolated })
@@ -262,7 +263,8 @@ const triangleThing = (p1Vec3, p2Vec3, p3Vec3) => {
   // console.log({ sum: sum })
   points.push(...v1v2Interpolated)
   points.push(...v1v3Interpolated)
-  points.push(...sum)
+  // points.push(...sum)
+  points.push(...uvInterpolated)
 
   // // // (x,y)=(1−u−v)(x0,y0)+u(x1,y1)+v(x2,y2)
   // let u = 0.8
