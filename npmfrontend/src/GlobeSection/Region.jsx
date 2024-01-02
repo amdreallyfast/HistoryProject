@@ -135,9 +135,10 @@ const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
     interpolatedVectorPoints.push(v1v2Interpolated)
 
     // between v1 and v3
+    fraction = 0.2
     let v1v3ScalerV1 = Math.sin((1 - fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
     let v1v3ScalerV3 = Math.sin((fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
-    let v1v3ScaledV1 = v1.clone().multiplyScalar(v1v3ScalerV1)
+    let v1v3ScaledV1 = v1v2Interpolated.clone().multiplyScalar(v1v3ScalerV1)
     let v1v3ScaledV3 = v3.clone().multiplyScalar(v1v3ScalerV3)
     let v1v3Interpolated = (new THREE.Vector3()).addVectors(v1v3ScaledV1, v1v3ScaledV3)
     // let v1v3Interpolated = interpolateArcFromVertices(v1, v3, fraction)
