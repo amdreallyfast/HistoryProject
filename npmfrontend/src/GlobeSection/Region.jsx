@@ -96,6 +96,7 @@ const interpolateAcrossTriangleFlat = (p1, p2, p3, distBetweenPoints) => {
     let vVectorLength = vVector.length()
     let vSegmentCount = ceil(vVectorLength / distBetweenPoints)
     let vSegmentLength = vVectorLength / vSegmentCount
+    // console.log({ u: u, vLength: vVectorLength, segmentCount: vVectorLength / distBetweenPoints, segmentLen: vSegmentLength })
     let vFractionPerSegment = vSegmentLength / vVectorLength
     for (let v = 0.0; v <= 1.02; v += vFractionPerSegment) {
       let uvVectorSegment = uVectorSegment.clone().addScaledVector(vVector, v)
@@ -108,104 +109,152 @@ const interpolateAcrossTriangleFlat = (p1, p2, p3, distBetweenPoints) => {
   return interpolatedVectorPoints
 }
 
-const interpolateAcrossTriangleSpherical = (p1, p2, p3, maxArcSegmentAngleDeg) => {
+const interpolateAcrossTriangleSpherical = (p1, p2, p3, arcDegPerSegment) => {
   let interpolatedVectorPoints = []
 
+  const getAngleBetween = (v1, v2) => {
+    let unitV1 = v1.clone().normalize()
+    let unitV2 = v2.clone().normalize()
+    let cosAngle = unitV1.dot(unitV2)
+    let angleRad = Math.acos(cosAngle)
+    return angleRad
+  }
 
-  // TODO:
-  //  bilinear interpolation across triangle, then re-scale each vector to the globe's radius. It will not be exactly spaced, but if the linear interpolation line is not far from the surface, then this is a useful approximation.
+  const arcRadiansPerSegment = arcDegPerSegment * (Math.PI / 180.0)
 
+  // between p1 and p2
+  let uRadiansTotal = getAngleBetween(p1, p2)
+  const uInvSinRadians = 1.0 / Math.sin(uRadiansTotal) // for later
 
-
-  let unitV1 = p1.clone().normalize()
-  let unitV2 = p2.clone().normalize()
-  let unitV3 = p3.clone().normalize()
-  const radToDeg = 180.0 / Math.PI
+  // between p1 and p3
+  // Note: Terminology: I declare that the path "v" is _not_ from p1 -> p3, but rather 
+  // uInterpolated along the same arc as p1 -> p3. Calculating this requires calculating 
+  // scalers based on p1 -> p3, and then swapping out p1 with uInterpolated. 
+  let p1p3RadiansTotal = getAngleBetween(p1, p3)
+  const p1p3InvSinRadians = 1.0 / Math.sin(p1p3RadiansTotal)  // for later
 
   // Precalculate the denominator, which is re-used.
   // v1Scaler = Math.sin((1 - fraction) * angleRad) / Math.sin(angleRad)
   // v2Scaler = Math.sin((fraction) * angleRad) / Math.sin(angleRad)
 
-  // between v1 and v2
-  let cosAngleV1V2 = unitV1.dot(unitV2)
-  let angleV1V2Rad = Math.acos(cosAngleV1V2)
-  let invSinAngleV1V2Rad = 1.0 / Math.sin(angleV1V2Rad)
-  // let angleV1V2Deg = angleV1V2Rad * radToDeg
+  let uArcSegmentCount = ceil(uRadiansTotal / arcRadiansPerSegment)
+  let uRadiansPerArcSegment = uRadiansTotal / uArcSegmentCount
+  let uFractionPerArcSegment = uRadiansPerArcSegment / uRadiansTotal
+  for (let u = 0.0; u <= 1.01; u += uFractionPerArcSegment) {
+    // console.log({ u: u })
 
-  // between v1 and v3
-  let cosAngleV1V3 = unitV1.dot(unitV3)
-  let angleV1V3Rad = Math.acos(cosAngleV1V3)
-  let invSinAngleV1V3Rad = 1.0 / Math.sin(angleV1V3Rad)
-  // let angleV1V3Deg = angleV1V3Rad * radToDeg
+    // u vector
+    let uScalerP1 = Math.sin((1 - u) * uRadiansTotal) * uInvSinRadians
+    let uScalerP2 = Math.sin((u) * uRadiansTotal) * uInvSinRadians
+    let uInterpolated = (new THREE.Vector3()).addScaledVector(p1, uScalerP1).addScaledVector(p2, uScalerP2)
+    // interpolatedVectorPoints.push(uInterpolated)
 
-  // The shortest side of the triangle will dictate how many arc segments we create
-  let minArcAngleRad = angleV1V2Rad
-  if (angleV1V3Rad < angleV1V2Rad) {
-    minArcAngleRad = angleV1V3Rad
+    // v vector from uInterpolated along the path of p1 -> p3
+    let vScalerP1 = Math.sin((1 - u) * p1p3RadiansTotal) * p1p3InvSinRadians
+    let vScalerP3 = Math.sin((u) * p1p3RadiansTotal) * p1p3InvSinRadians
+    let vEndpoint = (new THREE.Vector3()).addScaledVector(p1, vScalerP1).addScaledVector(p3, vScalerP3)
+    // interpolatedVectorPoints.push(vEndpoint)
+    let vRadiansTotal = getAngleBetween(uInterpolated, vEndpoint)
+    const vInvSinRadians = 1.0 / Math.sin(vRadiansTotal)
+    let vArcSegmentCount = ceil(vRadiansTotal / arcRadiansPerSegment)
+    let vRadiansPerArcSegment = vRadiansTotal / vArcSegmentCount
+    let vFractionPerArcSegment = vRadiansPerArcSegment / vRadiansTotal
+    for (let v = 0.0; v <= 1.01; v += vFractionPerArcSegment) {
+      if (u == 0.0 && v == 0.0) {
+        // Math.sin(0) = 0, and therefore dividing by Math.sin(0) is NaN, and we know that this 
+        // is the orgin point anyway, so just skip to the end.
+        interpolatedVectorPoints.push(p1)
+      }
+      else {
+        // console.log({ u: u, v: v })
+        let vScalerUInterpolated = Math.sin((1 - v) * vRadiansTotal) * vInvSinRadians
+        let vScalerVEndpoint = Math.sin((v) * vRadiansTotal) * vInvSinRadians
+        console.log({ u: u, v: v, vScalerUInt: vScalerUInterpolated, vScalerVEnd: vScalerVEndpoint })
+        let uvInterpolated = (new THREE.Vector3()).addScaledVector(uInterpolated, vScalerUInterpolated).addScaledVector(vEndpoint, vScalerVEndpoint)
+        interpolatedVectorPoints.push(uvInterpolated)
+      }
+    }
   }
-  let minArcAngleDeg = minArcAngleRad * radToDeg
-  let numArcSegments = Math.round(minArcAngleDeg / maxArcSegmentAngleDeg) + 1
-  // console.log({ numArcSegments: numArcSegments })
 
-  // interpolate
-  // numArcSegments = 2
-  for (let arcSegmentCount = 1; arcSegmentCount < numArcSegments; arcSegmentCount++) {
-    // Should vary from 0 -> 1
-    let fraction = arcSegmentCount / numArcSegments
 
-    // between v1 and v2
-    // Source:
-    //  "Geometric Algebra - Linear and Spherical Interpolation (LERP, SLERP, NLERP)"
-    //  https://www.youtube.com/watch?v=ibkT5ao8kGY
-    //  Note: It's pretty heady and takes a long time to get through.
-    let v1v2ScalerV1 = Math.sin((1 - fraction) * angleV1V2Rad) * invSinAngleV1V2Rad
-    let v1v2ScalerV2 = Math.sin((fraction) * angleV1V2Rad) * invSinAngleV1V2Rad
-    console.log({
-      fraction: fraction,
-      v1v2ScalerV1: v1v2ScalerV1,
-      v1v2ScalerV2: v1v2ScalerV2,
-      sum: v1v2ScalerV1 + v1v2ScalerV2
-    })
-    // v1v2ScalerV1 = fraction
-    // v1v2ScalerV2 = 1.01 - v1v2ScalerV1
-    // let v1v2ScaledV1 = v1.clone().multiplyScalar(v1v2ScalerV1)
-    // let v1v2ScaledV2 = v2.clone().multiplyScalar(v1v2ScalerV2)
-    // let v1v2Interpolated = (new THREE.Vector3()).addVectors(v1v2ScaledV1, v1v2ScaledV2)
-    let v1v2Interpolated = (new THREE.Vector3()).addScaledVector(p1, v1v2ScalerV1).addScaledVector(p2, v1v2ScalerV2)
-    // let v1v2Interpolated = interpolateArcFromVertices(v1, v2, fraction)
-    interpolatedVectorPoints.push(v1v2Interpolated)
 
-    // between v1 and v3
-    fraction = 0.2
-    let v1v3ScalerV1 = Math.sin((1 - fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
-    let v1v3ScalerV3 = Math.sin((fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
-    let v1v3ScaledV1 = v1v2Interpolated.clone().multiplyScalar(v1v3ScalerV1)
-    let v1v3ScaledV3 = p3.clone().multiplyScalar(v1v3ScalerV3)
-    let v1v3Interpolated = (new THREE.Vector3()).addVectors(v1v3ScaledV1, v1v3ScaledV3)
-    // let v1v3Interpolated = interpolateArcFromVertices(v1, v3, fraction)
-    interpolatedVectorPoints.push(v1v3Interpolated)
 
-    // // now interpolate another arc across the interpolated midpoints
-    // let u = v1v2Interpolated
-    // let v = v1v3Interpolated
-    // let unitU = u.clone().normalize()
-    // let unitV = v.clone().normalize()
-    // let cosAngleUV = unitU.dot(unitV)
-    // let angleUVRad = Math.acos(cosAngleUV)
-    // let angleUVDeg = angleUVRad * radToDeg
-    // let numUVArcSegments = Math.round(angleUVDeg / maxArcSegmentAngleDeg) + 1
-    // for (let uvArcSegmentCount = 1; uvArcSegmentCount < numUVArcSegments; uvArcSegmentCount++) {
-    //   let uvFraction = uvArcSegmentCount / numUVArcSegments
-    //   // console.log(uvFraction)
-    //   let uScalar = Math.sin((1 - uvFraction) * angleUVRad) / Math.sin(angleUVRad)
-    //   let vScaler = Math.sin((uvFraction) * angleUVRad) / Math.sin(angleUVRad)
-    //   let uvInterpolated = (new THREE.Vector3()).addScaledVector(u, uScalar).addScaledVector(v, vScaler)
-    //   // let uvInterpolated = interpolateArcFromVertices(u, v, uvFraction)
-    //   interpolatedVectorPoints.push(uvInterpolated)
-    // }
 
-    // points.push(...uvInterpolated)
-  }
+
+  // // between v1 and v3
+  // let cosAngleV1V3 = unitP1.dot(unitP3)
+  // let angleV1V3Rad = Math.acos(cosAngleV1V3)
+  // let invSinAngleV1V3Rad = 1.0 / Math.sin(angleV1V3Rad)
+  // // let angleV1V3Deg = angleV1V3Rad * radToDeg
+
+  // // The shortest side of the triangle will dictate how many arc segments we create
+  // let minArcAngleRad = uAngleTotal
+  // if (angleV1V3Rad < uAngleTotal) {
+  //   minArcAngleRad = angleV1V3Rad
+  // }
+  // let minArcAngleDeg = minArcAngleRad * radToDeg
+  // let numArcSegments = Math.round(minArcAngleDeg / maxArcSegmentAngleDeg) + 1
+  // // console.log({ numArcSegments: numArcSegments })
+
+  // // interpolate
+  // // numArcSegments = 2
+  // for (let arcSegmentCount = 1; arcSegmentCount < numArcSegments; arcSegmentCount++) {
+  //   // Should vary from 0 -> 1
+  //   let fraction = arcSegmentCount / numArcSegments
+
+  //   // between v1 and v2
+  //   // Source:
+  //   //  "Geometric Algebra - Linear and Spherical Interpolation (LERP, SLERP, NLERP)"
+  //   //  https://www.youtube.com/watch?v=ibkT5ao8kGY
+  //   //  Note: It's pretty heady and takes a long time to get through.
+  //   let v1v2ScalerV1 = Math.sin((1 - fraction) * uAngleTotal) * uInvSinAngle
+  //   let v1v2ScalerV2 = Math.sin((fraction) * uAngleTotal) * uInvSinAngle
+  //   console.log({
+  //     fraction: fraction,
+  //     v1v2ScalerV1: v1v2ScalerV1,
+  //     v1v2ScalerV2: v1v2ScalerV2,
+  //     sum: v1v2ScalerV1 + v1v2ScalerV2
+  //   })
+  //   // v1v2ScalerV1 = fraction
+  //   // v1v2ScalerV2 = 1.01 - v1v2ScalerV1
+  //   // let v1v2ScaledV1 = v1.clone().multiplyScalar(v1v2ScalerV1)
+  //   // let v1v2ScaledV2 = v2.clone().multiplyScalar(v1v2ScalerV2)
+  //   // let v1v2Interpolated = (new THREE.Vector3()).addVectors(v1v2ScaledV1, v1v2ScaledV2)
+  //   let v1v2Interpolated = (new THREE.Vector3()).addScaledVector(p1, v1v2ScalerV1).addScaledVector(p2, v1v2ScalerV2)
+  //   // let v1v2Interpolated = interpolateArcFromVertices(v1, v2, fraction)
+  //   interpolatedVectorPoints.push(v1v2Interpolated)
+
+  //   // between v1 and v3
+  //   fraction = 0.2
+  //   let v1v3ScalerV1 = Math.sin((1 - fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
+  //   let v1v3ScalerV3 = Math.sin((fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
+  //   let v1v3ScaledV1 = v1v2Interpolated.clone().multiplyScalar(v1v3ScalerV1)
+  //   let v1v3ScaledV3 = p3.clone().multiplyScalar(v1v3ScalerV3)
+  //   let v1v3Interpolated = (new THREE.Vector3()).addVectors(v1v3ScaledV1, v1v3ScaledV3)
+  //   // let v1v3Interpolated = interpolateArcFromVertices(v1, v3, fraction)
+  //   interpolatedVectorPoints.push(v1v3Interpolated)
+
+  //   // // now interpolate another arc across the interpolated midpoints
+  //   // let u = v1v2Interpolated
+  //   // let v = v1v3Interpolated
+  //   // let unitU = u.clone().normalize()
+  //   // let unitV = v.clone().normalize()
+  //   // let cosAngleUV = unitU.dot(unitV)
+  //   // let angleUVRad = Math.acos(cosAngleUV)
+  //   // let angleUVDeg = angleUVRad * radToDeg
+  //   // let numUVArcSegments = Math.round(angleUVDeg / maxArcSegmentAngleDeg) + 1
+  //   // for (let uvArcSegmentCount = 1; uvArcSegmentCount < numUVArcSegments; uvArcSegmentCount++) {
+  //   //   let uvFraction = uvArcSegmentCount / numUVArcSegments
+  //   //   // console.log(uvFraction)
+  //   //   let uScalar = Math.sin((1 - uvFraction) * angleUVRad) / Math.sin(angleUVRad)
+  //   //   let vScaler = Math.sin((uvFraction) * angleUVRad) / Math.sin(angleUVRad)
+  //   //   let uvInterpolated = (new THREE.Vector3()).addScaledVector(u, uScalar).addScaledVector(v, vScaler)
+  //   //   // let uvInterpolated = interpolateArcFromVertices(u, v, uvFraction)
+  //   //   interpolatedVectorPoints.push(uvInterpolated)
+  //   // }
+
+  //   // points.push(...uvInterpolated)
+  // }
 
 
 
@@ -401,6 +450,7 @@ const makeRegion = (latLongArr) => {
     // console.log({ p1: p1, p2: p2, p3: p3 })
 
     let interpolatedVectorPoints = interpolateAcrossTriangleFlat(p1, p2, p3, maxArcSegmentAngleDeg)
+    // let interpolatedVectorPoints = interpolateAcrossTriangleSpherical(p1, p2, p3, maxArcSegmentAngleDeg)
     vectorPoints.push(...interpolatedVectorPoints)
   })
 
