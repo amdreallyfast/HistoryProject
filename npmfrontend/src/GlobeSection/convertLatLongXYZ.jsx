@@ -1,6 +1,6 @@
 
 export function ConvertLatLongToXYZ(lat, long, sphereRadius) {
-  // console.log({ lat: lat, long: long, radius: globeRadius })
+  // console.log({ lat: lat, long: long, radius: sphereRadius })
 
   // Move the POI box to the location on the globe indicated by lat/long.
   let latRad = (lat / 180.0) * Math.PI
