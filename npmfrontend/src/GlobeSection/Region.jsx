@@ -6,7 +6,7 @@ import { globeInfo } from "./constValues"
 import { LatLongPin } from "./LatLongPin"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
-import { sum } from "lodash"
+import { ceil, floor, sum } from "lodash"
 import { v1 } from "uuid"
 
 // TODO: click latlong pin and drag to move point
@@ -67,7 +67,48 @@ const interpolateArcFromVertices = (startVec3, endVec3, maxArcSegmentAngleDeg, i
   return interpolatedVectorPoints
 }
 
-const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
+const interpolateAcrossTriangleFlat = (p1, p2, p3, distBetweenPoints) => {
+  distBetweenPoints = 0.3
+  let interpolatedVectorPoints = []
+
+  // console.log("start-------------------------")
+  let v1 = (new THREE.Vector3()).subVectors(p2, p1)
+  let v2 = (new THREE.Vector3()).subVectors(p3, p1)
+
+  // // Simple
+  // let u = 0.9
+  // let v = 0.0
+  // let pInterpolated = p1.clone()
+  // pInterpolated.addScaledVector(v1, u).addScaledVector(v2, v)
+  // pInterpolated.normalize()
+  // pInterpolated.multiplyScalar(globeInfo.radius)
+  // interpolatedVectorPoints.push(pInterpolated)
+
+  let uVector = v1
+  let uVectorLength = uVector.length()
+  let uSegmentCount = ceil(uVectorLength / distBetweenPoints)
+  let uSegmentLength = uVectorLength / uSegmentCount
+  let uFractionPerSegment = uSegmentLength / uVectorLength
+  for (let u = 0.0; u <= 1.01; u += uFractionPerSegment) {
+    let uVectorSegment = p1.clone().addScaledVector(uVector, u)
+    let vVectorEndpoint = uVectorSegment.clone().addScaledVector(v2, (1 - u))
+    let vVector = (new THREE.Vector3()).subVectors(vVectorEndpoint, uVectorSegment)
+    let vVectorLength = vVector.length()
+    let vSegmentCount = ceil(vVectorLength / distBetweenPoints)
+    let vSegmentLength = vVectorLength / vSegmentCount
+    let vFractionPerSegment = vSegmentLength / vVectorLength
+    for (let v = 0.0; v <= 1.02; v += vFractionPerSegment) {
+      let uvVectorSegment = uVectorSegment.clone().addScaledVector(vVector, v)
+      uvVectorSegment.normalize().multiplyScalar(globeInfo.radius)
+      interpolatedVectorPoints.push(uvVectorSegment)
+    }
+  }
+  // console.log("end---------------------------")
+
+  return interpolatedVectorPoints
+}
+
+const interpolateAcrossTriangleSpherical = (p1, p2, p3, maxArcSegmentAngleDeg) => {
   let interpolatedVectorPoints = []
 
 
@@ -76,9 +117,9 @@ const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
 
 
 
-  let unitV1 = v1.clone().normalize()
-  let unitV2 = v2.clone().normalize()
-  let unitV3 = v3.clone().normalize()
+  let unitV1 = p1.clone().normalize()
+  let unitV2 = p2.clone().normalize()
+  let unitV3 = p3.clone().normalize()
   const radToDeg = 180.0 / Math.PI
 
   // Precalculate the denominator, which is re-used.
@@ -130,7 +171,7 @@ const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
     // let v1v2ScaledV1 = v1.clone().multiplyScalar(v1v2ScalerV1)
     // let v1v2ScaledV2 = v2.clone().multiplyScalar(v1v2ScalerV2)
     // let v1v2Interpolated = (new THREE.Vector3()).addVectors(v1v2ScaledV1, v1v2ScaledV2)
-    let v1v2Interpolated = (new THREE.Vector3()).addScaledVector(v1, v1v2ScalerV1).addScaledVector(v2, v1v2ScalerV2)
+    let v1v2Interpolated = (new THREE.Vector3()).addScaledVector(p1, v1v2ScalerV1).addScaledVector(p2, v1v2ScalerV2)
     // let v1v2Interpolated = interpolateArcFromVertices(v1, v2, fraction)
     interpolatedVectorPoints.push(v1v2Interpolated)
 
@@ -139,7 +180,7 @@ const interpolateAcrossTriangle = (v1, v2, v3, maxArcSegmentAngleDeg) => {
     let v1v3ScalerV1 = Math.sin((1 - fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
     let v1v3ScalerV3 = Math.sin((fraction) * angleV1V3Rad) * invSinAngleV1V3Rad
     let v1v3ScaledV1 = v1v2Interpolated.clone().multiplyScalar(v1v3ScalerV1)
-    let v1v3ScaledV3 = v3.clone().multiplyScalar(v1v3ScalerV3)
+    let v1v3ScaledV3 = p3.clone().multiplyScalar(v1v3ScalerV3)
     let v1v3Interpolated = (new THREE.Vector3()).addVectors(v1v3ScaledV1, v1v3ScaledV3)
     // let v1v3Interpolated = interpolateArcFromVertices(v1, v3, fraction)
     interpolatedVectorPoints.push(v1v3Interpolated)
@@ -311,7 +352,7 @@ const makeRegion = (latLongArr) => {
     const [x, y, z] = ConvertLatLongToXYZ(latLongJson.lat, latLongJson.long, globeInfo.radius)
     let v = new THREE.Vector3(x, y, z)
     userPointsArr[index] = v
-    vectorPoints.push(v)
+    // vectorPoints.push(v)
   })
 
   // ??why??
@@ -331,7 +372,7 @@ const makeRegion = (latLongArr) => {
   })
   let myUniqueTriangles = Object.values(myUniqueTrianglesDict)
   // let myUniqueTriangles = delaunay.triangles
-  console.log(myUniqueTriangles)
+  console.log({ myUniqueTriangles: myUniqueTriangles })
 
 
   // let indices = delaunay.triangles.flat()
@@ -359,7 +400,7 @@ const makeRegion = (latLongArr) => {
     let p3 = userPointsArr[triangleIndicesArr[2]]
     // console.log({ p1: p1, p2: p2, p3: p3 })
 
-    let interpolatedVectorPoints = interpolateAcrossTriangle(p1, p2, p3, maxArcSegmentAngleDeg)
+    let interpolatedVectorPoints = interpolateAcrossTriangleFlat(p1, p2, p3, maxArcSegmentAngleDeg)
     vectorPoints.push(...interpolatedVectorPoints)
   })
 
