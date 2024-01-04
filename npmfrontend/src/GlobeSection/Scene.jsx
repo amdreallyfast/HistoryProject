@@ -2,10 +2,10 @@ import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { setSelectedPoi } from "../AppState/stateSlicePoi"
-import { addLocation } from "../AppState/stateSliceEditPoi"
+import { addLocation, editStateActions } from "../AppState/stateSliceEditPoi"
 import * as THREE from "three"
 import { Globe } from "./Globe"
-import { PoiPin } from "./PoiPin"
+import { PoiBar } from "./PoiPin"
 import { globeInfo, meshNames, groupNames } from "./constValues"
 import { Region } from "./Region"
 import { ConvertXYZToLatLong } from "./convertLatLongXYZ"
@@ -18,7 +18,7 @@ export function Scene(
     poiInfoTitleElementRef,
     mouseInfoRef
   }) {
-
+  const editState = useSelector((state) => state.editPoiReducer)
   const poiJsonObjects = useSelector((state) => state.poiReducer.allPois)
   const selectedPoi = useSelector((state) => state.poiReducer.selectedPoi)
   const prevSelectedPoi = useSelector((state) => state.poiReducer.prevSelectedPoi)
@@ -26,6 +26,7 @@ export function Scene(
 
   // Not strictly HTML.
   const [poiReactElements, setPoiReactElements] = useState()
+  const [editRegionReactElements, setEditRegionReactElements] = useState()
 
   const poiAndGlobeMeshesRef = useRef()
   const getThreeJsState = useThree((state) => state.get)
@@ -39,7 +40,7 @@ export function Scene(
       poiJsonObjects?.map(
         (poiInfoJson, index) => {
           return (
-            <PoiPin
+            <PoiBar
               key={index}
               globePos={globeInfo.pos}
               globeRadius={globeInfo.radius}
@@ -115,6 +116,14 @@ export function Scene(
 
   }, [selectedPoi])
 
+  useEffect(() => {
+    console.log({ msg: "Scene()/useEffect()/editState.where", value: editState.where })
+
+    setEditRegionReactElements((
+      <Region poiId={null} />
+    ))
+  }, [editState.where])
+
   // Handle mouse hover and mouse click.
   let prevMouseHoverPoiMeshRef = useRef()
   useFrame((state) => {
@@ -133,7 +142,7 @@ export function Scene(
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mouseInfoRef.current.currPos, state.camera)
     const intersections = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
-    if (intersections.length == 0) {
+    if (intersections.length == 0 || intersections[0].object.name == meshNames.Stars) {
       // Mouse is in space. Ignore.
       // console.log("hover nothing")
     }
@@ -142,13 +151,45 @@ export function Scene(
       if (firstIntersection.object.name == meshNames.Globe) {
         // console.log("hover globe")
         if (mouseInfoRef.current.mouseClickedCurrPos) {
-          // Clicked _where_ on globe?
-          let clickedPoint = firstIntersection.point
-          let x = clickedPoint.x
-          let y = clickedPoint.y
-          let z = clickedPoint.z
-          const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
-          reduxDispatch(addLocation({ lat, long }))
+          if (editState.editModeOn) {
+            let clickedPoint = firstIntersection.point
+
+            // TODO: handle scenarios:
+            //  1. No location exists yet (new entry)
+            //    => set location
+            //  2. Clicked on "where" pin
+            //    => click to drag
+            //    ??how to set location on mouse release??
+            //  3. Clicked on region point
+            //    => click to drag
+            //    ??how to set location on mouse release??
+            //  4. Else location exists, but didn't click on any "where" pin or region points 
+            //    => do nothing
+            const [lat, long] = ConvertXYZToLatLong(clickedPoint.x, clickedPoint.y, clickedPoint.z, globeInfo.radius)
+            if (editState.where == null) {
+              console.log("no location set")
+              // let region = createNewRegion(lat, long)
+              // setEditRegionReactElements(region.wherePinMesh)
+
+              // console.log({ editState: editState, actions: editStateActions })
+              reduxDispatch(editStateActions.setLocation({
+                lat: lat,
+                long: long,
+                x: clickedPoint.x,
+                y: clickedPoint.y,
+                z: clickedPoint.z
+              }))
+            }
+            else {
+              console.log("location already set; removing")
+              reduxDispatch(editStateActions.deleteLocation())
+            }
+
+            // reduxDispatch(addLocation({ lat, long }))
+          }
+          else {
+            // Ignore click. Not in edit mode, so do _not_ set location.
+          }
         }
       }
       else if (firstIntersection.object.name == meshNames.PoiPin) {
@@ -257,7 +298,10 @@ export function Scene(
       <group name={groupNames.PoiGroup}>
         {poiReactElements}
       </group>
-      <Region />
+      {/* <Region /> */}
+      <group name={groupNames.EditRegionGroup}>
+        {editRegionReactElements}
+      </group>
     </>
   )
 }

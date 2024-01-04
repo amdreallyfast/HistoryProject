@@ -3,7 +3,7 @@ import * as THREE from "three"
 import { useSelector } from "react-redux"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
 import { globeInfo } from "./constValues"
-import { LatLongPin } from "./LatLongPin"
+import { PinMesh } from "./LatLongPin"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
 import { ceil, floor, sum } from "lodash"
@@ -482,95 +482,136 @@ const makeRegion = (latLongArr) => {
   return [indices, points]
 }
 
-export function Region({ latLongArr }) {
-  const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
-  const [latLongPinReactElements, setLatLongPinReactElements] = useState()
+export function Region({ poiId }) {
+  // TODO: once I have an aray of searchable POIs, search the POIs for this ID and extract the necessary data
 
-  const fillerPointsRef = useRef()
-  const fillerPointsMeshRef = useRef()
+  const editState = useSelector((state) => state.editPoiReducer)
+  const [wherePinReactElement, setWherePinReactElement] = useState()
+
   useEffect(() => {
-    // console.log("Region -> useEffect -> regionMeshRef")
-
-    let fillerPointsArr = []
-    let fillerIndicesArr = []
-
-    setLatLongPinReactElements(
-      whereLatLongArr?.map(
-        (latLongJson, index) => {
-          return (
-            <LatLongPin
-              key={index}
-              latLong={latLongJson} />
-          )
-        }
-      )
-    )
-
-    whereLatLongArr.forEach((latLongJson) => {
-      const [indices, vertices] = makeMiniRegionFillerPoints(latLongJson.lat, latLongJson.long)
-      let numExistingVertices = fillerPointsArr.length / 3
-      let shiftedIndices = indices.map((value) => value + numExistingVertices)
-      fillerIndicesArr.push(...shiftedIndices)
-      fillerPointsArr.push(...vertices)
-    })
-
-    // const [regionIndices, regionPoints] = makeRegion(whereLatLongArr)
-    // let numExistingVertices = fillerPointsArr.length / 3
-    // let shiftedIndices = regionIndices.map((value) => value + numExistingVertices)
-    // fillerIndicesArr.push(...shiftedIndices)
-    // fillerPointsArr.push(...regionPoints)
-
-    // //??useful at all??
-    // if (whereLatLongArr.length > 1) {
-    //   const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
-    //   const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
-    //   fillerPointsArr.push(x, y, z)
-    // }
-
-    let valuesPerVertex = 3
-    let valuesPerIndex = 1
-
-    // Create geometry for the filler points
-    let fillerPointsPosAttr = new THREE.Float32BufferAttribute(fillerPointsArr, valuesPerVertex)
-    let fillerPointsIndicesAttr = new THREE.Uint32BufferAttribute(fillerIndicesArr, valuesPerIndex)
-
-    fillerPointsRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
-    fillerPointsRef.current.geometry.attributes.position.needsUpdate = true
-
-    fillerPointsMeshRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
-    fillerPointsMeshRef.current.geometry.setIndex(fillerPointsIndicesAttr)
-    fillerPointsMeshRef.current.geometry.attributes.position.needsUpdate = true
-  }, [whereLatLongArr])
+    if (editState.where) {
+      setWherePinReactElement((
+        <PinMesh where={editState.where} lookAt={globeInfo.pos} />
+      ))
+    }
+    else {
+      setWherePinReactElement(null)
+    }
+  }, [editState.where])
 
   return (
     <>
-      <points name="IntermediatePoints" ref={fillerPointsRef}>
-        <pointsMaterial color={0x00fff0} size={0.18} />
-      </points>
-
-      <group name="LatLongPins">
-        {latLongPinReactElements}
-      </group>
-
-      {/* 
-        Note: "Transparency" and wireframe are messed up. 
-          In order to make transparency work with the "LatLongPins", you have to:
-            Render
-            Cut out the "LatLongPins" elements
-            Save to re-render
-            Paste the "LatLongPins" elements back in
-            Save to re-render again.
-          In order to make wireframe work, you have to:
-            Render with "wireframe={false}"
-            Set it to true
-            Save to re-render.
-          If you start with "wireframe={true}", it will never work, even if you set it to false, 
-          save, change back to true, and save again.
-      */}
-      <mesh name="IntermediatePointsMesh" ref={fillerPointsMeshRef}>
-        {/* <meshPhongMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={false} transparent={true} opacity={0.9} /> */}
-        <meshBasicMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={true} />
-      </mesh>
+      {wherePinReactElement}
     </>
   )
+
+  // const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
+  // const [poiPinReactElements, setPoiPinReactElements] = useState()
+
+  // const fillerPointsRef = useRef()
+  // const fillerPointsMeshRef = useRef()
+  // useEffect(() => {
+  //   // console.log("Region -> useEffect -> regionMeshRef")
+
+  //   let fillerPointsArr = []
+  //   let fillerIndicesArr = []
+
+  //   setPoiPinReactElements(
+  //     whereLatLongArr?.map(
+  //       (latLong, index) => {
+  //         let where = ConvertLatLongToVec3(latLong.lat, latLong.long)
+  //         return (
+  //           <PinMesh
+  //             key={index}
+  //             where={where}
+  //           />
+  //         )
+  //       }
+  //     )
+  //   )
+
+  //   whereLatLongArr.forEach((latLongJson) => {
+  //     const [indices, vertices] = makeMiniRegionFillerPoints(latLongJson.lat, latLongJson.long)
+  //     let numExistingVertices = fillerPointsArr.length / 3
+  //     let shiftedIndices = indices.map((value) => value + numExistingVertices)
+  //     fillerIndicesArr.push(...shiftedIndices)
+  //     fillerPointsArr.push(...vertices)
+  //   })
+
+  //   // const [regionIndices, regionPoints] = makeRegion(whereLatLongArr)
+  //   // let numExistingVertices = fillerPointsArr.length / 3
+  //   // let shiftedIndices = regionIndices.map((value) => value + numExistingVertices)
+  //   // fillerIndicesArr.push(...shiftedIndices)
+  //   // fillerPointsArr.push(...regionPoints)
+
+  //   // //??useful at all??
+  //   // if (whereLatLongArr.length > 1) {
+  //   //   const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
+  //   //   const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
+  //   //   fillerPointsArr.push(x, y, z)
+  //   // }
+
+  //   let valuesPerVertex = 3
+  //   let valuesPerIndex = 1
+
+  //   // Create geometry for the filler points
+  //   let fillerPointsPosAttr = new THREE.Float32BufferAttribute(fillerPointsArr, valuesPerVertex)
+  //   let fillerPointsIndicesAttr = new THREE.Uint32BufferAttribute(fillerIndicesArr, valuesPerIndex)
+
+  //   fillerPointsRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
+  //   fillerPointsRef.current.geometry.attributes.position.needsUpdate = true
+
+  //   fillerPointsMeshRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
+  //   fillerPointsMeshRef.current.geometry.setIndex(fillerPointsIndicesAttr)
+  //   fillerPointsMeshRef.current.geometry.attributes.position.needsUpdate = true
+  // }, [whereLatLongArr])
+
+  // return (
+  //   <>
+  //     <points name="IntermediatePoints" ref={fillerPointsRef}>
+  //       <pointsMaterial color={0x00fff0} size={0.18} />
+  //     </points>
+
+  //     <group name="LatLongPins">
+  //       {poiPinReactElements}
+  //     </group>
+
+  //     {/* 
+  //       Note: "Transparency" and wireframe are messed up. 
+  //         In order to make transparency work with the "LatLongPins", you have to:
+  //           Render
+  //           Cut out the "LatLongPins" elements
+  //           Save to re-render
+  //           Paste the "LatLongPins" elements back in
+  //           Save to re-render again.
+  //         In order to make wireframe work, you have to:
+  //           Render with "wireframe={false}"
+  //           Set it to true
+  //           Save to re-render.
+  //         If you start with "wireframe={true}", it will never work, even if you set it to false, 
+  //         save, change back to true, and save again.
+  //     */}
+  //     <mesh name="IntermediatePointsMesh" ref={fillerPointsMeshRef}>
+  //       {/* <meshPhongMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={false} transparent={true} opacity={0.9} /> */}
+  //       <meshBasicMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={true} />
+  //     </mesh>
+  //   </>
+  // )
 }
+
+
+
+
+// export function createNewRegion({ lat, long }) {
+//   // TODO:
+//   //  create pin mesh for main location
+//   //  create smaller pin meshes for region points
+//   //  return as object and let the calling function decide how to use the meshes
+//   // TODO:
+//   //  create an object with additional functionality for subdividing the region points
+
+//   let where = ConvertLatLongToVec3(lat, long)
+//   return {
+//     wherePinMesh: new PinMesh(where.x, where.y, where.z, 0.1, globeInfo.pos)
+//   }
+// }

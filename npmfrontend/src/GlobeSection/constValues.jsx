@@ -11,13 +11,19 @@ export const globeInfo = {
 
 export const meshNames = {
   Stars: "Stars",
+
+  //??used??
   PoiPin: "PoiPin",
-  LatLongPin: "LatLongPin",
+
+  WherePin: "WherePin",
+  RegionPoint: "RegionPoint",
+
   Globe: "Globe",
   GlobeAtmosphere: "GlobeAtmosphere"
 }
 
 export const groupNames = {
   PoiGroup: "PoiGroup",
+  EditRegionGroup: "EditRegionGroup",
   GlobeGroup: "GlobeGroup"
 }

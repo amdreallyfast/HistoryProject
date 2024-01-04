@@ -3,7 +3,7 @@ import { meshNames, globeInfo } from "./constValues"
 import * as THREE from "three"
 import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
 
-export function LatLongPin({ latLong }) {
+export function PinMesh({ where, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   // Geometry is identical for all PoiPins, so only need to make it once.
   // const memo = useMemo(() => {
   //   // debug && console.log("PoiPin(): useMemo")
@@ -38,16 +38,12 @@ export function LatLongPin({ latLong }) {
   const meshRef = useRef()
   const materialRef = useRef()
   useEffect(() => {
-    // console.log("LatLongPin -> useEffect [meshRef]")
+    // console.log("PinMesh -> useEffect [meshRef]")
 
-    // Make a triangle column with a point.
-    let vertices = []
-    let indices = []
-
+    // Make an equilateral triangle pyramid with the point facing center of the globe.
     let sqrt3Over2 = Math.sqrt(3.0) / 2.0
     let oneHalf = 0.5
     let pinLength = 3
-    let scaleFactor = 0.1
 
     // Note: ThreeJs's "lookat(...)" function orients the object's local Z axis at the specified
     // world space point.
@@ -57,8 +53,9 @@ export function LatLongPin({ latLong }) {
     let baseVertex2 = new THREE.Vector3(-sqrt3Over2, -oneHalf, 0)
     let baseVertex3 = new THREE.Vector3(+sqrt3Over2, -oneHalf, 0)
     let topVertex = new THREE.Vector3(0, 0, pinLength)
-    vertices.push(...baseVertex1, ...baseVertex2, ...baseVertex3, ...topVertex)
-    indices.push(0, 1, 2) // base
+    let vertices = [...baseVertex1, ...baseVertex2, ...baseVertex3, ...topVertex]
+    let indices = []
+    indices.push(0, 1, 2) // base (top)
     indices.push(0, 3, 1) // face 1
     indices.push(1, 3, 2) // face 2
     indices.push(2, 3, 0) // face 3
@@ -71,15 +68,18 @@ export function LatLongPin({ latLong }) {
     let indicesAttribute = new THREE.Uint32BufferAttribute(indices, valuesPerIndex)
     meshRef.current.geometry.setIndex(indicesAttribute)
 
-    meshRef.current.geometry.scale(scaleFactor, scaleFactor, scaleFactor)
+    meshRef.current.geometry.scale(scale, scale, scale)
 
-    const [x, y, z] = ConvertLatLongToXYZ(latLong.lat, latLong.long, globeInfo.radius)
-    meshRef.current.position.x = x
-    meshRef.current.position.y = y
-    meshRef.current.position.z = z
-
-    meshRef.current.lookAt(globeInfo.pos)
-    meshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(pinLength * scaleFactor)))
+    // Move into position.
+    // Note: The pyramid base's local Z is 0. Once moved into position, rotate the object's local 
+    // Z axis so that +Z points at the globe center. At that point, the object's base will be at 
+    // the globe's surface and the top will be inside the globe, so we need to back off the 
+    // length of the pin.
+    meshRef.current.position.x = where.x
+    meshRef.current.position.y = where.y
+    meshRef.current.position.z = where.z
+    meshRef.current.lookAt(lookAt)
+    meshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(pinLength * scale)))
 
 
     // // From "Region"
@@ -102,7 +102,7 @@ export function LatLongPin({ latLong }) {
     //   <meshBasicMaterial color={0xff0000} ref={materialRef} transparent={true} />
     // </mesh>
 
-    <mesh ref={meshRef}>
+    <mesh ref={meshRef} name={meshNames.WherePin}>
       <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={true} wireframe={true} />
     </mesh>
   )

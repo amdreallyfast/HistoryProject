@@ -1,5 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit"
 
+// TODO: define POI
+/*
+let poi = {
+  id: <guid>,
+  title: <string>
+  image: <nullable>
+  description: <string>
+  ??which planet??
+  where: {
+    // ??also store x,y,z in the database??
+    lat,long,x,y,z
+  }
+  regionBoundaryPoints: [
+    {
+      lat,long,x,y,z
+    }
+  ]	
+}
+*/
+
+
 const initialState = {
   allPois: null,
   selectedPoi: null,
