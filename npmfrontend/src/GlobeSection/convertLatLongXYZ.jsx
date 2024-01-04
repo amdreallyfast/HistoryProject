@@ -1,3 +1,9 @@
+import { Vector3 } from "three"
+
+export function ConvertLatLongToVec3(lat, long, sphereRadius) {
+  const [x, y, z] = ConvertLatLongToXYZ(lat, long, sphereRadius)
+  return new Vector3(x, y, z)
+}
 
 export function ConvertLatLongToXYZ(lat, long, sphereRadius) {
   // console.log({ lat: lat, long: long, radius: sphereRadius })

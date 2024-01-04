@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useSelector } from "react-redux"
-import { ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
+import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
 import { globeInfo } from "./constValues"
 import { LatLongPin } from "./LatLongPin"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
 import { ceil, floor, sum } from "lodash"
 import { v1 } from "uuid"
+import { roundFloat } from "../RoundFloat"
 
 // TODO: click latlong pin and drag to move point
 
@@ -254,44 +255,116 @@ const findMidpointOnSurface = (latLongArr) => {
 
 // Make each user-added point a tiny region on its own by adding 8x extra points from the
 // 45 degrees around the unit circle.
-const miniRegionWidthScalar = 3
+const miniRegionWidthScalar = 4
 const x00DegLength = Math.cos(0) * miniRegionWidthScalar
-const x45DegLength = Math.cos(Math.PI / 4) * miniRegionWidthScalar
-const x90DegLength = Math.cos(Math.PI / 2) * miniRegionWidthScalar
 const y00DegLength = Math.sin(0) * miniRegionWidthScalar
+const x45DegLength = Math.cos(Math.PI / 4) * miniRegionWidthScalar
 const y45DegLength = Math.sin(Math.PI / 4) * miniRegionWidthScalar
+const x90DegLength = Math.cos(Math.PI / 2) * miniRegionWidthScalar
 const y90DegLength = Math.sin(Math.PI / 2) * miniRegionWidthScalar
 const makeMiniRegionFillerPoints = (lat, long) => {
   // Mini region filler points around each user-added point
   let miniPointRegionLongLatArr = []
-  miniPointRegionLongLatArr.push([long, lat])
-  miniPointRegionLongLatArr.push([long + x00DegLength, lat + y00DegLength]) // (x+1,y+0)
-  miniPointRegionLongLatArr.push([long + x45DegLength, lat + y45DegLength])
-  miniPointRegionLongLatArr.push([long + x90DegLength, lat + y90DegLength]) // (x+0,y+1)
-  miniPointRegionLongLatArr.push([long - x45DegLength, lat + y45DegLength])
-  miniPointRegionLongLatArr.push([long - x00DegLength, lat + y00DegLength]) // (x-1,y+0)
-  miniPointRegionLongLatArr.push([long - x45DegLength, lat - y45DegLength])
-  miniPointRegionLongLatArr.push([long + x90DegLength, lat - y90DegLength]) // (x+0,y-1)
-  miniPointRegionLongLatArr.push([long + x45DegLength, lat - y45DegLength])
+
+  // base spacing off the latitude, which is consistent across the globe (unlike longitude, which collapses to a point at the poles)
+  let degOffset = 5
+
+  let origin = [long, lat]
+  miniPointRegionLongLatArr.push(origin)
+  let originPoint = ConvertLatLongToVec3(origin[1], origin[0], globeInfo.radius)
+
+  let offset = [long, lat + 5]
+  miniPointRegionLongLatArr.push(offset)
+  let offsetPoint = ConvertLatLongToVec3(offset[1], offset[0], globeInfo.radius)
+
+  let diffVector = (new THREE.Vector3()).subVectors(offsetPoint, originPoint)
+
+  // // let mat = new THREE.Matrix4()
+  // let rotationAxis = (new THREE.Vector3()).subVectors(originPoint, globeInfo.pos)
+  // // console.log({ originPoint: originPoint, rotationAxis: rotationAxis })
+  // // mat.makeRotationAxis(rotationAxis, 1)
+  // let rotation = new THREE.Matrix4().makeRotationAxis(rotationAxis, Math.PI / 2)
+  // let translation = new THREE.Matrix4().makeTranslation(new THREE.Vector3(1, 1, 1))
+  // let mat = rotation
+
+  // let rotatedOffsetVector = offsetVector.clone().applyMatrix4(mat)
+  // let rotatedOffsetVector = offsetVector.clone().applyAxisAngle(rotationAxis, Math.PI / 8)
+  // let rotatedPoint = (new THREE.Vector3()).addVectors(originPoint, rotatedOffsetVector)
+  // console.log({ origin: originPoint, new: newPoint, rotated: rotatedPoint })
+  // const [rotatedLat, rotatedLong] = ConvertXYZToLatLong(rotatedPoint.x, rotatedPoint.y, rotatedPoint.z, globeInfo.radius)
+  // miniPointRegionLongLatArr.push([rotatedLong, rotatedLat])
+
+  let rotationAxis = (new THREE.Vector3()).subVectors(originPoint, globeInfo.pos).normalize()
+  // let rotationAxis = (new THREE.Vector3(0, 1, 0)).normalize()
+
+  let vertices = []
+  // vertices.push(originPoint.x, originPoint.y, originPoint.z)
+  // vertices.push(offsetPoint.x, offsetPoint.y, offsetPoint.z)
+
+  const thing = (radians) => {
+    let rotatedOffsetVector = offsetPoint.clone().applyAxisAngle(rotationAxis, radians)
+    // let newPoint = (new THREE.Vector3()).addVectors(originPoint, rotatedOffsetVector)
+    let newPoint = rotatedOffsetVector
+    vertices.push(newPoint.x, newPoint.y, newPoint.z)
+    const [newLat, newLong] = ConvertXYZToLatLong(newPoint.x, newPoint.y, newPoint.z, globeInfo.radius)
+    console.log({
+      x: roundFloat(newPoint.x, 5),
+      y: roundFloat(newPoint.y, 5),
+      z: roundFloat(newPoint.z, 5),
+      lat: roundFloat(newLat, 5),
+      long: roundFloat(newLong, 5)
+    })
+    return [newLat, newLong]
+  }
+  for (let i = 0; i <= (Math.PI * 2); i += (Math.PI / 8)) {
+    miniPointRegionLongLatArr.push(thing(i))
+  }
+  // console.log(miniPointRegionLongLatArr)
+  console.log("--------------------")
+
+
+
+
+  // miniPointRegionLongLatArr.push([long, lat])
+  // miniPointRegionLongLatArr.push([long + x00DegLength, lat + y00DegLength]) // (x+1,y+0)
+  // miniPointRegionLongLatArr.push([long + x45DegLength, lat + y45DegLength])
+  // miniPointRegionLongLatArr.push([long + x90DegLength, lat + y90DegLength]) // (x+0,y+1)
+  // miniPointRegionLongLatArr.push([long - x45DegLength, lat + y45DegLength])
+  // miniPointRegionLongLatArr.push([long - x00DegLength, lat + y00DegLength]) // (x-1,y+0)
+  // miniPointRegionLongLatArr.push([long - x45DegLength, lat - y45DegLength])
+  // miniPointRegionLongLatArr.push([long + x90DegLength, lat - y90DegLength]) // (x+0,y-1)
+  // miniPointRegionLongLatArr.push([long + x45DegLength, lat - y45DegLength])
+
+  // miniPointRegionLongLatArr.push([long, lat])
+  // miniPointRegionLongLatArr.push([long + 2, lat + 0]) // (x+1,y+0)
+  // miniPointRegionLongLatArr.push([long + 2, lat + 2])
+  // miniPointRegionLongLatArr.push([long + 0, lat + 2]) // (x+0,y+1)
+  // miniPointRegionLongLatArr.push([long - 2, lat + 2])
+  // miniPointRegionLongLatArr.push([long - 2, lat + 0]) // (x-1,y+0)
+  // miniPointRegionLongLatArr.push([long - 2, lat - 2])
+  // miniPointRegionLongLatArr.push([long + 0, lat - 2]) // (x+0,y-1)
+  // miniPointRegionLongLatArr.push([long + 2, lat - 2])
 
   // Triangulate the filler points to make a mesh.
   // TODO: _start_ with a pre-allocated typed array and fill it in
   // const typedArr = new Float32Array(miniPointRegionLongLatArr.flat())
   // let delaunator = new Delaunator(typedArr)
   // let indices = delaunator.triangles
-  let delaunay = d3Geo.geoDelaunay(miniPointRegionLongLatArr)
-  let indices = delaunay.triangles.flat()
 
-  // Convert the filler points to their own vertices.
-  let points = []
-  miniPointRegionLongLatArr.forEach((longLat) => {
-    let lat = longLat[1]
-    let long = longLat[0]
-    const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
-    points.push(x, y, z)
-  })
+  // let delaunay = d3Geo.geoDelaunay(miniPointRegionLongLatArr)
+  // let indices = delaunay.triangles.flat()
+  let indices = []
 
-  return [indices, points]
+  // // Convert the filler points to their own vertices.
+  // let vertices = []
+  // miniPointRegionLongLatArr.forEach((longLat) => {
+  //   let lat = longLat[1]
+  //   let long = longLat[0]
+  //   const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
+  //   vertices.push(x, y, z)
+  // })
+
+  return [indices, vertices]
 }
 
 const makeRegion = (latLongArr) => {
@@ -433,11 +506,19 @@ export function Region({ latLongArr }) {
       )
     )
 
-    const [regionIndices, regionPoints] = makeRegion(whereLatLongArr)
-    let numExistingVertices = fillerPointsArr.length / 3
-    let shiftedIndices = regionIndices.map((value) => value + numExistingVertices)
-    fillerIndicesArr.push(...shiftedIndices)
-    fillerPointsArr.push(...regionPoints)
+    whereLatLongArr.forEach((latLongJson) => {
+      const [indices, vertices] = makeMiniRegionFillerPoints(latLongJson.lat, latLongJson.long)
+      let numExistingVertices = fillerPointsArr.length / 3
+      let shiftedIndices = indices.map((value) => value + numExistingVertices)
+      fillerIndicesArr.push(...shiftedIndices)
+      fillerPointsArr.push(...vertices)
+    })
+
+    // const [regionIndices, regionPoints] = makeRegion(whereLatLongArr)
+    // let numExistingVertices = fillerPointsArr.length / 3
+    // let shiftedIndices = regionIndices.map((value) => value + numExistingVertices)
+    // fillerIndicesArr.push(...shiftedIndices)
+    // fillerPointsArr.push(...regionPoints)
 
     // //??useful at all??
     // if (whereLatLongArr.length > 1) {
