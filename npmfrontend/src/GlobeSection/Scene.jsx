@@ -5,7 +5,7 @@ import { setSelectedPoi } from "../AppState/stateSlicePoi"
 import { addLocation, editStateActions } from "../AppState/stateSliceEditPoi"
 import * as THREE from "three"
 import { Globe } from "./Globe"
-import { PoiBar } from "./PoiPin"
+import { AnimatedBarMesh } from "./AnimatedBarMesh"
 import { globeInfo, meshNames, groupNames } from "./constValues"
 import { Region } from "./Region"
 import { ConvertXYZToLatLong } from "./convertLatLongXYZ"
@@ -40,7 +40,7 @@ export function Scene(
       poiJsonObjects?.map(
         (poiInfoJson, index) => {
           return (
-            <PoiBar
+            <AnimatedBarMesh
               key={index}
               globePos={globeInfo.pos}
               globeRadius={globeInfo.radius}

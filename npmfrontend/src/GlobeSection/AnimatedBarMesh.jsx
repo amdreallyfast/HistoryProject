@@ -4,7 +4,7 @@ import * as THREE from "three"
 import { meshNames } from "./constValues"
 import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
 
-export function PoiBar({ globePos, globeRadius, poiInfoJson }) {
+export function AnimatedBarMesh({ globePos, globeRadius, poiInfoJson }) {
   // debug && console.log("PoiPin(): begin")
 
   // Geometry is identical for all PoiPins, so only need to make it once.
