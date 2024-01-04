@@ -18,6 +18,10 @@ export function ConvertLatLongToXYZ(lat, long, sphereRadius) {
   let z = Math.cos(longRad) * projectionOfRadiusOntoXZPlane
   // console.log({ x: x, y: y, z: z })
   // let z = 6
+  if (isNaN(x) || isNaN(y) || isNaN(z)) {
+    throw new Error(`Evaluated NaN: x: '${x}', y: '${y}', z: '${z}'
+    Arguments: lat: '${lat}', long: '${long}', radius: '${sphereRadius}'`)
+  }
 
   return [x, y, z,]
 }
@@ -49,6 +53,11 @@ export function ConvertXYZToLatLong(x, y, z, sphereRadius) {
   let lenHypotenuseProjectionOntoXZPlane = lenHypotenuse * Math.cos(latRad)
   let longRad = Math.acos(z / lenHypotenuseProjectionOntoXZPlane)
   longRad = longRad * (x < 0 ? -1 : 1)
+
+  if (isNaN(latRad) || isNaN(longRad)) {
+    throw new Error(`Evaluated NaN: latRad: '${latRad}', longRad: '${longRad}'
+    Arguments: x: '${x}', y: '${y}', z: '${z}', radius: '${sphereRadius}'`)
+  }
 
   // console.log({ x: x, y: y, z: z, lat: latRad * radToDeg, long: longRad * radToDeg })
   return [
