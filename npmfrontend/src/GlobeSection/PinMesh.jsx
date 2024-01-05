@@ -110,6 +110,7 @@ export function PinMesh({ name, id, where, scale = 0.1, lookAt = new THREE.Vecto
     // )
     // console.log({ msg: "PinMesh", value: meshRef.current })
 
+    console.log("PinMesh finished")
   }, [meshRef.current, materialRef.current])
 
   function onMeshClick(e) {

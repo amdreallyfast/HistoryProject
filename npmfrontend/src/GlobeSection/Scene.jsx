@@ -33,8 +33,9 @@ export function Scene(
   const [intersectableMeshes, setIntersectableMeshes] = useState()
 
   const getThreeJsState = useThree((state) => state.get)
-  const theThing = useThree((state) => state.get().scene)
   let currSelectedPoiMeshRef = useRef()
+
+
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
@@ -81,21 +82,14 @@ export function Scene(
 
     const intersectableMeshArr = []
     const addMeshesToCollection = (components) => {
-      // components.forEach((component) => {
-      //   console.log({ name: component.name, type: component.type, children: component.children })
-      // })
-      // console.log("add meshes to collection")
       components.forEach((component) => {
-        // console.log(component.name)
         if (component.type == "Group") {
           if (component.children.length > 0) {
             addMeshesToCollection(component.children)
           }
         }
         else if (component.type == "Mesh") {
-          // console.log({ name: component.name, type: component.type })
           if (component.name != meshNames.Stars && component.name != meshNames.GlobeAtmosphere) {
-            // console.log({ msg: "found a mesh", component: component })
             intersectableMeshArr.push(component)
           }
         }
