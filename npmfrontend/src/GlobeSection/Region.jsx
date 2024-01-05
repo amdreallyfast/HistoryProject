@@ -618,7 +618,10 @@ export function EditRegion({ }) {
 
         console.log({ type: component.type, mesh: component.name, userData: component.userData })
         if (component.children.length > 0) {
-          return findMeshById(component.children, id, depth + 1)
+          let result = findMeshById(component.children, id, depth + 1)
+          if (result) {
+            return result
+          }
         }
       }
     }
