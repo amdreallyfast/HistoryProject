@@ -607,7 +607,7 @@ export function EditRegion({ }) {
       return
     }
 
-    console.log("creating PinMesh")
+    // console.log("creating PinMesh")
     // let where = ConvertLatLongToVec3(editState.where.lat, editState.where.long, globeInfo.radius)
     setPinMesh((
       <PinMesh id={editState.poiId} name={meshNames.WherePin} where={editState.where} lookAt={globeInfo.pos} />
@@ -616,15 +616,20 @@ export function EditRegion({ }) {
   }, [editState.where, editState.tentativeWhere])
 
   useEffect(() => {
+    console.log({ msg: "EditRegion()/useEffect()/pinMesh", pinMesh: pinMesh })
     if (editState.editRegionInitialized) {
+      // console.log("edit region already initialized")
       return
     }
-
-    // get the actual mesh
+    else if (pinMesh == null) {
+      // console.log("pin mesh not initialized yet")
+      return
+    }
 
     reduxDispatch(
       editStateActions.setEditRegionInitialized()
     )
+    // console.log("edit region now initialized")
   }, [pinMesh])
 
   // if (editState.editModeOn && editState.where) {

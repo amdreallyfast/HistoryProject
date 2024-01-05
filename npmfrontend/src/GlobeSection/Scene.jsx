@@ -104,8 +104,8 @@ export function Scene(
     addMeshesToCollection(getThreeJsState().scene.children)
     console.log({ intersectableMeshArr: intersectableMeshArr })
     setIntersectableMeshes(intersectableMeshArr)
-    // }, [poiReactElements, editState.editRegionInitialized, intersectableMeshesState.meshes])
-  }, [theThing.children])
+  }, [poiReactElements, editState.editRegionInitialized])
+
 
   // Update POI highlight.
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
