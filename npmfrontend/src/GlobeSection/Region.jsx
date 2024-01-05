@@ -603,25 +603,15 @@ export function EditRegion({ }) {
 
   const getThreeJsState = useThree((state) => state.get)
   const findMeshById = (components, id, depth = 0) => {
-    console.log({ depth: depth })
+    // console.log({ depth: depth })
     for (const component of components) {
-      // if (component.type == "Mesh" && component.userData.poiId == id) {
-      //   return component
-      // }
-      // else if (component.type == "Group" && component.children?.length > 0) {
-      //   return findMeshById(component.children, id)
-      // }
-      if (component.name) {
-        if (component.type == "Mesh" && component.userData.poiId == id) {
-          return component
-        }
-
-        console.log({ type: component.type, mesh: component.name, userData: component.userData })
-        if (component.children.length > 0) {
-          let result = findMeshById(component.children, id, depth + 1)
-          if (result) {
-            return result
-          }
+      if (component.type == "Mesh" && component.userData.poiId == id) {
+        return component
+      }
+      else if (component.type == "Group" && component.children?.length > 0) {
+        let result = findMeshById(component.children, id, depth + 1)
+        if (result) {
+          return result
         }
       }
     }
@@ -662,37 +652,28 @@ export function EditRegion({ }) {
       return
     }
 
-    // console.log({ poiId: editState.poiId })
-    // let mesh = findMeshById(getThreeJsState().scene.children, editState.poiId)
-    // if (mesh == null) {
-    //   throw new Error(`Mesh not found`)
-    // }
-
-    // setWherePinMesh(mesh)
+    console.log({ poiId: editState.poiId })
+    let mesh = findMeshById(getThreeJsState().scene.children, editState.poiId)
+    console.log({ found: mesh })
+    if (mesh == null) {
+      throw new Error(`Mesh not found`)
+    }
+    setWherePinMesh(mesh)
 
   }, [editState.editRegionInitialized])
 
   useEffect(() => {
     // console.log({ msg: "EditRegion()/useEffect()/editState.tentativeWhere", tentativeWhere: editState.tentativeWhere })
     // console.log({ msg: "EditRegion()/useEffect()/editState.tentativeWhere", x: editState.tentativeWhere?.x })
-    if (editState.tentativeWhere == null) {
+    if (wherePinMesh == null || editState.tentativeWhere == null) {
       return
     }
 
-    if (wherePinMesh == null) {
-      let mesh = findMeshById(getThreeJsState().scene.children, editState.poiId)
-      if (mesh == null) {
-        console.log("still can't find it")
-        return
-      }
-      console.log("found it")
-    }
-
-    // let { x, y, z } = editState.tentativeWhere
-    // wherePinMesh.position.x = x
-    // wherePinMesh.position.y = y
-    // wherePinMesh.position.z = z
-    // wherePinMesh.geometry.attributes.position.needsUpdate = true
+    let { x, y, z } = editState.tentativeWhere
+    wherePinMesh.position.x = x
+    wherePinMesh.position.y = y
+    wherePinMesh.position.z = z
+    wherePinMesh.geometry.attributes.position.needsUpdate = true
 
     // wherePinMesh.current.lookAt(lookAt)
   }, [editState.tentativeWhere])
