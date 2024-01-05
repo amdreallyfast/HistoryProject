@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { endEditMode, setSelectedLatLong } from "../AppState/stateSliceEditPoi";
+import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
 
 export function DetailsEdit() {
@@ -22,10 +22,10 @@ export function DetailsEdit() {
       // If already selected, de-select.
       // Note: Using bold text as a proxy for "is selected".
       if (e.target.className.includes("font-bold")) {
-        reduxDispatch(setSelectedLatLong(null))
+        reduxDispatch(editStateActions.setSelectedLatLong(null))
       }
       else {
-        reduxDispatch(setSelectedLatLong(latLongJson.id))
+        reduxDispatch(editStateActions.setSelectedLatLong(latLongJson.id))
       }
     }
 
@@ -84,7 +84,7 @@ export function DetailsEdit() {
       <div className="items-start flex mt-auto ">
         <button
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded "
-          onClick={() => reduxDispatch(endEditMode())}
+          onClick={() => reduxDispatch(editStateActions.endEditMode())}
         >
           Submit
         </button>

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { startEditMode } from "../AppState/stateSliceEditPoi"
+import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { reduce } from "lodash"
 
 async function fetchImage(url) {
@@ -78,7 +78,7 @@ export function DetailsDisplay({ }) {
 
       <button
         className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-        onClick={() => reduxDispatch(startEditMode())}
+        onClick={() => reduxDispatch(editStateActions.startEditMode())}
       >
         Edit
       </button>

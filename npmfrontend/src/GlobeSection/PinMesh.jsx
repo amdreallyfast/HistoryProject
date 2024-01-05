@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef } from "react"
 import { meshNames, globeInfo } from "./constValues"
 import * as THREE from "three"
 import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
+import { useDispatch } from "react-redux"
+import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 
-export function PinMesh({ where, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+export function PinMesh({ name, id, where, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   // Geometry is identical for all PoiPins, so only need to make it once.
   // const memo = useMemo(() => {
   //   // debug && console.log("PoiPin(): useMemo")
@@ -35,10 +37,20 @@ export function PinMesh({ where, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1
   //   }
   // }, [])
 
+  if (id == null) {
+    throw new Error("'id' cannot be null")
+  }
+  if (where.id == null) {
+    throw new Error("'where.id' cannot be null")
+  }
+
   const meshRef = useRef()
   const materialRef = useRef()
+  const reduxDispatch = useDispatch()
   useEffect(() => {
-    // console.log("PinMesh -> useEffect [meshRef]")
+    // console.log({ msg: "PinMesh()/useEffect()/meshRef" })
+    meshRef.current.userData.poiId = id
+    meshRef.current.userData.whereId = where.id
 
     // Make an equilateral triangle pyramid with the point facing center of the globe.
     let sqrt3Over2 = Math.sqrt(3.0) / 2.0
@@ -60,14 +72,17 @@ export function PinMesh({ where, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1
     indices.push(1, 3, 2) // face 2
     indices.push(2, 3, 0) // face 3
 
+    // vertices
     let valuesPerVertex = 3
     let posAttribute = new THREE.Float32BufferAttribute(vertices, valuesPerVertex)
     meshRef.current.geometry.setAttribute("position", posAttribute)
 
+    // indices
     let valuesPerIndex = 1
     let indicesAttribute = new THREE.Uint32BufferAttribute(indices, valuesPerIndex)
     meshRef.current.geometry.setIndex(indicesAttribute)
 
+    // scale
     meshRef.current.geometry.scale(scale, scale, scale)
 
     // Move into position.
@@ -90,20 +105,29 @@ export function PinMesh({ where, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1
     // meshRef.current.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
 
 
+    // reduxDispatch(
+    //   intersectableMeshesStateActions.add(meshRef.current)
+    // )
+    // console.log({ msg: "PinMesh", value: meshRef.current })
 
   }, [meshRef.current, materialRef.current])
 
   function onMeshClick(e) {
-    console.log({ onMeshClick: e })
+    console.log({ msg: "PinMesh()/onMeshClick", value: e })
   }
 
-  return (
-    // <mesh name={meshNames.LatLongPin} ref={meshRef} onClick={(e) => onMeshClick(e)}>
-    //   <meshBasicMaterial color={0xff0000} ref={materialRef} transparent={true} />
-    // </mesh>
+  // return (
+  //   // <mesh name={meshNames.LatLongPin} ref={meshRef} onClick={(e) => onMeshClick(e)}>
+  //   //   <meshBasicMaterial color={0xff0000} ref={materialRef} transparent={true} />
+  //   // </mesh>
 
-    <mesh ref={meshRef} name={meshNames.WherePin}>
-      <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={true} wireframe={true} />
+  //   <mesh ref={meshRef} name={name}>
+  //     <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
+  //   </mesh>
+  // )
+  return (
+    <mesh ref={meshRef} name={name} onClick={onMeshClick}>
+      <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
     </mesh>
   )
 }

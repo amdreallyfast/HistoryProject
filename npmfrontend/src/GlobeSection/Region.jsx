@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
-import { globeInfo } from "./constValues"
+import { globeInfo, meshNames } from "./constValues"
 import { PinMesh } from "./PinMesh"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
 import { ceil, floor, sum } from "lodash"
 import { v1 } from "uuid"
 import { roundFloat } from "../RoundFloat"
+import { editStateActions } from "../AppState/stateSliceEditPoi"
+import { useThree } from "@react-three/fiber"
+import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 
 // TODO: click latlong pin and drag to move point
 
@@ -482,26 +485,16 @@ const makeRegion = (latLongArr) => {
   return [indices, points]
 }
 
-export function Region({ poiId }) {
-  // TODO: once I have an aray of searchable POIs, search the POIs for this ID and extract the necessary data
+export function Region({ poiId, lat, long, globeInfo }) {
+  // TODO: once I have an aray of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
 
-  const editState = useSelector((state) => state.editPoiReducer)
-  const [wherePinReactElement, setWherePinReactElement] = useState()
+  console.log("Region()")
 
-  useEffect(() => {
-    if (editState.where) {
-      setWherePinReactElement((
-        <PinMesh where={editState.where} lookAt={globeInfo.pos} />
-      ))
-    }
-    else {
-      setWherePinReactElement(null)
-    }
-  }, [editState.where])
+  let where = ConvertLatLongToVec3(lat, long, globeInfo.radius)
 
   return (
     <>
-      {wherePinReactElement}
+      <PinMesh name={meshNames.WherePin} where={where} lookAt={globeInfo.pos} />
     </>
   )
 
@@ -599,8 +592,62 @@ export function Region({ poiId }) {
   // )
 }
 
+export function EditRegion({ }) {
+  // TODO: once I have an aray of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
+  const editState = useSelector((state) => state.editPoiReducer)
+  const intersectableMeshesStateActions = useSelector((state) => state.interactableMeshesReducer)
+  const getThreeJsState = useThree((state) => state.get)
 
+  const [pinMesh, setPinMesh] = useState()
+  const reduxDispatch = useDispatch()
 
+  useEffect(() => {
+    console.log({ msg: "EditRegion()/useEffect()/editState.where", where: editState.where, tentativeWhere: editState.tentativeWhere })
+    if (!editState.editModeOn || editState.where == null) {
+      return
+    }
+
+    console.log("creating PinMesh")
+    // let where = ConvertLatLongToVec3(editState.where.lat, editState.where.long, globeInfo.radius)
+    setPinMesh((
+      <PinMesh id={editState.poiId} name={meshNames.WherePin} where={editState.where} lookAt={globeInfo.pos} />
+    ))
+    // console.log({ msg: "EditRegion()/useEffect(): created PinMesh", value: pinMesh })
+  }, [editState.where, editState.tentativeWhere])
+
+  useEffect(() => {
+    if (editState.editRegionInitialized) {
+      return
+    }
+
+    // get the actual mesh
+
+    reduxDispatch(
+      editStateActions.setEditRegionInitialized()
+    )
+  }, [pinMesh])
+
+  // if (editState.editModeOn && editState.where) {
+  //   console.log("creating PinMesh")
+  //   let where = ConvertLatLongToVec3(editState.where.lat, editState.where.long, globeInfo.radius)
+  //   setPinMesh((
+  //     <PinMesh name={meshNames.WherePin} where={where} lookAt={globeInfo.pos} />
+  //   ))
+  // }
+  // else {
+  //   console.log("set PinMesh = null")
+  //   setPinMesh((
+  //     <PinMesh name={meshNames.WherePin} where={new THREE.Vector3(0, 0, 0)} lookAt={globeInfo.pos} />
+  //   ))
+  // }
+
+  return (
+    <>
+      {pinMesh}
+      {/* <PinMesh name={meshNames.WherePin} where={new THREE.Vector3(1, 0, 0)} lookAt={globeInfo.pos} /> */}
+    </>
+  )
+}
 
 // export function createNewRegion({ lat, long }) {
 //   // TODO:

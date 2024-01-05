@@ -1,23 +1,44 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { v4 as uuid } from "uuid";
+import { ConvertXYZToLatLong } from "../GlobeSection/convertLatLongXYZ";
 
 const initialState = {
+  // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
   editModeOn: true,
+  editRegionInitialized: false,
 
-  // TODO: delete
-  whereLatLongArr: [],
+  poiId: 99,
+
+  whereLatLongArr: [],  // TODO: delete
 
   // Each "where" and "region" point consists of a selectable pin object with lat, long, x, y, z.
+  // Format:
+  //  where: {
+  //    id: <guid>,
+  //    lat,
+  //    long,
+  //    x,
+  //    y,
+  //    z
+  //  }
   where: null,
   region: [],
 
   // For use during clicking and dragging a single point or the entire region.
-  // Note: Each "tentative" value is only x,y,z
+  // Format:
+  // {
+  //   x,
+  //   y,
+  //   z
+  // }
+  clickAndDrag: false,
   tentativeWhere: null,
   tentativeRegion: [],
 
-  selectedLatLong: null,
-  prevSelectedLatLong: null
+
+
+  selectedLatLong: null,  // TODO: delete
+  prevSelectedLatLong: null // TODO: delete
 }
 
 export const stateSliceEditPoi = createSlice({
@@ -33,9 +54,14 @@ export const stateSliceEditPoi = createSlice({
     },
     endEditMode: (state, action) => {
       // console.log("stateSliceEditPoi_endEditMode")
+      return initialState
+    },
+    setEditRegionInitialized: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setEditRegionInitialized", payload: action.payload })
+
       return {
         ...state,
-        editModeOn: false
+        editRegionInitialized: true
       }
     },
 
@@ -43,22 +69,73 @@ export const stateSliceEditPoi = createSlice({
     All the things
     */
     setLocation: (state, action) => {
-      console.log({ "stateSliceEditPoi_setLocation": action.payload })
+      console.log({ msg: "stateSliceEditPoi_setLocation", payload: action.payload })
 
       return {
         ...state,
         where: {
-          id: uuid(),
+          id: action.payload.id,
           lat: action.payload.lat,
           long: action.payload.long,
+          x: action.payload.x,
+          y: action.payload.y,
+          z: action.payload.z
+        },
+      }
+    },
+    enableClickAndDrag: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
+      return {
+        ...state,
+        clickAndDrag: true,
+        tentativeWhere: {
+          x: state.where.x,
+          y: state.where.y,
+          z: state.where.z
+        }
+      }
+    },
+    disableClickAndDrag: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_disableClickAndDrag", payload: action.payload })
+
+      return {
+        ...state,
+        clickAndDrag: false,
+        tentativeWhere: null
+      }
+    },
+    updateClickAndDrag: (state, action) => {
+      return {
+        ...state,
+        tentativeWhere: {
           x: action.payload.x,
           y: action.payload.y,
           z: action.payload.z
         }
       }
     },
+    // setTentativeLocation: (state, action) => {
+    //   console.log({ "stateSliceEditPoi_setTentativeLocation": action.payload })
+
+    //   if (action.payload == null) {
+    //     return {
+    //       ...state,
+    //       tentativeWhere: null
+    //     }
+    //   }
+    //   else {
+    //     return {
+    //       ...state,
+    //       tentativeWhere: {
+    //         x: action.payload.x,
+    //         y: action.payload.y,
+    //         z: action.payload.z
+    //       }
+    //     }
+    //   }
+    // },
     deleteLocation: (state, action) => {
-      console.log({ "stateSliceEditPoi_deleteLocation": action.payload })
+      console.log({ msg: "stateSliceEditPoi_deleteLocation", payload: action.payload })
 
       return {
         ...state,
@@ -81,7 +158,7 @@ export const stateSliceEditPoi = createSlice({
 
     // TODO: delete with "whereLatLongArr"
     addLocation: (state, action) => {
-      // console.log({ "stateSliceEditPoi_addLocation": action.payload })
+      // console.log({ msg: "stateSliceEditPoi_addLocation", payload: action.payload })
 
       let newEntry = {
         id: uuid(),
@@ -96,7 +173,7 @@ export const stateSliceEditPoi = createSlice({
     },
     // TODO: delete with "whereLatLongArr"
     removeLocation: (state, action) => {
-      // console.log({ "stateSliceEditPoi_removeLocation": action.payload })
+      // console.log({ msg: "stateSliceEditPoi_removeLocation", payload: action.payload })
 
       let removeId = action.payload
       let index = state.whereLatLongArr.findIndex((x) => x.id == removeId)
@@ -110,7 +187,7 @@ export const stateSliceEditPoi = createSlice({
       }
     },
     setSelectedLatLong: (state, action) => {
-      // console.log({ "stateSliceEditPoi_setSelectedLatLong": action.payload })
+      // console.log({ msg: "stateSliceEditPoi_setSelectedLatLong", payload: action.payload })
 
       if (action.payload == null) {
         // Deselect current item.
@@ -130,14 +207,14 @@ export const stateSliceEditPoi = createSlice({
   }
 })
 
-export const {
-  startEditMode,
-  endEditMode,
-  setLocation,
-  deleteLocation,
-  addLocation,
-  removeLocation,
-  setSelectedLatLong
-} = stateSliceEditPoi.actions
+// export const {
+//   startEditMode,
+//   endEditMode,
+//   setLocation,
+//   deleteLocation,
+//   addLocation,
+//   removeLocation,
+//   setSelectedLatLong
+// } = stateSliceEditPoi.actions
 
 export const editStateActions = stateSliceEditPoi.actions

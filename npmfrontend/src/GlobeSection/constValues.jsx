@@ -15,8 +15,14 @@ export const meshNames = {
   //??used??
   PoiPin: "PoiPin",
 
+  // identifies primary POI location
   WherePin: "WherePin",
+
+  // in edit mode, the user-defined region boundary points become interactable meshes
   RegionPoint: "RegionPoint",
+
+  // region mesh
+  Region: "Region",
 
   Globe: "Globe",
   GlobeAtmosphere: "GlobeAtmosphere"

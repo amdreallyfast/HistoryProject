@@ -1,15 +1,18 @@
 import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { setSelectedPoi } from "../AppState/stateSlicePoi"
-import { addLocation, editStateActions } from "../AppState/stateSliceEditPoi"
+import { poiStateActions } from "../AppState/stateSlicePoi"
+import { editStateActions } from "../AppState/stateSliceEditPoi"
+import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 import * as THREE from "three"
 import { Globe } from "./Globe"
 import { AnimatedBarMesh } from "./AnimatedBarMesh"
 import { globeInfo, meshNames, groupNames } from "./constValues"
-import { Region } from "./Region"
-import { ConvertXYZToLatLong } from "./convertLatLongXYZ"
-import { Stars } from "@react-three/drei"
+import { EditRegion, Region } from "./Region"
+import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
+import { Box, Stars } from "@react-three/drei"
+import { PinMesh } from "./PinMesh"
+import { v4 as uuid } from "uuid";
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
@@ -18,80 +21,102 @@ export function Scene(
     poiInfoTitleElementRef,
     mouseInfoRef
   }) {
+  const poiState = useSelector((state) => state.poiReducer)
   const editState = useSelector((state) => state.editPoiReducer)
-  const poiJsonObjects = useSelector((state) => state.poiReducer.allPois)
-  const selectedPoi = useSelector((state) => state.poiReducer.selectedPoi)
-  const prevSelectedPoi = useSelector((state) => state.poiReducer.prevSelectedPoi)
+  const intersectableMeshesState = useSelector((state) => state.intersectableMeshesReducer)
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
   const [poiReactElements, setPoiReactElements] = useState()
   const [editRegionReactElements, setEditRegionReactElements] = useState()
 
-  const poiAndGlobeMeshesRef = useRef()
+  const [intersectableMeshes, setIntersectableMeshes] = useState()
+
   const getThreeJsState = useThree((state) => state.get)
+  const theThing = useThree((state) => state.get().scene)
   let currSelectedPoiMeshRef = useRef()
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/poiJsonObjects", value: poiJsonObjects })
+    // console.log({ msg: "Scene()/useEffect()/poiState.allPois" })
+
+    let poiInfo = []
+    poiState.allPois?.forEach((poi) => {
+      // skip any item being edited
+      if (poi.id != editState.poiId) {
+        poiInfo.push({
+          id: poi.id,
+          where: poi.where
+        })
+      }
+    })
 
     setPoiReactElements(
-      poiJsonObjects?.map(
-        (poiInfoJson, index) => {
-          return (
-            <AnimatedBarMesh
-              key={index}
-              globePos={globeInfo.pos}
-              globeRadius={globeInfo.radius}
-              poiInfoJson={poiInfoJson}
-            />
-          )
-        }
-      )
+      poiInfo.map((info, index) => {
+        return (
+          <Region poiId={null} lat={info.where.lat} long={info.where.long} globePos={globeInfo.pos} />
+        )
+      })
     )
-  }, [poiJsonObjects])
+  }, [poiState.allPois])
 
-  // Once the interactable points of interest are part of the scene, get a collection of them 
-  // for the raycaster to analyze every frame.
-  // Note: This up-front collection is for performance reasons.
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/poiReactElements", value: poiReactElements })
+    // console.log({ msg: "Scene()/useEffect()/editState.editModeOn", value: editState.editModeOn })
 
-    // Note: Extract the POI meshes and_ the "Globe" mesh because the racaster's intersection 
-    // calculations will get _all_ meshes in its path. I want to avoid intersections with POIs 
-    // behind the globe, but in order to do that, I need to have the globe in the list of 
-    // objects that the raytracer considers.
-    const poiAndGlobeMeshes = []
-    getThreeJsState().scene.children.filter(component => {
-      if (component.name === groupNames.PoiGroup) {
-        // Collect all POIs.
-        component.children.forEach(child => {
-          poiAndGlobeMeshes.push(child)
-        })
-      }
-      else if (component.name === groupNames.GlobeGroup) {
-        // Collect only the globe mesh (not the atmosphere).
-        component.children.forEach(child => {
-          if (child.name === meshNames.Globe) {
-            poiAndGlobeMeshes.push(child)
+    if (editState.editModeOn) {
+      setEditRegionReactElements((
+        <EditRegion />
+      ))
+    }
+    else {
+      setEditRegionReactElements(null)
+    }
+  }, [editState.editModeOn])
+
+  // Get the interactable meshes for the raycaster
+  // Note: Once the interactable POIs are part of the scene, get a collection of them for the 
+  // raycaster to analyze every frame.
+  useEffect(() => {
+    console.log({ msg: "Scene()/useEffect()/intersectable meshes changed" })
+
+    const intersectableMeshArr = []
+    const addMeshesToCollection = (components) => {
+      // components.forEach((component) => {
+      //   console.log({ name: component.name, type: component.type, children: component.children })
+      // })
+      // console.log("add meshes to collection")
+      components.forEach((component) => {
+        // console.log(component.name)
+        if (component.type == "Group") {
+          if (component.children.length > 0) {
+            addMeshesToCollection(component.children)
           }
-        })
-      }
-    });
-    poiAndGlobeMeshesRef.current = poiAndGlobeMeshes
-  }, [poiReactElements])
+        }
+        else if (component.type == "Mesh") {
+          // console.log({ name: component.name, type: component.type })
+          if (component.name != meshNames.Stars && component.name != meshNames.GlobeAtmosphere) {
+            // console.log({ msg: "found a mesh", component: component })
+            intersectableMeshArr.push(component)
+          }
+        }
+      })
+    }
+    addMeshesToCollection(getThreeJsState().scene.children)
+    console.log({ intersectableMeshArr: intersectableMeshArr })
+    setIntersectableMeshes(intersectableMeshArr)
+    // }, [poiReactElements, editState.editRegionInitialized, intersectableMeshesState.meshes])
+  }, [theThing.children])
 
   // Update POI highlight.
-  // Note: This useEffect() will only trigger (if I got this right) _after_ the poiJsonObjects
-  // and the follow-up poiReactElements are created, so they should all be there.
+  // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
+  // follow-up poiReactElements are created, so they should all be there.
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/selectedPoi", value: selectedPoi })
+    // console.log({ msg: "Scene()/useEffect()/poiState.selectedPoi", value: poiState.selectedPoi })
 
-    if (selectedPoi) {
+    if (poiState.selectedPoi) {
       // Should have exactly 1 matching element.
       // Note: If there is more or less than 1 with the same guid, then there is a problem.
-      let result = poiAndGlobeMeshesRef.current.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == selectedPoi.myUniqueId)
+      let result = intersectableMeshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == poiState.selectedPoi.myUniqueId)
       let selectedPoiMesh = result[0]
 
       // Fade in the new selected item.
@@ -103,9 +128,9 @@ export function Scene(
       currSelectedPoiMeshRef.current = selectedPoiMesh
     }
 
-    if (prevSelectedPoi) {
-      // let prevSelectedEement = document.getElementById(prevSelectedPoi.myUniqueId)
-      let result = poiAndGlobeMeshesRef.current.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == prevSelectedPoi.myUniqueId)
+    if (poiState.prevSelectedPoi) {
+      // let prevSelectedEement = document.getElementById(poiState.prevSelectedPoi.myUniqueId)
+      let result = intersectableMeshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == poiState.prevSelectedPoi.myUniqueId)
       let selectedPoiMesh = result[0]
 
       // Fade out the previously selected item.
@@ -114,24 +139,15 @@ export function Scene(
       selectedPoiMesh.material.opacity = selectedPoiMesh.userData.originalOpacity
     }
 
-  }, [selectedPoi])
-
-  useEffect(() => {
-    console.log({ msg: "Scene()/useEffect()/editState.where", value: editState.where })
-
-    setEditRegionReactElements((
-      <Region poiId={null} />
-    ))
-  }, [editState.where])
+  }, [poiState.selectedPoi])
 
   // Handle mouse hover and mouse click.
   let prevMouseHoverPoiMeshRef = useRef()
   useFrame((state) => {
     // console.log("useFrame()")
 
-    // Construction of the group of points of interest and the ThreeJs state model may take a 
-    // couple frames. Wait until then.
-    if (poiAndGlobeMeshesRef.current == null || poiInfoPopupElementRef.current == null) {
+    // Construction of the React elements and ThreeJs meshes may take a few frames. Wait.
+    if (intersectableMeshes == null || poiInfoPopupElementRef.current == null) {
       return
     }
 
@@ -141,63 +157,136 @@ export function Scene(
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mouseInfoRef.current.currPos, state.camera)
-    const intersections = state.raycaster.intersectObjects(poiAndGlobeMeshesRef.current)
+    const intersections = state.raycaster.intersectObjects(intersectableMeshes)
     if (intersections.length == 0 || intersections[0].object.name == meshNames.Stars) {
       // Mouse is in space. Ignore.
       // console.log("hover nothing")
     }
     else {
-      let firstIntersection = intersections[0]
-      if (firstIntersection.object.name == meshNames.Globe) {
-        // console.log("hover globe")
-        if (mouseInfoRef.current.mouseClickedCurrPos) {
-          if (editState.editModeOn) {
-            let clickedPoint = firstIntersection.point
+      // Take the first intersection (that is, the object closest to camera).
+      let intersection = intersections[0]
+      let mouseClicked = mouseInfoRef.current.mouseClickedCurrPos
+      let mouseIsDown = mouseInfoRef.current.mouseIsDown
 
-            // TODO: handle scenarios:
-            //  1. No location exists yet (new entry)
-            //    => set location
-            //  2. Clicked on "where" pin
-            //    => click to drag
-            //    ??how to set location on mouse release??
-            //  3. Clicked on region point
-            //    => click to drag
-            //    ??how to set location on mouse release??
-            //  4. Else location exists, but didn't click on any "where" pin or region points 
-            //    => do nothing
-            const [lat, long] = ConvertXYZToLatLong(clickedPoint.x, clickedPoint.y, clickedPoint.z, globeInfo.radius)
+      // TODO: handle scenarios:
+      //  1. No location exists yet (new entry)
+      //    => set location
+      //  2. Clicked on "where" pin
+      //    => click to drag
+      //    ??how to set location on mouse release??
+      //  3. Clicked on region point
+      //    => click to drag
+      //    ??how to set location on mouse release??
+      //  4. Else location exists, but didn't click on any "where" pin or region points 
+      //    => do nothing
+
+      if (editState.editModeOn) {
+        // Editing. Only affect the edited object, but still allow hovering over existing objects
+        // to get cursory info.
+
+        if (mouseClicked) {
+          if (intersection.object.name == meshNames.Globe) {
+            // If no region exists yet, create one here.
             if (editState.where == null) {
-              console.log("no location set")
-              // let region = createNewRegion(lat, long)
-              // setEditRegionReactElements(region.wherePinMesh)
-
-              // console.log({ editState: editState, actions: editStateActions })
-              reduxDispatch(editStateActions.setLocation({
-                lat: lat,
-                long: long,
-                x: clickedPoint.x,
-                y: clickedPoint.y,
-                z: clickedPoint.z
-              }))
+              const [x, y, z] = intersection.point
+              const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
+              reduxDispatch(
+                editStateActions.setLocation({
+                  id: uuid(), // new location => new guid
+                  lat: lat,
+                  long: long,
+                  x: x,
+                  y: y,
+                  z: z
+                })
+              )
             }
-            else {
-              console.log("location already set; removing")
-              reduxDispatch(editStateActions.deleteLocation())
-            }
-
-            // reduxDispatch(addLocation({ lat, long }))
+          }
+          // else if (intersection.object.name == meshNames.WherePin) {
+          //   // Clicked a POI primary location pin.
+          //   let clickedEditPin = intersection.object.userData.poiId == editState.poiId
+          //   if (clickedEditPin) {
+          //     reduxDispatch(
+          //       editStateActions.enableClickAndDrag()
+          //     )
+          //   }
+          //   else {
+          //     // Ignore. Clicked on a POI that is not being edited.
+          //   }
+          // }
+          // else {
+          //   // Ignore. Clicked on something else.
+          //   reduxDispatch(
+          //     editStateActions.disableClickAndDrag()
+          //   )
+          // }
+        }
+        else if (editState.clickAndDrag) {
+          if (mouseIsDown) {
+            // In the middle of click-and-drag. Continue. Search all intersections for the globe 
+            // and move it to the globe intersection.
+            // Note: If the globe is not in the list of intersections, then the mouse has drifted
+            // off the globe and onto something else (like space or starts). Ignore.
+            intersections.forEach((intersection) => {
+              if (intersection.object.name == meshNames.Globe) {
+                reduxDispatch(
+                  editStateActions.updateClickAndDrag({
+                    x: intersection.point.x,
+                    y: intersection.point.y,
+                    z: intersection.point.z,
+                  })
+                )
+              }
+            })
           }
           else {
-            // Ignore click. Not in edit mode, so do _not_ set location.
+            // Just ended click-and-drag. 
+            const { x, y, z } = editState.tentativeWhere
+            const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
+
+            // Set final location.
+            reduxDispatch(
+              editStateActions.setLocation({
+                id: editState.where.id,
+                lat: lat,
+                long: long,
+                x: x,
+                y: y,
+                z: z
+              })
+            )
+
+            // Reset the indicator for click-and-drag.
+            reduxDispatch(
+              editStateActions.disableClickAndDrag()
+            )
           }
         }
-      }
-      else if (firstIntersection.object.name == meshNames.PoiPin) {
-        // console.log("hover poi")
-        mouseHoverPoiMesh = intersections[0].object
-      }
-      else {
-        // Ignore other objects (stars, atmosphere, etc.)
+        else {
+          // No click, but might still be busy.
+          if (intersection.object.name == meshNames.WherePin && mouseIsDown) {
+            let clickedEditPin = intersection.object.userData.poiId == editState.poiId
+            if (clickedEditPin) {
+              console.log("begin click-and-drag")
+              reduxDispatch(
+                editStateActions.enableClickAndDrag()
+              )
+            }
+            else {
+              // Ignore. Clicked on a POI that is not being edited.
+              console.log("ignore mouse move; not the edited POI")
+            }
+          }
+
+
+          if (intersection.object.name == meshNames.WherePin) {
+            // // Hovering over a POI main pin.
+            // mouseHoverPoiMesh = intersection.object
+          }
+          else {
+            // Not hovering over anything of interest.
+          }
+        }
       }
     }
 
@@ -298,7 +387,6 @@ export function Scene(
       <group name={groupNames.PoiGroup}>
         {poiReactElements}
       </group>
-      {/* <Region /> */}
       <group name={groupNames.EditRegionGroup}>
         {editRegionReactElements}
       </group>

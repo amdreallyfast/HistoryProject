@@ -1,12 +1,15 @@
 import { useRef, useState } from "react"
+import { useDispatch } from "react-redux"
 import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
+import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 
 export function GlobeSectionMain() {
   // Toggle with CTRL key.
   const [cameraRotateEnabled, setCameraRotateEnabled] = useState(true)
   const [cameraPanEnabled, setCameraPanEnabled] = useState(true)
+  const reduxDispatch = useDispatch()
 
   const mouseInfoRef = useRef({
     // All positions in screen space.
@@ -81,6 +84,13 @@ export function GlobeSectionMain() {
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
     mouseInfoRef.current.currPos.x = normalized.x
     mouseInfoRef.current.currPos.y = normalized.y
+
+    reduxDispatch(
+      mouseStateActions.updatePos({
+        x: normalized.x,
+        y: normalized.y
+      })
+    )
 
     // Note: The POI info pop's position, unlike the mouse, seems to be able to follow the 
     // unfiltered client (that is, the canvas)...*shrug*.

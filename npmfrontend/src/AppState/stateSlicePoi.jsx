@@ -54,4 +54,5 @@ export const stateSlicePoi = createSlice({
   }
 })
 
-export const { setAllPois, setSelectedPoi } = stateSlicePoi.actions
+// export const { setAllPois, setSelectedPoi } = stateSlicePoi.actions
+export const poiStateActions = stateSlicePoi.actions

@@ -6,9 +6,14 @@ import atmosphereVertShaderText from "../assets/shaders/atmosphere.vert?raw"
 import atmosphereFragShaderText from "../assets/shaders/atmosphere.frag?raw"
 import * as THREE from "three"
 import { meshNames, groupNames } from "./constValues"
+import { useDispatch } from "react-redux"
+import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 
 export function Globe({ globeRadius }) {
   // console.log("Globe(): begin")
+
+  const sphereRef = useRef()
+  const groupRef = useRef()
 
   const globeMemo = useMemo(() => {
     // console.log("Globe(): useMemo")
@@ -42,12 +47,8 @@ export function Globe({ globeRadius }) {
     }
   }, [])
 
-  const sphereRef = useRef()
-  const groupRef = useRef()
-
-  // Only run once when the assets are first rendered.
-  const alignSphericalCoordinatesWithEarthTexture = () => {
-    // Rotate globe to align the spherical coordinate calculations and the earth texture.
+  useEffect(() => {
+    // Allign spherical coordinates with globe texture.
     // Note: We rotate around the Y axis (veritcal axis), which makes sense, but I can't figure
     // out any solid math reason why we rotate by -90 degrees. I suspect that it's just the way 
     // that the texture wrapping started on the ThreeJs sphere geometry. With this texture 
@@ -57,11 +58,15 @@ export function Globe({ globeRadius }) {
     // Rotating the entire globe by -90deg though re-aligns everything. It seems to be a quirk of
     // the ThreeJs sphere geometry + rectangular earth maps.
     groupRef.current.rotation.y = -Math.PI / 2
-  }
+  }, [groupRef.current])
 
-  useEffect(() => {
-    alignSphericalCoordinatesWithEarthTexture()
-  }, [])
+  const reduxDispatch = useDispatch()
+  // useEffect(() => {
+  //   reduxDispatch(
+  //     intersectableMeshesStateActions.add(sphereRef.current)
+  //   )
+  //   console.log({ msg: "Globe", value: sphereRef.current })
+  // }, [sphereRef.current])
 
   return (
     <group name={groupNames.GlobeGroup} ref={groupRef}>

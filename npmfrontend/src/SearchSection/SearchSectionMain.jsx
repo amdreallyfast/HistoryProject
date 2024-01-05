@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import _ from "lodash"
-import { setAllPois, setSelectedPoi } from "../AppState/stateSlicePoi"
+import { poiStateActions } from "../AppState/stateSlicePoi"
 import { v4 as uuid } from "uuid"
 import { damp } from "three/src/math/MathUtils"
 
@@ -173,10 +173,10 @@ export function SearchSectionMain() {
           // If already selected, de-select.
           // Note: Using bold text as a proxy for "is selected".
           if (e.target.className.includes("font-bold")) {
-            reduxDispatch(setSelectedPoi(null))
+            reduxDispatch(poiStateActions.setSelectedPoi(null))
           }
           else {
-            reduxDispatch(setSelectedPoi(poiJson))
+            reduxDispatch(poiStateActions.setSelectedPoi(poiJson))
           }
         }
 
@@ -198,7 +198,7 @@ export function SearchSectionMain() {
         setSearchResultsReactElements(htmlReactElements)
 
         // Finally, notify the global state of the change in available POIs.
-        reduxDispatch(setAllPois(sortedJson))
+        reduxDispatch(poiStateActions.setAllPois(sortedJson))
       }
     }
     else {
@@ -269,7 +269,7 @@ export function SearchSectionMain() {
     // that there is no change, and therefore the UI will not update, giving no indication that
     // anything was done. This appearance of unresponsiveness is bad. 
     // Solution: reset the search results and start again, because that's what the user wants.
-    reduxDispatch(setAllPois(null))
+    reduxDispatch(poiStateActions.setAllPois(null))
   }
 
   const onSearchTextChanged = (e) => {
