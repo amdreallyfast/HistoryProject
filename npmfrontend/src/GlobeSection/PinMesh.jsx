@@ -5,7 +5,7 @@ import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
 import { useDispatch } from "react-redux"
 import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 
-export function PinMesh({ name, id, where, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   // Geometry is identical for all PoiPins, so only need to make it once.
   // const memo = useMemo(() => {
   //   // debug && console.log("PoiPin(): useMemo")
@@ -55,16 +55,13 @@ export function PinMesh({ name, id, where, scale = 0.1, lookAt = new THREE.Vecto
     // Make an equilateral triangle pyramid with the point facing center of the globe.
     let sqrt3Over2 = Math.sqrt(3.0) / 2.0
     let oneHalf = 0.5
-    let pinLength = 3
 
     // Note: ThreeJs's "lookat(...)" function orients the object's local Z axis at the specified
     // world space point.
     let baseVertex1 = new THREE.Vector3(0, 1, 0)
-    // let baseVertex2 = new THREE.Vector3(-sqrt2Over2, 0, -sqrt2Over2)
-    // let baseVertex3 = new THREE.Vector3(+sqrt2Over2, 0, -sqrt2Over2)
     let baseVertex2 = new THREE.Vector3(-sqrt3Over2, -oneHalf, 0)
     let baseVertex3 = new THREE.Vector3(+sqrt3Over2, -oneHalf, 0)
-    let topVertex = new THREE.Vector3(0, 0, pinLength)
+    let topVertex = new THREE.Vector3(0, 0, length)
     let vertices = [...baseVertex1, ...baseVertex2, ...baseVertex3, ...topVertex]
     let indices = []
     indices.push(0, 1, 2) // base (top)
@@ -94,7 +91,7 @@ export function PinMesh({ name, id, where, scale = 0.1, lookAt = new THREE.Vecto
     meshRef.current.position.y = where.y
     meshRef.current.position.z = where.z
     meshRef.current.lookAt(lookAt)
-    meshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(pinLength * scale)))
+    meshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(length * scale)))
 
 
     // // From "Region"
@@ -113,8 +110,29 @@ export function PinMesh({ name, id, where, scale = 0.1, lookAt = new THREE.Vecto
     console.log("PinMesh finished")
   }, [meshRef.current, materialRef.current])
 
+  // useEffect(() => {
+  //   /*
+  //   if !edit mode
+  //     return
+
+  //   if editState.selectedPinId != meshRef.current.userData.pinId
+  //     return
+
+  //   move it!
+  //   */
+  // }, [editState.tentativeWhere])
+
   function onMeshClick(e) {
     console.log({ msg: "PinMesh()/onMeshClick", value: e })
+
+    /*
+    if edit mode
+      if state.selectedPin == null
+        set state selectedPin = this pin's ID
+      
+    else not edit mode
+      set selected POI
+    */
   }
 
   // return (

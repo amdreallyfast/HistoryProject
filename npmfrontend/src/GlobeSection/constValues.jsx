@@ -9,6 +9,12 @@ export const globeInfo = {
   regionRadius: 5.2
 }
 
+export const pinMeshInfo = {
+  length: 3,
+  mainPinScale: 0.1,
+  regionPinScale: 0.05
+}
+
 export const meshNames = {
   Stars: "Stars",
 

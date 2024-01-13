@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
-import { globeInfo, meshNames } from "./constValues"
+import { globeInfo, meshNames, pinMeshInfo } from "./constValues"
 import { PinMesh } from "./PinMesh"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
@@ -485,6 +485,7 @@ const makeRegion = (latLongArr) => {
   return [indices, points]
 }
 
+
 export function Region({ poiId, lat, long, globeInfo }) {
   // TODO: once I have an aray of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
 
@@ -626,7 +627,12 @@ export function EditRegion({ }) {
     // console.log("creating PinMesh")
     // let where = ConvertLatLongToVec3(editState.where.lat, editState.where.long, globeInfo.radius)
     setWherePinReactElement((
-      <PinMesh id={editState.poiId} name={meshNames.WherePin} where={editState.where} lookAt={globeInfo.pos} />
+      <PinMesh id={editState.poiId}
+        name={meshNames.WherePin}
+        where={editState.where}
+        length={pinMeshInfo.length}
+        scale={pinMeshInfo.mainPinScale}
+        lookAt={globeInfo.pos} />
     ))
     // console.log({ msg: "EditRegion()/useEffect(): created PinMesh", value: pinMesh })
   }, [editState.where])
@@ -673,7 +679,10 @@ export function EditRegion({ }) {
     wherePinMesh.position.x = x
     wherePinMesh.position.y = y
     wherePinMesh.position.z = z
+    wherePinMesh.lookAt(globeInfo.pos)
     wherePinMesh.geometry.attributes.position.needsUpdate = true
+    // let m = new THREE.Matrix4().makeTranslation(0, 0, -(pinMeshInfo.length * pinMeshInfo.mainPinScale))
+    // wherePinMesh.geometry.applyMatrix4(m)
 
     // wherePinMesh.current.lookAt(lookAt)
   }, [editState.tentativeWhere])
