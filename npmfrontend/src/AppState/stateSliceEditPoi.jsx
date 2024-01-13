@@ -5,11 +5,13 @@ import { ConvertXYZToLatLong } from "../GlobeSection/convertLatLongXYZ";
 const initialState = {
   // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
   editModeOn: true,
-  editRegionInitialized: false,
+  editRegionMeshCount: false,
 
   poiId: 99,
 
   whereLatLongArr: [],  // TODO: delete
+
+  // TODO: ??combine main pin and region boundary pins into a single collection??
 
   // Each "where" and "region" point consists of a selectable pin object with lat, long, x, y, z.
   // Format:
@@ -23,6 +25,7 @@ const initialState = {
   //  }
   where: null,
   region: [],
+  selectedPinId: null,
 
   // For use during clicking and dragging a single point or the entire region.
   // Format:
@@ -56,12 +59,12 @@ export const stateSliceEditPoi = createSlice({
       // console.log("stateSliceEditPoi_endEditMode")
       return initialState
     },
-    setEditRegionInitialized: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setEditRegionInitialized", payload: action.payload })
+    setEditRegionMeshCount: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setEditRegionMeshCount", payload: action.payload })
 
       return {
         ...state,
-        editRegionInitialized: true
+        editRegionMeshCount: action.payload
       }
     },
 
@@ -88,6 +91,7 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         clickAndDrag: true,
+        selectedPinId: action.payload.pinId,
         tentativeWhere: {
           x: state.where.x,
           y: state.where.y,
@@ -101,6 +105,7 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         clickAndDrag: false,
+        selectedPinId: null,
         tentativeWhere: null
       }
     },

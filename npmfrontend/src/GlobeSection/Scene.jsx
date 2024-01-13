@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { poiStateActions } from "../AppState/stateSlicePoi"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 import * as THREE from "three"
 import { Globe } from "./Globe"
 import { AnimatedBarMesh } from "./AnimatedBarMesh"
@@ -23,23 +22,20 @@ export function Scene(
   }) {
   const poiState = useSelector((state) => state.poiReducer)
   const editState = useSelector((state) => state.editPoiReducer)
-  const intersectableMeshesState = useSelector((state) => state.intersectableMeshesReducer)
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
   const [poiReactElements, setPoiReactElements] = useState()
   const [editRegionReactElements, setEditRegionReactElements] = useState()
 
-  const [intersectableMeshes, setIntersectableMeshes] = useState()
-
+  const [meshes, setMeshes] = useState()
   const getThreeJsState = useThree((state) => state.get)
   let currSelectedPoiMeshRef = useRef()
 
 
-
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/poiState.allPois" })
+    console.log({ msg: "Scene()/useEffect()/poiState.allPois", value: poiState.allPois })
 
     let poiInfo = []
     poiState.allPois?.forEach((poi) => {
@@ -65,6 +61,7 @@ export function Scene(
     // console.log({ msg: "Scene()/useEffect()/editState.editModeOn", value: editState.editModeOn })
 
     if (editState.editModeOn) {
+      // TODO: set edit state info to current POI info
       setEditRegionReactElements((
         <EditRegion />
       ))
@@ -78,27 +75,29 @@ export function Scene(
   // Note: Once the interactable POIs are part of the scene, get a collection of them for the 
   // raycaster to analyze every frame.
   useEffect(() => {
-    console.log({ msg: "Scene()/useEffect()/intersectable meshes changed" })
+    console.log({ msg: "Scene()/useEffect()/meshes changed" })
 
-    const intersectableMeshArr = []
-    const addMeshesToCollection = (components) => {
+    const meshesArr = []
+
+    // recursive
+    const findMeshes = (components) => {
       components.forEach((component) => {
         if (component.type == "Group") {
           if (component.children.length > 0) {
-            addMeshesToCollection(component.children)
+            findMeshes(component.children)
           }
         }
         else if (component.type == "Mesh") {
           if (component.name != meshNames.Stars && component.name != meshNames.GlobeAtmosphere) {
-            intersectableMeshArr.push(component)
+            meshesArr.push(component)
           }
         }
       })
     }
-    addMeshesToCollection(getThreeJsState().scene.children)
-    console.log({ intersectableMeshArr: intersectableMeshArr })
-    setIntersectableMeshes(intersectableMeshArr)
-  }, [poiReactElements, editState.editRegionInitialized])
+
+    findMeshes(getThreeJsState().scene.children)
+    setMeshes(meshesArr)
+  }, [poiReactElements, editState.editRegionMeshCount])
 
 
   // Update POI highlight.
@@ -110,7 +109,7 @@ export function Scene(
     if (poiState.selectedPoi) {
       // Should have exactly 1 matching element.
       // Note: If there is more or less than 1 with the same guid, then there is a problem.
-      let result = intersectableMeshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == poiState.selectedPoi.myUniqueId)
+      let result = meshes.filter((mesh) => mesh.userData?.poiInfoJson?.myUniqueId == poiState.selectedPoi.myUniqueId)
       let selectedPoiMesh = result[0]
 
       // Fade in the new selected item.
@@ -124,7 +123,7 @@ export function Scene(
 
     if (poiState.prevSelectedPoi) {
       // let prevSelectedEement = document.getElementById(poiState.prevSelectedPoi.myUniqueId)
-      let result = intersectableMeshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == poiState.prevSelectedPoi.myUniqueId)
+      let result = meshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == poiState.prevSelectedPoi.myUniqueId)
       let selectedPoiMesh = result[0]
 
       // Fade out the previously selected item.
@@ -141,7 +140,7 @@ export function Scene(
     // console.log("useFrame()")
 
     // Construction of the React elements and ThreeJs meshes may take a few frames. Wait.
-    if (intersectableMeshes == null || poiInfoPopupElementRef.current == null) {
+    if (meshes == null || poiInfoPopupElementRef.current == null) {
       return
     }
 
@@ -151,12 +150,9 @@ export function Scene(
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mouseInfoRef.current.currPos, state.camera)
-    const intersections = state.raycaster.intersectObjects(intersectableMeshes)
-    if (intersections.length == 0 || intersections[0].object.name == meshNames.Stars) {
-      // Mouse is in space. Ignore.
-      // console.log("hover nothing")
-    }
-    else {
+    const intersections = state.raycaster.intersectObjects(meshes)
+    // console.log({ intersections: intersections })
+    if (intersections.length > 0) {
       // Take the first intersection (that is, the object closest to camera).
       let intersection = intersections[0]
       let mouseClicked = mouseInfoRef.current.mouseClickedCurrPos
@@ -196,27 +192,9 @@ export function Scene(
               )
             }
           }
-          // else if (intersection.object.name == meshNames.WherePin) {
-          //   // Clicked a POI primary location pin.
-          //   let clickedEditPin = intersection.object.userData.poiId == editState.poiId
-          //   if (clickedEditPin) {
-          //     reduxDispatch(
-          //       editStateActions.enableClickAndDrag()
-          //     )
-          //   }
-          //   else {
-          //     // Ignore. Clicked on a POI that is not being edited.
-          //   }
-          // }
-          // else {
-          //   // Ignore. Clicked on something else.
-          //   reduxDispatch(
-          //     editStateActions.disableClickAndDrag()
-          //   )
-          // }
         }
-        else if (editState.clickAndDrag) {
-          if (mouseIsDown) {
+        else if (mouseIsDown) {
+          if (editState.clickAndDrag) {
             // In the middle of click-and-drag. Continue. Search all intersections for the globe 
             // and move it to the globe intersection.
             // Note: If the globe is not in the list of intersections, then the mouse has drifted
@@ -234,43 +212,41 @@ export function Scene(
             })
           }
           else {
-            // Just ended click-and-drag. 
-            const { x, y, z } = editState.tentativeWhere
-            const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
+            // Enable click-and-drag if the user selected one of the pins being edited.
+            let obj = intersection.object
+            // console.log({ obj: obj.name, poiId: obj.userData?.poiId })
+            let clickedMainPin = obj.name == meshNames.WherePin && obj.userData?.poiId == editState.poiId
+            if (clickedMainPin) {
+              console.log("begin click-and-drag")
+              reduxDispatch(
+                editStateActions.enableClickAndDrag({ pinId: intersection.object.userData.whereId })
+              )
+            }
 
-            // Set final location.
-            reduxDispatch(
-              editStateActions.setLocation({
-                id: editState.where.id,
-                lat: lat,
-                long: long,
-                x: x,
-                y: y,
-                z: z
-              })
-            )
-
-            // Reset the indicator for click-and-drag.
-            reduxDispatch(
-              editStateActions.disableClickAndDrag()
-            )
           }
+        }
+        else if (!mouseIsDown && editState.clickAndDrag) {
+          // Disable click-and-drag.
+          reduxDispatch(
+            editStateActions.disableClickAndDrag()
+          )
+
+          // Set final location.
+          const { x, y, z } = editState.tentativeWhere
+          const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
+          reduxDispatch(
+            editStateActions.setLocation({
+              id: editState.where.id,
+              lat: lat,
+              long: long,
+              x: x,
+              y: y,
+              z: z
+            })
+          )
         }
         else {
           // No click, but might still be busy.
-          if (intersection.object.name == meshNames.WherePin && mouseIsDown) {
-            let clickedEditPin = intersection.object.userData.poiId == editState.poiId
-            if (clickedEditPin) {
-              console.log("begin click-and-drag")
-              reduxDispatch(
-                editStateActions.enableClickAndDrag()
-              )
-            }
-            else {
-              // Ignore. Clicked on a POI that is not being edited.
-              console.log("ignore mouse move; not the edited POI")
-            }
-          }
 
 
           if (intersection.object.name == meshNames.WherePin) {

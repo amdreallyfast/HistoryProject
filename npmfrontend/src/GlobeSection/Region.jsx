@@ -11,7 +11,6 @@ import { v1 } from "uuid"
 import { roundFloat } from "../RoundFloat"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { useThree } from "@react-three/fiber"
-import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 
 // TODO: click latlong pin and drag to move point
 
@@ -596,27 +595,9 @@ export function Region({ poiId, lat, long, globeInfo }) {
 export function EditRegion({ }) {
   // TODO: once I have an aray of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
   const editState = useSelector((state) => state.editPoiReducer)
-  const intersectableMeshesStateActions = useSelector((state) => state.interactableMeshesReducer)
 
-  const [wherePinReactElement, setWherePinReactElement] = useState()
-  const [wherePinMesh, setWherePinMesh] = useState()
+  const [pinReactElements, setPinReactElement] = useState()
   const reduxDispatch = useDispatch()
-
-  const getThreeJsState = useThree((state) => state.get)
-  const findMeshById = (components, id, depth = 0) => {
-    // console.log({ depth: depth })
-    for (const component of components) {
-      if (component.type == "Mesh" && component.userData.poiId == id) {
-        return component
-      }
-      else if (component.type == "Group" && component.children?.length > 0) {
-        let result = findMeshById(component.children, id, depth + 1)
-        if (result) {
-          return result
-        }
-      }
-    }
-  }
 
   useEffect(() => {
     console.log({ msg: "EditRegion()/useEffect()/editState.where", where: editState.where })
@@ -626,7 +607,7 @@ export function EditRegion({ }) {
 
     // console.log("creating PinMesh")
     // let where = ConvertLatLongToVec3(editState.where.lat, editState.where.long, globeInfo.radius)
-    setWherePinReactElement((
+    setPinReactElement((
       <PinMesh id={editState.poiId}
         name={meshNames.WherePin}
         where={editState.where}
@@ -638,72 +619,24 @@ export function EditRegion({ }) {
   }, [editState.where])
 
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/wherePinReactElement", pinMesh: wherePinReactElement })
-    if (wherePinReactElement == null) {
-      console.log("no react element (yet)")
-      return
+    console.log({ msg: "EditRegion()/useEffect()/pinReactElements", value: pinReactElements })
+
+    // Inform the Scene that there are new meshes to consider.
+    if (pinReactElements == null) {
+      reduxDispatch(
+        editStateActions.setEditRegionMeshCount(0)
+      )
     }
-
-    // let mesh = findMeshById(getThreeJsState().scene.children, editState.poiId)
-
-    reduxDispatch(
-      editStateActions.setEditRegionInitialized()
-    )
-  }, [wherePinReactElement])
-
-  useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/editState.editRegionInitialized", value: editState.editRegionInitialized })
-    if (!editState.editRegionInitialized) {
-      console.log("not initialized; returning")
-      return
+    else {
+      reduxDispatch(
+        editStateActions.setEditRegionMeshCount(1)
+      )
     }
-
-    console.log({ poiId: editState.poiId })
-    let mesh = findMeshById(getThreeJsState().scene.children, editState.poiId)
-    console.log({ found: mesh })
-    if (mesh == null) {
-      throw new Error(`Mesh not found`)
-    }
-    setWherePinMesh(mesh)
-
-  }, [editState.editRegionInitialized])
-
-  useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.tentativeWhere", tentativeWhere: editState.tentativeWhere })
-    // console.log({ msg: "EditRegion()/useEffect()/editState.tentativeWhere", x: editState.tentativeWhere?.x })
-    if (wherePinMesh == null || editState.tentativeWhere == null) {
-      return
-    }
-
-    let { x, y, z } = editState.tentativeWhere
-    wherePinMesh.position.x = x
-    wherePinMesh.position.y = y
-    wherePinMesh.position.z = z
-    wherePinMesh.lookAt(globeInfo.pos)
-    wherePinMesh.geometry.attributes.position.needsUpdate = true
-    // let m = new THREE.Matrix4().makeTranslation(0, 0, -(pinMeshInfo.length * pinMeshInfo.mainPinScale))
-    // wherePinMesh.geometry.applyMatrix4(m)
-
-    // wherePinMesh.current.lookAt(lookAt)
-  }, [editState.tentativeWhere])
-
-  // if (editState.editModeOn && editState.where) {
-  //   console.log("creating PinMesh")
-  //   let where = ConvertLatLongToVec3(editState.where.lat, editState.where.long, globeInfo.radius)
-  //   setPinMesh((
-  //     <PinMesh name={meshNames.WherePin} where={where} lookAt={globeInfo.pos} />
-  //   ))
-  // }
-  // else {
-  //   console.log("set PinMesh = null")
-  //   setPinMesh((
-  //     <PinMesh name={meshNames.WherePin} where={new THREE.Vector3(0, 0, 0)} lookAt={globeInfo.pos} />
-  //   ))
-  // }
+  }, [pinReactElements])
 
   return (
     <>
-      {wherePinReactElement}
+      {pinReactElements}
       {/* <PinMesh name={meshNames.WherePin} where={new THREE.Vector3(1, 0, 0)} lookAt={globeInfo.pos} /> */}
     </>
   )

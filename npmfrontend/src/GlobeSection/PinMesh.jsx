@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef } from "react"
 import { meshNames, globeInfo } from "./constValues"
 import * as THREE from "three"
 import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
-import { useDispatch } from "react-redux"
-import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
+import { useDispatch, useSelector } from "react-redux"
 
 export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   // Geometry is identical for all PoiPins, so only need to make it once.
@@ -44,9 +43,11 @@ export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new
     throw new Error("'where.id' cannot be null")
   }
 
+  const editState = useSelector((state) => state.editPoiReducer)
+  const reduxDispatch = useDispatch()
+
   const meshRef = useRef()
   const materialRef = useRef()
-  const reduxDispatch = useDispatch()
   useEffect(() => {
     // console.log({ msg: "PinMesh()/useEffect()/meshRef" })
     meshRef.current.userData.poiId = id
@@ -110,30 +111,35 @@ export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new
     console.log("PinMesh finished")
   }, [meshRef.current, materialRef.current])
 
-  // useEffect(() => {
-  //   /*
-  //   if !edit mode
-  //     return
+  useEffect(() => {
+    if (editState.editModeOn) {
+      if (editState.selectedPinId == meshRef.current.userData.whereId) {
+        console.log("ooh ooh me me!")
 
-  //   if editState.selectedPinId != meshRef.current.userData.pinId
-  //     return
+        let { x, y, z } = editState.tentativeWhere
+        meshRef.current.position.x = x
+        meshRef.current.position.y = y
+        meshRef.current.position.z = z
+        meshRef.current.lookAt(globeInfo.pos)
+        meshRef.current.geometry.attributes.position.needsUpdate = true
+      }
+      else {
+        console.log("not me")
+      }
+    }
 
-  //   move it!
-  //   */
-  // }, [editState.tentativeWhere])
-
-  function onMeshClick(e) {
-    console.log({ msg: "PinMesh()/onMeshClick", value: e })
 
     /*
-    if edit mode
-      if state.selectedPin == null
-        set state selectedPin = this pin's ID
-      
-    else not edit mode
-      set selected POI
+    if !edit mode
+      return
+
+    if editState.selectedPinId != meshRef.current.userData.pinId
+      return
+
+    move it!
     */
-  }
+  }, [editState.tentativeWhere])
+
 
   // return (
   //   // <mesh name={meshNames.LatLongPin} ref={meshRef} onClick={(e) => onMeshClick(e)}>
@@ -145,7 +151,7 @@ export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new
   //   </mesh>
   // )
   return (
-    <mesh ref={meshRef} name={name} onClick={onMeshClick}>
+    <mesh ref={meshRef} name={name}>
       <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
     </mesh>
   )

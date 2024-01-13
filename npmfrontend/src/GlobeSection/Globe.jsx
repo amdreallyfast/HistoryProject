@@ -7,7 +7,6 @@ import atmosphereFragShaderText from "../assets/shaders/atmosphere.frag?raw"
 import * as THREE from "three"
 import { meshNames, groupNames } from "./constValues"
 import { useDispatch } from "react-redux"
-import { intersectableMeshesStateActions } from "../AppState/stateSliceIntersectableMeshes"
 
 export function Globe({ globeRadius }) {
   // console.log("Globe(): begin")
