@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
-import { globeInfo, meshNames, pinMeshInfo } from "./constValues"
+import { globeInfo, groupNames, meshNames, pinMeshInfo } from "./constValues"
 import { PinMesh } from "./PinMesh"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
 import { ceil, floor, sum } from "lodash"
-import { v4 as uuid } from "uuid"
+import { v4 as uuid, validate } from "uuid"
 import { roundFloat } from "../RoundFloat"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { useThree } from "@react-three/fiber"
@@ -592,6 +592,123 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
   // )
 }
 
+// Triangulate by ear-clipping.
+// Note: Points must be counter-clockwise.
+function RegionMesh({ points, globeInfo }) {
+
+  let meshRef = useRef()
+
+  useEffect(() => {
+    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", value: meshRef.current })
+    if (meshRef.current == null || points == null || points.length < 3) {
+      // Need at least 3 points for a triangle
+      return
+    }
+
+    let regionRadius = 5.1
+    let regionRadiusSq = regionRadius * regionRadius
+    let pointVectors = []
+    points.forEach((point, index) => {
+      let v = new THREE.Vector3(point.x, point.y, point.z)
+      v.normalize().multiplyScalar(regionRadius)
+      pointVectors.push(v)
+    })
+
+    // Note: Points appear to be counterclockwise.
+    let startIndex = 0
+    while (pointVectors.length > 0) {
+      let v1 = pointVectors[startIndex]
+      let v2 = pointVectors[startIndex + 1]
+      let v3 = pointVectors[startIndex + 2]
+
+      // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
+      //  <180deg when viewed from above (cross product points into space)
+      //  or
+      //  >180deg when viewed from above (cross product points into the earth)
+      let v1v2 = (new THREE.Vector3()).subVectors(v2, v1)
+      let v2v3 = (new THREE.Vector3()).subVectors(v3, v2)
+      let cross = (new THREE.Vector3()).crossVectors(v1v2, v2v3)
+      // let cross = (new THREE.Vector3()).crossVectors(v2v3, v1v2) // reverse
+      let crossPoint = (new THREE.Vector3()).addVectors(v2, cross)
+      if (crossPoint.lengthSq() > regionRadiusSq) {
+
+      }
+      console.log({ crossPoint: crossPoint.length(), regionRadius: 5.1 })
+
+      let v3v2 = (new THREE.Vector3()).subVectors(v2, v3)
+      let v2v1 = (new THREE.Vector3()).subVectors(v1, v2)
+      // cross = (new THREE.Vector3()).crossVectors(v3v2, v2v1)
+
+
+
+      console.log({ cross, cross })
+
+      meshRef.current.position.x = crossPoint.x
+      meshRef.current.position.y = crossPoint.y
+      meshRef.current.position.z = crossPoint.z
+      let geometry = new THREE.BoxGeometry(0.05, 0.05, 0.05)
+      meshRef.current.geometry = geometry
+
+      break
+    }
+
+
+    // // let pointsDict = {}
+    // // points.forEach((point, index) => {
+    // //   // extend the vector out from the earth a bit so that it doesn't clip the globe
+    // //   let v = new THREE.Vector3(point.x, point.y, point.z)
+    // //   v.normalize().multiplyScalar(5.1)
+    // //   pointsDict[index] = v
+    // // })
+
+    // let p1p2 = (new THREE.Vector3()).subVectors(pointsDict[1], pointsDict[0])
+    // let p2p3 = (new THREE.Vector3()).subVectors(pointsDict[2], pointsDict[1])
+
+    // let vertices = []
+    // let indices = []
+
+    // let startIndex = 0
+    // while (pointsDict.length > 0) {
+
+    // }
+    // vertices.push(...pointsDict[0])
+    // vertices.push(...pointsDict[1])
+    // vertices.push(...pointsDict[4])
+    // // vertices.push(...pointIndex[4])
+    // // vertices.push(...pointIndex[5])
+    // // vertices.push(...pointIndex[6])
+    // indices.push(0)
+    // indices.push(1)
+    // indices.push(2)
+    // // indices.push(4)
+    // // indices.push(5)
+    // // indices.push(6)
+
+    // console.log({ vertices: vertices, indices: indices })
+
+    // // vertices
+    // let valuesPerVertex = 3
+    // let posAttribute = new THREE.Float32BufferAttribute(vertices, valuesPerVertex)
+    // console.log({ posAttribute: posAttribute })
+    // meshRef.current.geometry.setAttribute("position", posAttribute)
+
+    // // indices
+    // let valuesPerIndex = 1
+    // let indicesAttribute = new THREE.Uint32BufferAttribute(indices, valuesPerIndex)
+    // meshRef.current.geometry.setIndex(indicesAttribute)
+    // console.log({ indicesAttribute: indicesAttribute })
+
+
+  }, [meshRef.current])
+
+  return (
+    <mesh ref={meshRef} name="RegionMesh">
+      {/* <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} /> */}
+      <meshBasicMaterial color={0x000ff0} wireframe={false} />
+    </mesh>
+  )
+}
+
 // Generate a set of default points in a circle around the origin.
 const createNewRegion = (origin, globeInfo) => {
   let regionBoundaries = []
@@ -635,11 +752,12 @@ export function EditRegion({ }) {
   const [firstTime, setFirstTime] = useState()
   const [preciseLocationPinReactElement, setPreciseLocationPinReactElement] = useState()
   const [regionPinReactElements, setRegionPinReactElements] = useState()
+  const [regionMeshReactElements, setRegionMeshReactElements] = useState()
   const reduxDispatch = useDispatch()
 
   // "Where" changes
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocation", where: editState.preciseLocation })
+    // console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocation", where: editState.preciseLocation })
     if (!editState.editModeOn) {
       return
     }
@@ -665,6 +783,13 @@ export function EditRegion({ }) {
         reduxDispatch(
           editStateActions.setRegionBoundaries(newRegionBoundaries)
         )
+
+        setRegionMeshReactElements(
+          <RegionMesh key={uuid()} points={newRegionBoundaries} globeInfo={globeInfo} />
+        )
+        // let thing = createRegionMesh(regionBoundaries, globeInfo)
+
+
       }
     }
     else {
@@ -675,7 +800,7 @@ export function EditRegion({ }) {
   // Wait until after ThreeJs is done integrating the mesh into the scene before flagging to re-
   // find the interactable meshes.
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocationPinReactElement", where: preciseLocationPinReactElement })
+    // console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocationPinReactElement", where: preciseLocationPinReactElement })
 
     reduxDispatch(
       editStateActions.setPreciseLocationPinMeshExists(preciseLocationPinReactElement == null)
@@ -685,7 +810,7 @@ export function EditRegion({ }) {
 
   // Create region pins when the number of region boundary points change.
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/editState.regionBoundaries", where: editState.regionBoundaries })
+    // console.log({ msg: "EditRegion()/useEffect()/editState.regionBoundaries", where: editState.regionBoundaries })
 
     let reactElements = editState.regionBoundaries.map((where) => {
       return (
@@ -705,7 +830,7 @@ export function EditRegion({ }) {
 
   // Flag to re-find interactable elements after the mesh is done being created.
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/editState.regionPinReactElements", where: editState.regionPinReactElements })
+    // console.log({ msg: "EditRegion()/useEffect()/editState.regionPinReactElements", where: editState.regionPinReactElements })
 
     reduxDispatch(
       editStateActions.setRegionBoundariesPinMeshCount(regionPinReactElements == null ? 0 : regionPinReactElements.length)
@@ -716,6 +841,7 @@ export function EditRegion({ }) {
     <>
       {preciseLocationPinReactElement}
       {regionPinReactElements}
+      {regionMeshReactElements}
     </>
   )
 }

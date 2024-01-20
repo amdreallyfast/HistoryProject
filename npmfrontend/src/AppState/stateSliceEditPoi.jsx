@@ -60,7 +60,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setPreciseLocation: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setPreciseLocation", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_setPreciseLocation", payload: action.payload })
 
       return {
         ...state,
@@ -78,7 +78,7 @@ export const stateSliceEditPoi = createSlice({
     // TODO: deletePreciseLocation
 
     setPreciseLocationPinMeshExists: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setPreciseLocationPinMeshExists", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_setPreciseLocationPinMeshExists", payload: action.payload })
 
       return {
         ...state,
@@ -87,7 +87,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setNoRegion: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setNoRegion", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_setNoRegion", payload: action.payload })
 
       return {
         ...state,
@@ -96,7 +96,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setRegionBoundaries: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
 
       return {
         ...state,
@@ -107,7 +107,7 @@ export const stateSliceEditPoi = createSlice({
     // TODO: deleteRegionBoundaries
 
     setRegionBoundariesPinMeshCount: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setRegionBoundariesPinMeshCount", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_setRegionBoundariesPinMeshCount", payload: action.payload })
 
       return {
         ...state,
@@ -116,7 +116,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
       return {
         ...state,
         clickAndDrag: true,
@@ -130,7 +130,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     disableClickAndDrag: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_disableClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_disableClickAndDrag", payload: action.payload })
 
       return {
         ...state,

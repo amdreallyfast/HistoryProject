@@ -63,7 +63,6 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
 
     // color
     meshRef.current.material.color = new THREE.Color(colorHex)
-    console.log({ color: meshRef.current.material.color, colorHex: colorHex })
 
     // console.log("PinMesh finished")
   }, [meshRef.current, materialRef.current])
