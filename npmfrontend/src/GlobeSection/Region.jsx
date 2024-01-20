@@ -603,16 +603,16 @@ const createNewRegion = (origin, globeInfo) => {
     long: origin.long
   }
   let offsetPoint = ConvertLatLongToVec3(offset.lat, offset.long, globeInfo.radius)
-  regionBoundaries.push(
-    {
-      id: uuid(),
-      lat: offset.lat,
-      long: offset.long,
-      x: offsetPoint.x,
-      y: offsetPoint.y,
-      z: offsetPoint.z
-    }
-  )
+  // regionBoundaries.push(
+  //   {
+  //     id: uuid(),
+  //     lat: offset.lat,
+  //     long: offset.long,
+  //     x: offsetPoint.x,
+  //     y: offsetPoint.y,
+  //     z: offsetPoint.z
+  //   }
+  // )
 
   // Generate the rest of the default region points by rotating the offset around the origin.
   let originCoord = new THREE.Vector3(origin.x, origin.y, origin.z)
@@ -630,7 +630,7 @@ const createNewRegion = (origin, globeInfo) => {
     }
     return newPointInfo
   }
-  for (let radians = 0; radians <= (Math.PI * 2); radians += (Math.PI / 4)) {
+  for (let radians = 0; radians < (Math.PI * 2); radians += (Math.PI / 4)) {
     let rotated = rotateOffset(radians)
     regionBoundaries.push(rotated)
   }
