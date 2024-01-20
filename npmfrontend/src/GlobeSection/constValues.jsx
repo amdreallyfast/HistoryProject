@@ -12,7 +12,9 @@ export const globeInfo = {
 export const pinMeshInfo = {
   length: 3,
   mainPinScale: 0.1,
-  regionPinScale: 0.05
+  mainPinColor: 0xff0000,
+  regionPinScale: 0.05,
+  regionPinColor: 0xffd700
 }
 
 export const meshNames = {
@@ -25,7 +27,7 @@ export const meshNames = {
   WherePin: "WherePin",
 
   // in edit mode, the user-defined region boundary points become interactable meshes
-  RegionPoint: "RegionPoint",
+  RegionBoundaryPin: "RegionBoundaryPin",
 
   // region mesh
   Region: "Region",

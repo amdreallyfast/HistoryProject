@@ -5,7 +5,6 @@ import { ConvertXYZToLatLong } from "../GlobeSection/convertLatLongXYZ";
 const initialState = {
   // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
   editModeOn: true,
-  editRegionMeshCount: false,
 
   poiId: 99,
 
@@ -24,8 +23,14 @@ const initialState = {
   //    z
   //  }
   where: null,
-  region: [],
+  // whereMeshChanged: false,
+  whereMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
+  noRegion: false,
+  regionBoundaries: [],
+  regionBoundariesMeshCount: 0,
   selectedPinId: null,
+  // meshCountChanged: false,
+  // interactableMeshCount: 0,
 
   // For use during clicking and dragging a single point or the entire region.
   // Format:
@@ -55,24 +60,55 @@ export const stateSliceEditPoi = createSlice({
         editModeOn: true
       }
     },
+
     endEditMode: (state, action) => {
       // console.log("stateSliceEditPoi_endEditMode")
       return initialState
     },
-    setEditRegionMeshCount: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setEditRegionMeshCount", payload: action.payload })
 
-      return {
-        ...state,
-        editRegionMeshCount: action.payload
-      }
-    },
+    // setMeshCountChanged: (state, action) => {
+    //   console.log({ msg: "stateSliceEditPoi_setMeshCountChanged", payload: action.payload })
+
+    //   return {
+    //     ...state,
+    //     meshCountChanged: true
+    //   }
+    // },
+
+    // incrementInteractableMeshCount: (state, action) => {
+    //   console.log({ msg: "stateSliceEditPoi_incrementInteractableMeshCount", payload: action.payload })
+
+    //   return {
+    //     ...state,
+    //     interactableMeshCount: interactableMeshCount + action.payload
+    //   }
+    // },
+
+    // decrementInteractableMeshCount: (state, action) => {
+    //   console.log({ msg: "stateSliceEditPoi_decrementInteractableMeshCount", payload: action.payload })
+
+    //   if (interactableMeshCount - action.payload < 0) {
+    //     throw new Error(`Cannot decrement below 0.
+    //     interactableMeshCount: '${interactableMeshCount}', decrement value: '${action.payload}'`)
+    //   }
+
+    //   return {
+    //     ...state,
+    //     interactableMeshCount: interactableMeshCount - action.payload
+    //   }
+    // },
 
     /*
     All the things
     */
-    setLocation: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setLocation", payload: action.payload })
+
+
+    // 4-frames needed to update the scene's to account for changes in interactable meshes.
+    //  1. Where changed
+    //  2. EditRegion creates a PinMesh
+    //  3. EditRegion notifes that the 
+    setWhere: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setWhere", payload: action.payload })
 
       return {
         ...state,
@@ -86,6 +122,82 @@ export const stateSliceEditPoi = createSlice({
         },
       }
     },
+
+    setWhereMeshExists: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setWhereMeshExists", payload: action.payload })
+
+      return {
+        ...state,
+        whereMeshExists: action.payload
+      }
+    },
+
+    // whereMeshChangedHandled: (state, action) => {
+    //   console.log({ msg: "stateSliceEditPoi_whereMeshChangedHandled" })
+
+    //   return {
+    //     ...state,
+    //     whereMeshChanged: false
+    //   }
+    // },
+
+
+
+    // deleteWhere: (state, action) => {
+    //   console.log({ msg: "stateSliceEditPoi_deleteWhere", payload: action.payload })
+
+    //   if (where) {
+    //     return {
+    //       ...state,
+    //       where: null,
+    //       // interactableMeshCount: interactableMeshCount - 1
+    //       whereMeshChanged: true
+    //     }
+    //   }
+
+    //   // No "where" existed => No change.
+    //   return state
+    // },
+
+    setNoRegion: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setNoRegion", payload: action.payload })
+
+      return {
+        ...state,
+        noRegion: action.payload
+      }
+    },
+
+    setRegionBoundaries: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
+
+      return {
+        ...state,
+        regionBoundaries: action.payload
+      }
+    },
+
+    setRegionBoundariesMeshCount: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setRegionBoundariesMeshesChanged", payload: action.payload })
+
+      return {
+        ...state,
+        regionBoundariesMeshCount: action.payload
+      }
+    },
+
+    // setRegionBoundariesMeshesChangedHandled: (state, action) => {
+    //   console.log({ msg: "stateSliceEditPoi_setRegionBoundariesMeshesChangedHandled", payload: action.payload })
+
+    //   return {
+    //     ...state,
+    //     regionBoundariesMeshesChanged: false
+    //   }
+    // },
+
+
+
+
     enableClickAndDrag: (state, action) => {
       console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
       return {
@@ -211,15 +323,5 @@ export const stateSliceEditPoi = createSlice({
     }
   }
 })
-
-// export const {
-//   startEditMode,
-//   endEditMode,
-//   setLocation,
-//   deleteLocation,
-//   addLocation,
-//   removeLocation,
-//   setSelectedLatLong
-// } = stateSliceEditPoi.actions
 
 export const editStateActions = stateSliceEditPoi.actions

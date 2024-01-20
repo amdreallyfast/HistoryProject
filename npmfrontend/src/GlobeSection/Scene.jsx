@@ -7,7 +7,7 @@ import * as THREE from "three"
 import { Globe } from "./Globe"
 import { AnimatedBarMesh } from "./AnimatedBarMesh"
 import { globeInfo, meshNames, groupNames } from "./constValues"
-import { EditRegion, Region } from "./Region"
+import { EditRegion, ShowRegion } from "./Region"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
 import { Box, Stars } from "@react-three/drei"
 import { PinMesh } from "./PinMesh"
@@ -51,7 +51,7 @@ export function Scene(
     setPoiReactElements(
       poiInfo.map((info, index) => {
         return (
-          <Region poiId={null} lat={info.where.lat} long={info.where.long} globePos={globeInfo.pos} />
+          <ShowRegion poiId={null} lat={info.where.lat} long={info.where.long} globePos={globeInfo.pos} />
         )
       })
     )
@@ -71,11 +71,17 @@ export function Scene(
     }
   }, [editState.editModeOn])
 
-  // Get the interactable meshes for the raycaster
-  // Note: Once the interactable POIs are part of the scene, get a collection of them for the 
-  // raycaster to analyze every frame.
+  // Extract meshes from various groups so that it is easy to filter them.
+  // Note: It is more efficient to find these only when the mesh collections change rather than 
+  // doing it every frame just before the raycaster runs.
   useEffect(() => {
-    console.log({ msg: "Scene()/useEffect()/meshes changed" })
+    console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.where, regionBoundaries: editState.regionBoundaries })
+
+    // // The downside of these simple boolean flags is that changing them to false also incurs a 
+    // // state change, but we can ignore that.
+    // if (editState.whereMeshChanged == false && editState.regionBoundariesMeshesChanged == false) {
+    //   return
+    // }
 
     const meshesArr = []
 
@@ -97,7 +103,16 @@ export function Scene(
 
     findMeshes(getThreeJsState().scene.children)
     setMeshes(meshesArr)
-  }, [poiReactElements, editState.editRegionMeshCount])
+
+    console.log({ interactableMeshes: meshesArr })
+
+    // reduxDispatch(
+    //   editStateActions.whereMeshChangedHandled()
+    // )
+    // reduxDispatch(
+    //   editStateActions.setRegionBoundariesMeshesChangedHandled()
+    // )
+  }, [poiReactElements, editState.whereMeshExists, editState.regionBoundariesMeshCount])
 
 
   // Update POI highlight.
@@ -181,7 +196,7 @@ export function Scene(
               const [x, y, z] = intersection.point
               const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
               reduxDispatch(
-                editStateActions.setLocation({
+                editStateActions.setWhere({
                   id: uuid(), // new location => new guid
                   lat: lat,
                   long: long,
@@ -214,14 +229,25 @@ export function Scene(
           else {
             // Enable click-and-drag if the user selected one of the pins being edited.
             let obj = intersection.object
-            // console.log({ obj: obj.name, poiId: obj.userData?.poiId })
-            let clickedMainPin = obj.name == meshNames.WherePin && obj.userData?.poiId == editState.poiId
-            if (clickedMainPin) {
-              console.log("begin click-and-drag")
+            if (obj.name == meshNames.WherePin || obj.name == meshNames.RegionBoundaryPin) {
+              console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
+              console.log({ msg: "clicked RegionBoundaryPin" })
               reduxDispatch(
                 editStateActions.enableClickAndDrag({ pinId: intersection.object.userData.whereId })
               )
             }
+            else {
+              console.log({ msg: "clicked something else", name: obj.name })
+            }
+            // // console.log({ obj: obj.name, poiId: obj.userData?.poiId })
+            // console.log({ msg: "clicked pin", mesh: obj.name, poiId: editState.poiId })
+            // let clickedMainPin = obj.name == meshNames.WherePin && obj.userData?.poiId == editState.poiId
+            // if (clickedMainPin) {
+            //   console.log("begin click-and-drag")
+            //   reduxDispatch(
+            //     editStateActions.enableClickAndDrag({ pinId: intersection.object.userData.whereId })
+            //   )
+            // }
 
           }
         }
@@ -231,19 +257,19 @@ export function Scene(
             editStateActions.disableClickAndDrag()
           )
 
-          // Set final location.
-          const { x, y, z } = editState.tentativeWhere
-          const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
-          reduxDispatch(
-            editStateActions.setLocation({
-              id: editState.where.id,
-              lat: lat,
-              long: long,
-              x: x,
-              y: y,
-              z: z
-            })
-          )
+          // // Set final location.
+          // const { x, y, z } = editState.tentativeWhere
+          // const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
+          // reduxDispatch(
+          //   editStateActions.setWhere({
+          //     id: editState.where.id,
+          //     lat: lat,
+          //     long: long,
+          //     x: x,
+          //     y: y,
+          //     z: z
+          //   })
+          // )
         }
         else {
           // No click, but might still be busy.

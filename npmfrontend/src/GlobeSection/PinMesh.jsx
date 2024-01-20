@@ -4,7 +4,7 @@ import * as THREE from "three"
 import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
 import { useDispatch, useSelector } from "react-redux"
 
-export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   // Geometry is identical for all PoiPins, so only need to make it once.
   // const memo = useMemo(() => {
   //   // debug && console.log("PoiPin(): useMemo")
@@ -36,7 +36,7 @@ export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new
   //   }
   // }, [])
 
-  if (id == null) {
+  if (poiId == null) {
     throw new Error("'id' cannot be null")
   }
   if (where.id == null) {
@@ -50,7 +50,7 @@ export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new
   const materialRef = useRef()
   useEffect(() => {
     // console.log({ msg: "PinMesh()/useEffect()/meshRef" })
-    meshRef.current.userData.poiId = id
+    meshRef.current.userData.poiId = poiId
     meshRef.current.userData.whereId = where.id
 
     // Make an equilateral triangle pyramid with the point facing center of the globe.
@@ -93,6 +93,10 @@ export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new
     meshRef.current.position.z = where.z
     meshRef.current.lookAt(lookAt)
     meshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(length * scale)))
+
+    // color
+    meshRef.current.material.color = new THREE.Color(colorHex)
+    console.log({ color: meshRef.current.material.color, colorHex: colorHex })
 
 
     // // From "Region"
@@ -152,7 +156,7 @@ export function PinMesh({ name, id, where, length = 3, scale = 0.1, lookAt = new
   // )
   return (
     <mesh ref={meshRef} name={name}>
-      <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
+      <meshBasicMaterial side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
     </mesh>
   )
 }
