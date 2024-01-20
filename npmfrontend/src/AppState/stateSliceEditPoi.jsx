@@ -10,27 +10,22 @@ const initialState = {
 
   whereLatLongArr: [],  // TODO: delete
 
-  // TODO: ??combine main pin and region boundary pins into a single collection??
-
-  // Each "where" and "region" point consists of a selectable pin object with lat, long, x, y, z.
-  // Format:
-  //  where: {
-  //    id: <guid>,
-  //    lat,
-  //    long,
-  //    x,
-  //    y,
-  //    z
-  //  }
-  where: null,
-  // whereMeshChanged: false,
-  whereMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
+  // Format for location and region boundaries:
+  //   {
+  //     id,
+  //     lat,
+  //     long,
+  //     x,
+  //     y,
+  //     z
+  //   }
+  // )
+  preciseLocation: null,
+  preciseLocationPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
   noRegion: false,
   regionBoundaries: [],
-  regionBoundariesMeshCount: 0,
+  regionBoundariesPinMeshCount: 0,
   selectedPinId: null,
-  // meshCountChanged: false,
-  // interactableMeshCount: 0,
 
   // For use during clicking and dragging a single point or the entire region.
   // Format:
@@ -42,8 +37,6 @@ const initialState = {
   clickAndDrag: false,
   tentativeWhere: null,
   tentativeRegion: [],
-
-
 
   selectedLatLong: null,  // TODO: delete
   prevSelectedLatLong: null // TODO: delete
@@ -66,53 +59,12 @@ export const stateSliceEditPoi = createSlice({
       return initialState
     },
 
-    // setMeshCountChanged: (state, action) => {
-    //   console.log({ msg: "stateSliceEditPoi_setMeshCountChanged", payload: action.payload })
-
-    //   return {
-    //     ...state,
-    //     meshCountChanged: true
-    //   }
-    // },
-
-    // incrementInteractableMeshCount: (state, action) => {
-    //   console.log({ msg: "stateSliceEditPoi_incrementInteractableMeshCount", payload: action.payload })
-
-    //   return {
-    //     ...state,
-    //     interactableMeshCount: interactableMeshCount + action.payload
-    //   }
-    // },
-
-    // decrementInteractableMeshCount: (state, action) => {
-    //   console.log({ msg: "stateSliceEditPoi_decrementInteractableMeshCount", payload: action.payload })
-
-    //   if (interactableMeshCount - action.payload < 0) {
-    //     throw new Error(`Cannot decrement below 0.
-    //     interactableMeshCount: '${interactableMeshCount}', decrement value: '${action.payload}'`)
-    //   }
-
-    //   return {
-    //     ...state,
-    //     interactableMeshCount: interactableMeshCount - action.payload
-    //   }
-    // },
-
-    /*
-    All the things
-    */
-
-
-    // 4-frames needed to update the scene's to account for changes in interactable meshes.
-    //  1. Where changed
-    //  2. EditRegion creates a PinMesh
-    //  3. EditRegion notifes that the 
-    setWhere: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setWhere", payload: action.payload })
+    setPreciseLocation: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setPreciseLocation", payload: action.payload })
 
       return {
         ...state,
-        where: {
+        preciseLocation: {
           id: action.payload.id,
           lat: action.payload.lat,
           long: action.payload.long,
@@ -123,41 +75,16 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setWhereMeshExists: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setWhereMeshExists", payload: action.payload })
+    // TODO: deletePreciseLocation
+
+    setPreciseLocationPinMeshExists: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setPreciseLocationPinMeshExists", payload: action.payload })
 
       return {
         ...state,
-        whereMeshExists: action.payload
+        preciseLocationPinMeshExists: action.payload
       }
     },
-
-    // whereMeshChangedHandled: (state, action) => {
-    //   console.log({ msg: "stateSliceEditPoi_whereMeshChangedHandled" })
-
-    //   return {
-    //     ...state,
-    //     whereMeshChanged: false
-    //   }
-    // },
-
-
-
-    // deleteWhere: (state, action) => {
-    //   console.log({ msg: "stateSliceEditPoi_deleteWhere", payload: action.payload })
-
-    //   if (where) {
-    //     return {
-    //       ...state,
-    //       where: null,
-    //       // interactableMeshCount: interactableMeshCount - 1
-    //       whereMeshChanged: true
-    //     }
-    //   }
-
-    //   // No "where" existed => No change.
-    //   return state
-    // },
 
     setNoRegion: (state, action) => {
       console.log({ msg: "stateSliceEditPoi_setNoRegion", payload: action.payload })
@@ -177,26 +104,16 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setRegionBoundariesMeshCount: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_setRegionBoundariesMeshesChanged", payload: action.payload })
+    // TODO: deleteRegionBoundaries
+
+    setRegionBoundariesPinMeshCount: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_setRegionBoundariesPinMeshCount", payload: action.payload })
 
       return {
         ...state,
-        regionBoundariesMeshCount: action.payload
+        regionBoundariesPinMeshCount: action.payload
       }
     },
-
-    // setRegionBoundariesMeshesChangedHandled: (state, action) => {
-    //   console.log({ msg: "stateSliceEditPoi_setRegionBoundariesMeshesChangedHandled", payload: action.payload })
-
-    //   return {
-    //     ...state,
-    //     regionBoundariesMeshesChanged: false
-    //   }
-    // },
-
-
-
 
     enableClickAndDrag: (state, action) => {
       console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
@@ -205,12 +122,13 @@ export const stateSliceEditPoi = createSlice({
         clickAndDrag: true,
         selectedPinId: action.payload.pinId,
         tentativeWhere: {
-          x: state.where.x,
-          y: state.where.y,
-          z: state.where.z
+          x: state.preciseLocation.x,
+          y: state.preciseLocation.y,
+          z: state.preciseLocation.z
         }
       }
     },
+
     disableClickAndDrag: (state, action) => {
       console.log({ msg: "stateSliceEditPoi_disableClickAndDrag", payload: action.payload })
 
@@ -229,34 +147,6 @@ export const stateSliceEditPoi = createSlice({
           y: action.payload.y,
           z: action.payload.z
         }
-      }
-    },
-    // setTentativeLocation: (state, action) => {
-    //   console.log({ "stateSliceEditPoi_setTentativeLocation": action.payload })
-
-    //   if (action.payload == null) {
-    //     return {
-    //       ...state,
-    //       tentativeWhere: null
-    //     }
-    //   }
-    //   else {
-    //     return {
-    //       ...state,
-    //       tentativeWhere: {
-    //         x: action.payload.x,
-    //         y: action.payload.y,
-    //         z: action.payload.z
-    //       }
-    //     }
-    //   }
-    // },
-    deleteLocation: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_deleteLocation", payload: action.payload })
-
-      return {
-        ...state,
-        where: null
       }
     },
 

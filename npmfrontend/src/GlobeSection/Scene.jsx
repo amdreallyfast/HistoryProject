@@ -75,17 +75,11 @@ export function Scene(
   // Note: It is more efficient to find these only when the mesh collections change rather than 
   // doing it every frame just before the raycaster runs.
   useEffect(() => {
-    console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.where, regionBoundaries: editState.regionBoundaries })
-
-    // // The downside of these simple boolean flags is that changing them to false also incurs a 
-    // // state change, but we can ignore that.
-    // if (editState.whereMeshChanged == false && editState.regionBoundariesMeshesChanged == false) {
-    //   return
-    // }
+    console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.preciseLocation, regionBoundaries: editState.regionBoundaries })
 
     const meshesArr = []
 
-    // recursive
+    // Recursive
     const findMeshes = (components) => {
       components.forEach((component) => {
         if (component.type == "Group") {
@@ -105,14 +99,7 @@ export function Scene(
     setMeshes(meshesArr)
 
     console.log({ interactableMeshes: meshesArr })
-
-    // reduxDispatch(
-    //   editStateActions.whereMeshChangedHandled()
-    // )
-    // reduxDispatch(
-    //   editStateActions.setRegionBoundariesMeshesChangedHandled()
-    // )
-  }, [poiReactElements, editState.whereMeshExists, editState.regionBoundariesMeshCount])
+  }, [poiReactElements, editState.preciseLocationPinMeshExists, editState.regionBoundariesPinMeshCount])
 
 
   // Update POI highlight.
@@ -166,7 +153,6 @@ export function Scene(
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mouseInfoRef.current.currPos, state.camera)
     const intersections = state.raycaster.intersectObjects(meshes)
-    // console.log({ intersections: intersections })
     if (intersections.length > 0) {
       // Take the first intersection (that is, the object closest to camera).
       let intersection = intersections[0]
@@ -192,11 +178,11 @@ export function Scene(
         if (mouseClicked) {
           if (intersection.object.name == meshNames.Globe) {
             // If no region exists yet, create one here.
-            if (editState.where == null) {
+            if (editState.preciseLocation == null) {
               const [x, y, z] = intersection.point
               const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
               reduxDispatch(
-                editStateActions.setWhere({
+                editStateActions.setPreciseLocation({
                   id: uuid(), // new location => new guid
                   lat: lat,
                   long: long,
@@ -239,37 +225,13 @@ export function Scene(
             else {
               console.log({ msg: "clicked something else", name: obj.name })
             }
-            // // console.log({ obj: obj.name, poiId: obj.userData?.poiId })
-            // console.log({ msg: "clicked pin", mesh: obj.name, poiId: editState.poiId })
-            // let clickedMainPin = obj.name == meshNames.WherePin && obj.userData?.poiId == editState.poiId
-            // if (clickedMainPin) {
-            //   console.log("begin click-and-drag")
-            //   reduxDispatch(
-            //     editStateActions.enableClickAndDrag({ pinId: intersection.object.userData.whereId })
-            //   )
-            // }
-
           }
         }
         else if (!mouseIsDown && editState.clickAndDrag) {
-          // Disable click-and-drag.
+          // Done with click-and-drag. Disable.
           reduxDispatch(
             editStateActions.disableClickAndDrag()
           )
-
-          // // Set final location.
-          // const { x, y, z } = editState.tentativeWhere
-          // const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
-          // reduxDispatch(
-          //   editStateActions.setWhere({
-          //     id: editState.where.id,
-          //     lat: lat,
-          //     long: long,
-          //     x: x,
-          //     y: y,
-          //     z: z
-          //   })
-          // )
         }
         else {
           // No click, but might still be busy.

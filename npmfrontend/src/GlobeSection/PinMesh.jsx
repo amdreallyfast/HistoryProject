@@ -1,41 +1,9 @@
-import { useEffect, useMemo, useRef } from "react"
-import { meshNames, globeInfo } from "./constValues"
+import { useEffect, useRef } from "react"
+import { globeInfo } from "./constValues"
 import * as THREE from "three"
-import { ConvertLatLongToXYZ } from "./convertLatLongXYZ"
-import { useDispatch, useSelector } from "react-redux"
+import { useSelector } from "react-redux"
 
 export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
-  // Geometry is identical for all PoiPins, so only need to make it once.
-  // const memo = useMemo(() => {
-  //   // debug && console.log("PoiPin(): useMemo")
-
-  //   // Make a triangle column with a point.
-  //   let vertices = []
-  //   let indices = []
-
-  //   // From "Region"
-  //   let myGeometry = new THREE.BoxGeometry(3, 3, 3, 3)
-  //   console.log(myGeometry)
-  //   vertices.push(...myGeometry.attributes.position.array)
-  //   indices.push(...myGeometry.index.array)
-
-  //   const geometry = new THREE.BufferGeometry()
-  //   let valuesPerVertex = 3
-  //   let posAttribute = new THREE.Float32BufferAttribute(vertices, valuesPerVertex)
-  //   geometry.setAttribute("position", posAttribute)
-
-  //   let valuesPerIndex = 1
-  //   let indicesAttribute = new THREE.Uint32BufferAttribute(indices, valuesPerIndex)
-  //   geometry.setIndex(indicesAttribute)
-
-  //   geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(constrainedHeight * 0.5)))
-
-  //   return {
-  //     height: constrainedHeight,
-  //     geometry: geometry
-  //   }
-  // }, [])
-
   if (poiId == null) {
     throw new Error("'id' cannot be null")
   }
@@ -44,7 +12,6 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
   }
 
   const editState = useSelector((state) => state.editPoiReducer)
-  const reduxDispatch = useDispatch()
 
   const meshRef = useRef()
   const materialRef = useRef()
@@ -98,28 +65,12 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
     meshRef.current.material.color = new THREE.Color(colorHex)
     console.log({ color: meshRef.current.material.color, colorHex: colorHex })
 
-
-    // // From "Region"
-    // let myGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
-    // console.log(myGeometry)
-    // vertices.push(...myGeometry.attributes.position.array)
-    // indices.push(...myGeometry.index.array)
-    // meshRef.current.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
-
-
-    // reduxDispatch(
-    //   intersectableMeshesStateActions.add(meshRef.current)
-    // )
-    // console.log({ msg: "PinMesh", value: meshRef.current })
-
-    console.log("PinMesh finished")
+    // console.log("PinMesh finished")
   }, [meshRef.current, materialRef.current])
 
   useEffect(() => {
     if (editState.editModeOn) {
       if (editState.selectedPinId == meshRef.current.userData.whereId) {
-        console.log("ooh ooh me me!")
-
         let { x, y, z } = editState.tentativeWhere
         meshRef.current.position.x = x
         meshRef.current.position.y = y
@@ -127,33 +78,9 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
         meshRef.current.lookAt(globeInfo.pos)
         meshRef.current.geometry.attributes.position.needsUpdate = true
       }
-      else {
-        console.log("not me")
-      }
     }
-
-
-    /*
-    if !edit mode
-      return
-
-    if editState.selectedPinId != meshRef.current.userData.pinId
-      return
-
-    move it!
-    */
   }, [editState.tentativeWhere])
 
-
-  // return (
-  //   // <mesh name={meshNames.LatLongPin} ref={meshRef} onClick={(e) => onMeshClick(e)}>
-  //   //   <meshBasicMaterial color={0xff0000} ref={materialRef} transparent={true} />
-  //   // </mesh>
-
-  //   <mesh ref={meshRef} name={name}>
-  //     <meshBasicMaterial color={0xff0000} side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
-  //   </mesh>
-  // )
   return (
     <mesh ref={meshRef} name={name}>
       <meshBasicMaterial side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />

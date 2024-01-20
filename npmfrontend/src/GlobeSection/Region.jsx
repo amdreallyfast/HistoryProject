@@ -603,16 +603,6 @@ const createNewRegion = (origin, globeInfo) => {
     long: origin.long
   }
   let offsetPoint = ConvertLatLongToVec3(offset.lat, offset.long, globeInfo.radius)
-  // regionBoundaries.push(
-  //   {
-  //     id: uuid(),
-  //     lat: offset.lat,
-  //     long: offset.long,
-  //     x: offsetPoint.x,
-  //     y: offsetPoint.y,
-  //     z: offsetPoint.z
-  //   }
-  // )
 
   // Generate the rest of the default region points by rotating the offset around the origin.
   let originCoord = new THREE.Vector3(origin.x, origin.y, origin.z)
@@ -634,8 +624,6 @@ const createNewRegion = (origin, globeInfo) => {
     let rotated = rotateOffset(radians)
     regionBoundaries.push(rotated)
   }
-  // console.log({ regionBoundaries: regionBoundaries })
-  // console.log("--------------------")
 
   return regionBoundaries
 }
@@ -645,58 +633,55 @@ export function EditRegion({ }) {
   const editState = useSelector((state) => state.editPoiReducer)
 
   const [firstTime, setFirstTime] = useState()
-  const [wherePinReactElement, setWherePinReactElement] = useState()
+  const [preciseLocationPinReactElement, setPreciseLocationPinReactElement] = useState()
   const [regionPinReactElements, setRegionPinReactElements] = useState()
   const reduxDispatch = useDispatch()
 
   // "Where" changes
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/editState.where", where: editState.where })
+    console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocation", where: editState.preciseLocation })
     if (!editState.editModeOn) {
       return
     }
 
-    if (editState.where) {
+    if (editState.preciseLocation) {
       let reactElement = (
         <PinMesh
           key={uuid()} // React requires unique IDs for all elements
           poiId={editState.poiId}
           name={meshNames.WherePin}
-          where={editState.where}
+          where={editState.preciseLocation}
           colorHex={pinMeshInfo.mainPinColor}
           length={pinMeshInfo.length}
           scale={pinMeshInfo.mainPinScale}
           lookAt={globeInfo.pos} />
       )
-      setWherePinReactElement(reactElement)
+      setPreciseLocationPinReactElement(reactElement)
 
       // Check if this is a new POI. If so, then create a new region.
       if (editState.regionBoundaries.length == 0 && !editState.noRegion) {
         // Create new region.
-        let newRegionBoundaries = createNewRegion(editState.where, globeInfo)
+        let newRegionBoundaries = createNewRegion(editState.preciseLocation, globeInfo)
         reduxDispatch(
           editStateActions.setRegionBoundaries(newRegionBoundaries)
         )
       }
     }
     else {
-      setWherePinReactElement(null)
-      // reduxDispatch(
-      //   editStateActions.setWhereMeshExists(false)
-      // )
+      setPreciseLocationPinReactElement(null)
     }
-  }, [editState.where])
+  }, [editState.preciseLocation])
 
   // Wait until after ThreeJs is done integrating the mesh into the scene before flagging to re-
   // find the interactable meshes.
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/editState.wherePinReactElement", where: wherePinReactElement })
+    console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocationPinReactElement", where: preciseLocationPinReactElement })
 
     reduxDispatch(
-      editStateActions.setWhereMeshExists(wherePinReactElement == null)
+      editStateActions.setPreciseLocationPinMeshExists(preciseLocationPinReactElement == null)
     )
 
-  }, [wherePinReactElement])
+  }, [preciseLocationPinReactElement])
 
   // Create region pins when the number of region boundary points change.
   useEffect(() => {
@@ -723,45 +708,14 @@ export function EditRegion({ }) {
     console.log({ msg: "EditRegion()/useEffect()/editState.regionPinReactElements", where: editState.regionPinReactElements })
 
     reduxDispatch(
-      editStateActions.setRegionBoundariesMeshCount(regionPinReactElements == null ? 0 : regionPinReactElements.length)
+      editStateActions.setRegionBoundariesPinMeshCount(regionPinReactElements == null ? 0 : regionPinReactElements.length)
     )
   }, [regionPinReactElements])
 
-
-
-  //   useEffect(() => {
-  //     console.log({ msg: "EditRegion()/useEffect()/wherePinReactElement", value: wherePinReactElement })
-
-  //     // Inform the Scene that there are new meshes to consider.
-  //     if (wherePinReactElement != null) {
-  // reduxDispatch(
-  //   editStateActions.incrementInteractableMeshCount(1)
-  // )
-  //     }
-  //     reduxDispatch(
-  //       editStateActions.setMeshCountChanged()
-  //     )
-  //   }, [wherePinReactElement])
-
   return (
     <>
-      {wherePinReactElement}
+      {preciseLocationPinReactElement}
       {regionPinReactElements}
-      {/* <PinMesh name={meshNames.WherePin} where={new THREE.Vector3(1, 0, 0)} lookAt={globeInfo.pos} /> */}
     </>
   )
 }
-
-// export function createNewRegion({ lat, long }) {
-//   // TODO:
-//   //  create pin mesh for main location
-//   //  create smaller pin meshes for region points
-//   //  return as object and let the calling function decide how to use the meshes
-//   // TODO:
-//   //  create an object with additional functionality for subdividing the region points
-
-//   let where = ConvertLatLongToVec3(lat, long)
-//   return {
-//     wherePinMesh: new PinMesh(where.x, where.y, where.z, 0.1, globeInfo.pos)
-//   }
-// }
