@@ -11,6 +11,7 @@ import { v4 as uuid, validate } from "uuid"
 import { roundFloat } from "../RoundFloat"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { useThree } from "@react-three/fiber"
+import { useWireframeUniforms } from "@react-three/drei/materials/WireframeMaterial"
 
 // TODO: click latlong pin and drag to move point
 
@@ -51,10 +52,10 @@ const interpolateArcFromVertices = (p1, p2, arcDegPerSegment, includeEndpoints =
 }
 
 const interpolateArcFromLatLong = (startLat, startLong, endLat, endLong, maxArcSegmentAngleDeg, includeEndpoints = false) => {
-  const [startX, startY, startZ] = ConvertLatLongToXYZ(startLat, startLong, globeInfo.regionRadius)
+  const [startX, startY, startZ] = ConvertLatLongToXYZ(startLat, startLong, globeInfo.radiusToRegionMesh)
   let start = new THREE.Vector3(startX, startY, startZ)
 
-  const [endX, endY, endZ] = ConvertLatLongToXYZ(endLat, endLong, globeInfo.regionRadius)
+  const [endX, endY, endZ] = ConvertLatLongToXYZ(endLat, endLong, globeInfo.radiusToRegionMesh)
   let end = new THREE.Vector3(endX, endY, endZ)
 
   return interpolateArcFromVertices(start, end, maxArcSegmentAngleDeg, includeEndpoints)
@@ -596,61 +597,188 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
 // Note: Points must be counter-clockwise.
 function RegionMesh({ points, globeInfo }) {
 
-  let meshRef = useRef()
+  let regionMeshRef = useRef()
+  let regionLinesRef = useRef()
+  // let crossProductEndpointMeshRef = useRef()
+
 
   useEffect(() => {
-    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", value: meshRef.current })
-    if (meshRef.current == null || points == null || points.length < 3) {
+    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", value: regionMeshRef.current })
+    if (regionMeshRef.current == null || points == null || points.length < 3) {
       // Need at least 3 points for a triangle
       return
     }
 
-    let regionRadius = 5.1
-    let regionRadiusSq = regionRadius * regionRadius
+    let regionRadiusSq = globeInfo.radiusToRegionMesh * globeInfo.radiusToRegionMesh
     let pointVectors = []
     points.forEach((point, index) => {
+      // if (index > 3) {
+      //   return
+      // }
       let v = new THREE.Vector3(point.x, point.y, point.z)
-      v.normalize().multiplyScalar(regionRadius)
+      v.normalize().multiplyScalar(globeInfo.radiusToRegionMesh)
       pointVectors.push(v)
     })
 
+    // console.log({ pointVectors: pointVectors })
+    // console.log({ "pointVectors[2,-1]": pointVectors.slice(2, -1) })
+    // console.log({ "pointVectors[1,4]": pointVectors.slice(1, 5) })
+    // console.log({ "pointVectors[2, end]": pointVectors.slice(2, pointVectors.length) })
+    // return
+
+    const triangleContainsPoint = (v1, v2, v3, point) => {
+
+    }
+
+    // let geometry = new THREE.BoxGeometry(0.05, 0.05, 0.05)
+    let geometry = new THREE.BoxGeometry(1, 1, 1)
+    // console.log({ geometry: geometry.attributes })
+
     // Note: Points appear to be counterclockwise.
     let startIndex = 0
+    let regionVerticesArr = []
+    let regionMeshIndicesArr = []
+    let regionLineIndicesArr = []
+    let crossProductMarkingVertices = []
+    let crossProductMarkingIndices = []
+    console.log({ "starting pointVectors": pointVectors })
+
     while (pointVectors.length > 0) {
-      let v1 = pointVectors[startIndex]
-      let v2 = pointVectors[startIndex + 1]
-      let v3 = pointVectors[startIndex + 2]
+      let index1 = startIndex
+      let index2 = startIndex + 1
+      let index3 = startIndex + 2
+
+      let v1 = pointVectors[index1]
+      let v2 = pointVectors[index2]
+      let v3 = pointVectors[index3]
+
+      // console.log({ msg: "potential triangle", index1: index1, index2: index2, index3: index3 })
+      console.log({ msg: "potential triangle", v1: v1, v2: v2, v3: v3 })
 
       // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
       //  <180deg when viewed from above (cross product points into space)
       //  or
       //  >180deg when viewed from above (cross product points into the earth)
-      let v1v2 = (new THREE.Vector3()).subVectors(v2, v1)
+      let v2v1 = (new THREE.Vector3()).subVectors(v1, v2)
       let v2v3 = (new THREE.Vector3()).subVectors(v3, v2)
-      let cross = (new THREE.Vector3()).crossVectors(v1v2, v2v3)
+      let cross = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
       // let cross = (new THREE.Vector3()).crossVectors(v2v3, v1v2) // reverse
       let crossPoint = (new THREE.Vector3()).addVectors(v2, cross)
-      if (crossPoint.lengthSq() > regionRadiusSq) {
 
-      }
+
+
+      // TODO: make a box for each cross-product point
       console.log({ crossPoint: crossPoint.length(), regionRadius: 5.1 })
 
-      let v3v2 = (new THREE.Vector3()).subVectors(v2, v3)
-      let v2v1 = (new THREE.Vector3()).subVectors(v1, v2)
-      // cross = (new THREE.Vector3()).crossVectors(v3v2, v2v1)
+
+
+      const makeTriangle = (v1, v2, v3) => {
+        let verticesSoFar = (regionVerticesArr.length) / 3
+
+        regionVerticesArr.push(v1.x)
+        regionVerticesArr.push(v1.y)
+        regionVerticesArr.push(v1.z)
+        regionMeshIndicesArr.push(verticesSoFar + 0)
+
+        regionVerticesArr.push(v2.x)
+        regionVerticesArr.push(v2.y)
+        regionVerticesArr.push(v2.z)
+        regionMeshIndicesArr.push(verticesSoFar + 1)
+
+        regionVerticesArr.push(v3.x)
+        regionVerticesArr.push(v3.y)
+        regionVerticesArr.push(v3.z)
+        regionMeshIndicesArr.push(verticesSoFar + 2)
+
+        // Line 1: v1 -> v2
+        regionLineIndicesArr.push(verticesSoFar + 0)
+        regionLineIndicesArr.push(verticesSoFar + 1)
+
+        // Line 2: v1 -> v3
+        regionLineIndicesArr.push(verticesSoFar + 0)
+        regionLineIndicesArr.push(verticesSoFar + 2)
+
+        // Line 3: v2 -> v3
+        regionLineIndicesArr.push(verticesSoFar + 1)
+        regionLineIndicesArr.push(verticesSoFar + 2)
+
+      }
+
+      if (crossPoint.lengthSq() > regionRadiusSq) {
+        // Convex. See if you can make a triangle.
+        console.log("Convex; try to make a triangle")
+
+        if (pointVectors.length == 3) {
+          // Last triangle
+          console.log("last triangle")
+
+          makeTriangle(v1, v2, v3)
+
+          // Force it empty
+          pointVectors = []
+        }
+        else {
+          console.log("not the last triangle; checking if triangle contains any of the remaining points")
+
+          // Check if any of the rest of the hull points are contained in the remaining points.
+          // Note: This is a corner case scenario, but might happen.
+          let remainingPoints = pointVectors.slice(startIndex + 3, pointVectors.length)
+          let containedPoints = []
+          remainingPoints.forEach((point, index) => {
+            if (triangleContainsPoint(v1, v2, v3, point)) {
+              console.log({ msg: `triangle contains '${point}'` })
+              containedPoints.push(point)
+            }
+          })
+
+          if (containedPoints.length == 0) {
+            // Convex "ear" with no contained points.
+            console.log("Convext ear with no contained points")
+
+            makeTriangle(v1, v2, v3)
+
+            // And clip off v2.
+            let beforeV2 = pointVectors.slice(0, index2)
+            let afterV2 = pointVectors.slice(index2 + 1, pointVectors.length)
+            pointVectors = beforeV2.concat(afterV2)
+            console.log({ "new pointVectors": pointVectors })
+          }
+          else {
+            // Contains another vertex. Skip it.
+            console.log("contains another vertex; skipping")
+            startIndex += 1
+          }
+        }
+
+        // for all points, does the triangle contain them?
+        // if no points, create triangle, clip off v2
+        // if only one point is contained, create 3x triangles, clip off v2 and the contained point 
+      }
+      else {
+        console.log("Not convex; skipping")
+        startIndex += 1
+      }
+
+      // let v3v2 = (new THREE.Vector3()).subVectors(v2, v3)
+      // let v2v1 = (new THREE.Vector3()).subVectors(v1, v2)
+      // // cross = (new THREE.Vector3()).crossVectors(v3v2, v2v1)
 
 
 
-      console.log({ cross, cross })
+      // console.log({ cross, cross })
 
-      meshRef.current.position.x = crossPoint.x
-      meshRef.current.position.y = crossPoint.y
-      meshRef.current.position.z = crossPoint.z
-      let geometry = new THREE.BoxGeometry(0.05, 0.05, 0.05)
-      meshRef.current.geometry = geometry
+      // regionMeshRef.current.position.x = crossPoint.x
+      // regionMeshRef.current.position.y = crossPoint.y
+      // regionMeshRef.current.position.z = crossPoint.z
+      // let geometry = new THREE.BoxGeometry(0.05, 0.05, 0.05)
+      // regionMeshRef.current.geometry = geometry
 
-      break
+      // break
     }
+
+    console.log({ vertices: regionVerticesArr })
+    console.log({ meshIndices: regionMeshIndicesArr })
+    console.log({ lineIndices: regionLineIndicesArr })
 
 
     // // let pointsDict = {}
@@ -686,26 +814,42 @@ function RegionMesh({ points, globeInfo }) {
 
     // console.log({ vertices: vertices, indices: indices })
 
-    // // vertices
-    // let valuesPerVertex = 3
-    // let posAttribute = new THREE.Float32BufferAttribute(vertices, valuesPerVertex)
-    // console.log({ posAttribute: posAttribute })
-    // meshRef.current.geometry.setAttribute("position", posAttribute)
+    // Set the geometry.
+    let valuesPerVertex = 3
+    let valuesPerIndex = 1
 
-    // // indices
-    // let valuesPerIndex = 1
-    // let indicesAttribute = new THREE.Uint32BufferAttribute(indices, valuesPerIndex)
-    // meshRef.current.geometry.setIndex(indicesAttribute)
+    // Mesh vertices
+    let meshPosAttribute = new THREE.Float32BufferAttribute(regionVerticesArr, valuesPerVertex)
+    regionMeshRef.current.geometry.setAttribute("position", meshPosAttribute)
+    // console.log({ posAttribute: posAttribute })
+
+    let meshIndicesAttribute = new THREE.Uint32BufferAttribute(regionMeshIndicesArr, valuesPerIndex)
+    regionMeshRef.current.geometry.setIndex(meshIndicesAttribute)
     // console.log({ indicesAttribute: indicesAttribute })
 
+    // Line
+    // Note: Re-use the mesh vertices. It's the same ones.
+    regionLinesRef.current.geometry.setAttribute("position", meshPosAttribute)
 
-  }, [meshRef.current])
+    // Line indices
+    let lineIndicesAttribute = new THREE.Uint32BufferAttribute(regionLineIndicesArr, valuesPerIndex)
+    regionLinesRef.current.geometry.setIndex(lineIndicesAttribute)
+
+
+  }, [regionMeshRef.current, regionLinesRef.current])
 
   return (
-    <mesh ref={meshRef} name="RegionMesh">
-      {/* <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} /> */}
-      <meshBasicMaterial color={0x000ff0} wireframe={false} />
-    </mesh>
+    <>
+      <mesh ref={regionMeshRef} name="RegionMesh">
+        {/* <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} /> */}
+        <meshBasicMaterial color={0x000ff0} wireframe={false} />
+      </mesh>
+
+      <line ref={regionLinesRef} name="RegionLines" width={4}>
+        <lineBasicMaterial color={0xff0000} />
+      </line>
+
+    </>
   )
 }
 

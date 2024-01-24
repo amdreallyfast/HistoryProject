@@ -75,7 +75,7 @@ export function Scene(
   // Note: It is more efficient to find these only when the mesh collections change rather than 
   // doing it every frame just before the raycaster runs.
   useEffect(() => {
-    console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.preciseLocation, regionBoundaries: editState.regionBoundaries })
+    // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.preciseLocation, regionBoundaries: editState.regionBoundaries })
 
     const meshesArr = []
 
@@ -96,9 +96,9 @@ export function Scene(
     }
 
     findMeshes(getThreeJsState().scene.children)
+    // console.log({ interactableMeshes: meshesArr })
     setMeshes(meshesArr)
 
-    console.log({ interactableMeshes: meshesArr })
   }, [poiReactElements, editState.preciseLocationPinMeshExists, editState.regionBoundariesPinMeshCount])
 
 
@@ -213,18 +213,22 @@ export function Scene(
             })
           }
           else {
+
+            // TODO
+            //  ??implement "prevMouseIsDown" to determine whether the mouse is clicked over the mesh or just moved over it??
+
             // Enable click-and-drag if the user selected one of the pins being edited.
             let obj = intersection.object
             if (obj.name == meshNames.WherePin || obj.name == meshNames.RegionBoundaryPin) {
-              console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
-              console.log({ msg: "clicked RegionBoundaryPin" })
+              // console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
+              // console.log({ msg: "clicked RegionBoundaryPin" })
               reduxDispatch(
                 editStateActions.enableClickAndDrag({ pinId: intersection.object.userData.whereId })
               )
             }
-            else {
-              console.log({ msg: "clicked something else", name: obj.name })
-            }
+            // else {
+            //   console.log({ msg: "clicked something else", name: obj.name })
+            // }
           }
         }
         else if (!mouseIsDown && editState.clickAndDrag) {
