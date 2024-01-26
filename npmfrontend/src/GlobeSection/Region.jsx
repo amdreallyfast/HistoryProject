@@ -595,7 +595,7 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
 
 // Triangulate by ear-clipping.
 // Note: Points must be counter-clockwise.
-function RegionMesh({ points, globeInfo }) {
+function RegionMesh({ regionBoundaries, globeInfo }) {
 
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
@@ -604,21 +604,59 @@ function RegionMesh({ points, globeInfo }) {
 
   useEffect(() => {
     console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", value: regionMeshRef.current })
-    if (regionMeshRef.current == null || points == null || points.length < 3) {
+    if (regionMeshRef.current == null || regionLinesRef.current == null || regionBoundaries == null || regionBoundaries.length < 3) {
       // Need at least 3 points for a triangle
+      console.log({
+        msg: "returning",
+        regionMeshRef: regionMeshRef.current,
+        regionLinesRef: regionLinesRef.current,
+        regionBoundaries: regionBoundaries
+      })
       return
     }
 
+
+
+
+
     let regionRadiusSq = globeInfo.radiusToRegionMesh * globeInfo.radiusToRegionMesh
-    let pointVectors = []
-    points.forEach((point, index) => {
+    let vertices = []
+    let points = []
+    regionBoundaries.forEach((boundaryMarker, index) => {
       // if (index > 3) {
       //   return
       // }
-      let v = new THREE.Vector3(point.x, point.y, point.z)
-      v.normalize().multiplyScalar(globeInfo.radiusToRegionMesh)
-      pointVectors.push(v)
+
+
+      // TODO: use new object
+      /*
+      point = {
+        vec3: THREE.Vector3,
+        values: [x,y,z]
+        normal: vec3.clone().normalize, // use for angle calculations
+        index: index
+      }
+      
+      points.push(point)
+      */
+
+      // Move the point out from the globe a tad so that it sits on the surface.
+      let v = new THREE.Vector3(boundaryMarker.x, boundaryMarker.y, boundaryMarker.z).normalize().multiplyScalar(globeInfo.radiusToRegionMesh)
+
+      // v.normalize().multiplyScalar(globeInfo.radiusToRegionMesh)
+
+      let point = {
+        values: [v.x, v.y, v.z],
+        // vec3: v.clone().normalize().multiplyScalar(globeInfo.radiusToRegionMesh),
+        vec3: v,
+        normal: v.clone().normalize(),
+        index: index
+      }
+      vertices.push(...point.values)
+      points.push(point)
     })
+
+    console.log({ vertices: vertices, points: points })
 
     // console.log({ pointVectors: pointVectors })
     // console.log({ "pointVectors[2,-1]": pointVectors.slice(2, -1) })
@@ -636,34 +674,34 @@ function RegionMesh({ points, globeInfo }) {
 
     // Note: Points appear to be counterclockwise.
     let startIndex = 0
-    let regionVerticesArr = []
+    // let regionVerticesArr = []
     let regionMeshIndicesArr = []
     let regionLineIndicesArr = []
     let crossProductMarkingVertices = []
     let crossProductMarkingIndices = []
-    console.log({ "starting pointVectors": pointVectors })
+    console.log({ "starting points": points })
 
-    while (pointVectors.length > 0) {
+    while (points.length > 0) {
       let index1 = startIndex
       let index2 = startIndex + 1
       let index3 = startIndex + 2
 
-      let v1 = pointVectors[index1]
-      let v2 = pointVectors[index2]
-      let v3 = pointVectors[index3]
+      let p1 = points[index1]
+      let p2 = points[index2]
+      let p3 = points[index3]
 
       // console.log({ msg: "potential triangle", index1: index1, index2: index2, index3: index3 })
-      console.log({ msg: "potential triangle", v1: v1, v2: v2, v3: v3 })
+      console.log({ msg: "potential triangle", v1: p1, v2: p2, v3: p3 })
 
       // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
       //  <180deg when viewed from above (cross product points into space)
       //  or
       //  >180deg when viewed from above (cross product points into the earth)
-      let v2v1 = (new THREE.Vector3()).subVectors(v1, v2)
-      let v2v3 = (new THREE.Vector3()).subVectors(v3, v2)
+      let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
+      let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
       let cross = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
       // let cross = (new THREE.Vector3()).crossVectors(v2v3, v1v2) // reverse
-      let crossPoint = (new THREE.Vector3()).addVectors(v2, cross)
+      let crossPoint = (new THREE.Vector3()).addVectors(p2.vec3, cross)
 
 
 
@@ -672,60 +710,70 @@ function RegionMesh({ points, globeInfo }) {
 
 
 
-      const makeTriangle = (v1, v2, v3) => {
-        let verticesSoFar = (regionVerticesArr.length) / 3
+      const makeTriangle = (p1, p2, p3) => {
+        // let verticesSoFar = (regionVerticesArr.length) / 3
 
-        regionVerticesArr.push(v1.x)
-        regionVerticesArr.push(v1.y)
-        regionVerticesArr.push(v1.z)
-        regionMeshIndicesArr.push(verticesSoFar + 0)
+        // regionVerticesArr.push(p1.x)
+        // regionVerticesArr.push(p1.y)
+        // regionVerticesArr.push(p1.z)
+        // regionMeshIndicesArr.push(verticesSoFar + 0)
 
-        regionVerticesArr.push(v2.x)
-        regionVerticesArr.push(v2.y)
-        regionVerticesArr.push(v2.z)
-        regionMeshIndicesArr.push(verticesSoFar + 1)
+        // regionVerticesArr.push(p2.x)
+        // regionVerticesArr.push(p2.y)
+        // regionVerticesArr.push(p2.z)
+        // regionMeshIndicesArr.push(verticesSoFar + 1)
 
-        regionVerticesArr.push(v3.x)
-        regionVerticesArr.push(v3.y)
-        regionVerticesArr.push(v3.z)
-        regionMeshIndicesArr.push(verticesSoFar + 2)
+        // regionVerticesArr.push(p3.x)
+        // regionVerticesArr.push(p3.y)
+        // regionVerticesArr.push(p3.z)
+        // regionMeshIndicesArr.push(verticesSoFar + 2)
+        regionMeshIndicesArr.push(p1.index)
+        regionMeshIndicesArr.push(p2.index)
+        regionMeshIndicesArr.push(p3.index)
 
         // Line 1: v1 -> v2
-        regionLineIndicesArr.push(verticesSoFar + 0)
-        regionLineIndicesArr.push(verticesSoFar + 1)
+        // regionLineIndicesArr.push(verticesSoFar + 0)
+        // regionLineIndicesArr.push(verticesSoFar + 1)
+        regionLineIndicesArr.push(p1.index)
+        regionLineIndicesArr.push(p2.index)
 
         // Line 2: v1 -> v3
-        regionLineIndicesArr.push(verticesSoFar + 0)
-        regionLineIndicesArr.push(verticesSoFar + 2)
+        // regionLineIndicesArr.push(verticesSoFar + 0)
+        // regionLineIndicesArr.push(verticesSoFar + 2)
+        regionLineIndicesArr.push(p1.index)
+        regionLineIndicesArr.push(p3.index)
 
         // Line 3: v2 -> v3
-        regionLineIndicesArr.push(verticesSoFar + 1)
-        regionLineIndicesArr.push(verticesSoFar + 2)
+        // regionLineIndicesArr.push(verticesSoFar + 1)
+        // regionLineIndicesArr.push(verticesSoFar + 2)
+        regionLineIndicesArr.push(p2.index)
+        regionLineIndicesArr.push(p3.index)
 
       }
 
       if (crossPoint.lengthSq() > regionRadiusSq) {
-        // Convex. See if you can make a triangle.
+        // Cross product points out from the globe => Convex. 
+        // Try to make a triangle.
         console.log("Convex; try to make a triangle")
 
-        if (pointVectors.length == 3) {
+        if (points.length == 3) {
           // Last triangle
           console.log("last triangle")
 
-          makeTriangle(v1, v2, v3)
+          makeTriangle(p1, p2, p3)
 
           // Force it empty
-          pointVectors = []
+          points = []
         }
         else {
           console.log("not the last triangle; checking if triangle contains any of the remaining points")
 
           // Check if any of the rest of the hull points are contained in the remaining points.
           // Note: This is a corner case scenario, but might happen.
-          let remainingPoints = pointVectors.slice(startIndex + 3, pointVectors.length)
+          let remainingPoints = points.slice(startIndex + 3, points.length)
           let containedPoints = []
           remainingPoints.forEach((point, index) => {
-            if (triangleContainsPoint(v1, v2, v3, point)) {
+            if (triangleContainsPoint(p1, p2, p3, point)) {
               console.log({ msg: `triangle contains '${point}'` })
               containedPoints.push(point)
             }
@@ -735,13 +783,13 @@ function RegionMesh({ points, globeInfo }) {
             // Convex "ear" with no contained points.
             console.log("Convext ear with no contained points")
 
-            makeTriangle(v1, v2, v3)
+            makeTriangle(p1, p2, p3)
 
             // And clip off v2.
-            let beforeV2 = pointVectors.slice(0, index2)
-            let afterV2 = pointVectors.slice(index2 + 1, pointVectors.length)
-            pointVectors = beforeV2.concat(afterV2)
-            console.log({ "new pointVectors": pointVectors })
+            let beforeV2 = points.slice(0, index2)
+            let afterV2 = points.slice(index2 + 1, points.length)
+            points = beforeV2.concat(afterV2)
+            console.log({ "new points": points })
           }
           else {
             // Contains another vertex. Skip it.
@@ -776,7 +824,7 @@ function RegionMesh({ points, globeInfo }) {
       // break
     }
 
-    console.log({ vertices: regionVerticesArr })
+    console.log({ vertices: vertices })
     console.log({ meshIndices: regionMeshIndicesArr })
     console.log({ lineIndices: regionLineIndicesArr })
 
@@ -819,7 +867,7 @@ function RegionMesh({ points, globeInfo }) {
     let valuesPerIndex = 1
 
     // Mesh vertices
-    let meshPosAttribute = new THREE.Float32BufferAttribute(regionVerticesArr, valuesPerVertex)
+    let meshPosAttribute = new THREE.Float32BufferAttribute(vertices, valuesPerVertex)
     regionMeshRef.current.geometry.setAttribute("position", meshPosAttribute)
     // console.log({ posAttribute: posAttribute })
 
@@ -929,7 +977,7 @@ export function EditRegion({ }) {
         )
 
         setRegionMeshReactElements(
-          <RegionMesh key={uuid()} points={newRegionBoundaries} globeInfo={globeInfo} />
+          <RegionMesh key={uuid()} regionBoundaries={newRegionBoundaries} globeInfo={globeInfo} />
         )
         // let thing = createRegionMesh(regionBoundaries, globeInfo)
 
