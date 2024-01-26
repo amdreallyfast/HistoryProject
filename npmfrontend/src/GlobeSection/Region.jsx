@@ -615,66 +615,30 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
       return
     }
 
-
-
-
-
     let regionRadiusSq = globeInfo.radiusToRegionMesh * globeInfo.radiusToRegionMesh
     let vertices = []
     let points = []
     regionBoundaries.forEach((boundaryMarker, index) => {
-      // if (index > 3) {
-      //   return
-      // }
-
-
-      // TODO: use new object
-      /*
-      point = {
-        vec3: THREE.Vector3,
-        values: [x,y,z]
-        normal: vec3.clone().normalize, // use for angle calculations
-        index: index
-      }
-      
-      points.push(point)
-      */
-
       // Move the point out from the globe a tad so that it sits on the surface.
-      let v = new THREE.Vector3(boundaryMarker.x, boundaryMarker.y, boundaryMarker.z).normalize().multiplyScalar(globeInfo.radiusToRegionMesh)
-
-      // v.normalize().multiplyScalar(globeInfo.radiusToRegionMesh)
-
+      let v = new THREE.Vector3(boundaryMarker.x, boundaryMarker.y, boundaryMarker.z)
+      let vNormal = v.clone().normalize()
+      let vRescaled = vNormal.clone().multiplyScalar(globeInfo.radiusToRegionMesh)
       let point = {
-        values: [v.x, v.y, v.z],
-        // vec3: v.clone().normalize().multiplyScalar(globeInfo.radiusToRegionMesh),
-        vec3: v,
-        normal: v.clone().normalize(),
+        values: [vRescaled.x, vRescaled.y, vRescaled.z],
+        vec3: vRescaled,
+        normal: vNormal,
         index: index
       }
       vertices.push(...point.values)
       points.push(point)
     })
 
-    console.log({ vertices: vertices, points: points })
-
-    // console.log({ pointVectors: pointVectors })
-    // console.log({ "pointVectors[2,-1]": pointVectors.slice(2, -1) })
-    // console.log({ "pointVectors[1,4]": pointVectors.slice(1, 5) })
-    // console.log({ "pointVectors[2, end]": pointVectors.slice(2, pointVectors.length) })
-    // return
-
     const triangleContainsPoint = (v1, v2, v3, point) => {
 
     }
 
-    // let geometry = new THREE.BoxGeometry(0.05, 0.05, 0.05)
-    let geometry = new THREE.BoxGeometry(1, 1, 1)
-    // console.log({ geometry: geometry.attributes })
-
     // Note: Points appear to be counterclockwise.
     let startIndex = 0
-    // let regionVerticesArr = []
     let regionMeshIndicesArr = []
     let regionLineIndicesArr = []
     let crossProductMarkingVertices = []
@@ -690,8 +654,7 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
       let p2 = points[index2]
       let p3 = points[index3]
 
-      // console.log({ msg: "potential triangle", index1: index1, index2: index2, index3: index3 })
-      console.log({ msg: "potential triangle", v1: p1, v2: p2, v3: p3 })
+      // console.log({ msg: "potential triangle", v1: p1, v2: p2, v3: p3 })
 
       // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
       //  <180deg when viewed from above (cross product points into space)
@@ -700,55 +663,26 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
       let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
       let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
       let cross = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
-      // let cross = (new THREE.Vector3()).crossVectors(v2v3, v1v2) // reverse
       let crossPoint = (new THREE.Vector3()).addVectors(p2.vec3, cross)
 
-
-
-      // TODO: make a box for each cross-product point
-      console.log({ crossPoint: crossPoint.length(), regionRadius: 5.1 })
-
-
-
+      // Note: Vertices already in an array. Just need the indices.
       const makeTriangle = (p1, p2, p3) => {
-        // let verticesSoFar = (regionVerticesArr.length) / 3
-
-        // regionVerticesArr.push(p1.x)
-        // regionVerticesArr.push(p1.y)
-        // regionVerticesArr.push(p1.z)
-        // regionMeshIndicesArr.push(verticesSoFar + 0)
-
-        // regionVerticesArr.push(p2.x)
-        // regionVerticesArr.push(p2.y)
-        // regionVerticesArr.push(p2.z)
-        // regionMeshIndicesArr.push(verticesSoFar + 1)
-
-        // regionVerticesArr.push(p3.x)
-        // regionVerticesArr.push(p3.y)
-        // regionVerticesArr.push(p3.z)
-        // regionMeshIndicesArr.push(verticesSoFar + 2)
+        // triangle
         regionMeshIndicesArr.push(p1.index)
         regionMeshIndicesArr.push(p2.index)
         regionMeshIndicesArr.push(p3.index)
 
         // Line 1: v1 -> v2
-        // regionLineIndicesArr.push(verticesSoFar + 0)
-        // regionLineIndicesArr.push(verticesSoFar + 1)
         regionLineIndicesArr.push(p1.index)
         regionLineIndicesArr.push(p2.index)
 
         // Line 2: v1 -> v3
-        // regionLineIndicesArr.push(verticesSoFar + 0)
-        // regionLineIndicesArr.push(verticesSoFar + 2)
         regionLineIndicesArr.push(p1.index)
         regionLineIndicesArr.push(p3.index)
 
         // Line 3: v2 -> v3
-        // regionLineIndicesArr.push(verticesSoFar + 1)
-        // regionLineIndicesArr.push(verticesSoFar + 2)
         regionLineIndicesArr.push(p2.index)
         regionLineIndicesArr.push(p3.index)
-
       }
 
       if (crossPoint.lengthSq() > regionRadiusSq) {
@@ -758,7 +692,7 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
 
         if (points.length == 3) {
           // Last triangle
-          console.log("last triangle")
+          // console.log("last triangle")
 
           makeTriangle(p1, p2, p3)
 
@@ -806,61 +740,11 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
         console.log("Not convex; skipping")
         startIndex += 1
       }
-
-      // let v3v2 = (new THREE.Vector3()).subVectors(v2, v3)
-      // let v2v1 = (new THREE.Vector3()).subVectors(v1, v2)
-      // // cross = (new THREE.Vector3()).crossVectors(v3v2, v2v1)
-
-
-
-      // console.log({ cross, cross })
-
-      // regionMeshRef.current.position.x = crossPoint.x
-      // regionMeshRef.current.position.y = crossPoint.y
-      // regionMeshRef.current.position.z = crossPoint.z
-      // let geometry = new THREE.BoxGeometry(0.05, 0.05, 0.05)
-      // regionMeshRef.current.geometry = geometry
-
-      // break
     }
 
     console.log({ vertices: vertices })
     console.log({ meshIndices: regionMeshIndicesArr })
     console.log({ lineIndices: regionLineIndicesArr })
-
-
-    // // let pointsDict = {}
-    // // points.forEach((point, index) => {
-    // //   // extend the vector out from the earth a bit so that it doesn't clip the globe
-    // //   let v = new THREE.Vector3(point.x, point.y, point.z)
-    // //   v.normalize().multiplyScalar(5.1)
-    // //   pointsDict[index] = v
-    // // })
-
-    // let p1p2 = (new THREE.Vector3()).subVectors(pointsDict[1], pointsDict[0])
-    // let p2p3 = (new THREE.Vector3()).subVectors(pointsDict[2], pointsDict[1])
-
-    // let vertices = []
-    // let indices = []
-
-    // let startIndex = 0
-    // while (pointsDict.length > 0) {
-
-    // }
-    // vertices.push(...pointsDict[0])
-    // vertices.push(...pointsDict[1])
-    // vertices.push(...pointsDict[4])
-    // // vertices.push(...pointIndex[4])
-    // // vertices.push(...pointIndex[5])
-    // // vertices.push(...pointIndex[6])
-    // indices.push(0)
-    // indices.push(1)
-    // indices.push(2)
-    // // indices.push(4)
-    // // indices.push(5)
-    // // indices.push(6)
-
-    // console.log({ vertices: vertices, indices: indices })
 
     // Set the geometry.
     let valuesPerVertex = 3
@@ -869,11 +753,8 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
     // Mesh vertices
     let meshPosAttribute = new THREE.Float32BufferAttribute(vertices, valuesPerVertex)
     regionMeshRef.current.geometry.setAttribute("position", meshPosAttribute)
-    // console.log({ posAttribute: posAttribute })
-
     let meshIndicesAttribute = new THREE.Uint32BufferAttribute(regionMeshIndicesArr, valuesPerIndex)
     regionMeshRef.current.geometry.setIndex(meshIndicesAttribute)
-    // console.log({ indicesAttribute: indicesAttribute })
 
     // Line
     // Note: Re-use the mesh vertices. It's the same ones.
@@ -882,8 +763,6 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
     // Line indices
     let lineIndicesAttribute = new THREE.Uint32BufferAttribute(regionLineIndicesArr, valuesPerIndex)
     regionLinesRef.current.geometry.setIndex(lineIndicesAttribute)
-
-
   }, [regionMeshRef.current, regionLinesRef.current])
 
   return (
