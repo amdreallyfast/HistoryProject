@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react"
 import { globeInfo } from "./constValues"
 import * as THREE from "three"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
+import { editStateActions } from "../AppState/stateSliceEditPoi"
 
 export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (poiId == null) {
@@ -12,6 +13,7 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
   }
 
   const editState = useSelector((state) => state.editPoiReducer)
+  const reduxDispatch = useDispatch()
 
   const meshRef = useRef()
   const materialRef = useRef()
@@ -70,15 +72,19 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
   useEffect(() => {
     if (editState.editModeOn) {
       if (editState.selectedPinId == meshRef.current.userData.whereId) {
-        let { x, y, z } = editState.tentativeWhere
-        meshRef.current.position.x = x
-        meshRef.current.position.y = y
-        meshRef.current.position.z = z
+        // console.log({ clickAndDragPos: editState.clickAndDragGlobePos, offset: editState.clickAndDragMeshOffset })
+        meshRef.current.position.x = editState.clickAndDragGlobePos.x + editState.clickAndDragMeshOffset.x
+        meshRef.current.position.y = editState.clickAndDragGlobePos.y + editState.clickAndDragMeshOffset.y
+        meshRef.current.position.z = editState.clickAndDragGlobePos.z + editState.clickAndDragMeshOffset.z
         meshRef.current.lookAt(globeInfo.pos)
         meshRef.current.geometry.attributes.position.needsUpdate = true
+
+        reduxDispatch(
+          editStateActions.triggerRegionRedraw()
+        )
       }
     }
-  }, [editState.tentativeWhere])
+  }, [editState.clickAndDragGlobePos])
 
   return (
     <mesh ref={meshRef} name={name}>

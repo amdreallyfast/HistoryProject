@@ -12,7 +12,7 @@ import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "
 import { Box, Stars } from "@react-three/drei"
 import { PinMesh } from "./PinMesh"
 import { v4 as uuid } from "uuid";
-import _ from "lodash"
+import _, { first } from "lodash"
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
@@ -157,7 +157,7 @@ export function Scene(
     state.raycaster.setFromCamera(mouseState.currPos, state.camera)
     const intersections = state.raycaster.intersectObjects(meshes)
     if (intersections.length > 0) {
-      let globeInsersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
+      let globeIntersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
       let firstIntersection = intersections[0]
 
       // // Take the first intersection (that is, the object closest to camera).
@@ -181,10 +181,10 @@ export function Scene(
 
 
         if (mouseState.mouseClickedCurrPos) {
-          if (globeInsersection) {
+          if (globeIntersection) {
             // If no region exists yet, create one here.
             if (editState.preciseLocation == null) {
-              const [x, y, z] = globeInsersection.point
+              const [x, y, z] = globeIntersection.point
               const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
               reduxDispatch(
                 editStateActions.setPreciseLocation({
@@ -207,12 +207,12 @@ export function Scene(
             // and move it to the globe intersection.
             // Note: If the globe is not in the list of intersections, then the mouse has drifted
             // off the globe and onto something else (like space or starts). Ignore.
-            if (globeInsersection) {
+            if (globeIntersection) {
               reduxDispatch(
                 editStateActions.updateClickAndDrag({
-                  x: globeInsersection.point.x,
-                  y: globeInsersection.point.y,
-                  z: globeInsersection.point.z,
+                  x: globeIntersection.point.x,
+                  y: globeIntersection.point.y,
+                  z: globeIntersection.point.z,
                 })
               )
             }
@@ -222,27 +222,47 @@ export function Scene(
           // new click
           // Enable click-and-drag if the user selected one of the pins being edited.
 
-          let samePos = _.isEqual(mouseState.currPos, mouseState.mouseDownPos)
-          console.log({ same: samePos })
+          // Note: Don't even try if the mouse is not over the globe.
+          if (globeIntersection) {
+            let obj = firstIntersection.object
+            if (obj.name == meshNames.WherePin || obj.name == meshNames.RegionBoundaryPin) {
 
-          let obj = firstIntersection.object
-          console.log({ obj: obj.name })
-          if (obj.name == meshNames.WherePin || obj.name == meshNames.RegionBoundaryPin) {
+              // Click and drag where you clicked the mesh.
+              // Note: Our point of reference for the movement will be the intersection with the globe's surface.
+              let globeIntersectionOffset = (new THREE.Vector3()).subVectors(firstIntersection.point, globeIntersection)
 
-            console.log({ msg: "pin", obj: obj })
+              let intersectionPointFlattenedToGlobe = new THREE.Vector3(
+                firstIntersection.point.x,
+                firstIntersection.point.y,
+                firstIntersection.point.z,
+              ).normalize().multiplyScalar(globeInfo.radius)
+              let meshOffset = {
+                x: obj.position.x - intersectionPointFlattenedToGlobe.x,
+                y: obj.position.y - intersectionPointFlattenedToGlobe.y,
+                z: obj.position.z - intersectionPointFlattenedToGlobe.z,
+              }
+              console.log({ msg: "pin", mouse: mouseState.currPos, obj: obj.position, offset: meshOffset })
 
-            // console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
-            // console.log({ msg: "clicked RegionBoundaryPin" })
-            reduxDispatch(
-              editStateActions.enableClickAndDrag({ pinId: firstIntersection.object.userData.whereId })
-            )
+              // console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
+              // console.log({ msg: "clicked RegionBoundaryPin" })
+              reduxDispatch(
+                editStateActions.enableClickAndDrag({
+                  pinId: firstIntersection.object.userData.whereId,
+                  startLocation: {
+                    x: intersectionPointFlattenedToGlobe.x,
+                    y: intersectionPointFlattenedToGlobe.y,
+                    z: intersectionPointFlattenedToGlobe.z
+                  },
+                  meshOffset: meshOffset
+                })
+              )
+            }
           }
-
         }
         else if (!mouseState.mouseIsDown && prevMouseIsDownRef.current) {
           // just stopped clicking
 
-          if (editState.clickAndDrag) {
+          if (editState.clickAndDragEnabled) {
             // Done with click-and-drag. Disable.
             reduxDispatch(
               editStateActions.disableClickAndDrag()
@@ -273,7 +293,7 @@ export function Scene(
         //   }
 
 
-        //   if (editState.clickAndDrag) {
+        //   if (editState.clickAndDragEnabled) {
         //     // In the middle of click-and-drag. Continue. Search all intersections for the globe 
         //     // and move it to the globe intersection.
         //     // Note: If the globe is not in the list of intersections, then the mouse has drifted
@@ -310,7 +330,7 @@ export function Scene(
         //   }
         // }
 
-        // else if (!mouseIsDown && editState.clickAndDrag) {
+        // else if (!mouseIsDown && editState.clickAndDragEnabled) {
         //   // Done with click-and-drag. Disable.
         //   reduxDispatch(
         //     editStateActions.disableClickAndDrag()

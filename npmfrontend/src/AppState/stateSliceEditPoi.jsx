@@ -36,8 +36,9 @@ const initialState = {
   // }
   mouseIsDown: false,
   mouseDownPos: null,
-  clickAndDrag: false,
-  tentativeWhere: null,
+  clickAndDragEnabled: false,
+  clickAndDragMeshOffset: null,  // [x, y, z]
+  clickAndDragGlobePos: null,
   tentativeRegion: [],
 
   // Using an ever-increasing count is safer than trying to manage where to deactivate an on-off 
@@ -123,15 +124,17 @@ export const stateSliceEditPoi = createSlice({
 
     enableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
+
       return {
         ...state,
-        clickAndDrag: true,
+        clickAndDragEnabled: true,
         selectedPinId: action.payload.pinId,
-        tentativeWhere: {
-          x: state.preciseLocation.x,
-          y: state.preciseLocation.y,
-          z: state.preciseLocation.z
-        }
+        clickAndDragGlobePos: {
+          x: action.payload.startLocation.x,
+          x: action.payload.startLocation.y,
+          x: action.payload.startLocation.z,
+        },
+        clickAndDragMeshOffset: action.payload.meshOffset
       }
     },
 
@@ -140,9 +143,9 @@ export const stateSliceEditPoi = createSlice({
 
       return {
         ...state,
-        clickAndDrag: false,
+        clickAndDragEnabled: false,
         selectedPinId: null,
-        tentativeWhere: null
+        clickAndDragGlobePos: null
       }
     },
 
@@ -151,7 +154,7 @@ export const stateSliceEditPoi = createSlice({
 
       return {
         ...state,
-        tentativeWhere: {
+        clickAndDragGlobePos: {
           x: action.payload.x,
           y: action.payload.y,
           z: action.payload.z
