@@ -203,17 +203,22 @@ export function Scene(
         //??isolate mouse click handling to a function??
         else if (mouseState.mouseIsDown && prevMouseIsDownRef.current) {
           // still clicking; if clicked a pin, continue dragging  
-          if (editState.selectedPinId != null) {
-            // and move it to the globe intersection.
+          // if (editState.selectedPinId != null) {
+          if (editState.selectedRegionBoundary?.id != null) {
+            // and move it to the point on the globe that the mouse is hovering over
             // Note: If the globe is not in the list of intersections, then the mouse has drifted
-            // off the globe and onto something else (like space or starts). Ignore.
+            // off the globe and onto something else (like space or stars). Ignore.
             if (globeIntersection) {
+              let updatedWhere = createWhereFromXYZ(
+                editState.clickAndDragGlobePos.x,
+                editState.clickAndDragGlobePos.y,
+                editState.clickAndDragGlobePos.z,
+                globeInfo
+              )
+              updatedWhere.id = where.id
+
               reduxDispatch(
-                editStateActions.updateClickAndDrag({
-                  x: globeIntersection.point.x,
-                  y: globeIntersection.point.y,
-                  z: globeIntersection.point.z,
-                })
+                editStateActions.updateClickAndDragGlobePos(updatedWhere)
               )
             }
           }
@@ -247,11 +252,11 @@ export function Scene(
               // console.log({ msg: "clicked RegionBoundaryPin" })
               reduxDispatch(
                 editStateActions.enableClickAndDrag({
-                  pinId: firstIntersection.object.userData.whereId,
+                  whereId: firstIntersection.object.userData.whereId,
                   startLocation: {
-                    x: intersectionPointFlattenedToGlobe.x,
-                    y: intersectionPointFlattenedToGlobe.y,
-                    z: intersectionPointFlattenedToGlobe.z
+                    x: globeIntersection.point.x,
+                    y: globeIntersection.point.y,
+                    z: globeIntersection.point.z
                   },
                   meshOffset: meshOffset
                 })

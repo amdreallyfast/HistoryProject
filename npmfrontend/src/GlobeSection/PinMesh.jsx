@@ -3,6 +3,8 @@ import { globeInfo } from "./constValues"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
+import { uniqueId, update } from "lodash"
+import { createWhereFromXYZ } from "./createWhere"
 
 export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (poiId == null) {
@@ -71,16 +73,43 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
 
   useEffect(() => {
     if (editState.editModeOn) {
-      if (editState.selectedPinId == meshRef.current.userData.whereId) {
+      // if (editState.selectedPinId == meshRef.current.userData.whereId) {
+      if (editState.selectedRegionBoundary?.id == meshRef.current.userData.whereId) {
         // console.log({ clickAndDragPos: editState.clickAndDragGlobePos, offset: editState.clickAndDragMeshOffset })
+        // console.log({ regionBoundaries: editState.regionBoundaries })
+
         meshRef.current.position.x = editState.clickAndDragGlobePos.x + editState.clickAndDragMeshOffset.x
         meshRef.current.position.y = editState.clickAndDragGlobePos.y + editState.clickAndDragMeshOffset.y
         meshRef.current.position.z = editState.clickAndDragGlobePos.z + editState.clickAndDragMeshOffset.z
         meshRef.current.lookAt(globeInfo.pos)
         meshRef.current.geometry.attributes.position.needsUpdate = true
 
+        let updatedBoundaries = editState.regionBoundaries.map((where, index) => {
+          if (where.id == meshRef.current.userData.whereId) {
+            console.log({ msg: "pin boundary update", clickAndDragGlobePos: editState.clickAndDragGlobePos })
+            let updatedWhere = createWhereFromXYZ(
+              editState.clickAndDragGlobePos.x,
+              editState.clickAndDragGlobePos.y,
+              editState.clickAndDragGlobePos.z,
+              globeInfo
+            )
+            updatedWhere.id = where.id
+            return updatedWhere
+          }
+          else {
+            // Not moving this marker. Return as-is.
+            return where
+          }
+        })
+
+        // reduxDispatch(
+        //   editStateActions.setRegionBoundaries(updatedBoundaries)
+        // )
+
+
+
         reduxDispatch(
-          editStateActions.triggerRegionRedraw()
+          editStateActions.triggerRegionRedraw()  // TODO: delete
         )
       }
     }

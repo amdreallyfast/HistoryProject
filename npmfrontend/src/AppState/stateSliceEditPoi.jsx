@@ -25,7 +25,8 @@ const initialState = {
   noRegion: false,
   regionBoundaries: [],
   regionBoundariesPinMeshCount: 0,
-  selectedPinId: null,
+  // selectedPinId: null,
+  selectedRegionBoundary: null,
 
   // For use during clicking and dragging a single point or the entire region.
   // Format:
@@ -37,9 +38,10 @@ const initialState = {
   mouseIsDown: false,
   mouseDownPos: null,
   clickAndDragEnabled: false,
-  clickAndDragMeshOffset: null,  // [x, y, z]
+  clickAndDragMeshOffset: null,  // [x, y, z] // TODO: delete
   clickAndDragGlobePos: null,
-  tentativeRegion: [],
+  tentativeRegion: [],  // TODO: delete
+  thing: null,
 
   // Using an ever-increasing count is safer than trying to manage where to deactivate an on-off 
   // switch that will trigger state change every time it turns off.
@@ -53,6 +55,14 @@ export const stateSliceEditPoi = createSlice({
   name: "stateSliceEditPoi",
   initialState,
   reducers: {
+    setThing: (state, action) => {
+      // console.log("stateSliceEditPoi_startEditMode")
+      return {
+        ...state,
+        thing: action.payload
+      }
+    },
+
     startEditMode: (state, action) => {
       // console.log("stateSliceEditPoi_startEditMode")
       return {
@@ -123,12 +133,14 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
+      console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
 
+      let selectedRegionBoundary = state.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == action.payload.whereId)
       return {
         ...state,
         clickAndDragEnabled: true,
-        selectedPinId: action.payload.pinId,
+        // selectedPinId: action.payload.pinId,
+        selectedRegionBoundary: selectedRegionBoundary,
         clickAndDragGlobePos: {
           x: action.payload.startLocation.x,
           x: action.payload.startLocation.y,
@@ -144,13 +156,14 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         clickAndDragEnabled: false,
-        selectedPinId: null,
+        // selectedPinId: null,
+        selectedRegionBoundary: null,
         clickAndDragGlobePos: null
       }
     },
 
-    updateClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_updateClickAndDrag", payload: action.payload })
+    updateClickAndDragGlobePos: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_updateClickAndDragGlobePos", payload: action.payload })
 
       return {
         ...state,
