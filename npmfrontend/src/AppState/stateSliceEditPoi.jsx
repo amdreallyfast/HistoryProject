@@ -34,9 +34,15 @@ const initialState = {
   //   y,
   //   z
   // }
+  mouseIsDown: false,
+  mouseDownPos: null,
   clickAndDrag: false,
   tentativeWhere: null,
   tentativeRegion: [],
+
+  // Using an ever-increasing count is safer than trying to manage where to deactivate an on-off 
+  // switch that will trigger state change every time it turns off.
+  pinMovedCounter: 0,
 
   selectedLatLong: null,  // TODO: delete
   prevSelectedLatLong: null // TODO: delete
@@ -139,7 +145,10 @@ export const stateSliceEditPoi = createSlice({
         tentativeWhere: null
       }
     },
+
     updateClickAndDrag: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_updateClickAndDrag", payload: action.payload })
+
       return {
         ...state,
         tentativeWhere: {
@@ -147,6 +156,15 @@ export const stateSliceEditPoi = createSlice({
           y: action.payload.y,
           z: action.payload.z
         }
+      }
+    },
+
+    triggerRegionRedraw: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_triggerRegionRedraw", payload: action.payload })
+
+      return {
+        ...state,
+        pinMovedCounter: state.pinMovedCounter + 1
       }
     },
 

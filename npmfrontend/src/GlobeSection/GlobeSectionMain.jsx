@@ -76,17 +76,17 @@ export function GlobeSectionMain() {
       return
     }
 
-    // Mouse moved => by definition, current position is not clicked
-    mouseInfoRef.current.mouseClickedCurrPos = false
-    mouseInfoRef.current.prevPos.x = mouseInfoRef.current.currPos.x
-    mouseInfoRef.current.prevPos.y = mouseInfoRef.current.currPos.y
+    // // Mouse moved => by definition, current position is not clicked
+    // mouseInfoRef.current.mouseClickedCurrPos = false
+    // mouseInfoRef.current.prevPos.x = mouseInfoRef.current.currPos.x
+    // mouseInfoRef.current.prevPos.y = mouseInfoRef.current.currPos.y
 
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
-    mouseInfoRef.current.currPos.x = normalized.x
-    mouseInfoRef.current.currPos.y = normalized.y
+    // mouseInfoRef.current.currPos.x = normalized.x
+    // mouseInfoRef.current.currPos.y = normalized.y
 
     reduxDispatch(
-      mouseStateActions.updatePos({
+      mouseStateActions.mouseMove({
         x: normalized.x,
         y: normalized.y
       })
@@ -102,22 +102,36 @@ export function GlobeSectionMain() {
 
   function onCanvasMouseDown(e) {
     // console.log({ "onCanvasMouseDown": e })
-    mouseInfoRef.current.mouseIsDown = true
-    mouseInfoRef.current.mouseDownPos.x = mouseInfoRef.current.currPos.x
-    mouseInfoRef.current.mouseDownPos.y = mouseInfoRef.current.currPos.y
+    // mouseInfoRef.current.mouseIsDown = true
+    // mouseInfoRef.current.mouseDownPos.x = mouseInfoRef.current.currPos.x
+    // mouseInfoRef.current.mouseDownPos.y = mouseInfoRef.current.currPos.y
+    let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
+    reduxDispatch(
+      mouseStateActions.mouseDown({
+        x: normalized.x,
+        y: normalized.y
+      })
+    )
   }
 
   function onCanvasMouseUp(e) {
     // console.log({ "onCanvasMouseUp": e })
-    mouseInfoRef.current.mouseIsDown = false
-    mouseInfoRef.current.mouseUpPos.x = mouseInfoRef.current.currPos.x
-    mouseInfoRef.current.mouseUpPos.y = mouseInfoRef.current.currPos.y
+    // mouseInfoRef.current.mouseIsDown = false
+    // mouseInfoRef.current.mouseUpPos.x = mouseInfoRef.current.currPos.x
+    // mouseInfoRef.current.mouseUpPos.y = mouseInfoRef.current.currPos.y
 
-    let xMoved = (mouseInfoRef.current.mouseDownPos.x != mouseInfoRef.current.mouseUpPos.x)
-    let yMoved = (mouseInfoRef.current.mouseDownPos.y != mouseInfoRef.current.mouseUpPos.y)
-    if (!xMoved && !yMoved) {
-      mouseInfoRef.current.mouseClickedCurrPos = true
-    }
+    // let xMoved = (mouseInfoRef.current.mouseDownPos.x != mouseInfoRef.current.mouseUpPos.x)
+    // let yMoved = (mouseInfoRef.current.mouseDownPos.y != mouseInfoRef.current.mouseUpPos.y)
+    // if (!xMoved && !yMoved) {
+    //   mouseInfoRef.current.mouseClickedCurrPos = true
+    // }
+    let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
+    reduxDispatch(
+      mouseStateActions.mouseUp({
+        x: normalized.x,
+        y: normalized.y
+      })
+    )
   }
 
   function onCanvasKeyDown(e) {
@@ -175,7 +189,7 @@ export function GlobeSectionMain() {
           <Scene
             poiInfoPopupElementRef={poiInfoPopupElementRef}
             poiInfoTitleElementRef={poiInfoTitleElementRef}
-            mouseInfoRef={mouseInfoRef}
+          // mouseInfoRef={mouseInfoRef}
           >
           </Scene>
         </Canvas>

@@ -12,16 +12,18 @@ import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "
 import { Box, Stars } from "@react-three/drei"
 import { PinMesh } from "./PinMesh"
 import { v4 as uuid } from "uuid";
+import _ from "lodash"
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
   {
     poiInfoPopupElementRef,
-    poiInfoTitleElementRef,
-    mouseInfoRef
+    poiInfoTitleElementRef
   }) {
+  const mouseState = useSelector((state) => state.mouseInfoReducer)
   const poiState = useSelector((state) => state.poiReducer)
   const editState = useSelector((state) => state.editPoiReducer)
+
   const reduxDispatch = useDispatch()
 
   // Not strictly HTML.
@@ -57,6 +59,7 @@ export function Scene(
     )
   }, [poiState.allPois])
 
+  // If "edit mode" on, create an editable region for the edited POI.
   useEffect(() => {
     // console.log({ msg: "Scene()/useEffect()/editState.editModeOn", value: editState.editModeOn })
 
@@ -101,7 +104,6 @@ export function Scene(
 
   }, [poiReactElements, editState.preciseLocationPinMeshExists, editState.regionBoundariesPinMeshCount])
 
-
   // Update POI highlight.
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
   // follow-up poiReactElements are created, so they should all be there.
@@ -137,6 +139,7 @@ export function Scene(
   }, [poiState.selectedPoi])
 
   // Handle mouse hover and mouse click.
+  let prevMouseIsDownRef = useRef(false)
   let prevMouseHoverPoiMeshRef = useRef()
   useFrame((state) => {
     // console.log("useFrame()")
@@ -151,13 +154,14 @@ export function Scene(
     // 2. Not behind the globe
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
     let mouseHoverPoiMesh = null
-    state.raycaster.setFromCamera(mouseInfoRef.current.currPos, state.camera)
+    state.raycaster.setFromCamera(mouseState.currPos, state.camera)
     const intersections = state.raycaster.intersectObjects(meshes)
     if (intersections.length > 0) {
-      // Take the first intersection (that is, the object closest to camera).
-      let intersection = intersections[0]
-      let mouseClicked = mouseInfoRef.current.mouseClickedCurrPos
-      let mouseIsDown = mouseInfoRef.current.mouseIsDown
+      let globeInsersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
+      let firstIntersection = intersections[0]
+
+      // // Take the first intersection (that is, the object closest to camera).
+      // let intersection = intersections[0]
 
       // TODO: handle scenarios:
       //  1. No location exists yet (new entry)
@@ -175,11 +179,12 @@ export function Scene(
         // Editing. Only affect the edited object, but still allow hovering over existing objects
         // to get cursory info.
 
-        if (mouseClicked) {
-          if (intersection.object.name == meshNames.Globe) {
+
+        if (mouseState.mouseClickedCurrPos) {
+          if (globeInsersection) {
             // If no region exists yet, create one here.
             if (editState.preciseLocation == null) {
-              const [x, y, z] = intersection.point
+              const [x, y, z] = globeInsersection.point
               const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
               reduxDispatch(
                 editStateActions.setPreciseLocation({
@@ -194,54 +199,59 @@ export function Scene(
             }
           }
         }
-        else if (mouseIsDown) {
-          if (editState.clickAndDrag) {
-            // In the middle of click-and-drag. Continue. Search all intersections for the globe 
+
+        //??isolate mouse click handling to a function??
+        else if (mouseState.mouseIsDown && prevMouseIsDownRef.current) {
+          // still clicking; if clicked a pin, continue dragging  
+          if (editState.selectedPinId != null) {
             // and move it to the globe intersection.
             // Note: If the globe is not in the list of intersections, then the mouse has drifted
             // off the globe and onto something else (like space or starts). Ignore.
-            intersections.forEach((intersection) => {
-              if (intersection.object.name == meshNames.Globe) {
-                reduxDispatch(
-                  editStateActions.updateClickAndDrag({
-                    x: intersection.point.x,
-                    y: intersection.point.y,
-                    z: intersection.point.z,
-                  })
-                )
-              }
-            })
-          }
-          else {
-
-            // TODO
-            //  ??implement "prevMouseIsDown" to determine whether the mouse is clicked over the mesh or just moved over it??
-
-            // Enable click-and-drag if the user selected one of the pins being edited.
-            let obj = intersection.object
-            if (obj.name == meshNames.WherePin || obj.name == meshNames.RegionBoundaryPin) {
-              // console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
-              // console.log({ msg: "clicked RegionBoundaryPin" })
+            if (globeInsersection) {
               reduxDispatch(
-                editStateActions.enableClickAndDrag({ pinId: intersection.object.userData.whereId })
+                editStateActions.updateClickAndDrag({
+                  x: globeInsersection.point.x,
+                  y: globeInsersection.point.y,
+                  z: globeInsersection.point.z,
+                })
               )
             }
-            // else {
-            //   console.log({ msg: "clicked something else", name: obj.name })
-            // }
           }
         }
-        else if (!mouseIsDown && editState.clickAndDrag) {
-          // Done with click-and-drag. Disable.
-          reduxDispatch(
-            editStateActions.disableClickAndDrag()
-          )
+        else if (mouseState.mouseIsDown && !prevMouseIsDownRef.current) {
+          // new click
+          // Enable click-and-drag if the user selected one of the pins being edited.
+
+          let samePos = _.isEqual(mouseState.currPos, mouseState.mouseDownPos)
+          console.log({ same: samePos })
+
+          let obj = firstIntersection.object
+          console.log({ obj: obj.name })
+          if (obj.name == meshNames.WherePin || obj.name == meshNames.RegionBoundaryPin) {
+
+            console.log({ msg: "pin", obj: obj })
+
+            // console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
+            // console.log({ msg: "clicked RegionBoundaryPin" })
+            reduxDispatch(
+              editStateActions.enableClickAndDrag({ pinId: firstIntersection.object.userData.whereId })
+            )
+          }
+
+        }
+        else if (!mouseState.mouseIsDown && prevMouseIsDownRef.current) {
+          // just stopped clicking
+
+          if (editState.clickAndDrag) {
+            // Done with click-and-drag. Disable.
+            reduxDispatch(
+              editStateActions.disableClickAndDrag()
+            )
+          }
         }
         else {
-          // No click, but might still be busy.
-
-
-          if (intersection.object.name == meshNames.WherePin) {
+          // mouse is not down, and not clicking previously
+          if (firstIntersection.object.name == meshNames.WherePin) {
             // // Hovering over a POI main pin.
             // mouseHoverPoiMesh = intersection.object
           }
@@ -249,8 +259,79 @@ export function Scene(
             // Not hovering over anything of interest.
           }
         }
+
+        // }
+
+        // else if (mouseState.mouseIsDown) {
+
+        //   if (prevMouseIsDownRef.current) {
+        //     // still clicking; if clicked a pin, continue dragging
+
+        //   }
+        //   else {
+        //     // new click
+        //   }
+
+
+        //   if (editState.clickAndDrag) {
+        //     // In the middle of click-and-drag. Continue. Search all intersections for the globe 
+        //     // and move it to the globe intersection.
+        //     // Note: If the globe is not in the list of intersections, then the mouse has drifted
+        //     // off the globe and onto something else (like space or starts). Ignore.
+        //     intersections.forEach((intersection) => {
+        //       if (intersection.object.name == meshNames.Globe) {
+        //         reduxDispatch(
+        //           editStateActions.updateClickAndDrag({
+        //             x: intersection.point.x,
+        //             y: intersection.point.y,
+        //             z: intersection.point.z,
+        //           })
+        //         )
+        //       }
+        //     })
+        //   }
+        //   else {
+
+        //     // TODO
+        //     //  ??implement "prevMouseIsDown" to determine whether the mouse is clicked over the mesh or just moved over it??
+
+        //     // Enable click-and-drag if the user selected one of the pins being edited.
+        //     let obj = intersection.object
+        //     if (obj.name == meshNames.WherePin || obj.name == meshNames.RegionBoundaryPin) {
+        //       // console.log({ msg: "clicked WherePin or RegionBoundaryPin" })
+        //       // console.log({ msg: "clicked RegionBoundaryPin" })
+        //       reduxDispatch(
+        //         editStateActions.enableClickAndDrag({ pinId: intersection.object.userData.whereId })
+        //       )
+        //     }
+        //     // else {
+        //     //   console.log({ msg: "clicked something else", name: obj.name })
+        //     // }
+        //   }
+        // }
+
+        // else if (!mouseIsDown && editState.clickAndDrag) {
+        //   // Done with click-and-drag. Disable.
+        //   reduxDispatch(
+        //     editStateActions.disableClickAndDrag()
+        //   )
+        // }
+        // else {
+        //   // No click, but might still be busy.
+
+
+        //   if (intersection.object.name == meshNames.WherePin) {
+        //     // // Hovering over a POI main pin.
+        //     // mouseHoverPoiMesh = intersection.object
+        //   }
+        //   else {
+        //     // Not hovering over anything of interest.
+        //   }
+        // }
       }
-    }
+
+      prevMouseIsDownRef.current = mouseState.mouseIsDown
+    } // useFrame
 
     // Occurs when the mouse drifts from the world (or space) to a POI.
     let newPoiHover =
@@ -267,10 +348,13 @@ export function Scene(
       mouseHoverPoiMesh?.uuid != prevMouseHoverPoiMeshRef.current?.uuid
 
     // Occurs when the mouse is stationary over a POI and is clicked. Creates new selectedPoi.
+    // let clickedSamePoiHover =
+    //   mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
+    //   mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid &&
+    //   mouseInfoRef.current.mouseClickedCurrPos
     let clickedSamePoiHover =
       mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
-      mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid &&
-      mouseInfoRef.current.mouseClickedCurrPos
+      mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid
 
     if (newPoiHover) {
       // console.log({ msg: "newPoiHover" })
@@ -339,7 +423,7 @@ export function Scene(
 
     // End of frame. Mouse handling done.
     prevMouseHoverPoiMeshRef.current = mouseHoverPoiMesh
-    mouseInfoRef.current.mouseClickedCurrPos = false
+    // mouseInfoRef.current.mouseClickedCurrPos = false
   })
 
   return (

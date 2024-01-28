@@ -27,8 +27,8 @@ export const stateSliceMouseInfo = createSlice({
   name: "stateSliceMouseInfo",
   initialState,
   reducers: {
-    updatePos: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_updatePos", value: action.payload })
+    mouseMove: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_mouseMove", value: action.payload })
 
       return {
         ...state,
@@ -40,8 +40,48 @@ export const stateSliceMouseInfo = createSlice({
           x: state.currPos.x,
           y: state.currPos.y
         },
+        mouseClickedCurrPos: false
       }
-    }
+    },
+
+    mouseDown: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_mouseDown", value: action.payload })
+
+      return {
+        ...state,
+        mouseDownPos: {
+          x: action.payload.x,
+          y: action.payload.y
+        },
+        mouseUpPos: {
+          x: 0,
+          y: 0
+        },
+        mouseIsDown: true
+      }
+    },
+
+    mouseUp: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_mouseUp", value: action.payload })
+
+      let mouseUpSamePos =
+        state.mouseDownPos.x == action.payload.x &&
+        state.mouseDownPos.y == action.payload.y
+      return {
+        ...state,
+        mouseDownPos: {
+          x: 0,
+          y: 0
+        },
+        mouseUpPos: {
+          x: action.payload.x,
+          y: action.payload.y
+        },
+        mouseIsDown: false,
+        mouseClickedCurrPos: mouseUpSamePos
+      }
+    },
+
   }
 })
 
