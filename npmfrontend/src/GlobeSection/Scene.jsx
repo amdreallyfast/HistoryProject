@@ -39,7 +39,7 @@ export function Scene(
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    console.log({ msg: "Scene()/useEffect()/poiState.allPois", value: poiState.allPois })
+    // console.log({ msg: "Scene()/useEffect()/poiState.allPois", value: poiState.allPois })
 
     let poiInfo = []
     poiState.allPois?.forEach((poi) => {
@@ -185,7 +185,7 @@ export function Scene(
 
 
         if (mouseState.mouseClickedCurrPos) {
-          console.log("mouse clicked")
+          // console.log("mouse clicked")
           if (globeIntersection) {
             // If no region exists yet, create one here.
             if (editState.preciseLocation == null) {
@@ -233,7 +233,7 @@ export function Scene(
                 existingBoundaryMarker.z != globeIntersection.z
 
               if (moved) {
-                console.log("moved")
+                // console.log("moved")
                 reduxDispatch(
                   editStateActions.updateClickAndDragGlobePos({
                     x: globeIntersection.point.x,

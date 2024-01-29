@@ -6,7 +6,7 @@ import { globeInfo, groupNames, meshNames, pinMeshInfo } from "./constValues"
 import { PinMesh } from "./PinMesh"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
-import { ceil, floor, sum } from "lodash"
+import _, { ceil, floor, sum } from "lodash"
 import { v4 as uuid, validate } from "uuid"
 import { roundFloat } from "../RoundFloat"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
@@ -765,8 +765,10 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
 
 // Triangulate by ear-clipping.
 // Note: Points must be counter-clockwise.
-function RegionMesh({ regionBoundaries, globeInfo }) {
+function EditRegionMesh({ globeInfo }) {
 
+  const [originalVertices, setOriginalVertices] = useState()
+  const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
   const editState = useSelector((state) => state.editPoiReducer)
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
@@ -774,13 +776,12 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
 
 
   useEffect(() => {
-    let thing = editState.regionBoundaries[0]
     // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", regionMesh: regionMeshRef.current, regionLines: regionLinesRef, regionBoundaries: regionBoundaries })
 
     if (regionMeshRef.current == null ||
       regionLinesRef.current == null ||
-      regionBoundaries == null ||
-      regionBoundaries.length < 3) {
+      editState.regionBoundaries == null ||
+      editState.regionBoundaries.length < 3) {
       console.log({
         msg: "need at least 3 points to make a triangle",
         regionMeshRef: regionMeshRef.current,
@@ -789,9 +790,10 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
       })
       return
     }
-    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionBoundaries[0]", x: thing.x, y: thing.y, z: thing.z })
+    // let thing = editState.regionBoundaries[0]
+    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionBoundaries[0]", x: thing.x, y: thing.y, z: thing.z })
 
-    let result = GenerateRegionVertices(regionBoundaries, globeInfo)
+    let result = GenerateRegionVertices(editState.regionBoundaries, globeInfo)
 
     // console.log({ "vertices sum": result.vertices.reduce((a, b) => a + b, 0) })
 
@@ -799,11 +801,35 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
     // console.log({ meshIndices: result.regionMeshIndicesArr })
     // console.log({ lineIndices: result.regionLineIndicesArr })
 
+    // if (!originalVertices) {
+    //   setOriginalVertices(result.vertices)
+    // }
+    // else {
+    //   let same = _.isEqual(originalVertices, result.vertices)
+    //   console.log({ same: same })
+    // }
+
+    if (!originalRegionBoundaries) {
+      setOriginalRegionBoundaries(editState.regionBoundaries)
+    }
+    else {
+      console.log({ originalX: originalRegionBoundaries[0].x, newX: editState.regionBoundaries[0].x })
+    }
+
     // Set the geometry.
     let valuesPerVertex = 3
     let valuesPerIndex = 1
 
     // Mesh vertices
+    // if (regionMeshRef.current.geometry?.position?.array) {
+    //   // for (let i = 0; i < regionMeshRef.current.geometry.position.array.length; i++) {
+    //   //   regionMeshRef.current.geometry.position.array[i] += 0.001
+    //   // }
+    //   regionMeshRef.current.position.x += 0.01
+    //   regionMeshRef.current.position.y += 0.01
+    //   regionMeshRef.current.position.z += 0.01
+    //   regionMeshRef.current.geometry.attributes.position.needsUpdate = true
+    // }
     let meshPosAttribute = new THREE.Float32BufferAttribute(result.vertices, valuesPerVertex)
     regionMeshRef.current.geometry.setAttribute("position", meshPosAttribute)
     let meshIndicesAttribute = new THREE.Uint32BufferAttribute(result.regionMeshIndicesArr, valuesPerIndex)
@@ -906,7 +932,7 @@ export function EditRegion({ }) {
         )
 
         setRegionMeshReactElements(
-          <RegionMesh key={uuid()} regionBoundaries={newRegionBoundaries} globeInfo={globeInfo} />
+          <EditRegionMesh key={uuid()} globeInfo={globeInfo} />
         )
         // let thing = createRegionMesh(regionBoundaries, globeInfo)
 
