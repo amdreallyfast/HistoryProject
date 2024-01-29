@@ -82,6 +82,16 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
+    disableMouseClick: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_disableMouseClick", value: action.payload })
+
+      return {
+        ...state,
+        mouseClickedCurrPos: false
+      }
+    },
+
+
   }
 })
 

@@ -1,5 +1,5 @@
-import { useRef, useState } from "react"
-import { useDispatch } from "react-redux"
+import { useEffect, useRef, useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
@@ -9,6 +9,7 @@ export function GlobeSectionMain() {
   // Toggle with CTRL key.
   const [cameraRotateEnabled, setCameraRotateEnabled] = useState(true)
   const [cameraPanEnabled, setCameraPanEnabled] = useState(true)
+  const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
 
   const mouseInfoRef = useRef({
@@ -133,6 +134,17 @@ export function GlobeSectionMain() {
       })
     )
   }
+
+  // useEffect(() => {
+  //   console.log({ msg: "GlobeSectionMain()/useEffect()/mouseState.mouseClickedCurrPos", value: mouseState.mouseClickedCurrPos })
+  //   // Only allow it to be on for one frame. If it's on, turn it off. Anyone that needed it 
+  //   // should be reacting to it about now.
+  //   if (mouseState.mouseClickedCurrPos) {
+  //     reduxDispatch(
+  //       mouseStateActions.disableMouseClick()
+  //     )
+  //   }
+  // }, [mouseState.mouseClickedCurrPos])
 
   function onCanvasKeyDown(e) {
     // console.log({ "onCanvasKeyDown": e })

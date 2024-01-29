@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { v4 as uuid } from "uuid";
 import { ConvertXYZToLatLong } from "../GlobeSection/convertLatLongXYZ";
+import _ from "lodash";
 
 const initialState = {
   // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
@@ -25,8 +26,8 @@ const initialState = {
   noRegion: false,
   regionBoundaries: [],
   regionBoundariesPinMeshCount: 0,
-  // selectedPinId: null,
-  selectedRegionBoundary: null,
+  selectedPinId: null,
+  // selectedRegionBoundary: null,
 
   // For use during clicking and dragging a single point or the entire region.
   // Format:
@@ -115,6 +116,9 @@ export const stateSliceEditPoi = createSlice({
     setRegionBoundaries: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
 
+      // let same = _.isEqual(state.regionBoundaries, action.payload)
+      // console.log({ same: same })
+
       return {
         ...state,
         regionBoundaries: action.payload
@@ -133,18 +137,18 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
 
-      let selectedRegionBoundary = state.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == action.payload.whereId)
+      // let selectedRegionBoundary = state.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == action.payload.whereId)
       return {
         ...state,
         clickAndDragEnabled: true,
-        // selectedPinId: action.payload.pinId,
-        selectedRegionBoundary: selectedRegionBoundary,
+        selectedPinId: action.payload.pinId,
+        // selectedRegionBoundary: selectedRegionBoundary,
         clickAndDragGlobePos: {
           x: action.payload.startLocation.x,
-          x: action.payload.startLocation.y,
-          x: action.payload.startLocation.z,
+          y: action.payload.startLocation.y,
+          z: action.payload.startLocation.z,
         },
         clickAndDragMeshOffset: action.payload.meshOffset
       }
@@ -156,8 +160,8 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         clickAndDragEnabled: false,
-        // selectedPinId: null,
-        selectedRegionBoundary: null,
+        selectedPinId: null,
+        // selectedRegionBoundary: null,
         clickAndDragGlobePos: null
       }
     },

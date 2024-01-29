@@ -774,7 +774,9 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
 
 
   useEffect(() => {
-    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", value: regionMeshRef.current })
+    let thing = editState.regionBoundaries[0]
+    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", regionMesh: regionMeshRef.current, regionLines: regionLinesRef, regionBoundaries: regionBoundaries })
+
     if (regionMeshRef.current == null ||
       regionLinesRef.current == null ||
       regionBoundaries == null ||
@@ -787,10 +789,11 @@ function RegionMesh({ regionBoundaries, globeInfo }) {
       })
       return
     }
+    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionBoundaries[0]", x: thing.x, y: thing.y, z: thing.z })
 
     let result = GenerateRegionVertices(regionBoundaries, globeInfo)
 
-    console.log({ "vertices sum": result.vertices.reduce((a, b) => a + b, 0) })
+    // console.log({ "vertices sum": result.vertices.reduce((a, b) => a + b, 0) })
 
     // console.log({ vertices: result.vertices })
     // console.log({ meshIndices: result.regionMeshIndicesArr })
