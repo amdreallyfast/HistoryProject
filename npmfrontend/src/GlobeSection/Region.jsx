@@ -596,6 +596,10 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
 
 
 function GenerateRegionVertices(regionBoundaries, globeInfo) {
+
+  //??why does it crash when a point leapfrogs another? is there a "nan" problem in the cross product when the angle gets too small??
+
+
   let regionRadiusSq = globeInfo.radiusToRegionMesh * globeInfo.radiusToRegionMesh
   let vertices = []
   let points = []
@@ -617,26 +621,35 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
   const triangleContainsPoint = (p1, p2, p3, point) => {
     // console.log({ p1: p1, p2: p2, p3: p3, point: point })
 
-    // theta 1: angle between p1p2 and p1p3
-    // theta 1 point: angle between p1p2 and p1point
-    let p1p2 = (new THREE.Vector3()).subVectors(p2.vec3, p1.vec3).normalize()
-    let p1p3 = (new THREE.Vector3()).subVectors(p3.vec3, p1.vec3).normalize()
-    let p1point = (new THREE.Vector3()).subVectors(point.vec3, p1.vec3).normalize()
+    // Check if the vector p1Point is between the vectors p1p2 and p1p3.
+    let v1 = (new THREE.Vector3()).subVectors(p2.vec3, p1.vec3).normalize()
+    let v2 = (new THREE.Vector3()).subVectors(p3.vec3, p1.vec3).normalize()
+    let vPoint = (new THREE.Vector3()).subVectors(point.vec3, p1.vec3).normalize()
+    let theta = v1.dot(v2)
+    let thetaPoint = v1.dot(vPoint)
+    if (thetaPoint > theta) {
+      return false
+    }
 
-    let theta1 = p1p2.dot(p1p3)
-    let theta1Point = p1p2.dot(p1point)
+    // Check if the vector p2Point is between the vectors p2p1 and p2p3.
+    v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3).normalize()
+    v2 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3).normalize()
+    vPoint = (new THREE.Vector3()).subVectors(point.vec3, p2.vec3).normalize()
+    theta = v1.dot(v2)
+    thetaPoint = v1.dot(vPoint)
+    if (thetaPoint > theta) {
+      return false
+    }
 
-    // console.log({ theta1: theta1, theta1Point: theta1Point, greater: theta1 > theta1Point })
-
-
-    // // angle between p1p2 and p1p3 is greater than between p1p2 and p1point
-
-    // let dotP1P2 = p1.normal.dot(p2.normal)
-
-    // // p2, p3
-    // let dotP1P3 = 
-
-    // // p2, p3
+    // Check if the vector p3Point is between the vectors p3p1 and p3p2.
+    v1 = (new THREE.Vector3()).subVectors(p1.vec3, p3.vec3).normalize()
+    v2 = (new THREE.Vector3()).subVectors(p2.vec3, p3.vec3).normalize()
+    vPoint = (new THREE.Vector3()).subVectors(point.vec3, p3.vec3).normalize()
+    theta = v1.dot(v2)
+    thetaPoint = v1.dot(vPoint)
+    if (thetaPoint > theta) {
+      return false
+    }
 
     return true
   }
@@ -649,32 +662,38 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
   let crossProductMarkingIndices = []
   // console.log({ "starting points": points })
 
+
+  // TODO: use dictionary to eliminate line duplicates
+  // lineIndices = {}
+  // lineIndices[`{index1}${index2}`] = true
+  // lineIndices[`{index1}${index2}`] = true
+
+
+
+
   while (points.length > 0) {
     let index1 = startIndex
     let index2 = startIndex + 1
     let index3 = startIndex + 2
 
-    if (index3 >= points.length) {
-      throw new Error("how did you end up with all of the remaining triangles containing another point?")
+    if (index1 >= points.length) {
+      throw new Error("how the starting index end up wrapping all the way around?")
+    }
+    else if (index2 == points.length) {
+      // Wrap around 
+      // Ex: Indices 5,0,1. 
+      index2 = 0
+      index3 = 1
+    }
+    else if (index3 == points.length) {
+      // Wrap around
+      // Ex: Indices 4,5,0
+      index3 = 0
     }
 
     let p1 = points[index1]
     let p2 = points[index2]
     let p3 = points[index3]
-
-    // console.log({ index1: index1, index2: index2, index3: index3 })
-    // console.log({ p1: p1, p2: p2, p3: p3 })
-
-    // console.log({ msg: "potential triangle", v1: p1, v2: p2, v3: p3 })
-
-    // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
-    //  <180deg when viewed from above (cross product points into space)
-    //  or
-    //  >180deg when viewed from above (cross product points into the earth)
-    let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
-    let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
-    let cross = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
-    let crossPoint = (new THREE.Vector3()).addVectors(p2.vec3, cross)
 
     // Note: Vertices already in an array. Just need the indices.
     const makeTriangle = (p1, p2, p3) => {
@@ -696,63 +715,71 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
       regionLineIndicesArr.push(p3.index)
     }
 
-    if (crossPoint.lengthSq() > regionRadiusSq) {
-      // Cross product points out from the globe => Convex. 
-      // Try to make a triangle.
-      // console.log("Convex; try to make a triangle")
+    // console.log({ index1: index1, index2: index2, index3: index3 })
+    // console.log({ p1: p1, p2: p2, p3: p3 })
 
-      if (points.length == 3) {
-        // Last triangle
-        // console.log("last triangle")
+    // console.log({ msg: "potential triangle", v1: p1, v2: p2, v3: p3 })
 
-        makeTriangle(p1, p2, p3)
+    // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
+    //  <180deg when viewed from above (cross product points into space)
+    //  or
+    //  >180deg when viewed from above (cross product points into the earth)
+    let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
+    let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
+    let crossProduct = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
+    let crossProductPoint = (new THREE.Vector3()).addVectors(p2.vec3, crossProduct)
+    let rightHandRulePointsDown = crossProductPoint.lengthSq() < regionRadiusSq
 
-        // Force it empty
-        points = []
-      }
-      else {
-        // console.log("not the last triangle; checking if triangle contains any of the remaining points")
+    // Flat = >175deg or <5deg
+    let cosAngle = v2v1.normalize().dot(v2v3.normalize())
+    let flat = cosAngle < -0.996 || cosAngle > 0.996
 
-        // Check if any of the rest of the hull points are contained in the remaining points.
-        // Note: This is a corner case scenario, but might happen.
-        let remainingPoints = points.slice(startIndex + 3, points.length)
-        let containedPoints = []
-        // remainingPoints.forEach((point, index) => {
-        //   if (triangleContainsPoint(p1, p2, p3, point)) {
-        //     // console.log({ msg: "triangle contains", point: point })
-        //     containedPoints.push(point)
-        //   }
-        // })
+    if (points.length == 3) {
+      // Last triangle
+      // console.log("last triangle")
 
-        if (containedPoints.length > 0) {
-          // Contains another vertex. Skip it.
-          // console.log("contains another vertex; skipping")
-          startIndex += 1
-        }
-        else {
-          // Convex "ear" with no contained points.
-          // console.log("Convext ear with no contained points")
+      makeTriangle(p1, p2, p3)
 
-          makeTriangle(p1, p2, p3)
-
-          // And clip off v2.
-          let beforeV2 = points.slice(0, index2)
-          let afterV2 = points.slice(index2 + 1, points.length)
-          points = beforeV2.concat(afterV2)
-          // console.log({ "new points": points })
-
-          // restart
-          startIndex = 0
-        }
-      }
-
-      // for all points, does the triangle contain them?
-      // if no points, create triangle, clip off v2
-      // if only one point is contained, create 3x triangles, clip off v2 and the contained point 
+      // Force it empty
+      points = []
+    }
+    else if (flat || rightHandRulePointsDown) {
+      // Either too flat to consider or the middle point of the triangle is not an "ear". Skip.
+      startIndex += 1
     }
     else {
-      // console.log("Not convex; skipping")
-      startIndex += 1
+      // console.log("not the last triangle; checking if triangle contains any of the remaining points")
+
+      // Check if any of the rest of the hull points are contained in the remaining points.
+      // Note: This is a corner case scenario, but might happen.
+      let remainingPoints = points.slice(startIndex + 3, points.length)
+      let containedPoints = []
+      remainingPoints.forEach((point, index) => {
+        if (triangleContainsPoint(p1, p2, p3, point)) {
+          // console.log({ msg: "triangle contains", point: point })
+          containedPoints.push(point)
+        }
+      })
+
+      if (containedPoints.length > 0) {
+        // Skip empty triangles.
+        // console.log("contains another vertex; skipping")
+        startIndex += 1
+      }
+      else {
+        // Make a traingle out of empty convex triangles.
+        // console.log("Convext ear with no contained points")
+        makeTriangle(p1, p2, p3)
+
+        // And clip off v2.
+        let beforeV2 = points.slice(0, index2)
+        let afterV2 = points.slice(index2 + 1, points.length)
+        points = beforeV2.concat(afterV2)
+        // console.log({ "new points": points })
+
+        // restart
+        startIndex = 0
+      }
     }
   }
 
