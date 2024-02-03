@@ -618,6 +618,38 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
     points.push(point)
   })
 
+  // That is, the middle vertex p2 is further out of the region than the other two.
+  const triangleIsConvex = (p1, p2, p3) => {
+    // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
+    //  <180deg when viewed from above (cross product points into space)
+    //  or
+    //  >180deg when viewed from above (cross product points into the earth)
+    let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
+    let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
+    let crossProduct = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
+    let crossProductPoint = (new THREE.Vector3()).addVectors(p2.vec3, crossProduct)
+    let rightHandRulePointsUp = crossProductPoint.lengthSq() > regionRadiusSq
+
+    return rightHandRulePointsUp
+  }
+
+  // Define "flat" = "<5deg" or ">175deg".
+  const triangleIsFlat = (p1, p2, p3) => {
+    let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
+    let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
+    let cosAngle = v2v1.normalize().dot(v2v3.normalize())
+    let flat = cosAngle < -0.996 || cosAngle > 0.996
+
+    if (p1.index == 0 && p2.index == 1 && p3.index == 2) {
+      console.log(cosAngle)
+    }
+
+    if (flat) {
+      console.log({ msg: "flat", p1: p1.index, p2: p2.index, p3: p3.index })
+    }
+    return flat
+  }
+
   const triangleContainsPoint = (p1, p2, p3, point) => {
     // console.log({ p1: p1, p2: p2, p3: p3, point: point })
 
@@ -651,7 +683,28 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
       return false
     }
 
+    // The lines from each triangle vertex to the point are all in bounds.
     return true
+  }
+
+  // Note: Vertices already in an array. Just need the indices.
+  const makeTriangle = (p1, p2, p3) => {
+    // triangle
+    regionMeshIndicesArr.push(p1.index)
+    regionMeshIndicesArr.push(p2.index)
+    regionMeshIndicesArr.push(p3.index)
+
+    // Line 1: v1 -> v2
+    regionLineIndicesArr.push(p1.index)
+    regionLineIndicesArr.push(p2.index)
+
+    // Line 2: v1 -> v3
+    regionLineIndicesArr.push(p1.index)
+    regionLineIndicesArr.push(p3.index)
+
+    // Line 3: v2 -> v3
+    regionLineIndicesArr.push(p2.index)
+    regionLineIndicesArr.push(p3.index)
   }
 
   // Note: Points appear to be counterclockwise.
@@ -660,13 +713,12 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
   let regionLineIndicesArr = []
   let crossProductMarkingVertices = []
   let crossProductMarkingIndices = []
-  // console.log({ "starting points": points })
 
 
   // TODO: use dictionary to eliminate line duplicates
   // lineIndices = {}
-  // lineIndices[`{index1}${index2}`] = true
-  // lineIndices[`{index1}${index2}`] = true
+  // lineIndices[`{index1},${index2}`] = true
+  // lineIndices[`{index1},${index2}`] = true
 
 
 
@@ -695,93 +747,46 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
     let p2 = points[index2]
     let p3 = points[index3]
 
-    // Note: Vertices already in an array. Just need the indices.
-    const makeTriangle = (p1, p2, p3) => {
-      // triangle
-      regionMeshIndicesArr.push(p1.index)
-      regionMeshIndicesArr.push(p2.index)
-      regionMeshIndicesArr.push(p3.index)
-
-      // Line 1: v1 -> v2
-      regionLineIndicesArr.push(p1.index)
-      regionLineIndicesArr.push(p2.index)
-
-      // Line 2: v1 -> v3
-      regionLineIndicesArr.push(p1.index)
-      regionLineIndicesArr.push(p3.index)
-
-      // Line 3: v2 -> v3
-      regionLineIndicesArr.push(p2.index)
-      regionLineIndicesArr.push(p3.index)
-    }
-
-    // console.log({ index1: index1, index2: index2, index3: index3 })
-    // console.log({ p1: p1, p2: p2, p3: p3 })
-
-    // console.log({ msg: "potential triangle", v1: p1, v2: p2, v3: p3 })
-
-    // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
-    //  <180deg when viewed from above (cross product points into space)
-    //  or
-    //  >180deg when viewed from above (cross product points into the earth)
-    let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
-    let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
-    let crossProduct = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
-    let crossProductPoint = (new THREE.Vector3()).addVectors(p2.vec3, crossProduct)
-    let rightHandRulePointsDown = crossProductPoint.lengthSq() < regionRadiusSq
-
-    // Flat = >175deg or <5deg
-    let cosAngle = v2v1.normalize().dot(v2v3.normalize())
-    let flat = cosAngle < -0.996 || cosAngle > 0.996
-
     if (points.length == 3) {
-      // Last triangle
-      // console.log("last triangle")
-
+      // Last possible triangle.
       makeTriangle(p1, p2, p3)
-
-      // Force it empty
       points = []
     }
-    else if (flat || rightHandRulePointsDown) {
+    else if (triangleIsFlat(p1, p2, p3) || !triangleIsConvex(p1, p2, p3)) {
       // Either too flat to consider or the middle point of the triangle is not an "ear". Skip.
       startIndex += 1
     }
     else {
-      // console.log("not the last triangle; checking if triangle contains any of the remaining points")
-
       // Check if any of the rest of the hull points are contained in the remaining points.
       // Note: This is a corner case scenario, but might happen.
       let remainingPoints = points.slice(startIndex + 3, points.length)
       let containedPoints = []
       remainingPoints.forEach((point, index) => {
         if (triangleContainsPoint(p1, p2, p3, point)) {
-          // console.log({ msg: "triangle contains", point: point })
           containedPoints.push(point)
         }
       })
 
       if (containedPoints.length > 0) {
         // Skip empty triangles.
-        // console.log("contains another vertex; skipping")
         startIndex += 1
       }
       else {
         // Make a traingle out of empty convex triangles.
-        // console.log("Convext ear with no contained points")
         makeTriangle(p1, p2, p3)
 
         // And clip off v2.
         let beforeV2 = points.slice(0, index2)
         let afterV2 = points.slice(index2 + 1, points.length)
         points = beforeV2.concat(afterV2)
-        // console.log({ "new points": points })
 
-        // restart
+        // Restart loop.
         startIndex = 0
       }
     }
   }
+
+  // console.log({ meshIndices: regionMeshIndicesArr, lineIndices: regionLineIndicesArr })
 
   return {
     vertices: vertices,
@@ -822,25 +827,8 @@ function EditRegionMesh({ globeInfo }) {
 
     let result = GenerateRegionVertices(editState.regionBoundaries, globeInfo)
 
-    // console.log({ "vertices sum": result.vertices.reduce((a, b) => a + b, 0) })
-
-    // console.log({ vertices: result.vertices })
-    // console.log({ meshIndices: result.regionMeshIndicesArr })
-    // console.log({ lineIndices: result.regionLineIndicesArr })
-
-    // if (!originalVertices) {
-    //   setOriginalVertices(result.vertices)
-    // }
-    // else {
-    //   let same = _.isEqual(originalVertices, result.vertices)
-    //   console.log({ same: same })
-    // }
-
     if (!originalRegionBoundaries) {
       setOriginalRegionBoundaries(editState.regionBoundaries)
-    }
-    else {
-      console.log({ originalX: originalRegionBoundaries[0].x, newX: editState.regionBoundaries[0].x })
     }
 
     // Set the geometry.
