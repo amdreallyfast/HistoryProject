@@ -595,13 +595,20 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
 }
 
 
-function GenerateRegionVertices(regionBoundaries, globeInfo) {
-
-  //??why does it crash when a point leapfrogs another? is there a "nan" problem in the cross product when the angle gets too small??
-
-
-  let regionRadiusSq = globeInfo.radiusToRegionMesh * globeInfo.radiusToRegionMesh
+function GenerateRegionGeometry(regionBoundaries, globeInfo) {
+  // A plain array of [x1, y1, z1, x2, y2, z2...]
+  // Note: This is fixed based on the region boundaries. The indices make the triangles from this.
   let vertices = []
+
+  // Defines triangles based on the vertices.
+  let regionGeometryIndicesArr = []
+
+  // Use a dictionary key's uniqueness to eliminate duplicate lines from adjacent triangles.
+  // Note: The dictionary key pairs are themselves paired like "a,b"/"b,a" in order to catch all 
+  // variations on the same line. OpenGL does not require lines to be displayed clockwise or 
+  // countclockwise, so just one pair of indices is good.
+  let lineIndicesDict = {}
+
   let points = []
   regionBoundaries.forEach((boundaryMarker, index) => {
     // Move the point out from the globe a tad so that it sits on the surface.
@@ -611,7 +618,7 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
     let point = {
       values: [vRescaled.x, vRescaled.y, vRescaled.z],
       vec3: vRescaled,
-      normal: vNormal,
+      // normal: vNormal,
       index: index
     }
     vertices.push(...point.values)
@@ -628,7 +635,8 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
     let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
     let crossProduct = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
     let crossProductPoint = (new THREE.Vector3()).addVectors(p2.vec3, crossProduct)
-    let rightHandRulePointsUp = crossProductPoint.lengthSq() > regionRadiusSq
+    let regionMeshRadiusSq = globeInfo.radiusToRegionMesh * globeInfo.radiusToRegionMesh
+    let rightHandRulePointsUp = crossProductPoint.lengthSq() > regionMeshRadiusSq
 
     return rightHandRulePointsUp
   }
@@ -640,13 +648,13 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
     let cosAngle = v2v1.normalize().dot(v2v3.normalize())
     let flat = cosAngle < -0.985 || cosAngle > 0.985
 
-    if (p1.index == 0 && p2.index == 1 && p3.index == 2) {
-      console.log(cosAngle)
-    }
+    // if (p1.index == 0 && p2.index == 1 && p3.index == 2) {
+    //   console.log(cosAngle)
+    // }
 
-    if (flat) {
-      console.log({ msg: "flat", p1: p1.index, p2: p2.index, p3: p3.index })
-    }
+    // if (flat) {
+    //   console.log({ msg: "flat", p1: p1.index, p2: p2.index, p3: p3.index })
+    // }
     return flat
   }
 
@@ -690,39 +698,25 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
   // Note: Vertices already in an array. Just need the indices.
   const makeTriangle = (p1, p2, p3) => {
     // triangle
-    regionMeshIndicesArr.push(p1.index)
-    regionMeshIndicesArr.push(p2.index)
-    regionMeshIndicesArr.push(p3.index)
+    regionGeometryIndicesArr.push(p1.index)
+    regionGeometryIndicesArr.push(p2.index)
+    regionGeometryIndicesArr.push(p3.index)
 
     // Line 1: v1 -> v2
-    regionLineIndicesArr.push(p1.index)
-    regionLineIndicesArr.push(p2.index)
+    lineIndicesDict[`${p1.index},${p2.index}`] = true
+    lineIndicesDict[`${p2.index},${p1.index}`] = true
 
     // Line 2: v1 -> v3
-    regionLineIndicesArr.push(p1.index)
-    regionLineIndicesArr.push(p3.index)
+    lineIndicesDict[`${p1.index},${p3.index}`] = true
+    lineIndicesDict[`${p3.index},${p1.index}`] = true
 
     // Line 3: v2 -> v3
-    regionLineIndicesArr.push(p2.index)
-    regionLineIndicesArr.push(p3.index)
+    lineIndicesDict[`${p2.index},${p3.index}`] = true
+    lineIndicesDict[`${p3.index},${p2.index}`] = true
   }
 
   // Note: Points appear to be counterclockwise.
   let startIndex = 0
-  let regionMeshIndicesArr = []
-  let regionLineIndicesArr = []
-  let crossProductMarkingVertices = []
-  let crossProductMarkingIndices = []
-
-
-  // TODO: use dictionary to eliminate line duplicates
-  // lineIndices = {}
-  // lineIndices[`{index1},${index2}`] = true
-  // lineIndices[`{index1},${index2}`] = true
-
-
-
-
   while (points.length > 0) {
     let index1 = startIndex
     let index2 = startIndex + 1
@@ -786,11 +780,18 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
     }
   }
 
-  // console.log({ meshIndices: regionMeshIndicesArr, lineIndices: regionLineIndicesArr })
+  // Extract the unique line indices from the dictionary.
+  let regionLineIndicesArr = []
+  const indexPairsStrArr = Object.keys(lineIndicesDict)
+  for (let i = 0; i < indexPairsStrArr.length; i += 2) {
+    let indexPairs = indexPairsStrArr[i].split(",")
+    regionLineIndicesArr.push(indexPairs[0])
+    regionLineIndicesArr.push(indexPairs[1])
+  }
 
   return {
     vertices: vertices,
-    regionMeshIndicesArr: regionMeshIndicesArr,
+    regionMeshIndicesArr: regionGeometryIndicesArr,
     regionLineIndicesArr, regionLineIndicesArr
   }
 }
@@ -798,76 +799,46 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
 // Triangulate by ear-clipping.
 // Note: Points must be counter-clockwise.
 function EditRegionMesh({ globeInfo }) {
-
-  const [originalVertices, setOriginalVertices] = useState()
   const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
   const editState = useSelector((state) => state.editPoiReducer)
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
-  // let crossProductEndpointMeshRef = useRef()
-
 
   useEffect(() => {
     // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", regionMesh: regionMeshRef.current, regionLines: regionLinesRef, regionBoundaries: regionBoundaries })
 
-    if (regionMeshRef.current == null ||
-      regionLinesRef.current == null ||
-      editState.regionBoundaries == null ||
-      editState.regionBoundaries.length < 3) {
-      console.log({
-        msg: "need at least 3 points to make a triangle",
-        regionMeshRef: regionMeshRef.current,
-        regionLinesRef: regionLinesRef.current,
-        regionBoundaries: regionBoundaries
-      })
+    // Need at least 3 points for a triangle (and the meshes to exist and all that).
+    let nothingToDo = regionMeshRef.current == null || regionLinesRef.current == null || editState.regionBoundaries == null || editState.regionBoundaries.length < 3
+    if (nothingToDo) {
       return
     }
-    // let thing = editState.regionBoundaries[0]
-    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionBoundaries[0]", x: thing.x, y: thing.y, z: thing.z })
-
-    let result = GenerateRegionVertices(editState.regionBoundaries, globeInfo)
 
     if (!originalRegionBoundaries) {
       setOriginalRegionBoundaries(editState.regionBoundaries)
     }
 
-    // Set the geometry.
+    let geometry = GenerateRegionGeometry(editState.regionBoundaries, globeInfo)
+
+    // Assign the geometry to the mesh.
     let valuesPerVertex = 3
     let valuesPerIndex = 1
 
-    // Mesh vertices
-    // if (regionMeshRef.current.geometry?.position?.array) {
-    //   // for (let i = 0; i < regionMeshRef.current.geometry.position.array.length; i++) {
-    //   //   regionMeshRef.current.geometry.position.array[i] += 0.001
-    //   // }
-    //   regionMeshRef.current.position.x += 0.01
-    //   regionMeshRef.current.position.y += 0.01
-    //   regionMeshRef.current.position.z += 0.01
-    //   regionMeshRef.current.geometry.attributes.position.needsUpdate = true
-    // }
-    let meshPosAttribute = new THREE.Float32BufferAttribute(result.vertices, valuesPerVertex)
-    regionMeshRef.current.geometry.setAttribute("position", meshPosAttribute)
-    let meshIndicesAttribute = new THREE.Uint32BufferAttribute(result.regionMeshIndicesArr, valuesPerIndex)
-    regionMeshRef.current.geometry.setIndex(meshIndicesAttribute)
+    // Region mesh
+    regionMeshRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
+    regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionMeshIndicesArr, valuesPerIndex))
     regionMeshRef.current.geometry.attributes.position.needsUpdate = true
 
     // Line
-    // Note: Re-use the mesh vertices. It's the same ones.
-    regionLinesRef.current.geometry.setAttribute("position", meshPosAttribute)
+    // Note: Re-use the mesh vertices. Same vertices, different indices.
+    regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
+    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
-
-    // Line indices
-    let lineIndicesAttribute = new THREE.Uint32BufferAttribute(result.regionLineIndicesArr, valuesPerIndex)
-    regionLinesRef.current.geometry.setIndex(lineIndicesAttribute)
-
-    // console.log("needs update")
   }, [regionMeshRef.current, regionLinesRef.current, editState.regionBoundaries])
 
   return (
     <>
       <mesh ref={regionMeshRef} name="RegionMesh">
-        {/* <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} /> */}
-        <meshBasicMaterial color={0x000ff0} wireframe={false} />
+        <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} />
       </mesh>
 
       <line ref={regionLinesRef} name="RegionLines" width={4}>
