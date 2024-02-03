@@ -633,12 +633,12 @@ function GenerateRegionVertices(regionBoundaries, globeInfo) {
     return rightHandRulePointsUp
   }
 
-  // Define "flat" = "<5deg" or ">175deg".
+  // Define "flat" = "<10deg" or ">170deg".
   const triangleIsFlat = (p1, p2, p3) => {
     let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
     let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
     let cosAngle = v2v1.normalize().dot(v2v3.normalize())
-    let flat = cosAngle < -0.996 || cosAngle > 0.996
+    let flat = cosAngle < -0.985 || cosAngle > 0.985
 
     if (p1.index == 0 && p2.index == 1 && p3.index == 2) {
       console.log(cosAngle)
