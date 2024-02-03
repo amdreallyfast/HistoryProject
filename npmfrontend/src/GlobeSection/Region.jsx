@@ -496,7 +496,7 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
 
   return (
     <>
-      <PinMesh name={meshNames.WherePin} where={where} lookAt={globeInfo.pos} />
+      <PinMesh name={meshNames.PoiPrimaryLocationPin} where={where} lookAt={globeInfo.pos} />
     </>
   )
 
@@ -883,36 +883,39 @@ export function EditRegion({ }) {
   const editState = useSelector((state) => state.editPoiReducer)
 
   const [firstTime, setFirstTime] = useState()
-  const [preciseLocationPinReactElement, setPreciseLocationPinReactElement] = useState()
+  const [primaryLocationPinReactElement, setPrimaryLocationPinReactElement] = useState()
   const [regionPinReactElements, setRegionPinReactElements] = useState()
   const [regionMeshReactElements, setRegionMeshReactElements] = useState()
   const reduxDispatch = useDispatch()
 
   // "Where" changes
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocation", where: editState.preciseLocation })
+    // console.log({ msg: "EditRegion()/useEffect()/editState.primaryLocation", where: editState.primaryLocation })
     if (!editState.editModeOn) {
       return
     }
 
-    if (editState.preciseLocation) {
+    if (!editState.primaryLocation) {
+      setPrimaryLocationPinReactElement(null)
+    }
+    else {
       let reactElement = (
         <PinMesh
           key={uuid()} // React requires unique IDs for all elements
           poiId={editState.poiId}
-          name={meshNames.WherePin}
-          where={editState.preciseLocation}
+          name={meshNames.PoiPrimaryLocationPin}
+          where={editState.primaryLocation}
           colorHex={pinMeshInfo.mainPinColor}
           length={pinMeshInfo.length}
           scale={pinMeshInfo.mainPinScale}
           lookAt={globeInfo.pos} />
       )
-      setPreciseLocationPinReactElement(reactElement)
+      setPrimaryLocationPinReactElement(reactElement)
 
       // Check if this is a new POI. If so, then create a new region.
       if (editState.regionBoundaries.length == 0 && !editState.noRegion) {
         // Create new region.
-        let newRegionBoundaries = createDefaultRegionBoundaries(editState.preciseLocation, globeInfo)
+        let newRegionBoundaries = createDefaultRegionBoundaries(editState.primaryLocation, globeInfo)
         reduxDispatch(
           editStateActions.setRegionBoundaries(newRegionBoundaries)
         )
@@ -920,26 +923,20 @@ export function EditRegion({ }) {
         setRegionMeshReactElements(
           <EditRegionMesh key={uuid()} globeInfo={globeInfo} />
         )
-        // let thing = createRegionMesh(regionBoundaries, globeInfo)
-
-
       }
     }
-    else {
-      setPreciseLocationPinReactElement(null)
-    }
-  }, [editState.preciseLocation])
+  }, [editState.primaryLocation])
 
   // Wait until after ThreeJs is done integrating the mesh into the scene before flagging to re-
   // find the interactable meshes.
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.preciseLocationPinReactElement", where: preciseLocationPinReactElement })
+    // console.log({ msg: "EditRegion()/useEffect()/primaryLocationPinReactElement", where: primaryLocationPinReactElement })
 
     reduxDispatch(
-      editStateActions.setPreciseLocationPinMeshExists(preciseLocationPinReactElement == null)
+      editStateActions.setPrimaryLocationPinMeshExists(primaryLocationPinReactElement == null)
     )
 
-  }, [preciseLocationPinReactElement])
+  }, [primaryLocationPinReactElement])
 
   // Create region pins when the number of region boundary points change.
   useEffect(() => {
@@ -961,18 +958,9 @@ export function EditRegion({ }) {
     setRegionPinReactElements(reactElements)
   }, [editState.regionBoundaries])
 
-  // Flag to re-find interactable elements after the mesh is done being created.
-  useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.regionPinReactElements", where: editState.regionPinReactElements })
-
-    reduxDispatch(
-      editStateActions.setRegionBoundariesPinMeshCount(regionPinReactElements == null ? 0 : regionPinReactElements.length)
-    )
-  }, [regionPinReactElements])
-
   return (
     <>
-      {preciseLocationPinReactElement}
+      {primaryLocationPinReactElement}
       {regionPinReactElements}
       {regionMeshReactElements}
     </>

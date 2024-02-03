@@ -20,13 +20,12 @@ export const pinMeshInfo = {
 export const meshNames = {
   Stars: "Stars",
 
-  //??used??
-  PoiPin: "PoiPin",
+  // Major pin
+  PoiPrimaryLocationPin: "PoiPrimaryLocationPin",
 
-  // identifies primary POI location
-  WherePin: "WherePin",
-
-  // in edit mode, the user-defined region boundary points become interactable meshes
+  // Minor pin
+  // Note: Only visible in edit mode. These user-defined region boundary points are interactable 
+  // meshes
   RegionBoundaryPin: "RegionBoundaryPin",
 
   // region mesh

@@ -21,13 +21,11 @@ const initialState = {
   //     z
   //   }
   // )
-  preciseLocation: null,
-  preciseLocationPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
+  primaryLocation: null,
+  primaryLocationPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
   noRegion: false,
   regionBoundaries: [],
-  regionBoundariesPinMeshCount: 0,
   selectedPinId: null,
-  // selectedRegionBoundary: null,
 
   // For use during clicking and dragging a single point or the entire region.
   // Format:
@@ -41,7 +39,6 @@ const initialState = {
   clickAndDragEnabled: false,
   clickAndDragMeshOffset: null,  // [x, y, z] // TODO: delete
   clickAndDragGlobePos: null,
-  tentativeRegion: [],  // TODO: delete
   thing: null,
 
   // Using an ever-increasing count is safer than trying to manage where to deactivate an on-off 
@@ -77,12 +74,12 @@ export const stateSliceEditPoi = createSlice({
       return initialState
     },
 
-    setPreciseLocation: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setPreciseLocation", payload: action.payload })
+    setPrimaryLocation: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_setPrimaryLocation", payload: action.payload })
 
       return {
         ...state,
-        preciseLocation: {
+        primaryLocation: {
           id: action.payload.id,
           lat: action.payload.lat,
           long: action.payload.long,
@@ -93,14 +90,12 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    // TODO: deletePreciseLocation
-
-    setPreciseLocationPinMeshExists: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setPreciseLocationPinMeshExists", payload: action.payload })
+    setPrimaryLocationPinMeshExists: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_setPrimaryLocationPinMeshExists", payload: action.payload })
 
       return {
         ...state,
-        preciseLocationPinMeshExists: action.payload
+        primaryLocationPinMeshExists: action.payload
       }
     },
 
@@ -116,35 +111,19 @@ export const stateSliceEditPoi = createSlice({
     setRegionBoundaries: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
 
-      // let same = _.isEqual(state.regionBoundaries, action.payload)
-      // console.log({ same: same })
-
       return {
         ...state,
         regionBoundaries: action.payload
       }
     },
 
-    // TODO: deleteRegionBoundaries
-
-    setRegionBoundariesPinMeshCount: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setRegionBoundariesPinMeshCount", payload: action.payload })
-
-      return {
-        ...state,
-        regionBoundariesPinMeshCount: action.payload
-      }
-    },
-
     enableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
 
-      // let selectedRegionBoundary = state.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == action.payload.whereId)
       return {
         ...state,
         clickAndDragEnabled: true,
         selectedPinId: action.payload.pinId,
-        // selectedRegionBoundary: selectedRegionBoundary,
         clickAndDragGlobePos: {
           x: action.payload.startLocation.x,
           y: action.payload.startLocation.y,
@@ -161,7 +140,6 @@ export const stateSliceEditPoi = createSlice({
         ...state,
         clickAndDragEnabled: false,
         selectedPinId: null,
-        // selectedRegionBoundary: null,
         clickAndDragGlobePos: null
       }
     },
