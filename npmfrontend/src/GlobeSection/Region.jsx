@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
-import { globeInfo, groupNames, meshNames, pinMeshInfo } from "./constValues"
+import { globeInfo, groupNames, meshNames, pinMeshInfo, regionInfo } from "./constValues"
 import { PinMesh } from "./PinMesh"
 // import Delaunator from "delaunator"
 import * as d3Geo from "d3-geo-voronoi"
@@ -63,7 +63,7 @@ const interpolateArcFromLatLong = (startLat, startLong, endLat, endLong, maxArcS
 }
 
 const interpolateAcrossTriangleFlat = (p1, p2, p3, distBetweenPoints) => {
-  distBetweenPoints = 0.3
+  // distBetweenPoints = 0.3
   let interpolatedVectorPoints = []
 
   // console.log("start-------------------------")
@@ -598,7 +598,7 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
 function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   // A plain array of [x1, y1, z1, x2, y2, z2...]
   // Note: This is fixed based on the region boundaries. The indices make the triangles from this.
-  let vertices = []
+  let vertices = [] // TODO: delete
 
   // Defines triangles based on the vertices.
   let regionGeometryIndicesArr = []
@@ -609,12 +609,15 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   // countclockwise, so just one pair of indices is good.
   let lineIndicesDict = {}
 
-  let points = []
+  let boundaryMarkerPointsDisposable = []
+  let boundaryMarkerPoints = []
+
   regionBoundaries.forEach((boundaryMarker, index) => {
     // Move the point out from the globe a tad so that it sits on the surface.
     let v = new THREE.Vector3(boundaryMarker.x, boundaryMarker.y, boundaryMarker.z)
     let vNormal = v.clone().normalize()
-    let vRescaled = vNormal.clone().multiplyScalar(globeInfo.radiusToRegionMesh)
+    // let vRescaled = vNormal.clone().multiplyScalar(globeInfo.radiusToRegionMesh)
+    let vRescaled = vNormal.clone().multiplyScalar(globeInfo.radius)
     let point = {
       values: [vRescaled.x, vRescaled.y, vRescaled.z],
       vec3: vRescaled,
@@ -622,7 +625,8 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
       index: index
     }
     vertices.push(...point.values)
-    points.push(point)
+    boundaryMarkerPointsDisposable.push(point)
+    boundaryMarkerPoints.push(point)
   })
 
   // That is, the middle vertex p2 is further out of the region than the other two.
@@ -631,10 +635,10 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     //  <180deg when viewed from above (cross product points into space)
     //  or
     //  >180deg when viewed from above (cross product points into the earth)
-    let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
-    let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
+    let v2v1 = (new THREE.Vector3()).subVectors(p1, p2)
+    let v2v3 = (new THREE.Vector3()).subVectors(p3, p2)
     let crossProduct = (new THREE.Vector3()).crossVectors(v2v3, v2v1)
-    let crossProductPoint = (new THREE.Vector3()).addVectors(p2.vec3, crossProduct)
+    let crossProductPoint = (new THREE.Vector3()).addVectors(p2, crossProduct)
     let regionMeshRadiusSq = globeInfo.radiusToRegionMesh * globeInfo.radiusToRegionMesh
     let rightHandRulePointsUp = crossProductPoint.lengthSq() > regionMeshRadiusSq
 
@@ -643,8 +647,8 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
 
   // Define "flat" = "<10deg" or ">170deg".
   const triangleIsFlat = (p1, p2, p3) => {
-    let v2v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3)
-    let v2v3 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3)
+    let v2v1 = (new THREE.Vector3()).subVectors(p1, p2)
+    let v2v3 = (new THREE.Vector3()).subVectors(p3, p2)
     let cosAngle = v2v1.normalize().dot(v2v3.normalize())
     let flat = cosAngle < -0.985 || cosAngle > 0.985
 
@@ -662,9 +666,9 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     // console.log({ p1: p1, p2: p2, p3: p3, point: point })
 
     // Check if the vector p1Point is between the vectors p1p2 and p1p3.
-    let v1 = (new THREE.Vector3()).subVectors(p2.vec3, p1.vec3).normalize()
-    let v2 = (new THREE.Vector3()).subVectors(p3.vec3, p1.vec3).normalize()
-    let vPoint = (new THREE.Vector3()).subVectors(point.vec3, p1.vec3).normalize()
+    let v1 = (new THREE.Vector3()).subVectors(p2, p1).normalize()
+    let v2 = (new THREE.Vector3()).subVectors(p3, p1).normalize()
+    let vPoint = (new THREE.Vector3()).subVectors(point, p1).normalize()
     let theta = v1.dot(v2)
     let thetaPoint = v1.dot(vPoint)
     if (thetaPoint > theta) {
@@ -672,9 +676,9 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     }
 
     // Check if the vector p2Point is between the vectors p2p1 and p2p3.
-    v1 = (new THREE.Vector3()).subVectors(p1.vec3, p2.vec3).normalize()
-    v2 = (new THREE.Vector3()).subVectors(p3.vec3, p2.vec3).normalize()
-    vPoint = (new THREE.Vector3()).subVectors(point.vec3, p2.vec3).normalize()
+    v1 = (new THREE.Vector3()).subVectors(p1, p2).normalize()
+    v2 = (new THREE.Vector3()).subVectors(p3, p2).normalize()
+    vPoint = (new THREE.Vector3()).subVectors(point, p2).normalize()
     theta = v1.dot(v2)
     thetaPoint = v1.dot(vPoint)
     if (thetaPoint > theta) {
@@ -682,9 +686,9 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     }
 
     // Check if the vector p3Point is between the vectors p3p1 and p3p2.
-    v1 = (new THREE.Vector3()).subVectors(p1.vec3, p3.vec3).normalize()
-    v2 = (new THREE.Vector3()).subVectors(p2.vec3, p3.vec3).normalize()
-    vPoint = (new THREE.Vector3()).subVectors(point.vec3, p3.vec3).normalize()
+    v1 = (new THREE.Vector3()).subVectors(p1, p3).normalize()
+    v2 = (new THREE.Vector3()).subVectors(p2, p3).normalize()
+    vPoint = (new THREE.Vector3()).subVectors(point, p3).normalize()
     theta = v1.dot(v2)
     thetaPoint = v1.dot(vPoint)
     if (thetaPoint > theta) {
@@ -715,48 +719,49 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     lineIndicesDict[`${p3.index},${p2.index}`] = true
   }
 
-  // Note: Points appear to be counterclockwise.
+  // Generate basic mesh using region boundaries and the "ear clipping" algorithm.
+  // Note: Points appear to be counterclockwise from the perspective of the default camera.
   let startIndex = 0
-  while (points.length > 0) {
+  while (boundaryMarkerPointsDisposable.length > 0) {
     let index1 = startIndex
     let index2 = startIndex + 1
     let index3 = startIndex + 2
 
-    if (index1 >= points.length) {
+    if (index1 >= boundaryMarkerPointsDisposable.length) {
       throw new Error("how the starting index end up wrapping all the way around?")
     }
-    else if (index2 == points.length) {
+    else if (index2 == boundaryMarkerPointsDisposable.length) {
       // Wrap around 
       // Ex: Indices 5,0,1. 
       index2 = 0
       index3 = 1
     }
-    else if (index3 == points.length) {
+    else if (index3 == boundaryMarkerPointsDisposable.length) {
       // Wrap around
       // Ex: Indices 4,5,0
       index3 = 0
     }
 
-    let p1 = points[index1]
-    let p2 = points[index2]
-    let p3 = points[index3]
+    let p1 = boundaryMarkerPointsDisposable[index1]
+    let p2 = boundaryMarkerPointsDisposable[index2]
+    let p3 = boundaryMarkerPointsDisposable[index3]
 
-    if (points.length == 3) {
+    if (boundaryMarkerPointsDisposable.length == 3) {
       // Last possible triangle.
       makeTriangle(p1, p2, p3)
-      points = []
+      boundaryMarkerPointsDisposable = []
     }
-    else if (triangleIsFlat(p1, p2, p3) || !triangleIsConvex(p1, p2, p3)) {
+    else if (triangleIsFlat(p1.vec3, p2.vec3, p3.vec3) || !triangleIsConvex(p1.vec3, p2.vec3, p3.vec3)) {
       // Either too flat to consider or the middle point of the triangle is not an "ear". Skip.
       startIndex += 1
     }
     else {
       // Check if any of the rest of the hull points are contained in the remaining points.
       // Note: This is a corner case scenario, but might happen.
-      let remainingPoints = points.slice(startIndex + 3, points.length)
+      let remainingPoints = boundaryMarkerPointsDisposable.slice(startIndex + 3, boundaryMarkerPointsDisposable.length)
       let containedPoints = []
       remainingPoints.forEach((point, index) => {
-        if (triangleContainsPoint(p1, p2, p3, point)) {
+        if (triangleContainsPoint(p1.vec3, p2.vec3, p3.vec3, point.vec3)) {
           containedPoints.push(point)
         }
       })
@@ -770,9 +775,9 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
         makeTriangle(p1, p2, p3)
 
         // And clip off v2.
-        let beforeV2 = points.slice(0, index2)
-        let afterV2 = points.slice(index2 + 1, points.length)
-        points = beforeV2.concat(afterV2)
+        let beforeV2 = boundaryMarkerPointsDisposable.slice(0, index2)
+        let afterV2 = boundaryMarkerPointsDisposable.slice(index2 + 1, boundaryMarkerPointsDisposable.length)
+        boundaryMarkerPointsDisposable = beforeV2.concat(afterV2)
 
         // Restart loop.
         startIndex = 0
@@ -789,10 +794,140 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     regionLineIndicesArr.push(indexPairs[1])
   }
 
+
+  let myVertices = []
+  let myTriangleIndices = []
+  let myLineIndices = []
+  const maxDistBetweenInterpolatedPoints = 0.3
+  const distBetweenPointsSq = maxDistBetweenInterpolatedPoints * maxDistBetweenInterpolatedPoints
+
+  let longestLine = 0
+
+  // To make the mesh smooth, interpolate new points across each triangle.
+  for (let i = 0; i < regionGeometryIndicesArr.length; i += 3) {
+    let boundaryMarker1 = boundaryMarkerPoints[regionGeometryIndicesArr[i + 0]].vec3
+    let boundaryMarker2 = boundaryMarkerPoints[regionGeometryIndicesArr[i + 1]].vec3
+    let boundaryMarker3 = boundaryMarkerPoints[regionGeometryIndicesArr[i + 2]].vec3
+
+    // Generate interpolated vertices
+    let verticesVec3 = interpolateAcrossTriangleFlat(boundaryMarker1, boundaryMarker2, boundaryMarker3, maxDistBetweenInterpolatedPoints)
+    let verticesRaw = []
+    let longLatArr = []
+    verticesVec3.forEach((vec3, index) => {
+      verticesRaw.push(vec3.x, vec3.y, vec3.z)
+
+      const [lat, long] = ConvertXYZToLatLong(vec3.x, vec3.y, vec3.z, globeInfo.radius)
+      longLatArr.push([long, lat])
+    })
+
+    // Triangulate all those little points
+    let delaunay = d3Geo.geoDelaunay(longLatArr)
+
+    // And the indices to the collection, taking into account the number of vertices already in 
+    // the vertices array.
+    let numExistingVertices = myVertices.length
+    delaunay.triangles.forEach((triangleIndicesArr, index) => {
+      let p1 = verticesVec3[triangleIndicesArr[0]]
+      let p2 = verticesVec3[triangleIndicesArr[1]]
+      let p3 = verticesVec3[triangleIndicesArr[2]]
+
+      // let basis = _.round(boundaryMarkerPoints[0].vec3.x, 5)
+
+      // let thing1 = _.round(p1.x, 5)
+      // let thing1Same = thing1 == basis
+
+      // let thing2 = _.round(p2.x, 5)
+      // let thing2Same = thing2 == basis
+
+      // let thing3 = _.round(p3.x, 5)
+      // let thing3Same = thing3 == basis
+
+      // if (_.round(p1.x, 5) == _.round(boundaryMarkerPoints[0].vec3.x, 5)) {
+      //   console.log("p1 match")
+      // }
+      // else if (_.round(p2.x, 5) == _.round(boundaryMarkerPoints[0].vec3.x, 5)) {
+      //   console.log("p2 match")
+      // }
+      // else if (_.round(p3.x, 5) == _.round(boundaryMarkerPoints[0].vec3.x, 5)) {
+      //   console.log("p3 match")
+      // }
+
+      let line1Len = (new THREE.Vector3()).subVectors(p1, p2).length()
+      let line2Len = (new THREE.Vector3()).subVectors(p1, p3).length()
+      let line3Len = (new THREE.Vector3()).subVectors(p2, p3).length()
+
+      let generosityMultiplier = 1.2
+      let lineTooLong = false
+      lineTooLong ||= line1Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
+      lineTooLong ||= line2Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
+      lineTooLong ||= line3Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
+
+      if (line1Len > longestLine) {
+        console.log({ longestLine, newLen: line1Len })
+        longestLine = line1Len
+      }
+      if (line2Len > longestLine) {
+        console.log({ longestLine, newLen: line2Len })
+        longestLine = line2Len
+      }
+      if (line3Len > longestLine) {
+        console.log({ longestLine, newLen: line3Len })
+        longestLine = line3Len
+      }
+
+      // Trim off triangles formed by the delaunay algorithm aggressively trying to make an 
+      // enclosed mesh and connecting any vertices that it can.
+
+      // if (triangleIsFlat(p1, p2, p3)) {
+      //   // Ignore. Interpolated points are placed evenly enough that none of the triangles should 
+      //   // be long and thin like this one. This is just the delaunay algorithm making a triangle
+      //   // out of a very slight curve between three vertices.
+      // }
+      // else if (lineTooLong) {
+      // Ignore. The max distance between points (specified for my interpolation algorithm) was
+      // surpassed by the delaunay algorithm, which doesn't bother with such triffles as max 
+      // length on an edge (which is exactly what I need to enforce).
+
+      if (lineTooLong) {
+        // Ignore. The max distance between points (specified for my interpolation algorithm) was
+        // surpassed by the delaunay algorithm, which doesn't bother with such triffles as max 
+        // length on an edge (which is exactly what I need to enforce).
+        console.log("skip")
+      }
+      else {
+        let i1 = (numExistingVertices / 3) + triangleIndicesArr[0]
+        let i2 = (numExistingVertices / 3) + triangleIndicesArr[1]
+        let i3 = (numExistingVertices / 3) + triangleIndicesArr[2]
+
+        myTriangleIndices.push(i1)
+        myTriangleIndices.push(i2)
+        myTriangleIndices.push(i3)
+
+        myLineIndices.push(i1, i2)
+        myLineIndices.push(i1, i3)
+        myLineIndices.push(i2, i3)
+      }
+    })
+
+    // Lastly add the vertices.
+    myVertices.push(...verticesRaw)
+
+    // if (i == 3) {
+    //   i = regionGeometryIndicesArr.length
+    // }
+    // break
+  }
+
+  // return {
+  //   vertices: vertices,
+  //   regionMeshIndicesArr: regionGeometryIndicesArr,
+  //   regionLineIndicesArr, regionLineIndicesArr
+  // }
+
   return {
-    vertices: vertices,
-    regionMeshIndicesArr: regionGeometryIndicesArr,
-    regionLineIndicesArr, regionLineIndicesArr
+    vertices: myVertices,
+    regionMeshIndicesArr: myTriangleIndices,
+    regionLineIndicesArr: myLineIndices
   }
 }
 
@@ -855,9 +990,9 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
 
   // Up a bit 
   // Note: The Latitude change is always a constant distance (unlike the longitude), so use that 
-  // and rotate in a circle.
+  // and rotate in a circle. 
   let offset = {
-    lat: origin.lat + 5,
+    lat: origin.lat + regionInfo.defaultRegionRadius,
     long: origin.long
   }
   let offsetPoint = ConvertLatLongToVec3(offset.lat, offset.long, globeInfo.radius)

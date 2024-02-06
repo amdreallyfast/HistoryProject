@@ -9,6 +9,10 @@ export const globeInfo = {
   radiusToRegionMesh: 5.1
 }
 
+export const regionInfo = {
+  defaultRegionRadius: 8
+}
+
 export const pinMeshInfo = {
   length: 3,
   mainPinScale: 0.1,
