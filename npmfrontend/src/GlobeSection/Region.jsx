@@ -12,7 +12,7 @@ import { roundFloat } from "../RoundFloat"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { useThree } from "@react-three/fiber"
 import { useWireframeUniforms } from "@react-three/drei/materials/WireframeMaterial"
-import { createWhereFromXYZ } from "./createWhere"
+import { createWhereObjFromXYZ } from "./createWhere"
 
 // TODO: click latlong pin and drag to move point
 
@@ -646,7 +646,7 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   }
 
   // Define "flat" = "<10deg" or ">170deg".
-  const triangleIsFlat = (p1, p2, p3) => {
+  const triangleTooThin = (p1, p2, p3) => {
     let v2v1 = (new THREE.Vector3()).subVectors(p1, p2)
     let v2v3 = (new THREE.Vector3()).subVectors(p3, p2)
     let cosAngle = v2v1.normalize().dot(v2v3.normalize())
@@ -751,7 +751,7 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
       makeTriangle(p1, p2, p3)
       boundaryMarkerPointsDisposable = []
     }
-    else if (triangleIsFlat(p1.vec3, p2.vec3, p3.vec3) || !triangleIsConvex(p1.vec3, p2.vec3, p3.vec3)) {
+    else if (triangleTooThin(p1.vec3, p2.vec3, p3.vec3) || !triangleIsConvex(p1.vec3, p2.vec3, p3.vec3)) {
       // Either too flat to consider or the middle point of the triangle is not an "ear". Skip.
       startIndex += 1
     }
@@ -862,18 +862,18 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
       lineTooLong ||= line2Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
       lineTooLong ||= line3Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
 
-      if (line1Len > longestLine) {
-        console.log({ longestLine, newLen: line1Len })
-        longestLine = line1Len
-      }
-      if (line2Len > longestLine) {
-        console.log({ longestLine, newLen: line2Len })
-        longestLine = line2Len
-      }
-      if (line3Len > longestLine) {
-        console.log({ longestLine, newLen: line3Len })
-        longestLine = line3Len
-      }
+      // if (line1Len > longestLine) {
+      //   console.log({ longestLine, newLen: line1Len })
+      //   longestLine = line1Len
+      // }
+      // if (line2Len > longestLine) {
+      //   console.log({ longestLine, newLen: line2Len })
+      //   longestLine = line2Len
+      // }
+      // if (line3Len > longestLine) {
+      //   console.log({ longestLine, newLen: line3Len })
+      //   longestLine = line3Len
+      // }
 
       // Trim off triangles formed by the delaunay algorithm aggressively trying to make an 
       // enclosed mesh and connecting any vertices that it can.
@@ -892,7 +892,8 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
         // Ignore. The max distance between points (specified for my interpolation algorithm) was
         // surpassed by the delaunay algorithm, which doesn't bother with such triffles as max 
         // length on an edge (which is exactly what I need to enforce).
-        console.log("skip")
+
+        // console.log("skip")
       }
       else {
         let i1 = (numExistingVertices / 3) + triangleIndicesArr[0]
@@ -906,6 +907,23 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
         myLineIndices.push(i1, i2)
         myLineIndices.push(i1, i3)
         myLineIndices.push(i2, i3)
+      }
+    })
+
+
+    //??where are these long lines coming from? and why does it bug me so much??
+
+    // TODO: ??preserve the "points" throughout the calculation so that you can find their index??
+    // you _do_ need to clean up
+
+    delaunay.edges.forEach((edgeIndicesArr, index) => {
+      let p1 = verticesVec3[edgeIndicesArr[0]]
+      let p2 = verticesVec3[edgeIndicesArr[1]]
+      let line = (new THREE.Vector3()).subVectors(p2, p1)
+
+      if (line.length() > longestLine) {
+        console.log({ longest: longestLine, newLongest: line.length() })
+        longestLine = line.length()
       }
     })
 
@@ -1002,7 +1020,7 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
   let rotationAxis = (new THREE.Vector3()).subVectors(originCoord, globeInfo.pos).normalize()
   const rotateOffset = (radians) => {
     let rotatedOffsetVector = offsetPoint.clone().applyAxisAngle(rotationAxis, radians)
-    let rotatedPoint = createWhereFromXYZ(rotatedOffsetVector.x, rotatedOffsetVector.y, rotatedOffsetVector.z, globeInfo)
+    let rotatedPoint = createWhereObjFromXYZ(rotatedOffsetVector.x, rotatedOffsetVector.y, rotatedOffsetVector.z, globeInfo)
     return rotatedPoint
   }
   for (let radians = 0; radians < (Math.PI * 2); radians += (Math.PI / 4)) {
@@ -1025,12 +1043,12 @@ export function EditRegion({ }) {
 
   // "Where" changes
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.primaryLocation", where: editState.primaryLocation })
+    // console.log({ msg: "EditRegion()/useEffect()/editState.primaryPinPos", where: editState.primaryPinPos })
     if (!editState.editModeOn) {
       return
     }
 
-    if (!editState.primaryLocation) {
+    if (!editState.primaryPinPos) {
       setPrimaryLocationPinReactElement(null)
     }
     else {
@@ -1039,7 +1057,7 @@ export function EditRegion({ }) {
           key={uuid()} // React requires unique IDs for all elements
           poiId={editState.poiId}
           name={meshNames.PoiPrimaryLocationPin}
-          where={editState.primaryLocation}
+          where={editState.primaryPinPos}
           colorHex={pinMeshInfo.mainPinColor}
           length={pinMeshInfo.length}
           scale={pinMeshInfo.mainPinScale}
@@ -1050,7 +1068,7 @@ export function EditRegion({ }) {
       // Check if this is a new POI. If so, then create a new region.
       if (editState.regionBoundaries.length == 0 && !editState.noRegion) {
         // Create new region.
-        let newRegionBoundaries = createDefaultRegionBoundaries(editState.primaryLocation, globeInfo)
+        let newRegionBoundaries = createDefaultRegionBoundaries(editState.primaryPinPos, globeInfo)
         reduxDispatch(
           editStateActions.setRegionBoundaries(newRegionBoundaries)
         )
@@ -1060,7 +1078,7 @@ export function EditRegion({ }) {
         )
       }
     }
-  }, [editState.primaryLocation])
+  }, [editState.primaryPinPos])
 
   // Wait until after ThreeJs is done integrating the mesh into the scene before flagging to re-
   // find the interactable meshes.
@@ -1068,7 +1086,7 @@ export function EditRegion({ }) {
     // console.log({ msg: "EditRegion()/useEffect()/primaryLocationPinReactElement", where: primaryLocationPinReactElement })
 
     reduxDispatch(
-      editStateActions.setPrimaryLocationPinMeshExists(primaryLocationPinReactElement == null)
+      editStateActions.setPrimaryPinMeshExists(primaryLocationPinReactElement != null)
     )
 
   }, [primaryLocationPinReactElement])

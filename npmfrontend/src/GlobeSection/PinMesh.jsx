@@ -4,7 +4,6 @@ import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { uniqueId, update } from "lodash"
-import { createWhereFromXYZ } from "./createWhere"
 
 export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (poiId == null) {

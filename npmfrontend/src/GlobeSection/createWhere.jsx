@@ -1,7 +1,7 @@
 import { ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
 import { v4 as uuid } from "uuid"
 
-export function createWhereFromXYZ(x, y, z, globeInfo) {
+export function createWhereObjFromXYZ(x, y, z, globeInfo) {
   // console.log({ msg: "createWhereFromXYZ", x: x, y: y, z: z })
   const [newLat, newLong] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
   let where = {

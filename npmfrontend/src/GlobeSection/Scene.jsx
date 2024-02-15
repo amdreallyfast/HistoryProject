@@ -13,7 +13,7 @@ import { Box, Stars } from "@react-three/drei"
 import { PinMesh } from "./PinMesh"
 import { v4 as uuid } from "uuid";
 import _, { first, update } from "lodash"
-import { createWhereFromXYZ } from "./createWhere"
+import { createWhereObjFromXYZ } from "./createWhere"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
@@ -80,7 +80,7 @@ export function Scene(
   // Note: It is more efficient to find these only when the mesh collections change rather than 
   // doing it every frame just before the raycaster runs.
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.primaryLocation, regionBoundaries: editState.regionBoundaries })
+    // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.primaryPinPos, regionBoundaries: editState.regionBoundaries })
 
     const meshesArr = []
 
@@ -104,7 +104,7 @@ export function Scene(
     // console.log({ interactableMeshes: meshesArr })
     setMeshes(meshesArr)
 
-  }, [poiReactElements, editState.primaryLocationPinMeshExists, editState.regionBoundaries])
+  }, [poiReactElements, editState.primaryPinMeshExists, editState.regionBoundaries])
 
   // Update POI highlight.
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
@@ -140,8 +140,6 @@ export function Scene(
 
   }, [poiState.selectedPoi])
 
-
-
   // Handle mouse hover and mouse click.
   let prevMouseIsDownRef = useRef(false)
   let prevMouseHoverPoiMeshRef = useRef()
@@ -164,129 +162,43 @@ export function Scene(
       let globeIntersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
       let firstIntersection = intersections[0]
 
-      // // Take the first intersection (that is, the object closest to camera).
-      // let intersection = intersections[0]
-
-      // TODO: handle scenarios:
-      //  1. No location exists yet (new entry)
-      //    => set location
-      //  2. Clicked on "where" pin
-      //    => click to drag
-      //    ??how to set location on mouse release??
-      //  3. Clicked on region point
-      //    => click to drag
-      //    ??how to set location on mouse release??
-      //  4. Else location exists, but didn't click on any "where" pin or region points 
-      //    => do nothing
-
       if (editState.editModeOn) {
         // Editing. Only affect the edited object, but still allow hovering over existing objects
         // to get cursory info.
 
-        // console.log({ mouseIsDown: mouseState.mouseIsDown, prevMouseIsDown: prevMouseIsDownRef.current })
-
-
         if (mouseState.mouseClickedCurrPos) {
-          // console.log("mouse clicked")
-          if (globeIntersection) {
-            // If no region exists yet, create one here.
-            if (editState.primaryLocation == null) {
-              const [x, y, z] = globeIntersection.point
-              const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
-              reduxDispatch(
-                editStateActions.setPrimaryLocation({
-                  id: uuid(), // new location => new guid
-                  lat: lat,
-                  long: long,
-                  x: x,
-                  y: y,
-                  z: z
-                })
-              )
-            }
-          }
+          console.log("mouseClickedCurrPos")
         }
 
-        //??isolate mouse click handling to a function??
-        else if (mouseState.mouseIsDown && prevMouseIsDownRef.current) {
-          // still clicking; continue click-and-drag
+        if (globeIntersection) {
+          console.log("globeIntersection")
+        }
 
-          if (editState.selectedPinId != null) {
-            // Move it to the point on the globe that the mouse is hovering over
-            if (!globeIntersection) {
-              // Mouse has drifted off the globe and onto space or stars. Ignore.
-            }
-            else {
-              let updatedWhere = createWhereFromXYZ(
-                globeIntersection.point.x,
-                globeIntersection.point.y,
-                globeIntersection.point.z,
-                globeInfo
-              )
-              updatedWhere.id = editState.selectedPinId
+        if (!editState.primaryPinPos) {
+          console.log("no location")
+        }
 
-              let pinLocation = null
-              let regionBoundary = false
-              if (editState.selectedPinId == editState.primaryLocation.id) {
-                pinLocation = editState.primaryLocation
-              }
-              else {
-                // Region boundary marker
-                pinLocation = editState.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == editState.selectedPinId)
-                if (pinLocation == null) {
-                  throw new Error("how did you select a pin that doesn't exist?")
-                }
-                regionBoundary = true
-              }
+        if (mouseState.mouseClickedCurrPos && globeIntersection && editState.primaryPinPos == null) {
+          console.log("clicked curr position")
 
-              // Don't move if the mouse isn't moving.
-              let moved =
-                pinLocation.x != globeIntersection.point.x &&
-                pinLocation.y != globeIntersection.point.y &&
-                pinLocation.z != globeIntersection.point.z
-              if (moved) {
-                reduxDispatch(
-                  editStateActions.updateClickAndDragGlobePos({
-                    x: globeIntersection.point.x,
-                    y: globeIntersection.point.y,
-                    z: globeIntersection.point.z,
-                  })
-                )
-
-                if (regionBoundary) {
-                  // Update region boundaries to trigger 
-                  //  (a) updating the meshes used in mousclick intersection calculations
-                  //  (b) redrawing the region mesh
-                  let updatedBoundaries = editState.regionBoundaries.map((where, index) => {
-                    if (where.id == editState.selectedPinId) {
-                      let updatedWhere = createWhereFromXYZ(
-                        globeIntersection.point.x,
-                        globeIntersection.point.y,
-                        globeIntersection.point.z,
-                        globeInfo
-                      )
-                      updatedWhere.id = where.id
-                      return updatedWhere
-                    }
-                    else {
-                      // Not moving this marker. Return as-is.
-                      return where
-                    }
-                  })
-
-                  reduxDispatch(
-                    editStateActions.setRegionBoundaries(updatedBoundaries)
-                  )
-                }
-              }
-            }
-          }
+          // No editable region yet. Make one where the click happened.
+          const [x, y, z] = globeIntersection.point
+          const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
+          reduxDispatch(
+            editStateActions.setPrimaryPinPos({
+              id: uuid(), // new location => new guid
+              lat: lat,
+              long: long,
+              x: x,
+              y: y,
+              z: z
+            })
+          )
         }
         else if (mouseState.mouseIsDown && !prevMouseIsDownRef.current) {
           // new click
-          // Enable click-and-drag if the user selected one of the pins being edited.
-
-          // console.log({ msg: "enable click-and-drag", intersections: intersections })
+          // Enable click-and-drag if the user select one of the pins being edited.
+          console.log("mouse started clicking")
 
           // Note: Don't even try if the mouse is not over the globe.
           if (globeIntersection) {
@@ -326,10 +238,87 @@ export function Scene(
             }
           }
         }
+        else if (mouseState.mouseIsDown && prevMouseIsDownRef.current) {
+          // still clicking; continue click-and-drag
+          console.log("still clicking")
+
+          if (editState.selectedMeshName)
+            if (editState.selectedPinId != null) {
+              // Move the pin to the point on the globe that the mouse is hovering over
+
+              if (!globeIntersection) {
+                // Ignore. Mouse has drifted off the globe and onto space or stars.
+              }
+              else {
+                let updatedWhere = createWhereObjFromXYZ(
+                  globeIntersection.point.x,
+                  globeIntersection.point.y,
+                  globeIntersection.point.z,
+                  globeInfo
+                )
+                updatedWhere.id = editState.selectedPinId
+
+                let pinPos = null
+                let regionBoundary = false
+                if (editState.selectedPinId == editState.primaryPinPos.id) {
+                  pinPos = editState.primaryPinPos
+                }
+                else {
+                  // Region boundary marker
+                  pinPos = editState.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == editState.selectedPinId)
+                  if (pinPos == null) {
+                    throw new Error("how did you select a pin that doesn't exist?")
+                  }
+                  regionBoundary = true
+                }
+
+                // Don't move if the mouse isn't moving.
+                let moved =
+                  pinPos.x != globeIntersection.point.x &&
+                  pinPos.y != globeIntersection.point.y &&
+                  pinPos.z != globeIntersection.point.z
+                if (moved) {
+                  reduxDispatch(
+                    editStateActions.updateClickAndDragGlobePos({
+                      x: globeIntersection.point.x,
+                      y: globeIntersection.point.y,
+                      z: globeIntersection.point.z,
+                    })
+                  )
+
+                  if (regionBoundary) {
+                    // Update region boundaries to trigger 
+                    //  (a) updating the meshes used in mousclick intersection calculations
+                    //  (b) redrawing the region mesh
+                    let updatedBoundaries = editState.regionBoundaries.map((where, index) => {
+                      if (where.id == editState.selectedPinId) {
+                        let updatedWhere = createWhereObjFromXYZ(
+                          globeIntersection.point.x,
+                          globeIntersection.point.y,
+                          globeIntersection.point.z,
+                          globeInfo
+                        )
+                        updatedWhere.id = where.id
+                        return updatedWhere
+                      }
+                      else {
+                        // Not moving this marker. Return as-is.
+                        return where
+                      }
+                    })
+
+                    reduxDispatch(
+                      editStateActions.setRegionBoundaries(updatedBoundaries)
+                    )
+                  }
+                }
+              }
+            }
+        }
         else if (!mouseState.mouseIsDown && prevMouseIsDownRef.current) {
           // just stopped clicking
 
-          // console.log("just stopped clicking")
+          console.log("just stopped clicking")
 
           if (editState.clickAndDragEnabled) {
             // Done with click-and-drag. Disable.

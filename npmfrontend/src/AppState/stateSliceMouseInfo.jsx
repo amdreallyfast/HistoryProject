@@ -20,6 +20,7 @@ const initialState = {
   },
 
   mouseIsDown: false,
+  prevMouseIsDown: false,
   mouseClickedCurrPos: false
 }
 
@@ -61,12 +62,34 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
+    updateMouseIsDown: (state, action) => {
+      console.log({ msg: "stateSliceMouseInfo_updateMouseIsDown", value: action.payload })
+
+      return {
+        ...state,
+        prevMouseIsDown: mouseIsDown
+      }
+    },
+
     mouseUp: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_mouseUp", value: action.payload })
+      console.log({ msg: "stateSliceMouseInfo_mouseUp", value: action.payload })
 
       let mouseUpSamePos =
         state.mouseDownPos.x == action.payload.x &&
         state.mouseDownPos.y == action.payload.y
+
+      console.log({
+        same: state.mouseDownPos.x == action.payload.x && state.mouseDownPos.y == action.payload.y,
+        mouseDown: {
+          x: state.mouseDownPos.x,
+          y: state.mouseDownPos.y
+        },
+        mouseUpPos: {
+          x: action.payload.x,
+          y: action.payload.y
+        }
+      })
+
       return {
         ...state,
         mouseDownPos: {
@@ -81,6 +104,11 @@ export const stateSliceMouseInfo = createSlice({
         mouseClickedCurrPos: mouseUpSamePos
       }
     },
+
+
+    // TODO: fix the state machine for the mouse
+    //  If the "mouse up" function is processed, and then "disable mouse click", then I have noticed (what seems to be) a race condition between setting the "mouse is clicked" flag and making sure that it is only true for 1 frame
+
 
     disableMouseClick: (state, action) => {
       // console.log({ msg: "stateSliceMouseInfo_disableMouseClick", value: action.payload })

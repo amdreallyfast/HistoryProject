@@ -12,34 +12,17 @@ const initialState = {
   whereLatLongArr: [],  // TODO: delete
 
   // Format for location and region boundaries:
-  //   {
-  //     id,
-  //     lat,
-  //     long,
-  //     x,
-  //     y,
-  //     z
-  //   }
-  // )
-  primaryLocation: null,
-  primaryLocationPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
+  //   { id, lat, long, x, y, z }
+  primaryPinPos: null,
+  primaryPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
   noRegion: false,
   regionBoundaries: [],
   selectedPinId: null,
+  selectedMeshName: null,
 
   // For use during clicking and dragging a single point or the entire region.
-  // Format:
-  // {
-  //   x,
-  //   y,
-  //   z
-  // }
-  mouseIsDown: false,
-  mouseDownPos: null,
   clickAndDragEnabled: false,
-  clickAndDragMeshOffset: null,  // [x, y, z] // TODO: delete
-  clickAndDragGlobePos: null,
-  thing: null,
+  clickAndDragGlobePos: null, // {x, y, z}
 
   // Using an ever-increasing count is safer than trying to manage where to deactivate an on-off 
   // switch that will trigger state change every time it turns off.
@@ -74,12 +57,12 @@ export const stateSliceEditPoi = createSlice({
       return initialState
     },
 
-    setPrimaryLocation: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setPrimaryLocation", payload: action.payload })
+    setPrimaryPinPos: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_setPrimaryPinPos", payload: action.payload })
 
       return {
         ...state,
-        primaryLocation: {
+        primaryPinPos: {
           id: action.payload.id,
           lat: action.payload.lat,
           long: action.payload.long,
@@ -90,12 +73,12 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setPrimaryLocationPinMeshExists: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setPrimaryLocationPinMeshExists", payload: action.payload })
+    setPrimaryPinMeshExists: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_setPrimaryPinMeshExists", payload: action.payload })
 
       return {
         ...state,
-        primaryLocationPinMeshExists: action.payload
+        primaryPinMeshExists: action.payload
       }
     },
 
@@ -124,12 +107,12 @@ export const stateSliceEditPoi = createSlice({
         ...state,
         clickAndDragEnabled: true,
         selectedPinId: action.payload.pinId,
+        selectedMeshName: action.payload.meshName,
         clickAndDragGlobePos: {
           x: action.payload.startLocation.x,
           y: action.payload.startLocation.y,
           z: action.payload.startLocation.z,
         },
-        clickAndDragMeshOffset: action.payload.meshOffset
       }
     },
 
