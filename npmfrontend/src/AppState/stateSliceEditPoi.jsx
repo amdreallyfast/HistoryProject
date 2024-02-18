@@ -29,7 +29,10 @@ const initialState = {
   pinMovedCounter: 0,
 
   selectedLatLong: null,  // TODO: delete
-  prevSelectedLatLong: null // TODO: delete
+  prevSelectedLatLong: null, // TODO: delete
+
+  thing: null
+
 }
 
 export const stateSliceEditPoi = createSlice({
@@ -37,7 +40,7 @@ export const stateSliceEditPoi = createSlice({
   initialState,
   reducers: {
     setThing: (state, action) => {
-      // console.log("stateSliceEditPoi_startEditMode")
+      console.log("stateSliceEditPoi_setThing")
       return {
         ...state,
         thing: action.payload

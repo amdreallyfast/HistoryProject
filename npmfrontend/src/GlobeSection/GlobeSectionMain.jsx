@@ -12,29 +12,29 @@ export function GlobeSectionMain() {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
 
-  const mouseInfoRef = useRef({
-    // All positions in screen space.
-    currPos: {
-      x: 0,
-      y: 0
-    },
-    prevPos: {
-      x: 0,
-      y: 0
-    },
+  // const mouseInfoRef = useRef({
+  //   // All positions in screen space.
+  //   currPos: {
+  //     x: 0,
+  //     y: 0
+  //   },
+  //   prevPos: {
+  //     x: 0,
+  //     y: 0
+  //   },
 
-    mouseDownPos: {
-      x: 0,
-      y: 0,
-    },
-    mouseUpPos: {
-      x: 0,
-      y: 0,
-    },
+  //   mouseDownPos: {
+  //     x: 0,
+  //     y: 0,
+  //   },
+  //   mouseUpPos: {
+  //     x: 0,
+  //     y: 0,
+  //   },
 
-    mouseIsDown: false,
-    mouseClickedCurrPos: false
-  })
+  //   mouseIsDown: false,
+  //   mouseClickedCurrPos: false
+  // })
 
   const canvasContainerDivRef = useRef()
   const poiInfoPopupElementRef = useRef()

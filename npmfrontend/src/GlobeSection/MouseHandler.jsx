@@ -4,7 +4,6 @@ import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "
 import { createWhereObjFromXYZ } from "./createWhere"
 import { globeInfo, meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 
 const createNewRegion = (globeIntersection, globeInfo) => {
   const [x, y, z] = globeIntersection.point
