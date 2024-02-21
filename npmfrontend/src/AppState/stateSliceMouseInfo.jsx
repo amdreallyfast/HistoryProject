@@ -133,13 +133,25 @@ export const stateSliceMouseInfo = createSlice({
 
     // The first mesh called "globe" intersected by a ray cast from the cursor into the scene.
     setCursorIntersectionGlobe: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setCursorIntersectionGlobe", value: action.payload })
+      console.log({ msg: "stateSliceMouseInfo_setCursorIntersectionGlobe", value: action.payload })
 
       return {
         ...state,
         cursorIntersectionGlobe: {
           point: action.payload.point,
           meshName: action.payload.meshName
+        }
+      }
+    },
+
+    resetCursorIntersectionGlobe: (state, action) => {
+      console.log({ msg: "stateSliceMouseInfo_resetCursorIntersectionGlobe", value: action.payload })
+
+      return {
+        ...state,
+        cursorIntersectionGlobe: {
+          point: null,
+          meshName: null
         }
       }
     },
@@ -153,6 +165,18 @@ export const stateSliceMouseInfo = createSlice({
         cursorIntersectionFirst: {
           point: action.payload.point,
           meshName: action.payload.meshName
+        }
+      }
+    },
+
+    resetCursorIntersectionFirst: (state, action) => {
+      console.log({ msg: "stateSliceMouseInfo_resetCursorIntersectionFirst", value: action.payload })
+
+      return {
+        ...state,
+        cursorIntersectionFirst: {
+          point: null,
+          meshName: null
         }
       }
     },

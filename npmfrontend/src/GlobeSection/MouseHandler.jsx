@@ -4,6 +4,11 @@ import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "
 import { createWhereObjFromXYZ } from "./createWhere"
 import { globeInfo, meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
+import { useEffect } from "react"
+
+
+// TODO: make into a component that reacts on mouse down, mouse up, mouse move, etc.
+
 
 const createNewRegion = (globeIntersection, globeInfo) => {
   const [x, y, z] = globeIntersection.point
@@ -85,52 +90,72 @@ const updateClickAndDragRegionBoundaryPin = (globeIntersection, globeInfo) => {
 const updateClickAndDragRegion = (globeIntersection, globeInfo) => {
 }
 
+export const MouseHandler = () => {
+  const mouseState = useSelector((state) => state.mouseInfoReducer)
+  const editState = useSelector((state) => state.editPoiReducer)
 
-export const mouseHandler = {
+  useEffect(() => {
+    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseIsDown", value: mouseState.mouseIsDown })
+  }, [mouseState.mouseIsDown])
 
+  useEffect(() => {
+    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseClicked", value: mouseState.mouseClicked })
+  }, [mouseState.mouseClicked])
 
-  update: (globeIntersection, firstIntersection, globeInfo) => {
-    const mouseState = useSelector((state) => state.mouseInfoReducer)
-    const editState = useSelector((state) => state.editPoiReducer)
+  useEffect(() => {
+    console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorIntersectionFirst.meshName", value: mouseState.cursorIntersectionFirst.meshName })
+  }, [mouseState.cursorIntersectionFirst.meshName])
 
-    if (editState.editModeOn) {
-      // Editing. Only affect the edited object, but still allow hovering over existing objects
-      // to get cursory info.
+  useEffect(() => {
+    console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorIntersectionGlobe.meshName", value: mouseState.cursorIntersectionGlobe.meshName })
+  }, [mouseState.cursorIntersectionGlobe.meshName])
 
-      if (globeIntersection && editState.primaryPinPos == null && mouseState.mouseClickedCurrPos) {
-        console.log("clicked: create new region")
-        // createNewRegion(globeIntersection, globeInfo)
-      }
-      else if (globeIntersection && mouseState.mouseIsDown && !mouseState.prevMouseIsDown) {
-        console.log("mouse down")
-        // let clickedMesh = firstIntersection.object
-        // enableClickAndDrag(globeIntersection, clickedMesh)
-      }
-      else if (globeIntersection && mouseState.mouseIsDown && mouseState.prevMouseIsDown) {
-        console.log("mouse still down")
-        // if (editState.selectedMeshName == meshNames.PoiPrimaryLocationPin) {
-        //   updateClickAndDragPrimaryPin(globeIntersection, globeInfo)
-        // }
-        // else if (editState.selectedMeshName == meshNames.RegionBoundaryPin) {
-        //   updateClickAndDragRegionBoundaryPin(globeIntersection, globeInfo)
-        // }
-        // else if (editState.selectedMeshName == meshNames.Region) {
-        //   updateClickAndDragRegion(globeIntersection, globeInfo)
-        // }
-      }
+  return (
+    <>
+    </>
+  )
 
-      // still clicking; continue click-and-drag
-    }
+  // update: (globeIntersection, firstIntersection, globeInfo) => {
 
-    // ??combine??
-    // prevMouseIsDown = mouseIsDown
-    reduxDispatch(
-      mouseStateActions.updateMouseIsDown()
-    )
+  //   if (editState.editModeOn) {
+  //     // Editing. Only affect the edited object, but still allow hovering over existing objects
+  //     // to get cursory info.
 
-    // mouseClickedCurrPos = false
-    reduxDispatch(
-      mouseStateActions.disableMouseClick()
-    )
-  }
+  //     if (globeIntersection && editState.primaryPinPos == null && mouseState.mouseClicked) {
+  //       console.log("clicked: create new region")
+  //       // createNewRegion(globeIntersection, globeInfo)
+  //     }
+  //     else if (globeIntersection && mouseState.mouseIsDown && !mouseState.prevMouseIsDown) {
+  //       console.log("mouse down")
+  //       // let clickedMesh = firstIntersection.object
+  //       // enableClickAndDrag(globeIntersection, clickedMesh)
+  //     }
+  //     else if (globeIntersection && mouseState.mouseIsDown && mouseState.prevMouseIsDown) {
+  //       console.log("mouse still down")
+  //       // if (editState.selectedMeshName == meshNames.PoiPrimaryLocationPin) {
+  //       //   updateClickAndDragPrimaryPin(globeIntersection, globeInfo)
+  //       // }
+  //       // else if (editState.selectedMeshName == meshNames.RegionBoundaryPin) {
+  //       //   updateClickAndDragRegionBoundaryPin(globeIntersection, globeInfo)
+  //       // }
+  //       // else if (editState.selectedMeshName == meshNames.Region) {
+  //       //   updateClickAndDragRegion(globeIntersection, globeInfo)
+  //       // }
+  //     }
+
+  //     // still clicking; continue click-and-drag
+  //   }
+
+  //   // ??combine??
+  //   // prevMouseIsDown = mouseIsDown
+  //   reduxDispatch(
+  //     mouseStateActions.updateMouseIsDown()
+  //   )
+
+  //   // mouseClickedCurrPos = false
+  //   reduxDispatch(
+  //     mouseStateActions.disableMouseClick()
+  //   )
+  // }
 }
+

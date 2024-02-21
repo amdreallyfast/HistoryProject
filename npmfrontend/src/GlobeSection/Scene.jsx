@@ -15,7 +15,7 @@ import { v4 as uuid } from "uuid";
 import _, { first, update } from "lodash"
 import { createWhereObjFromXYZ } from "./createWhere"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
-import { mouseHandler } from "./MouseHandler"
+import { MouseHandler } from "./MouseHandler"
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
@@ -193,8 +193,7 @@ export function Scene(
       // original, and now I can store it?
       reduxDispatch(
         mouseStateActions.setCursorIntersectionGlobe({
-          // point: JSON.parse(JSON.stringify(globeIntersection.point)),
-          point: new THREE.Vector3(),
+          point: JSON.parse(JSON.stringify(globeIntersection.point)),
           meshName: globeIntersection.object.name
         })
       )
@@ -465,7 +464,23 @@ export function Scene(
       // reduxDispatch(
       //   mouseStateActions.disableMouseClick()
       // )
-    } // intersections.length > 0
+    }
+    else {
+      // De-activate the cursor intersections, but only if they are on. No need to incur excess events.
+      if (mouseState.cursorIntersectionGlobe.meshName) {
+        console.log("things")
+
+        reduxDispatch(
+          mouseStateActions.resetCursorIntersectionGlobe()
+        )
+      }
+
+      if (mouseState.cursorIntersectionFirst.meshName) {
+        reduxDispatch(
+          mouseStateActions.resetCursorIntersectionFirst()
+        )
+      }
+    }
 
     // Occurs when the mouse drifts from the world (or space) to a POI.
     let newPoiHover =
@@ -562,6 +577,7 @@ export function Scene(
 
   return (
     <>
+      <MouseHandler />
       <Stars />
       <Globe globeRadius={globeInfo.radius} />
       <group name={groupNames.PoiGroup}>
