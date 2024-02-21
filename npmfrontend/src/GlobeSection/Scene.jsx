@@ -193,7 +193,8 @@ export function Scene(
       // original, and now I can store it?
       reduxDispatch(
         mouseStateActions.setCursorIntersectionGlobe({
-          point: JSON.parse(JSON.stringify(globeIntersection.point)),
+          // point: JSON.parse(JSON.stringify(globeIntersection.point)),
+          point: new THREE.Vector3(),
           meshName: globeIntersection.object.name
         })
       )
