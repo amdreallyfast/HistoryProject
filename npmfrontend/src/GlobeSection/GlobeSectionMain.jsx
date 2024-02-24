@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
@@ -11,30 +11,6 @@ export function GlobeSectionMain() {
   const [cameraPanEnabled, setCameraPanEnabled] = useState(true)
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
-
-  // const mouseInfoRef = useRef({
-  //   // All positions in screen space.
-  //   currPos: {
-  //     x: 0,
-  //     y: 0
-  //   },
-  //   prevPos: {
-  //     x: 0,
-  //     y: 0
-  //   },
-
-  //   mouseDownPos: {
-  //     x: 0,
-  //     y: 0,
-  //   },
-  //   mouseUpPos: {
-  //     x: 0,
-  //     y: 0,
-  //   },
-
-  //   mouseIsDown: false,
-  //   mouseClickedCurrPos: false
-  // })
 
   const canvasContainerDivRef = useRef()
   const poiInfoPopupElementRef = useRef()
@@ -73,21 +49,14 @@ export function GlobeSectionMain() {
 
   function onCanvasMouseMove(e) {
     // console.log(e)
+
     if (canvasContainerDivRef.current == null || poiInfoPopupElementRef.current == null) {
       return
     }
 
-    // // Mouse moved => by definition, current position is not clicked
-    // mouseInfoRef.current.mouseClickedCurrPos = false
-    // mouseInfoRef.current.prevPos.x = mouseInfoRef.current.currPos.x
-    // mouseInfoRef.current.prevPos.y = mouseInfoRef.current.currPos.y
-
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
-    // mouseInfoRef.current.currPos.x = normalized.x
-    // mouseInfoRef.current.currPos.y = normalized.y
-
     reduxDispatch(
-      mouseStateActions.mouseMove({
+      mouseStateActions.setMousePos({
         x: normalized.x,
         y: normalized.y
       })
@@ -103,51 +72,37 @@ export function GlobeSectionMain() {
 
   function onCanvasMouseDown(e) {
     // console.log({ "onCanvasMouseDown": e })
-    // mouseInfoRef.current.mouseIsDown = true
-    // mouseInfoRef.current.mouseDownPos.x = mouseInfoRef.current.currPos.x
-    // mouseInfoRef.current.mouseDownPos.y = mouseInfoRef.current.currPos.y
+
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
     reduxDispatch(
-      mouseStateActions.mouseDown({
-        x: normalized.x,
-        y: normalized.y
+      mouseStateActions.setMouseIsDown({
+        timeMs: (new Date()).getTime(),
+        pos: {
+          x: normalized.x,
+          y: normalized.y
+        }
       })
     )
   }
 
   function onCanvasMouseUp(e) {
     // console.log({ "onCanvasMouseUp": e })
-    // mouseInfoRef.current.mouseIsDown = false
-    // mouseInfoRef.current.mouseUpPos.x = mouseInfoRef.current.currPos.x
-    // mouseInfoRef.current.mouseUpPos.y = mouseInfoRef.current.currPos.y
 
-    // let xMoved = (mouseInfoRef.current.mouseDownPos.x != mouseInfoRef.current.mouseUpPos.x)
-    // let yMoved = (mouseInfoRef.current.mouseDownPos.y != mouseInfoRef.current.mouseUpPos.y)
-    // if (!xMoved && !yMoved) {
-    //   mouseInfoRef.current.mouseClickedCurrPos = true
-    // }
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
     reduxDispatch(
-      mouseStateActions.mouseUp({
-        x: normalized.x,
-        y: normalized.y
+      mouseStateActions.setMouseIsUp({
+        timeMs: (new Date()).getTime(),
+        pos: {
+          x: normalized.x,
+          y: normalized.y
+        }
       })
     )
   }
 
-  // useEffect(() => {
-  //   console.log({ msg: "GlobeSectionMain()/useEffect()/mouseState.mouseClickedCurrPos", value: mouseState.mouseClickedCurrPos })
-  //   // Only allow it to be on for one frame. If it's on, turn it off. Anyone that needed it 
-  //   // should be reacting to it about now.
-  //   if (mouseState.mouseClickedCurrPos) {
-  //     reduxDispatch(
-  //       mouseStateActions.disableMouseClick()
-  //     )
-  //   }
-  // }, [mouseState.mouseClickedCurrPos])
-
   function onCanvasKeyDown(e) {
     // console.log({ "onCanvasKeyDown": e })
+
     if (e.ctrlKey) {
       if (cameraRotateEnabled) {
         console.log("disable rotate")
@@ -163,6 +118,7 @@ export function GlobeSectionMain() {
 
   function onCanvasKeyUp(e) {
     // console.log({ "onCanvasKeyUp": e })
+
     if (!e.ctrlKey) {
       if (!cameraRotateEnabled) {
         console.log("enable rotate")
@@ -201,7 +157,6 @@ export function GlobeSectionMain() {
           <Scene
             poiInfoPopupElementRef={poiInfoPopupElementRef}
             poiInfoTitleElementRef={poiInfoTitleElementRef}
-          // mouseInfoRef={mouseInfoRef}
           >
           </Scene>
         </Canvas>

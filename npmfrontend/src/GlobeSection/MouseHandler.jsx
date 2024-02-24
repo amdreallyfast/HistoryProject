@@ -5,6 +5,7 @@ import { createWhereObjFromXYZ } from "./createWhere"
 import { globeInfo, meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { useEffect } from "react"
+import { useFrame } from "@react-three/fiber"
 
 
 // TODO: make into a component that reacts on mouse down, mouse up, mouse move, etc.
@@ -93,22 +94,107 @@ const updateClickAndDragRegion = (globeIntersection, globeInfo) => {
 export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const editState = useSelector((state) => state.editPoiReducer)
+  const reduxDispatch = useDispatch()
 
   useEffect(() => {
-    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseIsDown", value: mouseState.mouseIsDown })
-  }, [mouseState.mouseIsDown])
+    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseDown.timeMs", value: mouseState.mouseDown.timeMs })
+
+    if (!mouseState.mouseDown.timeMs) {
+      return
+    }
+
+    // enableClickAndDrag(globeIntersection, clickedMesh)
+    let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.meshName
+    let cursorGlobePos = mouseState.cursorRaycastIntersections.globe?.point
+    if (selectedMeshName && cursorGlobePos) {
+      if (selectedMeshName == meshNames.PoiPrimaryLocationPin) {
+        if (editState.editModeOn) {
+          console.log(`start moving '${selectedMeshName}' to '${cursorGlobePos}'`)
+        }
+        else {
+          // Ignore mouse down on the POI PoiPrimaryLocationPin when not in edit mode.
+          // Note: The mouse _up_ might incur mouse "click" handling though.
+        }
+      }
+      else if (selectedMeshName == meshNames.RegionBoundaryPin) {
+        if (editState.editModeOn) {
+          console.log(`start moving '${selectedMeshName}' to '${cursorGlobePos}'`)
+        }
+        else {
+          throw new Error("Should not be able to start moving a RegionBoundaryPin outside of edit mode")
+        }
+      }
+    }
+  }, [mouseState.mouseDown.timeMs])
 
   useEffect(() => {
-    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseClicked", value: mouseState.mouseClicked })
-  }, [mouseState.mouseClicked])
+    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseUp.timeMs", value: mouseState.mouseUp.timeMs })
+
+    if (!mouseState.mouseUp.timeMs) {
+      return
+    }
+
+    let mouseUp = mouseState.mouseUp
+    let mouseDown = mouseState.mouseDown
+    let timeDiffMs = mouseUp.timeMs - mouseDown.timeMs
+    let xDiff = Math.abs(mouseUp.pos.x - mouseDown.pos.x)
+    let yDiff = Math.abs(mouseUp.pos.y - mouseDown.pos.y)
+    let clicked = timeDiffMs < 400 && xDiff < 3 && yDiff < 3
+    if (clicked) {
+      let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.meshName
+      let cursorGlobePos = mouseState.cursorRaycastIntersections.globe?.point
+      if (editState.editModeOn && !editState.primaryPinPos && !selectedMeshName && cursorGlobePos) {
+        // Edit mode: No region selected and clicked a blank part of the globe.
+        console.log("clicked: create new region")
+        // createNewRegion(globeIntersection, globeInfo)
+      }
+    }
+
+    reduxDispatch(
+      mouseStateActions.resetMouseUpDown()
+    )
+  }, [mouseState.mouseUp.timeMs])
+
+
+
+  // useEffect(() => {
+  //   console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseClicked", value: mouseState.mouseClicked })
+
+  //   if (!mouseState.mouseClicked) {
+  //     return
+  //   }
+  //   else {
+  //     console.log("mouse clicked curr position")
+  //     reduxDispatch(
+  //       mouseStateActions.resetMouseClicked
+  //     )
+  //   }
+  // }, [mouseState.mouseClicked])
 
   useEffect(() => {
-    console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorIntersectionFirst.meshName", value: mouseState.cursorIntersectionFirst.meshName })
-  }, [mouseState.cursorIntersectionFirst.meshName])
+    let firstIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
+    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorRaycastIntersections.firstNonGlobe", value: firstIntersection })
+
+    // if (firstIntersection) {
+    //   console.log(`hover over ${firstIntersection.meshName}`)
+    // }
+    // else {
+    //   console.log("un-hover")
+    // }
+  }, [mouseState.cursorRaycastIntersections.firstNonGlobe])
 
   useEffect(() => {
-    console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorIntersectionGlobe.meshName", value: mouseState.cursorIntersectionGlobe.meshName })
-  }, [mouseState.cursorIntersectionGlobe.meshName])
+    // TODO: ??display globe info if no other intersection??
+    let globeIntersection = mouseState.cursorRaycastIntersections.globe
+    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorRaycastIntersections.globe", value: globeIntersection })
+
+    // if (globeIntersection) {
+    //   console.log(`hover over ${globeIntersection.meshName}`)
+    // }
+    // else {
+    //   console.log("un-hover")
+    // }
+  }, [mouseState.cursorRaycastIntersections.globe])
 
   return (
     <>

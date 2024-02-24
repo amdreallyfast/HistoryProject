@@ -10,30 +10,31 @@ const initialState = {
     y: 0
   },
 
-  mouseDownPos: {
-    x: 0,
-    y: 0,
-  },
-  mouseUpPos: {
-    x: 0,
-    y: 0,
+  mouseDown: {
+    pos: {
+      x: 0,
+      y: 0
+    },
+    timeMs: null
   },
 
-  mouseIsDown: false,
-  prevMouseIsDown: false,
-  mouseClicked: false,
+  mouseUp: {
+    pos: {
+      x: 0,
+      y: 0,
+    },
+    timeMs: null
+  },
 
   // via ThreeJs raycasting
-  // The globe that is being intersected.
-  cursorIntersectionGlobe: {
-    point: null,
-    meshName: null
-  },
-
-  // A mesh on top the globe.
-  cursorIntersectionFirst: {
-    point: null,
-    meshName: null
+  cursorRaycastIntersections: {
+    // Expected:
+    //  {
+    //    point: null,
+    //    meshName: null
+    //  }
+    firstNonGlobe: null,
+    globe: null
   }
 }
 
@@ -41,14 +42,15 @@ export const stateSliceMouseInfo = createSlice({
   name: "stateSliceMouseInfo",
   initialState,
   reducers: {
-    mouseMove: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_mouseMove", value: action.payload })
+    setMousePos: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setMousePos", value: action.payload })
 
+      let where = action.payload
       return {
         ...state,
         currPos: {
-          x: action.payload.x,
-          y: action.payload.y
+          x: where.x,
+          y: where.y
         },
         prevPos: {
           x: state.currPos.x,
@@ -57,143 +59,120 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    mouseDown: (state, action) => {
-      console.log({ msg: "stateSliceMouseInfo_mouseDown", value: action.payload })
+    setMouseIsDown: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setMouseIsDown", value: action.payload })
 
       return {
         ...state,
-        mouseDownPos: {
-          x: action.payload.x,
-          y: action.payload.y
-        },
-        mouseUpPos: {
-          x: 0,
-          y: 0
-        },
-        mouseIsDown: true
+        mouseDown: {
+          timeMs: action.payload.timeMs,
+          pos: action.payload.pos
+        }
       }
     },
 
-    mouseUp: (state, action) => {
-      console.log({ msg: "stateSliceMouseInfo_mouseUp", value: action.payload })
+    // updatePrevMouseIsDown: (state, action) => {
+    //   console.log({ msg: "stateSliceMouseInfo_updatePrevMouseIsDown", value: action.payload })
 
-      let mouseUpSamePos =
-        state.mouseDownPos.x == action.payload.x &&
-        state.mouseDownPos.y == action.payload.y
-
-      // console.log({
-      //   same: state.mouseDownPos.x == action.payload.x && state.mouseDownPos.y == action.payload.y,
-      //   mouseDown: {
-      //     x: state.mouseDownPos.x,
-      //     y: state.mouseDownPos.y
-      //   },
-      //   mouseUpPos: {
-      //     x: action.payload.x,
-      //     y: action.payload.y
-      //   }
-      // })
-
-      return {
-        ...state,
-        mouseDownPos: {
-          x: 0,
-          y: 0
-        },
-        mouseUpPos: {
-          x: action.payload.x,
-          y: action.payload.y
-        },
-        mouseIsDown: false,
-        mouseClicked: mouseUpSamePos
-      }
-    },
-
-    // updateMouseIsDown: (state, action) => {
-    //   console.log({ msg: "stateSliceMouseInfo_updateMouseIsDown", value: action.payload })
-
+    //   let mouseIsDown
     //   return {
     //     ...state,
-    //     prevMouseIsDown: mouseIsDown
+    //     prevMouseIsDown: state.mouseIsDown
     //   }
     // },
 
+    // setMouseIsUp: (state, action) => {
+    //   // console.log({ msg: "stateSliceMouseInfo_setMouseIsUp", value: action.payload })
 
-    // TODO: fix the state machine for the mouse
-    //  If the "mouse up" function is processed, and then "disable mouse click", then I have noticed (what seems to be) a race condition between setting the "mouse is clicked" flag and making sure that it is only true for 1 frame
-
-
-    // disableMouseClick: (state, action) => {
-    //   // console.log({ msg: "stateSliceMouseInfo_disableMouseClick", value: action.payload })
+    //   let mouseUpSamePos =
+    //     state.mouseDownPos.x == action.payload.x &&
+    //     state.mouseDownPos.y == action.payload.y
 
     //   return {
     //     ...state,
-    //     mouseClickedCurrPos: false
+    //     mouseDownPos: {
+    //       x: 0,
+    //       y: 0
+    //     },
+    //     mouseUpPos: {
+    //       x: action.payload.x,
+    //       y: action.payload.y
+    //     },
+    //     mouseIsDown: false,
+    //     prevMouseIsDown: true,
+    //     mouseClicked: mouseUpSamePos
+    //   }
+    // },
+    setMouseIsUp: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setMouseIsUp", value: action.payload })
+
+      return {
+        ...state,
+        mouseUp: {
+          timeMs: action.payload.timeMs,
+          pos: action.payload.pos
+        }
+      }
+    },
+
+    setCursorRaycastIntersections: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setCursorRaycastIntersections", value: action.payload })
+
+      let intersections = action.payload
+      return {
+        ...state,
+        cursorRaycastIntersections: {
+          firstNonGlobe: {
+            point: intersections.firstNonGlobe?.point,
+            meshName: intersections.firstNonGlobe?.meshName,
+          },
+          globe: {
+            point: intersections.globe?.point,
+            meshName: intersections.globe?.meshName,
+          }
+        }
+      }
+    },
+
+    resetCursorRaycastIntersections: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_resetCursorRaycastIntersection", value: action.payload })
+
+      return {
+        ...state,
+        cursorRaycastIntersection: initialState.cursorRaycastIntersection
+      }
+    },
+
+    resetMouseUpDown: (state, action) => {
+      console.log({ msg: "stateSliceMouseInfo_resetMouseUpDown", value: action.payload })
+
+      return {
+        ...state,
+        mouseDown: initialState.mouseDown,
+        mouseUp: initialState.mouseUp
+      }
+    },
+
+    // resetMouseClicked: (state, action) => {
+    //   console.log({ msg: "stateSliceMouseInfo_resetMouseClicked", value: action.payload })
+
+    //   return {
+    //     ...state,
+    //     mouseClicked: false
     //   }
     // },
 
-    // The first mesh called "globe" intersected by a ray cast from the cursor into the scene.
-    setCursorIntersectionGlobe: (state, action) => {
-      console.log({ msg: "stateSliceMouseInfo_setCursorIntersectionGlobe", value: action.payload })
+    // //TODO: eliminate "updateOneFrame" and instead rely on the MouseHandler state response to silence it?
+    // updateOneFrame: (state, action) => {
+    //   // console.log({ msg: "stateSliceMouseInfo_updateOneFrame", value: action.payload })
 
-      return {
-        ...state,
-        cursorIntersectionGlobe: {
-          point: action.payload.point,
-          meshName: action.payload.meshName
-        }
-      }
-    },
-
-    resetCursorIntersectionGlobe: (state, action) => {
-      console.log({ msg: "stateSliceMouseInfo_resetCursorIntersectionGlobe", value: action.payload })
-
-      return {
-        ...state,
-        cursorIntersectionGlobe: {
-          point: null,
-          meshName: null
-        }
-      }
-    },
-
-    // The first thing intersected by a raycaster from the mouse into the scene.
-    setCursorIntersectionFirst: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setCursorIntersectionFirst", value: action.payload })
-
-      return {
-        ...state,
-        cursorIntersectionFirst: {
-          point: action.payload.point,
-          meshName: action.payload.meshName
-        }
-      }
-    },
-
-    resetCursorIntersectionFirst: (state, action) => {
-      console.log({ msg: "stateSliceMouseInfo_resetCursorIntersectionFirst", value: action.payload })
-
-      return {
-        ...state,
-        cursorIntersectionFirst: {
-          point: null,
-          meshName: null
-        }
-      }
-    },
-
-
-
-    //TODO: eliminate "updateOneFrame" and instead rely on the MouseHandler state response to silence it?
-    updateOneFrame: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_updateOneFrame", value: action.payload })
-
-      // Mouse clicking should only trigger once.
-      return {
-        ...state,
-        mouseClicked: false,
-        prevMouseIsDown: state.mouseIsDown
-      }
-    }
+    //   // Mouse clicking should only trigger once.
+    //   return {
+    //     ...state,
+    //     mouseClicked: false,
+    //     prevMouseIsDown: state.mouseIsDown
+    //   }
+    // }
   }
 })
 
