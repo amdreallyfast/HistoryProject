@@ -155,6 +155,7 @@ export function Scene(
   let prevMouseIsDownRef = useRef(false)
   let prevMouseHoverPoiMeshRef = useRef()
 
+  // Determine cursor intersections
   useFrame((state) => {
     // console.log("useFrame()")
 

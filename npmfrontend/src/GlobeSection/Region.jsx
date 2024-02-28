@@ -1048,10 +1048,7 @@ export function EditRegion({ }) {
       return
     }
 
-    if (!editState.primaryPinPos) {
-      setPrimaryLocationPinReactElement(null)
-    }
-    else {
+    if (editState.primaryPinPos) {
       let reactElement = (
         <PinMesh
           key={uuid()} // React requires unique IDs for all elements
@@ -1077,6 +1074,10 @@ export function EditRegion({ }) {
           <EditRegionMesh key={uuid()} globeInfo={globeInfo} />
         )
       }
+    }
+    else {
+      // De-select
+      setPrimaryLocationPinReactElement(null)
     }
   }, [editState.primaryPinPos])
 

@@ -122,14 +122,14 @@ export const stateSliceMouseInfo = createSlice({
       return {
         ...state,
         cursorRaycastIntersections: {
-          firstNonGlobe: {
-            point: intersections.firstNonGlobe?.point,
-            meshName: intersections.firstNonGlobe?.meshName,
-          },
-          globe: {
-            point: intersections.globe?.point,
-            meshName: intersections.globe?.meshName,
-          }
+          firstNonGlobe: intersections.firstNonGlobe ? {
+            point: intersections.firstNonGlobe.point,
+            meshName: intersections.firstNonGlobe.meshName,
+          } : null,
+          globe: intersections.globe ? {
+            point: intersections.globe.point,
+            meshName: intersections.globe.meshName,
+          } : null
         }
       }
     },
@@ -139,7 +139,7 @@ export const stateSliceMouseInfo = createSlice({
 
       return {
         ...state,
-        cursorRaycastIntersection: initialState.cursorRaycastIntersection
+        cursorRaycastIntersection: initialState.cursorRaycastIntersections
       }
     },
 
