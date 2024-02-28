@@ -1,3 +1,5 @@
+import * as THREE from "three"
+import { v4 as uuid } from "uuid"
 import { useSelector, useDispatch } from "react-redux"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
@@ -10,15 +12,6 @@ import { useFrame } from "@react-three/fiber"
 
 // TODO: make into a component that reacts on mouse down, mouse up, mouse move, etc.
 
-
-const createNewRegion = (globeIntersection, globeInfo) => {
-  const [x, y, z] = globeIntersection.point
-  const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
-  let whereObj = { id: uuid(), lat, long, x, y, z }
-  reduxDispatch(
-    editStateActions.setPrimaryLocation(whereObj)
-  )
-}
 
 const enableClickAndDrag = (globeIntersection, clickedMesh) => {
   // Note: The region mesh will not have a pinId and this will be null. This is ok.
@@ -96,6 +89,17 @@ export const MouseHandler = () => {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 
+  const createNewRegion = (globePos, globeInfo) => {
+    let x = globePos.x
+    let y = globePos.y
+    let z = globePos.z
+    const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
+    let whereObj = { id: uuid(), lat, long, x, y, z }
+    reduxDispatch(
+      editStateActions.setPrimaryPinPos(whereObj)
+    )
+  }
+
   useEffect(() => {
     console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseDown.timeMs", value: mouseState.mouseDown.timeMs })
 
@@ -146,7 +150,7 @@ export const MouseHandler = () => {
       if (editState.editModeOn && !editState.primaryPinPos && !selectedMeshName && cursorGlobePos) {
         // Edit mode: No region selected and clicked a blank part of the globe.
         console.log("clicked: create new region")
-        // createNewRegion(globeIntersection, globeInfo)
+        createNewRegion(cursorGlobePos, globeInfo)
       }
     }
 
