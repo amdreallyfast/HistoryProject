@@ -8,6 +8,7 @@ import { globeInfo, meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { useEffect, useRef } from "react"
 import { useFrame } from "@react-three/fiber"
+import { reduce } from "lodash"
 
 
 // TODO: make into a component that reacts on mouse down, mouse up, mouse move, etc.
@@ -89,6 +90,7 @@ export const MouseHandler = () => {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
   const maxClickTimeMs = 400
+  const maxClickCursorMovementPx = 1
 
   const mouseDownWorldPosNormalizedRef = useRef()
 
@@ -105,21 +107,21 @@ export const MouseHandler = () => {
 
   // Record mouse down position and any intersections that have already been detected in the scene.
   useEffect(() => {
-    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseDown.timeMs", value: mouseState.mouseDown.timeMs })
+    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseDown", value: mouseState.mouseDown })
 
-    if (!mouseState.mouseDown.timeMs) {
+    if (!mouseState.mouseDown) {
       return
     }
 
-    let firstNonGlobeIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
-    if (firstNonGlobeIntersection) {
+    if (mouseState.cursorRaycastIntersections.firstNonGlobe) {
+      let intersection = mouseState.cursorRaycastIntersections.firstNonGlobe
       mouseDownWorldPosNormalizedRef.current = new THREE.Vector3(
-        firstNonGlobeIntersection.point.x,
-        firstNonGlobeIntersection.point.y,
-        firstNonGlobeIntersection.point.z
+        intersection.point.x,
+        intersection.point.y,
+        intersection.point.z
       ).normalize()
 
-      let selectedMeshName = firstNonGlobeIntersection.meshName
+      let selectedMeshName = intersection.meshName
       if (selectedMeshName == meshNames.PoiPrimaryLocationPin) {
         if (editState.editModeOn) {
           console.log(`start moving '${selectedMeshName}'`)
@@ -163,13 +165,13 @@ export const MouseHandler = () => {
     //     }
     //   }
     // }
-  }, [mouseState.mouseDown.timeMs])
+  }, [mouseState.mouseDown])
 
   // Determine if "mouse up" is short enough to be considered a "click" (and what to do if it is).
   useEffect(() => {
-    console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseUp.timeMs", value: mouseState.mouseUp.timeMs })
+    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseUp", value: mouseState.mouseUp })
 
-    if (!mouseState.mouseUp.timeMs) {
+    if (!mouseState.mouseUp) {
       return
     }
 
@@ -180,7 +182,7 @@ export const MouseHandler = () => {
     let timeDiffMs = mouseUp.timeMs - mouseDown.timeMs
     let xDiff = Math.abs(mouseUp.pos.x - mouseDown.pos.x)
     let yDiff = Math.abs(mouseUp.pos.y - mouseDown.pos.y)
-    let clicked = timeDiffMs < maxClickTimeMs && xDiff < 3 && yDiff < 3
+    let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
       let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.meshName
       let cursorGlobePos = mouseState.cursorRaycastIntersections.globe?.point
@@ -194,10 +196,18 @@ export const MouseHandler = () => {
       }
     }
 
+    // Turn off click-and-drag
+    if (editState.clickAndDrag) {
+      reduxDispatch(
+        editStateActions.disableClickAndDrag()
+      )
+    }
+
+    // Reset mouse click.
     reduxDispatch(
       mouseStateActions.resetMouseUpDown()
     )
-  }, [mouseState.mouseUp.timeMs])
+  }, [mouseState.mouseUp])
 
   // Create rotation quaternion between mouse down pos and curr mouse pos.
   useEffect(() => {
@@ -211,8 +221,6 @@ export const MouseHandler = () => {
       currTimeMs > maxClickTimeMs  // clicked long enough to not be mistaken for a regular click
     if (clickAndDrag) {
       let vFrom = mouseDownWorldPosNormalizedRef.current
-
-      // let currWorldPos = mouseState.cursorRaycastIntersections.firstNonGlobe.point
       let currWorldPos = mouseState.cursorRaycastIntersections.globe.point
       let vTo = new THREE.Vector3(
         currWorldPos.x,
@@ -223,8 +231,74 @@ export const MouseHandler = () => {
       let q = new THREE.Quaternion()
       q.setFromUnitVectors(vFrom, vTo)
 
-      let thing = vFrom.clone().applyQuaternion(q)
-      console.log({ msg: "moving", q, vTo, thing })
+      if (editState.clickAndDrag) {
+        // Update
+
+        // // Update region boundaries to trigger:
+        // //  (a) updating the meshes used in mouseclick intersection calculations
+        // //  (b) redrawing the region mesh
+        // let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
+        //   if (boundaryMarker.id == editState.selectedPinId) {
+        //     let updatedWhere = createWhereObjFromXYZ(x, y, z, globeInfo)
+        //     updatedWhere.id = boundaryMarker.id
+        //     return updatedWhere
+        //   }
+        //   else {
+        //     // Not moving this marker. Return as-is.
+        //     return where
+        //   }
+        // })
+
+        // reduxDispatch(
+        //   editStateActions.setRegionBoundaries(updatedBoundaries)
+        // )
+
+
+        reduxDispatch(
+          editStateActions.updateClickAndDrag({
+            quaternionRotor: {
+              w: q.w,
+              x: q.x,
+              y: q.y,
+              z: q.z,
+            }
+          })
+        )
+      }
+      else {
+        // Enable
+
+        let globePos = mouseState.cursorRaycastIntersections.globe.point
+        let globePosNormalized = (new THREE.Vector3(globePos.x, globePos.y, globePos.z)).normalize()
+
+        let intersection = mouseState.cursorRaycastIntersections.firstNonGlobe;
+        let cursorPos = intersection.point
+        let cursorPosNormalized = (new THREE.Vector3(cursorPos.x, cursorPos.y, cursorPos.z)).normalize()
+
+        let qOffset = (new THREE.Quaternion).setFromUnitVectors(globePosNormalized, cursorPosNormalized)
+
+        reduxDispatch(
+          editStateActions.enableClickAndDrag({
+            meshUuid: intersection.meshUuid,
+            meshPos: intersection.meshPos,
+            quaternionRotor: {
+              w: q.w,
+              x: q.x,
+              y: q.y,
+              z: q.z,
+            },
+            quaternionRotorOffset: {
+              w: qOffset.w,
+              x: qOffset.x,
+              y: qOffset.y,
+              z: qOffset.z,
+            }
+          })
+        )
+      }
+
+      // let thing = vFrom.clone().applyQuaternion(q)
+      // console.log({ msg: "moving", q, vTo, thing })
     }
 
 

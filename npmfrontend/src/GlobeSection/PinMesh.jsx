@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react"
-import { globeInfo } from "./constValues"
+// import { globeInfo } from "./constValues"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { uniqueId, update } from "lodash"
+import { Box } from "@react-three/drei"
+// import { editStateActions } from "../AppState/stateSliceEditPoi"
+// import { uniqueId, update } from "lodash"
 
-export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+
+export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (poiId == null) {
     throw new Error("'id' cannot be null")
   }
@@ -14,16 +16,14 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
   }
 
   const editState = useSelector((state) => state.editPoiReducer)
-  const reduxDispatch = useDispatch()
+  // const reduxDispatch = useDispatch()
 
   const meshRef = useRef()
-  const materialRef = useRef()
-  useEffect(() => {
-    // console.log({ msg: "PinMesh()/useEffect()/meshRef" })
-    meshRef.current.userData.poiId = poiId
-    meshRef.current.userData.whereId = where.id
+  const boxMeshRef = useRef()
 
+  function makePin() {
     // Make an equilateral triangle pyramid with the point facing center of the globe.
+    // Note: Values from the unit circle, 120deg apart.
     let sqrt3Over2 = Math.sqrt(3.0) / 2.0
     let oneHalf = 0.5
 
@@ -62,46 +62,163 @@ export function PinMesh({ name, poiId, where, colorHex, length = 3, scale = 0.1,
     meshRef.current.position.y = where.y
     meshRef.current.position.z = where.z
     meshRef.current.lookAt(lookAt)
+
+    // Mesh origin was the top of the pin. Shift the whole thing so that the end of the pin (
+    // after rotating via lookat(...)) is barely touching the surface of the globe.
     meshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(length * scale)))
 
     // color
     meshRef.current.material.color = new THREE.Color(colorHex)
 
+    meshRef.current.geometry.attributes.position.needsUpdate = true
+  }
+
+  function makeBoundingBox() {
+    let sqrt3Over2 = Math.sqrt(3.0) / 2.0
+    let pinMaxWidth = sqrt3Over2 * 2
+    let boundingBoxWidth = pinMaxWidth * 2
+    let boundingBoxHeight = length * 1.1
+    let boxGeometry = new THREE.BoxGeometry(boundingBoxWidth, boundingBoxHeight, boundingBoxWidth)
+    // let boxGeometry = new THREE.BoxGeometry(1, 1, 1)
+
+    // vertices
+    let valuesPerVertex = 3
+    let posAttribute = new THREE.Float32BufferAttribute(boxGeometry.attributes.position.array, valuesPerVertex)
+    boxMeshRef.current.geometry.setAttribute("position", posAttribute)
+
+
+    // indices
+    let valuesPerIndex = 1
+    let indicesAttribute = new THREE.Uint32BufferAttribute(boxGeometry.index.array, valuesPerIndex)
+    boxMeshRef.current.geometry.setIndex(indicesAttribute)
+
+    boxMeshRef.current.position.x = where.x
+    boxMeshRef.current.position.y = where.y
+    boxMeshRef.current.position.z = where.z
+    boxMeshRef.current.geometry.scale(scale, scale, scale)
+    boxMeshRef.current.lookAt(lookAt)
+
+    // Box geometry origin is the center of the mass. Shift it out of the globe surface so that 
+    // one end is barely touching.
+    boxMeshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(0.5 * length * scale)))
+
+    boxMeshRef.current.geometry.attributes.position.needsUpdate = true
+  }
+
+  useEffect(() => {
+    // console.log({ msg: "PinMesh()/useEffect()/meshRef" })
+    if (!meshRef.current || !boxMeshRef.current) {
+      return
+    }
+
+    meshRef.current.userData.poiId = poiId
+    meshRef.current.userData.whereId = where.id
+
+    makePin()
+    makeBoundingBox()
+
+
+    // boxMeshRef.current.position.x = where.x
+    // boxMeshRef.current.position.y = where.y
+    // boxMeshRef.current.position.z = where.z
+    // boxMeshRef.current.lookAt(lookAt)
+    // boxMeshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(length * scale)))
+
     // console.log("PinMesh finished")
-  }, [meshRef.current, materialRef.current])
+  }, [meshRef.current, boxMeshRef])
 
   useEffect(() => {
     if (editState.editModeOn) {
-      if (editState.selectedPinId == meshRef.current.userData.whereId) {
-        // if (editState.selectedRegionBoundary?.id == meshRef.current.userData.whereId) {
-        // console.log({ clickAndDragPos: editState.clickAndDragGlobePos, offset: editState.clickAndDragMeshOffset })
-        // console.log({ regionBoundaries: editState.regionBoundaries })
-        // console.log({ msg: "PinMesh()/useEffect()/editState.clickAndDragGlobePos", value: editState.clickAndDragGlobePos })
+      if (editState.clickAndDrag?.meshUuid == meshRef.current.uuid) {
+        console.log({ msg: "pin", meshName: meshRef.current.name })
 
-        // meshRef.current.position.x = editState.clickAndDragGlobePos.x + editState.clickAndDragMeshOffset.x
-        // meshRef.current.position.y = editState.clickAndDragGlobePos.y + editState.clickAndDragMeshOffset.y
-        // meshRef.current.position.z = editState.clickAndDragGlobePos.z + editState.clickAndDragMeshOffset.z
-        meshRef.current.position.x = editState.clickAndDragGlobePos.x
-        meshRef.current.position.y = editState.clickAndDragGlobePos.y
-        meshRef.current.position.z = editState.clickAndDragGlobePos.z
+        // // Move to position specified by the quaternion rotor. 
+        // // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
+        // // click-and-drag was enabled.
+        // let originJson = editState.clickAndDrag.meshPos
+        // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
 
+        // let qJson = editState.clickAndDrag.quaternionRotor
+        // let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+
+        // let newPos = origin.clone().applyQuaternion(q)
+        // // console.log({ from: origin.x, to: newPos.x })
+        // meshRef.current.position.x = newPos.x
+        // meshRef.current.position.y = newPos.y
+        // meshRef.current.position.z = newPos.z
+        // meshRef.current.lookAt(globeInfo.pos)
+        // meshRef.current.geometry.attributes.position.needsUpdate = true
+      }
+      else if (editState.clickAndDrag?.meshUuid == boxMeshRef.current.uuid) {
+        console.log({ msg: "box", meshName: meshRef.current.name })
+
+        // Move to position specified by the quaternion rotor. 
+        // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
+        // click-and-drag was enabled.
+        let originJson = editState.clickAndDrag.meshPos
+        let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+
+        let qJson = editState.clickAndDrag.quaternionRotor
+        let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+
+        let qOffsetJson = editState.clickAndDrag.quaternionRotorOffset
+        let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+
+        let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+
+        let newPos = origin.clone().applyQuaternion(rotor)
+        // console.log({ from: origin.x, to: newPos.x })
+
+        // Move Pin
+        meshRef.current.position.x = newPos.x
+        meshRef.current.position.y = newPos.y
+        meshRef.current.position.z = newPos.z
         meshRef.current.lookAt(globeInfo.pos)
         meshRef.current.geometry.attributes.position.needsUpdate = true
 
-
-
-
-
-        // reduxDispatch(
-        //   editStateActions.triggerRegionRedraw()  // TODO: delete
-        // )
+        // Move bounding box
+        boxMeshRef.current.position.x = newPos.x
+        boxMeshRef.current.position.y = newPos.y
+        boxMeshRef.current.position.z = newPos.z
+        boxMeshRef.current.lookAt(globeInfo.pos)
+        boxMeshRef.current.geometry.attributes.position.needsUpdate = true
       }
+
+      // if (editState.selectedPinId == meshRef.current.userData.whereId) {
+      //   // if (editState.selectedRegionBoundary?.id == meshRef.current.userData.whereId) {
+      //   // console.log({ clickAndDragPos: editState.clickAndDragGlobePos, offset: editState.clickAndDragMeshOffset })
+      //   // console.log({ regionBoundaries: editState.regionBoundaries })
+      //   // console.log({ msg: "PinMesh()/useEffect()/editState.clickAndDragGlobePos", value: editState.clickAndDragGlobePos })
+
+      //   // meshRef.current.position.x = editState.clickAndDragGlobePos.x + editState.clickAndDragMeshOffset.x
+      //   // meshRef.current.position.y = editState.clickAndDragGlobePos.y + editState.clickAndDragMeshOffset.y
+      //   // meshRef.current.position.z = editState.clickAndDragGlobePos.z + editState.clickAndDragMeshOffset.z
+      //   meshRef.current.position.x = editState.clickAndDragGlobePos.x
+      //   meshRef.current.position.y = editState.clickAndDragGlobePos.y
+      //   meshRef.current.position.z = editState.clickAndDragGlobePos.z
+
+      //   meshRef.current.lookAt(globeInfo.pos)
+      //   meshRef.current.geometry.attributes.position.needsUpdate = true
+
+
+
+
+
+      //   // reduxDispatch(
+      //   //   editStateActions.triggerRegionRedraw()  // TODO: delete
+      //   // )
+      // }
     }
-  }, [editState.clickAndDragGlobePos])
+  }, [editState.clickAndDrag])
 
   return (
-    <mesh ref={meshRef} name={name}>
-      <meshBasicMaterial side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
-    </mesh>
+    <>
+      <mesh ref={meshRef} name={name}>
+        <meshBasicMaterial side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
+      </mesh>
+      <mesh ref={boxMeshRef} name={name}>
+        <meshBasicMaterial opacity={0.2} transparent={true} />
+      </mesh>
+    </>
   )
 }

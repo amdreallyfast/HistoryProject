@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { meshNames } from "../GlobeSection/constValues"
 
 const initialState = {
   currPos: {
@@ -10,28 +11,26 @@ const initialState = {
     y: 0
   },
 
-  mouseDown: {
-    pos: {
-      x: 0,
-      y: 0
-    },
-    timeMs: null
-  },
-
-  mouseUp: {
-    pos: {
-      x: 0,
-      y: 0,
-    },
-    timeMs: null
-  },
+  // Expected:
+  //  {
+  //    pos: {
+  //      x: 0,
+  //      y: 0
+  //    },
+  //    timeMs: null
+  //  }
+  mouseDown: null,
+  mouseUp: null,
 
   // via ThreeJs raycasting
   cursorRaycastIntersections: {
     // Expected:
     //  {
     //    point: null,
-    //    meshName: null
+    //    meshName: null,
+    //
+    //    // Note: different from mesh.Id, which is an integer used by ThreeJs for...something.
+    //    meshUuid: null
     //  }
     firstNonGlobe: null,
     globe: null
@@ -115,21 +114,51 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
+    resetMouseUpDown: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_resetMouseUpDown", value: action.payload })
+
+      return {
+        ...state,
+        mouseDown: initialState.mouseDown,
+        mouseUp: initialState.mouseUp
+      }
+    },
+
     setCursorRaycastIntersections: (state, action) => {
       // console.log({ msg: "stateSliceMouseInfo_setCursorRaycastIntersections", value: action.payload })
 
-      let intersections = action.payload
+      // // Note: An object with functions cannot be stored as state. Need to extract the values 
+      // // manually and construct a JSON object before store this info.
+      // let firstNonGlobe = null
+      // if (action.payload.firstNonGlobe) {
+      //   let intersection = action.payload.firstNonGlobe
+      //   let point = {
+      //     x: intersection.point.x,
+      //     y: intersection.point.y,
+      //     z: intersection.point.z
+      //   }
+
+      //   firstNonGlobe = {
+      //     point: point,
+      //     meshName: intersection.object.name,
+      //     meshUuid: intersection.firstNonGlobe.object.uuid
+      //   }
+      // }
+
+      // let globeIntersection = null
+      // if (action.payload.globe) {
+      //   globeIntersection = {
+      //     point: action.payload.globe.point,
+      //     meshName: action.payload.globe.object.name,
+      //     meshUuid: action.payload.globe.object.uuid
+      //   }
+      // }
+
       return {
         ...state,
         cursorRaycastIntersections: {
-          firstNonGlobe: intersections.firstNonGlobe ? {
-            point: intersections.firstNonGlobe.point,
-            meshName: intersections.firstNonGlobe.meshName,
-          } : null,
-          globe: intersections.globe ? {
-            point: intersections.globe.point,
-            meshName: intersections.globe.meshName,
-          } : null
+          firstNonGlobe: action.payload.firstNonGlobe,
+          globe: action.payload.globe
         }
       }
     },
@@ -143,15 +172,6 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    resetMouseUpDown: (state, action) => {
-      console.log({ msg: "stateSliceMouseInfo_resetMouseUpDown", value: action.payload })
-
-      return {
-        ...state,
-        mouseDown: initialState.mouseDown,
-        mouseUp: initialState.mouseUp
-      }
-    },
 
     // resetMouseClicked: (state, action) => {
     //   console.log({ msg: "stateSliceMouseInfo_resetMouseClicked", value: action.payload })

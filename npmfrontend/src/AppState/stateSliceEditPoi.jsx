@@ -15,14 +15,25 @@ const initialState = {
   //   { id, lat, long, x, y, z }
   primaryPinPos: null,
   primaryPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
-  noRegion: false,
+  // noRegion: false,
   regionBoundaries: [],
-  selectedPinId: null,
-  selectedMeshName: null,
+  // selectedPinId: null,
+  // selectedMeshName: null,
 
   // For use during clicking and dragging a single point or the entire region.
-  clickAndDragEnabled: false,
-  clickAndDragGlobePos: null, // {x, y, z}
+  // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the fireld "Id" as an 
+  // integer for some kind of counting, and it uses "uuid" for the global ID. I don't know why.
+  // Expected: 
+  //  {
+  //    enabled: false,
+  //    meshUuid: <guid>,
+  //    meshPos: { x, y, z },
+  //    quaternionRotor: { w, x, y, z },
+  //    quaternionRotorOffset: { w, x, y, z },
+  // },
+  clickAndDrag: null,
+  // clickAndDragEnabled: false,
+  // clickAndDragGlobePos: null, // {x, y, z}
 
   // Using an ever-increasing count is safer than trying to manage where to deactivate an on-off 
   // switch that will trigger state change every time it turns off.
@@ -85,14 +96,14 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setNoRegion: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setNoRegion", payload: action.payload })
+    // setNoRegion: (state, action) => {
+    //   // console.log({ msg: "stateSliceEditPoi_setNoRegion", payload: action.payload })
 
-      return {
-        ...state,
-        noRegion: action.payload
-      }
-    },
+    //   return {
+    //     ...state,
+    //     noRegion: action.payload
+    //   }
+    // },
 
     setRegionBoundaries: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
@@ -104,42 +115,57 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_startClickAndDrag", payload: action.payload })
 
       return {
         ...state,
-        clickAndDragEnabled: true,
-        selectedPinId: action.payload.pinId,
-        selectedMeshName: action.payload.meshName,
-        clickAndDragGlobePos: {
-          x: action.payload.startLocation.x,
-          y: action.payload.startLocation.y,
-          z: action.payload.startLocation.z,
-        },
+        clickAndDrag: {
+          enabled: true,
+          meshUuid: action.payload.meshUuid,
+          meshPos: action.payload.meshPos,
+          quaternionRotor: action.payload.quaternionRotor,
+          quaternionRotorOffset: action.payload.quaternionRotorOffset
+        }
       }
     },
+
+    updateClickAndDrag: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_updateClickAndDrag", payload: action.payload })
+
+      return {
+        ...state,
+        clickAndDrag: {
+          ...state.clickAndDrag,
+          quaternionRotor: action.payload.quaternionRotor
+        }
+      }
+    },
+
+    // enableClickAndDrag: (state, action) => {
+    //   // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
+
+    //   return {
+    //     ...state,
+    //     clickAndDragEnabled: true,
+    //     selectedPinId: action.payload.pinId,
+    //     selectedMeshName: action.payload.meshName,
+    //     clickAndDragGlobePos: {
+    //       x: action.payload.startLocation.x,
+    //       y: action.payload.startLocation.y,
+    //       z: action.payload.startLocation.z,
+    //     },
+    //   }
+    // },
 
     disableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_disableClickAndDrag", payload: action.payload })
 
       return {
         ...state,
-        clickAndDragEnabled: false,
-        selectedPinId: null,
-        clickAndDragGlobePos: null
-      }
-    },
-
-    updateClickAndDragGlobePos: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_updateClickAndDragGlobePos", payload: action.payload })
-
-      return {
-        ...state,
-        clickAndDragGlobePos: {
-          x: action.payload.x,
-          y: action.payload.y,
-          z: action.payload.z
-        }
+        clickAndDrag: null
+        // clickAndDragEnabled: false,
+        // selectedPinId: null,
+        // clickAndDragGlobePos: null
       }
     },
 

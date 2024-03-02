@@ -496,7 +496,7 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
 
   return (
     <>
-      <PinMesh name={meshNames.PoiPrimaryLocationPin} where={where} lookAt={globeInfo.pos} />
+      <PinMesh name={meshNames.PoiPrimaryLocationPin} where={where} globeInfo={globeInfo} lookAt={globeInfo.pos} />
     </>
   )
 
@@ -1031,7 +1031,7 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
   return regionBoundaries
 }
 
-export function EditRegion({ }) {
+export function EditRegion({ globeInfo }) {
   // TODO: once I have an aray of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
   const editState = useSelector((state) => state.editPoiReducer)
 
@@ -1055,6 +1055,7 @@ export function EditRegion({ }) {
           poiId={editState.poiId}
           name={meshNames.PoiPrimaryLocationPin}
           where={editState.primaryPinPos}
+          globeInfo={globeInfo}
           colorHex={pinMeshInfo.mainPinColor}
           length={pinMeshInfo.length}
           scale={pinMeshInfo.mainPinScale}
@@ -1103,6 +1104,7 @@ export function EditRegion({ }) {
           poiId={editState.poiId}
           name={meshNames.RegionBoundaryPin}
           where={where}
+          globeInfo={globeInfo}
           colorHex={pinMeshInfo.regionPinColor}
           length={pinMeshInfo.length}
           scale={pinMeshInfo.regionPinScale}

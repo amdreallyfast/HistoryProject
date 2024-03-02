@@ -17,16 +17,26 @@ import { createWhereObjFromXYZ } from "./createWhere"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { MouseHandler } from "./MouseHandler"
 
-const intersectionToMeshAndPos = (intersection) => {
+// Extract only what is needed for the state machine.
+// Note: An object with functions cannot be stored as state. Need to extract the values 
+// manually and construct a new JSON object with this info.
+const parseIntersectionForState = (intersection) => {
   return {
     point: {
       x: intersection.point.x,
       y: intersection.point.y,
       z: intersection.point.z,
     },
-    meshName: intersection.object.name
+    meshName: intersection.object.name,
+    meshUuid: intersection.object.uuid,
+    meshPos: {
+      x: intersection.object.position.x,
+      y: intersection.object.position.y,
+      z: intersection.object.position.z,
+    }
   }
 }
+
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
 export function Scene(
   {
@@ -47,6 +57,7 @@ export function Scene(
   const getThreeJsState = useThree((state) => state.get)
   let currSelectedPoiMeshRef = useRef()
 
+  const earthGlobeInfo = globeInfo
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
@@ -79,7 +90,7 @@ export function Scene(
     if (editState.editModeOn) {
       // TODO: set edit state info to current POI info
       setEditRegionReactElements((
-        <EditRegion />
+        <EditRegion globeInfo={earthGlobeInfo} />
       ))
     }
     else {
@@ -179,15 +190,15 @@ export function Scene(
         reduxDispatch(
           mouseStateActions.setCursorRaycastIntersections({
             firstNonGlobe: null,
-            globe: intersectionToMeshAndPos(firstIntersection)
+            globe: parseIntersectionForState(firstIntersection)
           })
         )
       }
       else if (globeIntersection) {
         reduxDispatch(
           mouseStateActions.setCursorRaycastIntersections({
-            firstNonGlobe: intersectionToMeshAndPos(firstIntersection),
-            globe: intersectionToMeshAndPos(globeIntersection)
+            firstNonGlobe: parseIntersectionForState(firstIntersection),
+            globe: parseIntersectionForState(globeIntersection)
           })
         )
       }
@@ -196,7 +207,7 @@ export function Scene(
         // (maybe a mesh on the edge of the hemisphere?)
         reduxDispatch(
           mouseStateActions.setCursorRaycastIntersections({
-            firstNonGlobe: intersectionToMeshAndPos(firstIntersection),
+            firstNonGlobe: parseIntersectionForState(firstIntersection),
             globe: null
           })
         )
@@ -308,7 +319,7 @@ export function Scene(
     <>
       <MouseHandler />
       <Stars />
-      <Globe globeRadius={globeInfo.radius} />
+      <Globe globeRadius={earthGlobeInfo.radius} />
       <group name={groupNames.PoiGroup}>
         {poiReactElements}
       </group>
