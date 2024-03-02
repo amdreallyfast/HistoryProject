@@ -3,6 +3,9 @@ import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { Box } from "@react-three/drei"
+import { createWhereObjFromXYZ } from "./createWhere"
+import { meshNames } from "./constValues"
+import { editStateActions } from "../AppState/stateSliceEditPoi"
 // import { editStateActions } from "../AppState/stateSliceEditPoi"
 // import { uniqueId, update } from "lodash"
 
@@ -16,7 +19,7 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
   }
 
   const editState = useSelector((state) => state.editPoiReducer)
-  // const reduxDispatch = useDispatch()
+  const reduxDispatch = useDispatch()
 
   const meshRef = useRef()
   const boxMeshRef = useRef()
@@ -111,11 +114,11 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
       return
     }
 
-    meshRef.current.userData.poiId = poiId
-    meshRef.current.userData.whereId = where.id
-
     makePin()
     makeBoundingBox()
+
+    boxMeshRef.current.userData.poiId = poiId
+    boxMeshRef.current.userData.whereId = where.id
 
 
     // boxMeshRef.current.position.x = where.x
@@ -130,7 +133,7 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
   useEffect(() => {
     if (editState.editModeOn) {
       if (editState.clickAndDrag?.meshUuid == meshRef.current.uuid) {
-        console.log({ msg: "pin", meshName: meshRef.current.name })
+        // console.log({ msg: "pin", meshName: meshRef.current.name })
 
         // // Move to position specified by the quaternion rotor. 
         // // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
@@ -149,19 +152,19 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
         // meshRef.current.lookAt(globeInfo.pos)
         // meshRef.current.geometry.attributes.position.needsUpdate = true
       }
-      else if (editState.clickAndDrag?.meshUuid == boxMeshRef.current.uuid) {
-        console.log({ msg: "box", meshName: meshRef.current.name })
+      else if (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid) {
+        // console.log({ msg: "box", meshName: meshRef.current.name })
 
         // Move to position specified by the quaternion rotor. 
         // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
         // click-and-drag was enabled.
-        let originJson = editState.clickAndDrag.meshPos
+        let originJson = editState.clickAndDrag.mesh.pos
         let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
 
-        let qJson = editState.clickAndDrag.quaternionRotor
+        let qJson = editState.clickAndDrag.rotorQuaternion
         let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
 
-        let qOffsetJson = editState.clickAndDrag.quaternionRotorOffset
+        let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
         let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
         let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
@@ -182,6 +185,27 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
         boxMeshRef.current.position.z = newPos.z
         boxMeshRef.current.lookAt(globeInfo.pos)
         boxMeshRef.current.geometry.attributes.position.needsUpdate = true
+
+        // ??why does enabling this make the useEffect condition stop responding??
+        // if (name == meshNames.RegionBoundaryPin) {
+        //   // Update region boundaries
+        //   let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
+        //     if (where.id == boundaryMarker.id) {
+        //       // console.log("found it")
+        //       let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
+        //       updatedWhere.id = boundaryMarker.id
+        //       return updatedWhere
+        //     }
+        //     else {
+        //       // Not moving this marker. Return as-is.
+        //       return boundaryMarker
+        //     }
+        //   })
+
+        //   // reduxDispatch(
+        //   //   editStateActions.setRegionBoundaries(updatedBoundaries)
+        //   // )
+        // }
       }
 
       // if (editState.selectedPinId == meshRef.current.userData.whereId) {

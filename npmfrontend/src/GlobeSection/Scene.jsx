@@ -27,12 +27,18 @@ const parseIntersectionForState = (intersection) => {
       y: intersection.point.y,
       z: intersection.point.z,
     },
-    meshName: intersection.object.name,
-    meshUuid: intersection.object.uuid,
-    meshPos: {
-      x: intersection.object.position.x,
-      y: intersection.object.position.y,
-      z: intersection.object.position.z,
+    mesh: {
+      name: intersection.object.name,
+      uuid: intersection.object.uuid,
+      pos: {
+        x: intersection.object.position.x,
+        y: intersection.object.position.y,
+        z: intersection.object.position.z,
+      },
+      userData: {
+        poi: intersection.object.userData?.poiId,
+        whereId: intersection.object.userData?.whereId,
+      }
     }
   }
 }

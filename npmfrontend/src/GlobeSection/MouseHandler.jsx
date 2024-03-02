@@ -8,7 +8,7 @@ import { globeInfo, meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { useEffect, useRef } from "react"
 import { useFrame } from "@react-three/fiber"
-import { reduce } from "lodash"
+import { intersection, reduce } from "lodash"
 
 
 // TODO: make into a component that reacts on mouse down, mouse up, mouse move, etc.
@@ -121,7 +121,7 @@ export const MouseHandler = () => {
         intersection.point.z
       ).normalize()
 
-      let selectedMeshName = intersection.meshName
+      let selectedMeshName = intersection.mesh.name
       if (selectedMeshName == meshNames.PoiPrimaryLocationPin) {
         if (editState.editModeOn) {
           console.log(`start moving '${selectedMeshName}'`)
@@ -184,7 +184,7 @@ export const MouseHandler = () => {
     let yDiff = Math.abs(mouseUp.pos.y - mouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
-      let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.meshName
+      let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.mesh.name
       let cursorGlobePos = mouseState.cursorRaycastIntersections.globe?.point
       if (editState.editModeOn && !editState.primaryPinPos && !selectedMeshName && cursorGlobePos) {
         // Edit mode: No region selected and clicked a blank part of the globe.
@@ -228,35 +228,15 @@ export const MouseHandler = () => {
         currWorldPos.z,
       ).normalize()
 
-      let q = new THREE.Quaternion()
-      q.setFromUnitVectors(vFrom, vTo)
+      let q = (new THREE.Quaternion()).setFromUnitVectors(vFrom, vTo)
 
       if (editState.clickAndDrag) {
         // Update
 
-        // // Update region boundaries to trigger:
-        // //  (a) updating the meshes used in mouseclick intersection calculations
-        // //  (b) redrawing the region mesh
-        // let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
-        //   if (boundaryMarker.id == editState.selectedPinId) {
-        //     let updatedWhere = createWhereObjFromXYZ(x, y, z, globeInfo)
-        //     updatedWhere.id = boundaryMarker.id
-        //     return updatedWhere
-        //   }
-        //   else {
-        //     // Not moving this marker. Return as-is.
-        //     return where
-        //   }
-        // })
-
-        // reduxDispatch(
-        //   editStateActions.setRegionBoundaries(updatedBoundaries)
-        // )
-
-
+        // Update selected mesh position
         reduxDispatch(
           editStateActions.updateClickAndDrag({
-            quaternionRotor: {
+            rotorQuaternion: {
               w: q.w,
               x: q.x,
               y: q.y,
@@ -264,6 +244,63 @@ export const MouseHandler = () => {
             }
           })
         )
+
+        if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
+          // Update region boundaries to trigger:
+          //  (a) updating the meshes used in mouseclick intersection calculations
+          //  (b) redrawing the region mesh
+          let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
+            if (editState.clickAndDrag.mesh.userData.whereId == boundaryMarker.id) {
+              let originJson = editState.clickAndDrag.mesh.pos
+              let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+              let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+              let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+              let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+              let newPos = origin.clone().applyQuaternion(rotor)
+
+              let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
+              updatedWhere.id = boundaryMarker.id
+              return updatedWhere
+            }
+            else {
+              // Not moving this marker. Return as-is.
+              return boundaryMarker
+            }
+          })
+
+          reduxDispatch(
+            editStateActions.setRegionBoundaries(updatedBoundaries)
+          )
+        }
+        // if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
+        //   // Update region boundaries to trigger:
+        //   //  (a) updating the meshes used in mouseclick intersection calculations
+        //   //  (b) redrawing the region mesh
+        //   let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
+        //     let thing = editState.clickAndDrag
+        //     if (editState.clickAndDrag.mesh.userData.whereId == boundaryMarker.id) {
+        //       // console.log("found it")
+
+        //       let updatedWhere = createWhereObjFromXYZ(x, y, z, globeInfo)
+        //       updatedWhere.id = boundaryMarker.id
+        //       return updatedWhere
+        //     }
+        //     // if (boundaryMarker.id == editState.selectedPinId) {
+        //     //   let updatedWhere = createWhereObjFromXYZ(x, y, z, globeInfo)
+        //     //   updatedWhere.id = boundaryMarker.id
+        //     //   return updatedWhere
+        //     // }
+        //     // else {
+        //     //   // Not moving this marker. Return as-is.
+        //     //   return where
+        //     // }
+        //   })
+        //   // reduxDispatch(
+        //   //   editStateActions.setRegionBoundaries(updatedBoundaries)
+        //   // )
+        // }
+
+
       }
       else {
         // Enable
@@ -271,27 +308,26 @@ export const MouseHandler = () => {
         let globePos = mouseState.cursorRaycastIntersections.globe.point
         let globePosNormalized = (new THREE.Vector3(globePos.x, globePos.y, globePos.z)).normalize()
 
-        let intersection = mouseState.cursorRaycastIntersections.firstNonGlobe;
-        let cursorPos = intersection.point
+        let meshIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe;
+        let cursorPos = meshIntersection.point
         let cursorPosNormalized = (new THREE.Vector3(cursorPos.x, cursorPos.y, cursorPos.z)).normalize()
 
         let qOffset = (new THREE.Quaternion).setFromUnitVectors(globePosNormalized, cursorPosNormalized)
 
         reduxDispatch(
           editStateActions.enableClickAndDrag({
-            meshUuid: intersection.meshUuid,
-            meshPos: intersection.meshPos,
-            quaternionRotor: {
-              w: q.w,
-              x: q.x,
-              y: q.y,
-              z: q.z,
-            },
-            quaternionRotorOffset: {
+            mesh: meshIntersection.mesh,
+            initialOffsetQuaternion: {
               w: qOffset.w,
               x: qOffset.x,
               y: qOffset.y,
               z: qOffset.z,
+            },
+            rotorQuaternion: {
+              w: q.w,
+              x: q.x,
+              y: q.y,
+              z: q.z,
             }
           })
         )

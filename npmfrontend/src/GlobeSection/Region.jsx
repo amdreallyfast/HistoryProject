@@ -916,16 +916,21 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     // TODO: ??preserve the "points" throughout the calculation so that you can find their index??
     // you _do_ need to clean up
 
+
+    // TODO: delete
     delaunay.edges.forEach((edgeIndicesArr, index) => {
       let p1 = verticesVec3[edgeIndicesArr[0]]
       let p2 = verticesVec3[edgeIndicesArr[1]]
       let line = (new THREE.Vector3()).subVectors(p2, p1)
 
       if (line.length() > longestLine) {
-        console.log({ longest: longestLine, newLongest: line.length() })
+        // console.log({ longest: longestLine, newLongest: line.length() })
         longestLine = line.length()
       }
     })
+
+
+
 
     // Lastly add the vertices.
     myVertices.push(...verticesRaw)

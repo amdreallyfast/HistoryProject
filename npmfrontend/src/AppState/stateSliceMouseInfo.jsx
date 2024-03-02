@@ -25,13 +25,19 @@ const initialState = {
   // via ThreeJs raycasting
   cursorRaycastIntersections: {
     // Expected:
-    //  {
-    //    point: null,
-    //    meshName: null,
-    //
-    //    // Note: different from mesh.Id, which is an integer used by ThreeJs for...something.
-    //    meshUuid: null
-    //  }
+    // Note: Using mesh "uuid" instead of "Id", which is an integer used by ThreeJs for something.
+    // {
+    //   point: null,         // Raycast intersection point
+    //   mesh: {
+    //     name: <name>,
+    //     uuid: <guid>,
+    //     pos: { x, y, z }   // Mesh geometry position
+    //     userData: {        // Only applies to region pins and primary POI pins
+    //       poiId: <poiId>,
+    //       whereId: <guid>
+    //     }
+    //   }
+    // },
     firstNonGlobe: null,
     globe: null
   }

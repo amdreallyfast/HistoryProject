@@ -11,10 +11,19 @@ const initialState = {
 
   whereLatLongArr: [],  // TODO: delete
 
-  // Format for location and region boundaries:
-  //   { id, lat, long, x, y, z }
-  primaryPinPos: null,
   primaryPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
+
+  // Format for location and region boundaries:
+  // Format:
+  //  {
+  //    id,
+  //    lat,
+  //    long,
+  //    x,
+  //    y,
+  //    z
+  //  }
+  primaryPinPos: null,
   // noRegion: false,
   regionBoundaries: [],
   // selectedPinId: null,
@@ -23,14 +32,31 @@ const initialState = {
   // For use during clicking and dragging a single point or the entire region.
   // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the fireld "Id" as an 
   // integer for some kind of counting, and it uses "uuid" for the global ID. I don't know why.
-  // Expected: 
+  // Format:
   //  {
   //    enabled: false,
-  //    meshUuid: <guid>,
-  //    meshPos: { x, y, z },
-  //    quaternionRotor: { w, x, y, z },
-  //    quaternionRotorOffset: { w, x, y, z },
-  // },
+  //
+  //    // Fixed for duration of click-and-drag.
+  //    mesh: {
+  //      name: <name>,
+  //      uuid: <guid>,
+  //      pos: { x, y, z },
+  //      userData: {
+  //        poiId: <poiId>,
+  //        whereId: <whereId>
+  //      }
+  //    },
+  //
+  //    // Fixed for duration of click-and-drag.
+  //    // Note: Covers difference betwwen the 3D point where the raycast intersected a mesh and 
+  //    // where the rayast intersected the globe underneath. Used to prevent click-and-drag from 
+  //    // snapping the mesh's origin to the cursor the moment the cursor moves a single pixel.
+  //    initialOffsetQuaternion: { w, x, y, z },
+  //
+  //    // Continuously updated. Represents the movement of a mesh from its starting position to 
+  //    // wherever the cursor is currently intersecting the globe
+  //    rotorQuaternion: { w, x, y, z }
+  //  },
   clickAndDrag: null,
   // clickAndDragEnabled: false,
   // clickAndDragGlobePos: null, // {x, y, z}
@@ -117,14 +143,27 @@ export const stateSliceEditPoi = createSlice({
     enableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_startClickAndDrag", payload: action.payload })
 
+      //  {
+      //    enabled: false,
+      //    mesh: {
+      //      name: name,
+      //      uuid: guid,
+      //      pos: { x, y, z },
+      //      userData: {
+      //        poiId: poiId,
+      //        whereId: whereId
+      //      }
+      //    },
+      //    initialOffsetQuaternion: { w, x, y, z },
+      //    rotorQuaternion: { w, x, y, z }
+      //  },
       return {
         ...state,
         clickAndDrag: {
           enabled: true,
-          meshUuid: action.payload.meshUuid,
-          meshPos: action.payload.meshPos,
-          quaternionRotor: action.payload.quaternionRotor,
-          quaternionRotorOffset: action.payload.quaternionRotorOffset
+          mesh: action.payload.mesh,
+          initialOffsetQuaternion: action.payload.initialOffsetQuaternion,
+          rotorQuaternion: action.payload.rotorQuaternion
         }
       }
     },
@@ -132,11 +171,13 @@ export const stateSliceEditPoi = createSlice({
     updateClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_updateClickAndDrag", payload: action.payload })
 
+      // let q = action.payload.rotorQuaternion
+      // console.log({ w: q.w, x: q.x, y: q.y, z: q.z })
       return {
         ...state,
         clickAndDrag: {
           ...state.clickAndDrag,
-          quaternionRotor: action.payload.quaternionRotor
+          rotorQuaternion: action.payload.rotorQuaternion
         }
       }
     },
