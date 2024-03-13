@@ -251,7 +251,7 @@ export const MouseHandler = () => {
           //  (b) redrawing the region mesh
           let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
             if (editState.clickAndDrag.mesh.userData.whereId == boundaryMarker.id) {
-              let originJson = editState.clickAndDrag.mesh.pos
+              let originJson = editState.clickAndDrag.mesh.originPos
               let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
               let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
               let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)

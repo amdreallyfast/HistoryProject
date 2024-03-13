@@ -40,7 +40,7 @@ const initialState = {
   //    mesh: {
   //      name: <name>,
   //      uuid: <guid>,
-  //      pos: { x, y, z },
+  //      originPos: { x, y, z },
   //      userData: {
   //        poiId: <poiId>,
   //        whereId: <whereId>
@@ -148,7 +148,7 @@ export const stateSliceEditPoi = createSlice({
       //    mesh: {
       //      name: name,
       //      uuid: guid,
-      //      pos: { x, y, z },
+      //      originPos: { x, y, z },
       //      userData: {
       //        poiId: poiId,
       //        whereId: whereId
@@ -173,6 +173,7 @@ export const stateSliceEditPoi = createSlice({
 
       // let q = action.payload.rotorQuaternion
       // console.log({ w: q.w, x: q.x, y: q.y, z: q.z })
+
       return {
         ...state,
         clickAndDrag: {

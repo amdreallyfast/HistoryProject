@@ -993,13 +993,49 @@ function EditRegionMesh({ globeInfo }) {
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
   }, [regionMeshRef.current, regionLinesRef.current, editState.regionBoundaries])
 
+  useEffect(() => {
+    if (editState.editModeOn) {
+      let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
+      if (moveRegion) {
+        // console.log(`moveRegion: '${moveRegion}'`)
+
+        let originJson = editState.clickAndDrag.mesh.originPos
+        let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+
+        let qJson = editState.clickAndDrag.rotorQuaternion
+        let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+
+        let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+        let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+
+        let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+
+        let newPos = origin.clone().applyQuaternion(rotor)
+        // console.log({ from: origin.x, to: newPos.x })
+        // console.log(`from: '${JSON.stringify(origin)}' -> to: '${JSON.stringify(newPos)}'`)
+        // console.log(`rotor: '${JSON.stringify(rotor)}'`)
+        console.log({ msg: "regionMesh", value: regionMeshRef.current })
+
+        // Move mesh
+        regionMeshRef.current.quaternion.multiplyQuaternions(q, qOffset)
+        regionLinesRef.current.quaternion.multiplyQuaternions(q, qOffset)
+
+        // regionMeshRef.current.position.x = newPos.x
+        // regionMeshRef.current.position.y = newPos.y
+        // regionMeshRef.current.position.z = newPos.z
+        // regionMeshRef.current.lookAt(globeInfo.pos)
+        // regionMeshRef.current.geometry.attributes.position.needsUpdate = true
+      }
+    }
+  }, [editState.clickAndDrag])
+
   return (
     <>
-      <mesh ref={regionMeshRef} name="RegionMesh">
+      <mesh ref={regionMeshRef} name={meshNames.Region}>
         <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} />
       </mesh>
 
-      <line ref={regionLinesRef} name="RegionLines" width={4}>
+      <line ref={regionLinesRef} name={meshNames.RegionLines} width={4}>
         <lineBasicMaterial color={0xff0000} />
       </line>
 

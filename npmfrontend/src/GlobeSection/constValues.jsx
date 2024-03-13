@@ -22,21 +22,22 @@ export const pinMeshInfo = {
 }
 
 export const meshNames = {
-  Stars: "Stars",
+  Stars: "StarsMesh",
 
   // Major pin
-  PoiPrimaryLocationPin: "PoiPrimaryLocationPin",
+  PoiPrimaryLocationPin: "PoiPrimaryLocationPinMesh",
 
   // Minor pin
   // Note: Only visible in edit mode. These user-defined region boundary points are interactable 
   // meshes
-  RegionBoundaryPin: "RegionBoundaryPin",
+  RegionBoundaryPin: "RegionBoundaryPinMesh",
 
   // region mesh
-  Region: "Region",
+  Region: "RegionMesh",
+  RegionLines: "RegionLinesMesh",
 
-  Globe: "Globe",
-  GlobeAtmosphere: "GlobeAtmosphere"
+  Globe: "GlobeMesh",
+  GlobeAtmosphere: "GlobeAtmosphereMesh"
 }
 
 export const groupNames = {

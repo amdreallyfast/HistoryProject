@@ -31,8 +31,8 @@ const initialState = {
     //   mesh: {
     //     name: <name>,
     //     uuid: <guid>,
-    //     pos: { x, y, z }   // Mesh geometry position
-    //     userData: {        // Only applies to region pins and primary POI pins
+    //     originPos: { x, y, z } // Mesh geometry position
+    //     userData: {            // Only applies to region pins and primary POI pins
     //       poiId: <poiId>,
     //       whereId: <guid>
     //     }
@@ -158,6 +158,12 @@ export const stateSliceMouseInfo = createSlice({
       //     meshName: action.payload.globe.object.name,
       //     meshUuid: action.payload.globe.object.uuid
       //   }
+      // }
+
+      // if (action.payload.firstNonGlobe) {
+      //   // let firstIntersection = action.payload.firstNonGlobe
+      //   // console.log(`'${firstIntersection.mesh.name}' only at '${JSON.stringify(firstIntersection.point)}'`)
+      //   console.log(`intersections.firstNonGlobe.point: ${JSON.stringify(action.payload.firstNonGlobe.point)}`)
       // }
 
       return {

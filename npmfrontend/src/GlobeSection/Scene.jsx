@@ -30,7 +30,7 @@ const parseIntersectionForState = (intersection) => {
     mesh: {
       name: intersection.object.name,
       uuid: intersection.object.uuid,
-      pos: {
+      originPos: {
         x: intersection.object.position.x,
         y: intersection.object.position.y,
         z: intersection.object.position.z,
@@ -193,6 +193,7 @@ export function Scene(
       let globeIntersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
 
       if (firstIntersection.object.name == meshNames.Globe) {
+        // console.log("globe only")
         reduxDispatch(
           mouseStateActions.setCursorRaycastIntersections({
             firstNonGlobe: null,
@@ -201,6 +202,7 @@ export function Scene(
         )
       }
       else if (globeIntersection) {
+        // console.log(`globe + '${firstIntersection.object.name}' at '${JSON.stringify(firstIntersection.point)}'`)
         reduxDispatch(
           mouseStateActions.setCursorRaycastIntersections({
             firstNonGlobe: parseIntersectionForState(firstIntersection),
@@ -211,6 +213,7 @@ export function Scene(
       else {
         // Mesh intersection, but not with globe. The mouse must be hovering over open space 
         // (maybe a mesh on the edge of the hemisphere?)
+        // console.log(`'${firstIntersection.object.name}' only at '${JSON.stringify(firstIntersection.point)}'`)
         reduxDispatch(
           mouseStateActions.setCursorRaycastIntersections({
             firstNonGlobe: parseIntersectionForState(firstIntersection),
@@ -221,6 +224,7 @@ export function Scene(
     }
     else {
       // De-activate the cursor intersections, but only if they are on. Don't incur excess events.
+      // console.log("no intersection")
       if (mouseState.cursorRaycastIntersections.first || mouseState.cursorRaycastIntersections.globe) {
         reduxDispatch(
           mouseStateActions.resetCursorRaycastIntersections()
