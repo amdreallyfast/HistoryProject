@@ -233,17 +233,17 @@ export const MouseHandler = () => {
       if (editState.clickAndDrag) {
         // Update
 
-        // // Update selected mesh position
-        // reduxDispatch(
-        //   editStateActions.updateClickAndDrag({
-        //     rotorQuaternion: {
-        //       w: q.w,
-        //       x: q.x,
-        //       y: q.y,
-        //       z: q.z,
-        //     }
-        //   })
-        // )
+        // Update selected mesh position
+        reduxDispatch(
+          editStateActions.updateClickAndDrag({
+            rotorQuaternion: {
+              w: q.w,
+              x: q.x,
+              y: q.y,
+              z: q.z,
+            }
+          })
+        )
 
         if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
           // Update region boundaries to trigger:

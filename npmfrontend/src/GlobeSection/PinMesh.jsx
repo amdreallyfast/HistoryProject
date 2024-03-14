@@ -109,7 +109,7 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
   }
 
   useEffect(() => {
-    console.log({ msg: "PinMesh()/useEffect()/meshRef" })
+    // console.log({ msg: "PinMesh()/useEffect()/meshRef" })
     if (!meshRef.current || !boxMeshRef.current) {
       return
     }
@@ -139,168 +139,170 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
 
 
   useEffect(() => {
-    // if (editState.editModeOn) {
-    //   if (editState.clickAndDrag?.meshUuid == meshRef.current.uuid) {
-    //     // console.log({ msg: "pin", meshName: meshRef.current.name })
+    if (editState.editModeOn) {
+      if (editState.clickAndDrag?.meshUuid == meshRef.current.uuid) {
+        // console.log({ msg: "pin", meshName: meshRef.current.name })
 
-    //     // // Move to position specified by the quaternion rotor. 
-    //     // // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
-    //     // // click-and-drag was enabled.
-    //     // let originJson = editState.clickAndDrag.meshPos
-    //     // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+        // // Move to position specified by the quaternion rotor. 
+        // // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
+        // // click-and-drag was enabled.
+        // let originJson = editState.clickAndDrag.meshPos
+        // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
 
-    //     // let qJson = editState.clickAndDrag.quaternionRotor
-    //     // let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+        // let qJson = editState.clickAndDrag.quaternionRotor
+        // let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
 
-    //     // let newPos = origin.clone().applyQuaternion(q)
-    //     // // console.log({ from: origin.x, to: newPos.x })
-    //     // meshRef.current.position.x = newPos.x
-    //     // meshRef.current.position.y = newPos.y
-    //     // meshRef.current.position.z = newPos.z
-    //     // meshRef.current.lookAt(globeInfo.pos)
-    //     // meshRef.current.geometry.attributes.position.needsUpdate = true
-    //   }
-    //   else {
-    //     let moveThisPinOnly = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
-    //     // let moveAllBoundaryPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
-    //     let moveAllBoundaryPins = false
-    //     // console.log(`thisPin: '${editState.clickAndDrag?.mesh.uuid}', box: '${boxMeshRef.current.uuid}'`)
-    //     if (moveThisPinOnly || (moveAllBoundaryPins && name == meshNames.RegionBoundaryPin)) {
-    //       // console.log("hello?")
-    //       // // Move to position specified by the quaternion rotor. 
-    //       // // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
-    //       // // click-and-drag was enabled.
-    //       // let originJson = editState.clickAndDrag.mesh.originPos
-    //       // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+        // let newPos = origin.clone().applyQuaternion(q)
+        // // console.log({ from: origin.x, to: newPos.x })
+        // meshRef.current.position.x = newPos.x
+        // meshRef.current.position.y = newPos.y
+        // meshRef.current.position.z = newPos.z
+        // meshRef.current.lookAt(globeInfo.pos)
+        // meshRef.current.geometry.attributes.position.needsUpdate = true
+      }
+      else {
+        let moveThisPinOnly = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
+        // let moveAllBoundaryPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
+        let moveAllBoundaryPins = false
+        // console.log(`thisPin: '${editState.clickAndDrag?.mesh.uuid}', box: '${boxMeshRef.current.uuid}'`)
+        if (moveThisPinOnly || (moveAllBoundaryPins && name == meshNames.RegionBoundaryPin)) {
+          // console.log("hello?")
+          // Move to position specified by the quaternion rotor. 
+          // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
+          // click-and-drag was enabled.
+          let originJson = editState.clickAndDrag.mesh.originPos
+          let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
 
-    //       // let qJson = editState.clickAndDrag.rotorQuaternion
-    //       // let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+          let qJson = editState.clickAndDrag.rotorQuaternion
+          let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
 
-    //       // let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
-    //       // let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+          let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+          let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
-    //       // let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+          let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
 
-    //       // let newPos = origin.clone().applyQuaternion(rotor)
-    //       // // console.log({ from: origin.x, to: newPos.x })
+          let newPos = origin.clone().applyQuaternion(rotor)
+          // console.log({ from: origin.x, to: newPos.x })
 
-    //       // // Move Pin
-    //       // meshRef.current.position.x = newPos.x
-    //       // meshRef.current.position.y = newPos.y
-    //       // meshRef.current.position.z = newPos.z
-    //       // meshRef.current.lookAt(globeInfo.pos)
-    //       // meshRef.current.geometry.attributes.position.needsUpdate = true
+          // Move Pin
+          meshRef.current.position.x = newPos.x
+          meshRef.current.position.y = newPos.y
+          meshRef.current.position.z = newPos.z
+          meshRef.current.lookAt(globeInfo.pos)
+          meshRef.current.geometry.attributes.position.needsUpdate = true
 
-    //       // // Move bounding box
-    //       // boxMeshRef.current.position.x = newPos.x
-    //       // boxMeshRef.current.position.y = newPos.y
-    //       // boxMeshRef.current.position.z = newPos.z
-    //       // boxMeshRef.current.lookAt(globeInfo.pos)
-    //       // boxMeshRef.current.geometry.attributes.position.needsUpdate = true
+          // Move bounding box
+          boxMeshRef.current.position.x = newPos.x
+          boxMeshRef.current.position.y = newPos.y
+          boxMeshRef.current.position.z = newPos.z
+          boxMeshRef.current.lookAt(globeInfo.pos)
+          boxMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-    //       let qOriginJson = editState.clickAndDrag.mesh.originQuaternion
-    //       let qOrigin = new THREE.Quaternion(qOriginJson.x, qOriginJson.y, qOriginJson.z, qOriginJson.w)
+          // let qOriginJson = editState.clickAndDrag.mesh.originQuaternion
+          // let qOrigin = new THREE.Quaternion(qOriginJson.x, qOriginJson.y, qOriginJson.z, qOriginJson.w)
 
-    //       let qMouseJson = editState.clickAndDrag.rotorQuaternion
-    //       let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
+          // let qMouseJson = editState.clickAndDrag.rotorQuaternion
+          // let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
 
-    //       let qFrom = qOrigin
-    //       let qTo = (new THREE.Quaternion()).multiplyQuaternions(qOrigin, qMouse)
-    //       console.log(`from {x: ${qFrom.x}, y: ${qFrom.y}, z: ${qFrom.z}, w: ${qFrom.w}} to {x: ${qTo.x}, y: ${qTo.y}, z: ${qTo.z}, w: ${qTo.w}}`)
+          // let qFrom = qOrigin
+          // let qTo = (new THREE.Quaternion()).multiplyQuaternions(qOrigin, qMouse)
+          // // console.log(`from {x: ${qFrom.x}, y: ${qFrom.y}, z: ${qFrom.z}, w: ${qFrom.w}} to {x: ${qTo.x}, y: ${qTo.y}, z: ${qTo.z}, w: ${qTo.w}}`)
 
-    //       // meshRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
-    //       // boxMeshRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
-    //     }
-    //     // else {
-    //     //   console.log("not you")
-    //     // }
-    //   }
-    //   // else if (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid) {
-    //   //   // console.log({ msg: "box", meshName: meshRef.current.name })
+          // // meshRef.current.quaternion.multiplyQuaternions(qMouse, qOrigin)
+          // // boxMeshRef.current.quaternion.multiplyQuaternions(qMouse, qOrigin)
+          // meshRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
+          // boxMeshRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
+        }
+        // else {
+        //   console.log("not you")
+        // }
+      }
+      // else if (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid) {
+      //   // console.log({ msg: "box", meshName: meshRef.current.name })
 
-    //   //   // Move to position specified by the quaternion rotor. 
-    //   //   // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
-    //   //   // click-and-drag was enabled.
-    //   //   let originJson = editState.clickAndDrag.mesh.originPos
-    //   //   let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+      //   // Move to position specified by the quaternion rotor. 
+      //   // Note: Apply the rotor to the pre-click-and-drag location, which was recorded when 
+      //   // click-and-drag was enabled.
+      //   let originJson = editState.clickAndDrag.mesh.originPos
+      //   let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
 
-    //   //   let qJson = editState.clickAndDrag.rotorQuaternion
-    //   //   let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+      //   let qJson = editState.clickAndDrag.rotorQuaternion
+      //   let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
 
-    //   //   let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
-    //   //   let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+      //   let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+      //   let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
-    //   //   let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+      //   let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
 
-    //   //   let newPos = origin.clone().applyQuaternion(rotor)
-    //   //   // console.log({ from: origin.x, to: newPos.x })
+      //   let newPos = origin.clone().applyQuaternion(rotor)
+      //   // console.log({ from: origin.x, to: newPos.x })
 
-    //   //   // Move Pin
-    //   //   meshRef.current.position.x = newPos.x
-    //   //   meshRef.current.position.y = newPos.y
-    //   //   meshRef.current.position.z = newPos.z
-    //   //   meshRef.current.lookAt(globeInfo.pos)
-    //   //   meshRef.current.geometry.attributes.position.needsUpdate = true
+      //   // Move Pin
+      //   meshRef.current.position.x = newPos.x
+      //   meshRef.current.position.y = newPos.y
+      //   meshRef.current.position.z = newPos.z
+      //   meshRef.current.lookAt(globeInfo.pos)
+      //   meshRef.current.geometry.attributes.position.needsUpdate = true
 
-    //   //   // Move bounding box
-    //   //   boxMeshRef.current.position.x = newPos.x
-    //   //   boxMeshRef.current.position.y = newPos.y
-    //   //   boxMeshRef.current.position.z = newPos.z
-    //   //   boxMeshRef.current.lookAt(globeInfo.pos)
-    //   //   boxMeshRef.current.geometry.attributes.position.needsUpdate = true
+      //   // Move bounding box
+      //   boxMeshRef.current.position.x = newPos.x
+      //   boxMeshRef.current.position.y = newPos.y
+      //   boxMeshRef.current.position.z = newPos.z
+      //   boxMeshRef.current.lookAt(globeInfo.pos)
+      //   boxMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-    //   //   // ??why does enabling this make the useEffect condition stop responding??
-    //   //   // if (name == meshNames.RegionBoundaryPin) {
-    //   //   //   // Update region boundaries
-    //   //   //   let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
-    //   //   //     if (where.id == boundaryMarker.id) {
-    //   //   //       // console.log("found it")
-    //   //   //       let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
-    //   //   //       updatedWhere.id = boundaryMarker.id
-    //   //   //       return updatedWhere
-    //   //   //     }
-    //   //   //     else {
-    //   //   //       // Not moving this marker. Return as-is.
-    //   //   //       return boundaryMarker
-    //   //   //     }
-    //   //   //   })
+      //   // ??why does enabling this make the useEffect condition stop responding??
+      //   // if (name == meshNames.RegionBoundaryPin) {
+      //   //   // Update region boundaries
+      //   //   let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
+      //   //     if (where.id == boundaryMarker.id) {
+      //   //       // console.log("found it")
+      //   //       let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
+      //   //       updatedWhere.id = boundaryMarker.id
+      //   //       return updatedWhere
+      //   //     }
+      //   //     else {
+      //   //       // Not moving this marker. Return as-is.
+      //   //       return boundaryMarker
+      //   //     }
+      //   //   })
 
-    //   //   //   // reduxDispatch(
-    //   //   //   //   editStateActions.setRegionBoundaries(updatedBoundaries)
-    //   //   //   // )
-    //   //   // }
-    //   // }
-    //   // else if (editState.clickAndDrag?.mesh.name == meshNames.Region && name == meshNames.RegionBoundaryPin) {
-    //   //   // console.log(`Moving region boundary pin '${where.id}'`)
-    //   // }
-    //   // console.log({ msg: "compare", mesh1: editState.clickAndDrag?.mesh.name, mesh2: meshNames.Region, thisMesh: name })
+      //   //   // reduxDispatch(
+      //   //   //   editStateActions.setRegionBoundaries(updatedBoundaries)
+      //   //   // )
+      //   // }
+      // }
+      // else if (editState.clickAndDrag?.mesh.name == meshNames.Region && name == meshNames.RegionBoundaryPin) {
+      //   // console.log(`Moving region boundary pin '${where.id}'`)
+      // }
+      // console.log({ msg: "compare", mesh1: editState.clickAndDrag?.mesh.name, mesh2: meshNames.Region, thisMesh: name })
 
-    //   // if (editState.selectedPinId == meshRef.current.userData.whereId) {
-    //   //   // if (editState.selectedRegionBoundary?.id == meshRef.current.userData.whereId) {
-    //   //   // console.log({ clickAndDragPos: editState.clickAndDragGlobePos, offset: editState.clickAndDragMeshOffset })
-    //   //   // console.log({ regionBoundaries: editState.regionBoundaries })
-    //   //   // console.log({ msg: "PinMesh()/useEffect()/editState.clickAndDragGlobePos", value: editState.clickAndDragGlobePos })
+      // if (editState.selectedPinId == meshRef.current.userData.whereId) {
+      //   // if (editState.selectedRegionBoundary?.id == meshRef.current.userData.whereId) {
+      //   // console.log({ clickAndDragPos: editState.clickAndDragGlobePos, offset: editState.clickAndDragMeshOffset })
+      //   // console.log({ regionBoundaries: editState.regionBoundaries })
+      //   // console.log({ msg: "PinMesh()/useEffect()/editState.clickAndDragGlobePos", value: editState.clickAndDragGlobePos })
 
-    //   //   // meshRef.current.position.x = editState.clickAndDragGlobePos.x + editState.clickAndDragMeshOffset.x
-    //   //   // meshRef.current.position.y = editState.clickAndDragGlobePos.y + editState.clickAndDragMeshOffset.y
-    //   //   // meshRef.current.position.z = editState.clickAndDragGlobePos.z + editState.clickAndDragMeshOffset.z
-    //   //   meshRef.current.position.x = editState.clickAndDragGlobePos.x
-    //   //   meshRef.current.position.y = editState.clickAndDragGlobePos.y
-    //   //   meshRef.current.position.z = editState.clickAndDragGlobePos.z
+      //   // meshRef.current.position.x = editState.clickAndDragGlobePos.x + editState.clickAndDragMeshOffset.x
+      //   // meshRef.current.position.y = editState.clickAndDragGlobePos.y + editState.clickAndDragMeshOffset.y
+      //   // meshRef.current.position.z = editState.clickAndDragGlobePos.z + editState.clickAndDragMeshOffset.z
+      //   meshRef.current.position.x = editState.clickAndDragGlobePos.x
+      //   meshRef.current.position.y = editState.clickAndDragGlobePos.y
+      //   meshRef.current.position.z = editState.clickAndDragGlobePos.z
 
-    //   //   meshRef.current.lookAt(globeInfo.pos)
-    //   //   meshRef.current.geometry.attributes.position.needsUpdate = true
-
-
+      //   meshRef.current.lookAt(globeInfo.pos)
+      //   meshRef.current.geometry.attributes.position.needsUpdate = true
 
 
 
-    //   //   // reduxDispatch(
-    //   //   //   editStateActions.triggerRegionRedraw()  // TODO: delete
-    //   //   // )
-    //   // }
-    // }
-  }, [editState.clickAndDrag])
+
+
+      //   // reduxDispatch(
+      //   //   editStateActions.triggerRegionRedraw()  // TODO: delete
+      //   // )
+      // }
+    }
+  }, [editState.clickAndDrag?.rotorQuaternion])
 
   return (
     <>
