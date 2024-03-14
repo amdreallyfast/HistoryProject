@@ -41,6 +41,7 @@ const initialState = {
   //      name: <name>,
   //      uuid: <guid>,
   //      originPos: { x, y, z },
+  //      originQuaternion: action.payload.originQuaternion,
   //      userData: {
   //        poiId: <poiId>,
   //        whereId: <whereId>
@@ -149,6 +150,7 @@ export const stateSliceEditPoi = createSlice({
       //      name: name,
       //      uuid: guid,
       //      originPos: { x, y, z },
+      //      originQuaternion: action.payload.originQuaternion,
       //      userData: {
       //        poiId: poiId,
       //        whereId: whereId

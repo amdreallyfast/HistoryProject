@@ -35,6 +35,12 @@ const parseIntersectionForState = (intersection) => {
         y: intersection.object.position.y,
         z: intersection.object.position.z,
       },
+      originQuaternion: {
+        x: intersection.object.quaternion.x,
+        y: intersection.object.quaternion.y,
+        z: intersection.object.quaternion.z,
+        w: intersection.object.quaternion.w,
+      },
       userData: {
         poi: intersection.object.userData?.poiId,
         whereId: intersection.object.userData?.whereId,

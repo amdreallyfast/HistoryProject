@@ -986,6 +986,20 @@ function EditRegionMesh({ globeInfo }) {
     regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionMeshIndicesArr, valuesPerIndex))
     regionMeshRef.current.geometry.attributes.position.needsUpdate = true
 
+    // x = 1.1056879065589036
+    // y = 2.9815222946441696e-16
+    // z = 4.869195423072224
+    // let minX = 0
+    // let maxX = -10000
+    // let minY = 0
+    // let maxY = -10000
+    // let minZ = 0
+    // let maxZ = -10000
+    // regionMeshRef.current.position.x = 1.1056879065589036
+    // regionMeshRef.current.position.y = 2.9815222946441696e-16
+    // regionMeshRef.current.position.z = 4.869195423072224
+
+
     // Line
     // Note: Re-use the mesh vertices. Same vertices, different indices.
     regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
@@ -999,26 +1013,34 @@ function EditRegionMesh({ globeInfo }) {
       if (moveRegion) {
         // console.log(`moveRegion: '${moveRegion}'`)
 
-        let originJson = editState.clickAndDrag.mesh.originPos
-        let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+        // let originJson = editState.clickAndDrag.mesh.originPos
+        // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
 
-        let qJson = editState.clickAndDrag.rotorQuaternion
-        let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+        let qOriginJson = editState.clickAndDrag.mesh.originQuaternion
+        let qOrigin = new THREE.Quaternion(qOriginJson.x, qOriginJson.y, qOriginJson.z, qOriginJson.w)
 
-        let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
-        let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+        let qMouseJson = editState.clickAndDrag.rotorQuaternion
+        let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
 
-        let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+        // let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+        // let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
-        let newPos = origin.clone().applyQuaternion(rotor)
+        // let qCurrent = regionMeshRef.current.quaternion
+
+        // let q = (new THREE.Quaternion()).multiplyQuaternions(qOrigin, qMouse)
+
+        // let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+
+        // let newPos = origin.clone().applyQuaternion(rotor)
         // console.log({ from: origin.x, to: newPos.x })
         // console.log(`from: '${JSON.stringify(origin)}' -> to: '${JSON.stringify(newPos)}'`)
         // console.log(`rotor: '${JSON.stringify(rotor)}'`)
         console.log({ msg: "regionMesh", value: regionMeshRef.current })
 
         // Move mesh
-        regionMeshRef.current.quaternion.multiplyQuaternions(q, qOffset)
-        regionLinesRef.current.quaternion.multiplyQuaternions(q, qOffset)
+        regionMeshRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
+        // regionMeshRef.current.quaternion.set(q.x, q.y, q.z, q.w)
+        regionLinesRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
 
         // regionMeshRef.current.position.x = newPos.x
         // regionMeshRef.current.position.y = newPos.y
