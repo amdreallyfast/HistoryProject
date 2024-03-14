@@ -1011,7 +1011,7 @@ function EditRegionMesh({ globeInfo }) {
     if (editState.editModeOn) {
       let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
       if (moveRegion) {
-        // console.log(`moveRegion: '${moveRegion}'`)
+        console.log(`moveRegion: '${moveRegion}'`)
 
         // let originJson = editState.clickAndDrag.mesh.originPos
         // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
@@ -1035,7 +1035,7 @@ function EditRegionMesh({ globeInfo }) {
         // console.log({ from: origin.x, to: newPos.x })
         // console.log(`from: '${JSON.stringify(origin)}' -> to: '${JSON.stringify(newPos)}'`)
         // console.log(`rotor: '${JSON.stringify(rotor)}'`)
-        console.log({ msg: "regionMesh", value: regionMeshRef.current })
+        // console.log({ msg: "regionMesh", value: regionMeshRef.current })
 
         // Move mesh
         regionMeshRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)

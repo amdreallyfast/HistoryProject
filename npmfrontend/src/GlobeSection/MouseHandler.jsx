@@ -14,76 +14,76 @@ import { intersection, reduce } from "lodash"
 // TODO: make into a component that reacts on mouse down, mouse up, mouse move, etc.
 
 
-const enableClickAndDrag = (globeIntersection, clickedMesh) => {
-  // Note: The region mesh will not have a pinId and this will be null. This is ok.
-  let pinId = clickedMesh.userData.whereId
-  let meshName = clickedMesh.name
-  const [x, y, z] = globeIntersection.point
-  let clickedMeshInfo = { pinId, meshName, x, y, z }
-  reduxDispatch(
-    editStateActions.enableClickAndDrag(clickedMeshInfo)
-  )
-}
+// const enableClickAndDrag = (globeIntersection, clickedMesh) => {
+//   // Note: The region mesh will not have a pinId and this will be null. This is ok.
+//   let pinId = clickedMesh.userData.whereId
+//   let meshName = clickedMesh.name
+//   const [x, y, z] = globeIntersection.point
+//   let clickedMeshInfo = { pinId, meshName, x, y, z }
+//   reduxDispatch(
+//     editStateActions.enableClickAndDrag(clickedMeshInfo)
+//   )
+// }
 
-const updateClickAndDragPrimaryPin = (globeIntersection, globeInfo) => {
-  // Don't update if the mouse isn't moving.
-  const [x, y, z] = globeIntersection.point
-  let moved =
-    x != editState.primaryPinPos.x &&
-    y != editState.primaryPinPos.y &&
-    z != editState.primaryPinPos.z
-  if (!moved) {
-    return
-  }
+// const updateClickAndDragPrimaryPin = (globeIntersection, globeInfo) => {
+//   // Don't update if the mouse isn't moving.
+//   const [x, y, z] = globeIntersection.point
+//   let moved =
+//     x != editState.primaryPinPos.x &&
+//     y != editState.primaryPinPos.y &&
+//     z != editState.primaryPinPos.z
+//   if (!moved) {
+//     return
+//   }
 
-  let updatedPos = { x, y, z }
-  reduxDispatch(
-    editStateActions.updateClickAndDragGlobePos(updatedPos)
-  )
-}
+//   let updatedPos = { x, y, z }
+//   reduxDispatch(
+//     editStateActions.updateClickAndDragGlobePos(updatedPos)
+//   )
+// }
 
-const updateClickAndDragRegionBoundaryPin = (globeIntersection, globeInfo) => {
-  const [x, y, z] = globeIntersection.point
-  let currPinPos = editState.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == editState.selectedPinId)
-  if (!currPinPos) {
-    throw new Error("how did you select a pin that doesn't exist?")
-  }
+// const updateClickAndDragRegionBoundaryPin = (globeIntersection, globeInfo) => {
+//   const [x, y, z] = globeIntersection.point
+//   let currPinPos = editState.regionBoundaries.find((boundaryMarker) => boundaryMarker.id == editState.selectedPinId)
+//   if (!currPinPos) {
+//     throw new Error("how did you select a pin that doesn't exist?")
+//   }
 
-  let moved =
-    x != currPinPos.x &&
-    y != currPinPos.y &&
-    z != currPinPos.z
-  if (!moved) {
-    return
-  }
+//   let moved =
+//     x != currPinPos.x &&
+//     y != currPinPos.y &&
+//     z != currPinPos.z
+//   if (!moved) {
+//     return
+//   }
 
-  let updatedPos = { x, y, z }
-  reduxDispatch(
-    editStateActions.updateClickAndDragGlobePos(updatedPos)
-  )
+//   let updatedPos = { x, y, z }
+//   reduxDispatch(
+//     editStateActions.updateClickAndDragGlobePos(updatedPos)
+//   )
 
-  // Update region boundaries to trigger:
-  //  (a) updating the meshes used in mouseclick intersection calculations
-  //  (b) redrawing the region mesh
-  let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
-    if (boundaryMarker.id == editState.selectedPinId) {
-      let updatedWhere = createWhereObjFromXYZ(x, y, z, globeInfo)
-      updatedWhere.id = boundaryMarker.id
-      return updatedWhere
-    }
-    else {
-      // Not moving this marker. Return as-is.
-      return where
-    }
-  })
+//   // Update region boundaries to trigger:
+//   //  (a) updating the meshes used in mouseclick intersection calculations
+//   //  (b) redrawing the region mesh
+//   let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
+//     if (boundaryMarker.id == editState.selectedPinId) {
+//       let updatedWhere = createWhereObjFromXYZ(x, y, z, globeInfo)
+//       updatedWhere.id = boundaryMarker.id
+//       return updatedWhere
+//     }
+//     else {
+//       // Not moving this marker. Return as-is.
+//       return where
+//     }
+//   })
 
-  reduxDispatch(
-    editStateActions.setRegionBoundaries(updatedBoundaries)
-  )
-}
+//   reduxDispatch(
+//     editStateActions.setRegionBoundaries(updatedBoundaries)
+//   )
+// }
 
-const updateClickAndDragRegion = (globeIntersection, globeInfo) => {
-}
+// const updateClickAndDragRegion = (globeIntersection, globeInfo) => {
+// }
 
 export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
@@ -233,17 +233,17 @@ export const MouseHandler = () => {
       if (editState.clickAndDrag) {
         // Update
 
-        // Update selected mesh position
-        reduxDispatch(
-          editStateActions.updateClickAndDrag({
-            rotorQuaternion: {
-              w: q.w,
-              x: q.x,
-              y: q.y,
-              z: q.z,
-            }
-          })
-        )
+        // // Update selected mesh position
+        // reduxDispatch(
+        //   editStateActions.updateClickAndDrag({
+        //     rotorQuaternion: {
+        //       w: q.w,
+        //       x: q.x,
+        //       y: q.y,
+        //       z: q.z,
+        //     }
+        //   })
+        // )
 
         if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
           // Update region boundaries to trigger:
