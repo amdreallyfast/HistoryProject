@@ -24,15 +24,10 @@ export const pinMeshInfo = {
 export const meshNames = {
   Stars: "StarsMesh",
 
-  // Major pin
   PoiPrimaryLocationPin: "PoiPrimaryLocationPinMesh",
-
-  // Minor pin
-  // Note: Only visible in edit mode. These user-defined region boundary points are interactable 
-  // meshes
   RegionBoundaryPin: "RegionBoundaryPinMesh",
+  PinBoundingBox: "PinBoundingBox",
 
-  // region mesh
   Region: "RegionMesh",
   RegionLines: "RegionLinesMesh",
 

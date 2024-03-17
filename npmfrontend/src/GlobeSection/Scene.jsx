@@ -116,8 +116,9 @@ export function Scene(
 
     findMeshes(getThreeJsState().scene.children)
     setMeshes(meshesArr)
-    console.log(meshesArr[19])
-  }, [poiReactElements, editState.primaryPinMeshExists, editState.regionBoundaries.length])
+
+    // console.log({ meshesArr, count: meshesArr.length })
+  }, [poiReactElements, editState.primaryPinMeshExists, editState.regionBoundaries])
 
   // Update POI highlight.
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
@@ -172,8 +173,51 @@ export function Scene(
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mouseState.currPos, state.camera)
-    const intersections = state.raycaster.intersectObjects(meshes)
+
+    // Recursive
+    let intersectableMeshes = []
+    const findMeshes = (components) => {
+      components.forEach((component) => {
+        if (component.type == "Group") {
+          if (component.children.length > 0) {
+            findMeshes(component.children)
+          }
+        }
+        else if (component.type == "Mesh") {
+          if (component.name != meshNames.Stars && component.name != meshNames.GlobeAtmosphere) {
+            intersectableMeshes.push(component)
+          }
+        }
+      })
+    }
+
+    findMeshes(getThreeJsState().scene.children)
+
+    // const intersections = state.raycaster.intersectObjects(meshes)
+    // const intersections = state.raycaster.intersectObjects(getThreeJsState().scene.children, true)
+    const intersections = state.raycaster.intersectObjects(intersectableMeshes)
+
+    console.log({
+      intersectable: intersectableMeshes.find((meshes) => meshes.name == meshNames.Region),
+      region: intersections.find((intersection) => intersection.object.name == meshNames.Region)
+    })
+
     if (intersections.length > 0) {
+      // let things = {}
+      // intersections.forEach((inter, index) => {
+      //   things[index] = {
+      //     name: inter.object.name,
+      //     inter: inter
+      //   }
+      // })
+      // console.log(things)
+
+      // let things = intersections.map((inter) => { return inter.object.name })
+      // console.log(things)
+
+
+
+
       let firstIntersection = intersections[0]
       let globeIntersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
 
@@ -187,6 +231,17 @@ export function Scene(
         )
       }
       else if (globeIntersection) {
+
+
+        // //??why isn't the region mesh intersection calculation moving? it moves on the first click, 
+        // // and if I move a boundary pin so that the mesh is stretched over the original area, I can click on that and move
+        // // it again, but I can't click and move it once the mesh is outside of the original area; what gives??
+        // if (firstIntersection.object.name == meshNames.Region) {
+        //   console.log(firstIntersection.object.geometry.attributes.position.array[0])
+        // }
+
+
+
         // console.log(`globe + '${firstIntersection.object.name}' at '${JSON.stringify(firstIntersection.point)}'`)
         reduxDispatch(
           mouseStateActions.setCursorRaycastIntersections({

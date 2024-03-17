@@ -60,7 +60,7 @@ export function Stars({ debug }) {
   }, [])
 
   return (
-    <points name={meshNames.Stars} geometry={starsMemo.geometry}>
+    <points geometry={starsMemo.geometry}>
       <pointsMaterial color={0xffffff} />
     </points>
   )

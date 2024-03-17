@@ -701,46 +701,56 @@ function EditRegionMesh({ globeInfo }) {
     regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionMeshIndicesArr, valuesPerIndex))
     regionMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-    // Line
-    // Note: Re-use the mesh vertices. Same vertices, different indices.
-    regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
-    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
-    regionLinesRef.current.geometry.attributes.position.needsUpdate = true
-  }, [editState.regionBoundaries.length])
+    // // Line
+    // // Note: Re-use the mesh vertices. Same vertices, different indices.
+    // regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
+    // regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
+    // regionLinesRef.current.geometry.attributes.position.needsUpdate = true
+  }, [editState.regionBoundaries])
 
-  // Update click-and-drag
-  useEffect(() => {
-    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.clickAndDrag", value: editState.clickAndDrag })
-    if (!editState.editModeOn) {
-      return
-    }
 
-    let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
-    if (!moveRegion) {
-      return
-    }
+  //??do I need to delay one more frame and then activate a flag to make the "intersectable meshes" calculation update? is there a geometry buffer caching going on??
+  //  no, coulnd't be; I experimented in the Scene by having the meshes be pulled from the existing scene every single frame just prior to raycasting, and it still didn't work
+  //  ??what gives??
 
-    let qMouseJson = editState.clickAndDrag.rotorQuaternion
-    let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
 
-    regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
-    regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
-  }, [editState.clickAndDrag])
 
-  // Update following click-and-drag
-  useEffect(() => {
-    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.mouseUp", value: editState.mouseUp })
-    if (!mouseState.mouseUp) {
-      return
-    }
+  // // Update click-and-drag
+  // useEffect(() => {
+  //   // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.clickAndDrag", value: editState.clickAndDrag })
+  //   if (!editState.editModeOn) {
+  //     return
+  //   }
 
-    if (!preMoveQuat.current.equals(regionMeshRef.current.quaternion)) {
-      // Record updated position
-      // Note: The mesh position was already been updated in real time. We just need to update 
-      // this position reference for the next click-and-drag.
-      preMoveQuat.current = regionMeshRef.current.quaternion.clone()
-    }
-  }, [mouseState.mouseUp])
+  //   let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
+  //   if (!moveRegion) {
+  //     return
+  //   }
+
+  //   let qMouseJson = editState.clickAndDrag.rotorQuaternion
+  //   let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
+
+  //   regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
+  //   regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
+  // }, [editState.clickAndDrag])
+
+  // // Update following click-and-drag
+  // useEffect(() => {
+  //   // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.mouseUp", value: editState.mouseUp })
+  //   if (!mouseState.mouseUp) {
+  //     return
+  //   }
+
+  //   console.log("hello?")
+  //   if (!preMoveQuat.current.equals(regionMeshRef.current.quaternion)) {
+
+  //     console.log("updating quat")
+  //     // Record updated position
+  //     // Note: The mesh position was already been updated in real time. We just need to update 
+  //     // this position reference for the next click-and-drag.
+  //     preMoveQuat.current = regionMeshRef.current.quaternion.clone()
+  //   }
+  // }, [mouseState.mouseUp])
 
   return (
     <>

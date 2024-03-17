@@ -72,3 +72,5 @@ Click-and-drag:
 	when a mesh finishes creation, add the meshId to the array
 	when a mesh is deleted, remove the meshId from the array 
 		??what "use" function would I call for this??
+// TODO: simple "star field" effect: Make each star vary brightness, starting with a random delay (so that they don't all vary brightness simultaneously)
+// TODO: bug to reactThreeFiber: "points" does not record "name" when provided

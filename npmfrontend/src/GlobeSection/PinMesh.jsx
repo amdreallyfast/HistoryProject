@@ -210,7 +210,7 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
       <mesh ref={meshRef} name={name}>
         <meshBasicMaterial side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
       </mesh>
-      <mesh ref={boxMeshRef} name={name}>
+      <mesh ref={boxMeshRef} name={meshNames.PinBoundingBox}>
         <meshBasicMaterial opacity={0.2} transparent={true} />
       </mesh>
     </>
