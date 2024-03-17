@@ -194,13 +194,13 @@ export function Scene(
     findMeshes(getThreeJsState().scene.children)
 
     // const intersections = state.raycaster.intersectObjects(meshes)
-    // const intersections = state.raycaster.intersectObjects(getThreeJsState().scene.children, true)
-    const intersections = state.raycaster.intersectObjects(intersectableMeshes)
+    const intersections = state.raycaster.intersectObjects(getThreeJsState().scene.children, true)
+    // const intersections = state.raycaster.intersectObjects(intersectableMeshes)
 
-    console.log({
-      intersectable: intersectableMeshes.find((meshes) => meshes.name == meshNames.Region),
-      region: intersections.find((intersection) => intersection.object.name == meshNames.Region)
-    })
+    // console.log({
+    //   intersectable: intersectableMeshes.find((meshes) => meshes.name == meshNames.Region),
+    //   region: intersections.find((intersection) => intersection.object.name == meshNames.Region)
+    // })
 
     if (intersections.length > 0) {
       // let things = {}
@@ -212,8 +212,8 @@ export function Scene(
       // })
       // console.log(things)
 
-      // let things = intersections.map((inter) => { return inter.object.name })
-      // console.log(things)
+      let things = intersections.map((inter) => { return inter.object.name })
+      console.log(things)
 
 
 

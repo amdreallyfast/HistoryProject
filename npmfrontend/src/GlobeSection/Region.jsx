@@ -715,42 +715,42 @@ function EditRegionMesh({ globeInfo }) {
 
 
 
-  // // Update click-and-drag
-  // useEffect(() => {
-  //   // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.clickAndDrag", value: editState.clickAndDrag })
-  //   if (!editState.editModeOn) {
-  //     return
-  //   }
+  // Update click-and-drag
+  useEffect(() => {
+    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.clickAndDrag", value: editState.clickAndDrag })
+    if (!editState.editModeOn) {
+      return
+    }
 
-  //   let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
-  //   if (!moveRegion) {
-  //     return
-  //   }
+    let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
+    if (!moveRegion) {
+      return
+    }
 
-  //   let qMouseJson = editState.clickAndDrag.rotorQuaternion
-  //   let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
+    let qMouseJson = editState.clickAndDrag.rotorQuaternion
+    let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
 
-  //   regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
-  //   regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
-  // }, [editState.clickAndDrag])
+    regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
+    regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
+  }, [editState.clickAndDrag])
 
-  // // Update following click-and-drag
-  // useEffect(() => {
-  //   // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.mouseUp", value: editState.mouseUp })
-  //   if (!mouseState.mouseUp) {
-  //     return
-  //   }
+  // Update following click-and-drag
+  useEffect(() => {
+    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.mouseUp", value: editState.mouseUp })
+    if (!mouseState.mouseUp) {
+      return
+    }
 
-  //   console.log("hello?")
-  //   if (!preMoveQuat.current.equals(regionMeshRef.current.quaternion)) {
+    console.log("hello?")
+    if (!preMoveQuat.current.equals(regionMeshRef.current.quaternion)) {
 
-  //     console.log("updating quat")
-  //     // Record updated position
-  //     // Note: The mesh position was already been updated in real time. We just need to update 
-  //     // this position reference for the next click-and-drag.
-  //     preMoveQuat.current = regionMeshRef.current.quaternion.clone()
-  //   }
-  // }, [mouseState.mouseUp])
+      console.log("updating quat")
+      // Record updated position
+      // Note: The mesh position was already been updated in real time. We just need to update 
+      // this position reference for the next click-and-drag.
+      preMoveQuat.current = regionMeshRef.current.quaternion.clone()
+    }
+  }, [mouseState.mouseUp])
 
   return (
     <>
