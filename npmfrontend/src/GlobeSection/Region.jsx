@@ -706,7 +706,7 @@ function EditRegionMesh({ globeInfo }) {
     regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
     regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
-  }, [editState.regionBoundaries])
+  }, [editState.regionBoundaries.length])
 
   // Update click-and-drag
   useEffect(() => {
