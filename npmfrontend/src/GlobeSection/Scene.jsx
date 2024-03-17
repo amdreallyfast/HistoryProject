@@ -1,19 +1,10 @@
 import { useFrame, useThree } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { poiStateActions } from "../AppState/stateSlicePoi"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
-import * as THREE from "three"
 import { Globe } from "./Globe"
-import { AnimatedBarMesh } from "./AnimatedBarMesh"
 import { globeInfo, meshNames, groupNames } from "./constValues"
 import { EditRegion, ShowRegion } from "./Region"
-import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "./convertLatLongXYZ"
-import { Box, Stars } from "@react-three/drei"
-import { PinMesh } from "./PinMesh"
-import { v4 as uuid } from "uuid";
-import _, { first, update } from "lodash"
-import { createWhereObjFromXYZ } from "./createWhere"
+import { Stars } from "@react-three/drei"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { MouseHandler } from "./MouseHandler"
 
@@ -30,17 +21,6 @@ const parseIntersectionForState = (intersection) => {
     mesh: {
       name: intersection.object.name,
       uuid: intersection.object.uuid,
-      originPos: {
-        x: intersection.object.position.x,
-        y: intersection.object.position.y,
-        z: intersection.object.position.z,
-      },
-      originQuaternion: {
-        x: intersection.object.quaternion.x,
-        y: intersection.object.quaternion.y,
-        z: intersection.object.quaternion.z,
-        w: intersection.object.quaternion.w,
-      },
       userData: {
         poi: intersection.object.userData?.poiId,
         whereId: intersection.object.userData?.whereId,
@@ -135,9 +115,7 @@ export function Scene(
     }
 
     findMeshes(getThreeJsState().scene.children)
-    // console.log({ interactableMeshes: meshesArr })
     setMeshes(meshesArr)
-
   }, [poiReactElements, editState.primaryPinMeshExists, editState.regionBoundaries])
 
   // Update POI highlight.
@@ -175,7 +153,6 @@ export function Scene(
   }, [poiState.selectedPoi])
 
   // Handle mouse hover and mouse click.
-  let prevMouseIsDownRef = useRef(false)
   let prevMouseHoverPoiMeshRef = useRef()
 
   // Determine cursor intersections
@@ -187,6 +164,7 @@ export function Scene(
       return
     }
 
+    // TODO: move "mouse hover" logic to MouseHandler
     // Only consider "mouse hover" intersections that are:
     // 1. Not the globe
     // 2. Not behind the globe
@@ -253,10 +231,6 @@ export function Scene(
       mouseHoverPoiMesh?.uuid != prevMouseHoverPoiMeshRef.current?.uuid
 
     // Occurs when the mouse is stationary over a POI and is clicked. Creates new selectedPoi.
-    // let clickedSamePoiHover =
-    //   mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
-    //   mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid &&
-    //   mouseInfoRef.current.mouseClickedCurrPos
     let clickedSamePoiHover =
       mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
       mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid
@@ -328,7 +302,6 @@ export function Scene(
 
     // End of frame. Mouse handling done.
     prevMouseHoverPoiMeshRef.current = mouseHoverPoiMesh
-    // mouseInfoRef.current.mouseClickedCurrPos = false
   })
 
   return (

@@ -14,8 +14,6 @@ import { useThree } from "@react-three/fiber"
 import { useWireframeUniforms } from "@react-three/drei/materials/WireframeMaterial"
 import { createWhereObjFromXYZ } from "./createWhere"
 
-// TODO: click latlong pin and drag to move point
-
 const interpolateArcFromVertices = (p1, p2, arcDegPerSegment, includeEndpoints = false) => {
   // console.log({ start: startVec3, end: endVec3 })
 
@@ -69,15 +67,6 @@ const interpolateAcrossTriangleFlat = (p1, p2, p3, distBetweenPoints) => {
   // console.log("start-------------------------")
   let v1 = (new THREE.Vector3()).subVectors(p2, p1)
   let v2 = (new THREE.Vector3()).subVectors(p3, p1)
-
-  // // Simple
-  // let u = 0.9
-  // let v = 0.0
-  // let pInterpolated = p1.clone()
-  // pInterpolated.addScaledVector(v1, u).addScaledVector(v2, v)
-  // pInterpolated.normalize()
-  // pInterpolated.multiplyScalar(globeInfo.radius)
-  // interpolatedVectorPoints.push(pInterpolated)
 
   let uVector = v1
   let uVectorLength = uVector.length()
@@ -254,123 +243,6 @@ const findMidpointOnSurface = (latLongArr) => {
   return [lat, long]
 }
 
-
-// TODO: replace this algorithm or get rid of mini region altogether. It stretches near the poles.
-
-// Make each user-added point a tiny region on its own by adding 8x extra points from the
-// 45 degrees around the unit circle.
-const miniRegionWidthScalar = 4
-const x00DegLength = Math.cos(0) * miniRegionWidthScalar
-const y00DegLength = Math.sin(0) * miniRegionWidthScalar
-const x45DegLength = Math.cos(Math.PI / 4) * miniRegionWidthScalar
-const y45DegLength = Math.sin(Math.PI / 4) * miniRegionWidthScalar
-const x90DegLength = Math.cos(Math.PI / 2) * miniRegionWidthScalar
-const y90DegLength = Math.sin(Math.PI / 2) * miniRegionWidthScalar
-const makeMiniRegionFillerPoints = (lat, long) => {
-  // Mini region filler points around each user-added point
-  let miniPointRegionLongLatArr = []
-
-  // base spacing off the latitude, which is consistent across the globe (unlike longitude, which collapses to a point at the poles)
-  let degOffset = 5
-
-  let origin = [long, lat]
-  miniPointRegionLongLatArr.push(origin)
-  let originPoint = ConvertLatLongToVec3(origin[1], origin[0], globeInfo.radius)
-
-  let offset = [long, lat + 5]
-  miniPointRegionLongLatArr.push(offset)
-  let offsetPoint = ConvertLatLongToVec3(offset[1], offset[0], globeInfo.radius)
-
-  let diffVector = (new THREE.Vector3()).subVectors(offsetPoint, originPoint)
-
-  // // let mat = new THREE.Matrix4()
-  // let rotationAxis = (new THREE.Vector3()).subVectors(originPoint, globeInfo.pos)
-  // // console.log({ originPoint: originPoint, rotationAxis: rotationAxis })
-  // // mat.makeRotationAxis(rotationAxis, 1)
-  // let rotation = new THREE.Matrix4().makeRotationAxis(rotationAxis, Math.PI / 2)
-  // let translation = new THREE.Matrix4().makeTranslation(new THREE.Vector3(1, 1, 1))
-  // let mat = rotation
-
-  // let rotatedOffsetVector = offsetVector.clone().applyMatrix4(mat)
-  // let rotatedOffsetVector = offsetVector.clone().applyAxisAngle(rotationAxis, Math.PI / 8)
-  // let rotatedPoint = (new THREE.Vector3()).addVectors(originPoint, rotatedOffsetVector)
-  // console.log({ origin: originPoint, new: newPoint, rotated: rotatedPoint })
-  // const [rotatedLat, rotatedLong] = ConvertXYZToLatLong(rotatedPoint.x, rotatedPoint.y, rotatedPoint.z, globeInfo.radius)
-  // miniPointRegionLongLatArr.push([rotatedLong, rotatedLat])
-
-  let rotationAxis = (new THREE.Vector3()).subVectors(originPoint, globeInfo.pos).normalize()
-  // let rotationAxis = (new THREE.Vector3(0, 1, 0)).normalize()
-
-  let vertices = []
-  // vertices.push(originPoint.x, originPoint.y, originPoint.z)
-  // vertices.push(offsetPoint.x, offsetPoint.y, offsetPoint.z)
-
-  const thing = (radians) => {
-    let rotatedOffsetVector = offsetPoint.clone().applyAxisAngle(rotationAxis, radians)
-    // let newPoint = (new THREE.Vector3()).addVectors(originPoint, rotatedOffsetVector)
-    let newPoint = rotatedOffsetVector
-    vertices.push(newPoint.x, newPoint.y, newPoint.z)
-    const [newLat, newLong] = ConvertXYZToLatLong(newPoint.x, newPoint.y, newPoint.z, globeInfo.radius)
-    console.log({
-      x: roundFloat(newPoint.x, 5),
-      y: roundFloat(newPoint.y, 5),
-      z: roundFloat(newPoint.z, 5),
-      lat: roundFloat(newLat, 5),
-      long: roundFloat(newLong, 5)
-    })
-    return [newLat, newLong]
-  }
-  for (let i = 0; i <= (Math.PI * 2); i += (Math.PI / 8)) {
-    miniPointRegionLongLatArr.push(thing(i))
-  }
-  // console.log(miniPointRegionLongLatArr)
-  console.log("--------------------")
-
-
-
-
-  // miniPointRegionLongLatArr.push([long, lat])
-  // miniPointRegionLongLatArr.push([long + x00DegLength, lat + y00DegLength]) // (x+1,y+0)
-  // miniPointRegionLongLatArr.push([long + x45DegLength, lat + y45DegLength])
-  // miniPointRegionLongLatArr.push([long + x90DegLength, lat + y90DegLength]) // (x+0,y+1)
-  // miniPointRegionLongLatArr.push([long - x45DegLength, lat + y45DegLength])
-  // miniPointRegionLongLatArr.push([long - x00DegLength, lat + y00DegLength]) // (x-1,y+0)
-  // miniPointRegionLongLatArr.push([long - x45DegLength, lat - y45DegLength])
-  // miniPointRegionLongLatArr.push([long + x90DegLength, lat - y90DegLength]) // (x+0,y-1)
-  // miniPointRegionLongLatArr.push([long + x45DegLength, lat - y45DegLength])
-
-  // miniPointRegionLongLatArr.push([long, lat])
-  // miniPointRegionLongLatArr.push([long + 2, lat + 0]) // (x+1,y+0)
-  // miniPointRegionLongLatArr.push([long + 2, lat + 2])
-  // miniPointRegionLongLatArr.push([long + 0, lat + 2]) // (x+0,y+1)
-  // miniPointRegionLongLatArr.push([long - 2, lat + 2])
-  // miniPointRegionLongLatArr.push([long - 2, lat + 0]) // (x-1,y+0)
-  // miniPointRegionLongLatArr.push([long - 2, lat - 2])
-  // miniPointRegionLongLatArr.push([long + 0, lat - 2]) // (x+0,y-1)
-  // miniPointRegionLongLatArr.push([long + 2, lat - 2])
-
-  // Triangulate the filler points to make a mesh.
-  // TODO: _start_ with a pre-allocated typed array and fill it in
-  // const typedArr = new Float32Array(miniPointRegionLongLatArr.flat())
-  // let delaunator = new Delaunator(typedArr)
-  // let indices = delaunator.triangles
-
-  // let delaunay = d3Geo.geoDelaunay(miniPointRegionLongLatArr)
-  // let indices = delaunay.triangles.flat()
-  let indices = []
-
-  // // Convert the filler points to their own vertices.
-  // let vertices = []
-  // miniPointRegionLongLatArr.forEach((longLat) => {
-  //   let lat = longLat[1]
-  //   let long = longLat[0]
-  //   const [x, y, z] = ConvertLatLongToXYZ(lat, long, globeInfo.regionRadius)
-  //   vertices.push(x, y, z)
-  // })
-
-  return [indices, vertices]
-}
-
 const makeRegion = (latLongArr) => {
   let vectorPoints = []
 
@@ -499,101 +371,7 @@ export function ShowRegion({ poiId, lat, long, globeInfo }) {
       <PinMesh name={meshNames.PoiPrimaryLocationPin} where={where} globeInfo={globeInfo} lookAt={globeInfo.pos} />
     </>
   )
-
-  // const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
-  // const [poiPinReactElements, setPoiPinReactElements] = useState()
-
-  // const fillerPointsRef = useRef()
-  // const fillerPointsMeshRef = useRef()
-  // useEffect(() => {
-  //   // console.log("Region -> useEffect -> regionMeshRef")
-
-  //   let fillerPointsArr = []
-  //   let fillerIndicesArr = []
-
-  //   setPoiPinReactElements(
-  //     whereLatLongArr?.map(
-  //       (latLong, index) => {
-  //         let where = ConvertLatLongToVec3(latLong.lat, latLong.long)
-  //         return (
-  //           <PinMesh
-  //             key={index}
-  //             where={where}
-  //           />
-  //         )
-  //       }
-  //     )
-  //   )
-
-  //   whereLatLongArr.forEach((latLongJson) => {
-  //     const [indices, vertices] = makeMiniRegionFillerPoints(latLongJson.lat, latLongJson.long)
-  //     let numExistingVertices = fillerPointsArr.length / 3
-  //     let shiftedIndices = indices.map((value) => value + numExistingVertices)
-  //     fillerIndicesArr.push(...shiftedIndices)
-  //     fillerPointsArr.push(...vertices)
-  //   })
-
-  //   // const [regionIndices, regionPoints] = makeRegion(whereLatLongArr)
-  //   // let numExistingVertices = fillerPointsArr.length / 3
-  //   // let shiftedIndices = regionIndices.map((value) => value + numExistingVertices)
-  //   // fillerIndicesArr.push(...shiftedIndices)
-  //   // fillerPointsArr.push(...regionPoints)
-
-  //   // //??useful at all??
-  //   // if (whereLatLongArr.length > 1) {
-  //   //   const [midpointLat, midpointLong] = findMidpointOnSurface(whereLatLongArr)
-  //   //   const [x, y, z] = ConvertLatLongToXYZ(midpointLat, midpointLong, globeInfo.radius)
-  //   //   fillerPointsArr.push(x, y, z)
-  //   // }
-
-  //   let valuesPerVertex = 3
-  //   let valuesPerIndex = 1
-
-  //   // Create geometry for the filler points
-  //   let fillerPointsPosAttr = new THREE.Float32BufferAttribute(fillerPointsArr, valuesPerVertex)
-  //   let fillerPointsIndicesAttr = new THREE.Uint32BufferAttribute(fillerIndicesArr, valuesPerIndex)
-
-  //   fillerPointsRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
-  //   fillerPointsRef.current.geometry.attributes.position.needsUpdate = true
-
-  //   fillerPointsMeshRef.current.geometry.setAttribute("position", fillerPointsPosAttr)
-  //   fillerPointsMeshRef.current.geometry.setIndex(fillerPointsIndicesAttr)
-  //   fillerPointsMeshRef.current.geometry.attributes.position.needsUpdate = true
-  // }, [whereLatLongArr])
-
-  // return (
-  //   <>
-  //     <points name="IntermediatePoints" ref={fillerPointsRef}>
-  //       <pointsMaterial color={0x00fff0} size={0.18} />
-  //     </points>
-
-  //     <group name="LatLongPins">
-  //       {poiPinReactElements}
-  //     </group>
-
-  //     {/* 
-  //       Note: "Transparency" and wireframe are messed up. 
-  //         In order to make transparency work with the "LatLongPins", you have to:
-  //           Render
-  //           Cut out the "LatLongPins" elements
-  //           Save to re-render
-  //           Paste the "LatLongPins" elements back in
-  //           Save to re-render again.
-  //         In order to make wireframe work, you have to:
-  //           Render with "wireframe={false}"
-  //           Set it to true
-  //           Save to re-render.
-  //         If you start with "wireframe={true}", it will never work, even if you set it to false, 
-  //         save, change back to true, and save again.
-  //     */}
-  //     <mesh name="IntermediatePointsMesh" ref={fillerPointsMeshRef}>
-  //       {/* <meshPhongMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={false} transparent={true} opacity={0.9} /> */}
-  //       <meshBasicMaterial attach="material" color={0xf0ff00} side={THREE.DoubleSide} wireframe={true} />
-  //     </mesh>
-  //   </>
-  // )
 }
-
 
 function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   // A plain array of [x1, y1, z1, x2, y2, z2...]
@@ -720,7 +498,7 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   }
 
   // Generate basic mesh using region boundaries and the "ear clipping" algorithm.
-  // Note: Points appear to be counterclockwise from the perspective of the default camera.
+  // Note: Points assumed to be counterclockwise from the perspective of the default camera.
   let startIndex = 0
   while (boundaryMarkerPointsDisposable.length > 0) {
     let index1 = startIndex
@@ -831,27 +609,6 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
       let p2 = verticesVec3[triangleIndicesArr[1]]
       let p3 = verticesVec3[triangleIndicesArr[2]]
 
-      // let basis = _.round(boundaryMarkerPoints[0].vec3.x, 5)
-
-      // let thing1 = _.round(p1.x, 5)
-      // let thing1Same = thing1 == basis
-
-      // let thing2 = _.round(p2.x, 5)
-      // let thing2Same = thing2 == basis
-
-      // let thing3 = _.round(p3.x, 5)
-      // let thing3Same = thing3 == basis
-
-      // if (_.round(p1.x, 5) == _.round(boundaryMarkerPoints[0].vec3.x, 5)) {
-      //   console.log("p1 match")
-      // }
-      // else if (_.round(p2.x, 5) == _.round(boundaryMarkerPoints[0].vec3.x, 5)) {
-      //   console.log("p2 match")
-      // }
-      // else if (_.round(p3.x, 5) == _.round(boundaryMarkerPoints[0].vec3.x, 5)) {
-      //   console.log("p3 match")
-      // }
-
       let line1Len = (new THREE.Vector3()).subVectors(p1, p2).length()
       let line2Len = (new THREE.Vector3()).subVectors(p1, p3).length()
       let line3Len = (new THREE.Vector3()).subVectors(p2, p3).length()
@@ -861,32 +618,6 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
       lineTooLong ||= line1Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
       lineTooLong ||= line2Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
       lineTooLong ||= line3Len > (maxDistBetweenInterpolatedPoints * generosityMultiplier)
-
-      // if (line1Len > longestLine) {
-      //   console.log({ longestLine, newLen: line1Len })
-      //   longestLine = line1Len
-      // }
-      // if (line2Len > longestLine) {
-      //   console.log({ longestLine, newLen: line2Len })
-      //   longestLine = line2Len
-      // }
-      // if (line3Len > longestLine) {
-      //   console.log({ longestLine, newLen: line3Len })
-      //   longestLine = line3Len
-      // }
-
-      // Trim off triangles formed by the delaunay algorithm aggressively trying to make an 
-      // enclosed mesh and connecting any vertices that it can.
-
-      // if (triangleIsFlat(p1, p2, p3)) {
-      //   // Ignore. Interpolated points are placed evenly enough that none of the triangles should 
-      //   // be long and thin like this one. This is just the delaunay algorithm making a triangle
-      //   // out of a very slight curve between three vertices.
-      // }
-      // else if (lineTooLong) {
-      // Ignore. The max distance between points (specified for my interpolation algorithm) was
-      // surpassed by the delaunay algorithm, which doesn't bother with such triffles as max 
-      // length on an edge (which is exactly what I need to enforce).
 
       if (lineTooLong) {
         // Ignore. The max distance between points (specified for my interpolation algorithm) was
@@ -929,23 +660,9 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
       }
     })
 
-
-
-
     // Lastly add the vertices.
     myVertices.push(...verticesRaw)
-
-    // if (i == 3) {
-    //   i = regionGeometryIndicesArr.length
-    // }
-    // break
   }
-
-  // return {
-  //   vertices: vertices,
-  //   regionMeshIndicesArr: regionGeometryIndicesArr,
-  //   regionLineIndicesArr, regionLineIndicesArr
-  // }
 
   return {
     vertices: myVertices,
@@ -954,8 +671,6 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   }
 }
 
-// Triangulate by ear-clipping.
-// Note: Points must be counter-clockwise.
 function EditRegionMesh({ globeInfo }) {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
   const editState = useSelector((state) => state.editPoiReducer)
@@ -966,22 +681,20 @@ function EditRegionMesh({ globeInfo }) {
   // For use during click-and-drag. Update once click-and-drag ends.
   const preMoveQuat = useRef(new THREE.Quaternion())
 
+  // Region changed => regenerate mesh
   useEffect(() => {
-    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.regionBoundaries", value: editState.regionBoundaries })
+    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.regionBoundaries", value: editState.regionBoundaries })
 
     // Need at least 3 points for a triangle (and the meshes to exist and all that).
-    let nothingToDo = regionMeshRef.current == null || regionLinesRef.current == null || editState.regionBoundaries == null || editState.regionBoundaries.length < 3
-    if (nothingToDo) {
+    if (regionMeshRef.current == null || regionLinesRef.current == null) {
+      return
+    }
+    else if (editState.regionBoundaries.length < 3) {
+      // Not enough points for a triangle
       return
     }
 
-    // if (!originalRegionBoundaries) {
-    //   setOriginalRegionBoundaries(editState.regionBoundaries)
-    // }
-
     let geometry = GenerateRegionGeometry(editState.regionBoundaries, globeInfo)
-
-    // Assign the geometry to the mesh.
     let valuesPerVertex = 3
     let valuesPerIndex = 1
 
@@ -990,68 +703,26 @@ function EditRegionMesh({ globeInfo }) {
     regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionMeshIndicesArr, valuesPerIndex))
     regionMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-    // x = 1.1056879065589036
-    // y = 2.9815222946441696e-16
-    // z = 4.869195423072224
-    // let minX = 0
-    // let maxX = -10000
-    // let minY = 0
-    // let maxY = -10000
-    // let minZ = 0
-    // let maxZ = -10000
-    // regionMeshRef.current.position.x = 1.1056879065589036
-    // regionMeshRef.current.position.y = 2.9815222946441696e-16
-    // regionMeshRef.current.position.z = 4.869195423072224
-
-
     // Line
     // Note: Re-use the mesh vertices. Same vertices, different indices.
     regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
     regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
-  }, [editState.regionBoundaries, editState.regionBoundaryPinMovedCounter])
+  }, [editState.regionBoundaries])
 
+  // Update click-and-drag
   useEffect(() => {
     if (editState.editModeOn) {
       let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
-      if (moveRegion) {
-        // console.log(`moveRegion: '${moveRegion}'`)
-
-        // let originJson = editState.clickAndDrag.mesh.originPos
-        // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
-
-        // let qOriginJson = editState.clickAndDrag.mesh.originQuaternion
-        // let qOrigin = new THREE.Quaternion(qOriginJson.x, qOriginJson.y, qOriginJson.z, qOriginJson.w)
-
-        let qMouseJson = editState.clickAndDrag.rotorQuaternion
-        let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
-
-        // let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
-        // let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
-
-        // let qCurrent = regionMeshRef.current.quaternion
-
-        // let q = (new THREE.Quaternion()).multiplyQuaternions(qOrigin, qMouse)
-
-        // let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
-
-        // let newPos = origin.clone().applyQuaternion(rotor)
-        // console.log({ from: origin.x, to: newPos.x })
-        // console.log(`from: '${JSON.stringify(origin)}' -> to: '${JSON.stringify(newPos)}'`)
-        // console.log(`rotor: '${JSON.stringify(rotor)}'`)
-        // console.log({ msg: "regionMesh", value: regionMeshRef.current })
-
-        // Move mesh
-        regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
-        // regionMeshRef.current.quaternion.set(q.x, q.y, q.z, q.w)
-        regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
-
-        // regionMeshRef.current.position.x = newPos.x
-        // regionMeshRef.current.position.y = newPos.y
-        // regionMeshRef.current.position.z = newPos.z
-        // regionMeshRef.current.lookAt(globeInfo.pos)
-        // regionMeshRef.current.geometry.attributes.position.needsUpdate = true
+      if (!moveRegion) {
+        return
       }
+
+      let qMouseJson = editState.clickAndDrag.rotorQuaternion
+      let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
+
+      regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
+      regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
     }
   }, [editState.clickAndDrag])
 
@@ -1116,13 +787,12 @@ export function EditRegion({ globeInfo }) {
   // TODO: once I have an aray of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
   const editState = useSelector((state) => state.editPoiReducer)
 
-  const [firstTime, setFirstTime] = useState()
   const [primaryLocationPinReactElement, setPrimaryLocationPinReactElement] = useState()
   const [regionPinReactElements, setRegionPinReactElements] = useState()
   const [regionMeshReactElements, setRegionMeshReactElements] = useState()
   const reduxDispatch = useDispatch()
 
-  // "Where" changes
+  // Create PrimaryPOI pin mesh + (maybe) region pins + region mesh
   useEffect(() => {
     // console.log({ msg: "EditRegion()/useEffect()/editState.primaryPinPos", where: editState.primaryPinPos })
     if (!editState.editModeOn) {

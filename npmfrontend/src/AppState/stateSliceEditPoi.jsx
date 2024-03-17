@@ -1,7 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { v4 as uuid } from "uuid";
-import { ConvertXYZToLatLong } from "../GlobeSection/convertLatLongXYZ";
-import _ from "lodash";
 
 const initialState = {
   // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
@@ -14,7 +12,6 @@ const initialState = {
   primaryPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
 
   // Format for location and region boundaries:
-  // Format:
   //  {
   //    id,
   //    lat,
@@ -24,16 +21,9 @@ const initialState = {
   //    z
   //  }
   primaryPinPos: null,
-  // noRegion: false,
 
   // TODO: change from array to object, key is where.id, ??only update "counter" and where pin instead of re-creating entire array??
   regionBoundaries: [],
-
-  // TODO: ??delete??
-  regionBoundaryPinMovedCounter: 0,
-
-  // selectedPinId: null,
-  // selectedMeshName: null,
 
   // For use during clicking and dragging a single point or the entire region.
   // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the fireld "Id" as an 
@@ -46,8 +36,6 @@ const initialState = {
   //    mesh: {
   //      name: <name>,
   //      uuid: <guid>,
-  //      originPos: { x, y, z },
-  //      originQuaternion: action.payload.originQuaternion,
   //      userData: {
   //        poiId: <poiId>,
   //        whereId: <whereId>
@@ -65,18 +53,9 @@ const initialState = {
   //    rotorQuaternion: { w, x, y, z }
   //  },
   clickAndDrag: null,
-  // clickAndDragEnabled: false,
-  // clickAndDragGlobePos: null, // {x, y, z}
-
-  // Using an ever-increasing count is safer than trying to manage where to deactivate an on-off 
-  // switch that will trigger state change every time it turns off.
-  pinMovedCounter: 0,
 
   selectedLatLong: null,  // TODO: delete
   prevSelectedLatLong: null, // TODO: delete
-
-  thing: null
-
 }
 
 export const stateSliceEditPoi = createSlice({
@@ -129,15 +108,6 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    // setNoRegion: (state, action) => {
-    //   // console.log({ msg: "stateSliceEditPoi_setNoRegion", payload: action.payload })
-
-    //   return {
-    //     ...state,
-    //     noRegion: action.payload
-    //   }
-    // },
-
     setRegionBoundaries: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
 
@@ -147,27 +117,18 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    // regionBoundaryPinHasMoved: (state, action) => {
-    //   console.log({ msg: "stateSliceEditPoi_regionBoundaryPinHasMoved", payload: action.payload, counter: state.regionBoundaryPinMovedCounter })
-
-    //   return {
-    //     ...state,
-    //     regionBoundaryPinMovedCounter: state.regionBoundaryPinMovedCounter + 1
-    //   }
-    // },
-
-    // Expected payload:
-    //  {
-    //    id,
-    //    lat,
-    //    long,
-    //    x,
-    //    y,
-    //    z
-    //  }
     updateRegionBoundaryPin: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi_updateRegionBoundaryPin", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi_updateRegionBoundaryPin", payload: action.payload })
 
+      // Expected payload:
+      //  {
+      //    id,
+      //    lat,
+      //    long,
+      //    x,
+      //    y,
+      //    z
+      //  }
       let updatedWhere = action.payload
       let updatedBoundaries = state.regionBoundaries.map((boundaryMarker, index) => {
         if (boundaryMarker.id == updatedWhere.id) {
@@ -188,13 +149,12 @@ export const stateSliceEditPoi = createSlice({
     enableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_startClickAndDrag", payload: action.payload })
 
+      // Expected payload:
       //  {
       //    enabled: false,
       //    mesh: {
       //      name: name,
       //      uuid: guid,
-      //      originPos: { x, y, z },
-      //      originQuaternion: action.payload.originQuaternion,
       //      userData: {
       //        poiId: poiId,
       //        whereId: whereId
@@ -217,9 +177,6 @@ export const stateSliceEditPoi = createSlice({
     updateClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_updateClickAndDrag", payload: action.payload })
 
-      // let q = action.payload.rotorQuaternion
-      // console.log({ w: q.w, x: q.x, y: q.y, z: q.z })
-
       return {
         ...state,
         clickAndDrag: {
@@ -229,55 +186,14 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    // enableClickAndDrag: (state, action) => {
-    //   // console.log({ msg: "stateSliceEditPoi_enableClickAndDrag", payload: action.payload })
-
-    //   return {
-    //     ...state,
-    //     clickAndDragEnabled: true,
-    //     selectedPinId: action.payload.pinId,
-    //     selectedMeshName: action.payload.meshName,
-    //     clickAndDragGlobePos: {
-    //       x: action.payload.startLocation.x,
-    //       y: action.payload.startLocation.y,
-    //       z: action.payload.startLocation.z,
-    //     },
-    //   }
-    // },
-
     disableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_disableClickAndDrag", payload: action.payload })
 
       return {
         ...state,
         clickAndDrag: null
-        // clickAndDragEnabled: false,
-        // selectedPinId: null,
-        // clickAndDragGlobePos: null
       }
     },
-
-    triggerRegionRedraw: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_triggerRegionRedraw", payload: action.payload })
-
-      return {
-        ...state,
-        pinMovedCounter: state.pinMovedCounter + 1
-      }
-    },
-
-    // moveLocationAndRegion(newLatLong)
-    //  get new position as xyz vector
-    //  get angle between current position vector and new position vector
-    //  spherically interpolate "where" position along that same arc
-    //  spherically interpolate all "region" positions along that same arc
-    //  update "where" latlong
-    //  update ""
-    // moveLocationOnly(newLatLong)
-    // moveRegionPoint(id, newLatLong)
-
-    // TODO: Implement "Command" pattern so that the user can CTRL-Z the last edit
-
 
     // TODO: delete with "whereLatLongArr"
     addLocation: (state, action) => {
@@ -294,6 +210,7 @@ export const stateSliceEditPoi = createSlice({
         whereLatLongArr: [...state.whereLatLongArr, newEntry]
       }
     },
+
     // TODO: delete with "whereLatLongArr"
     removeLocation: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_removeLocation", payload: action.payload })
@@ -309,6 +226,7 @@ export const stateSliceEditPoi = createSlice({
         whereLatLongArr: [...state.whereLatLongArr.slice(0, index - 1), ...state.whereLatLongArr.slice(index + 1)]
       }
     },
+
     setSelectedLatLong: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_setSelectedLatLong", payload: action.payload })
 
