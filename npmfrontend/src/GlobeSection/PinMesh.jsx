@@ -144,21 +144,7 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
 
       newPos = preMovePos.current.clone().applyQuaternion(rotor)
 
-      if (name == meshNames.RegionBoundaryPin) {
 
-
-        // 3/16/2024, 23:26
-        //  Pin move -> update region boundary -> redraw region mesh geometry -> ??why is the intersection lost??
-        //  I can click-and-drag the region mesh even with the mesh rotation turned off, but if I deactivate this update, then it doesn't move
-
-
-
-        let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
-        updatedWhere.id = where.id
-        reduxDispatch(
-          editStateActions.updateRegionBoundaryPin(updatedWhere)
-        )
-      }
     }
     else if (moveAllPins) {
       let qMouseJson = editState.clickAndDrag.rotorQuaternion
@@ -187,7 +173,21 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
 
 
 
+    if (name == meshNames.RegionBoundaryPin) {
 
+
+      // 3/16/2024, 23:26
+      //  Pin move -> update region boundary -> redraw region mesh geometry -> ??why is the intersection lost??
+      //  I can click-and-drag the region mesh even with the mesh rotation turned off, but if I deactivate this update, then it doesn't move
+
+
+
+      let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
+      updatedWhere.id = where.id
+      reduxDispatch(
+        editStateActions.updateRegionBoundaryPin(updatedWhere)
+      )
+    }
 
 
   }, [editState.clickAndDrag?.rotorQuaternion])
