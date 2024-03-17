@@ -34,6 +34,8 @@ export const MouseHandler = () => {
     if (!mouseState.mouseDown) {
       return
     }
+    console.log({ intersection: mouseState.cursorRaycastIntersections.firstNonGlobe, globe: mouseState.cursorRaycastIntersections.globe })
+
 
     // Record mouse down position and any intersections that have already been detected in the scene.
     if (mouseState.cursorRaycastIntersections.firstNonGlobe) {
@@ -139,6 +141,8 @@ export const MouseHandler = () => {
             }
           })
         )
+
+        console.log("-------------------------")
       }
       else {
         // Enable

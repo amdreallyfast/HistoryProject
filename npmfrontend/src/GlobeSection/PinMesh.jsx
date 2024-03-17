@@ -134,13 +134,13 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
     let moveAllPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
     let newPos = preMovePos.current
     if (moveThisPinOnly) {
-      let qJson = editState.clickAndDrag.rotorQuaternion
-      let q = new THREE.Quaternion(qJson.x, qJson.y, qJson.z, qJson.w)
+      let qMouseJson = editState.clickAndDrag.rotorQuaternion
+      let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
 
       let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
       let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
-      let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+      let rotor = (new THREE.Quaternion()).multiplyQuaternions(qMouse, qOffset)
 
       newPos = preMovePos.current.clone().applyQuaternion(rotor)
     }
@@ -149,6 +149,10 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
       let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
 
       newPos = preMovePos.current.clone().applyQuaternion(qMouse)
+    }
+    else {
+      // No change
+      return
     }
 
     // Move Pin
@@ -165,13 +169,25 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
     boxMeshRef.current.lookAt(globeInfo.pos)
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
 
+
+
+
     if (name == meshNames.RegionBoundaryPin) {
+
+
+      // 3/16/2024, 23:26
+      //  Pin move -> update region boundary -> redraw region mesh geometry -> ??why is the intersection lost??
+      //  I can click-and-drag the region mesh even with the mesh rotation turned off, but if I deactivate this update, then it doesn't move
+
+
+
       let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
       updatedWhere.id = where.id
       reduxDispatch(
         editStateActions.updateRegionBoundaryPin(updatedWhere)
       )
     }
+
   }, [editState.clickAndDrag?.rotorQuaternion])
 
   // Update following click-and-drag

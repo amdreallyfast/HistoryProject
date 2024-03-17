@@ -684,8 +684,6 @@ function EditRegionMesh({ globeInfo }) {
   // Region changed => regenerate mesh
   useEffect(() => {
     // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.regionBoundaries", value: editState.regionBoundaries })
-
-    // Need at least 3 points for a triangle (and the meshes to exist and all that).
     if (regionMeshRef.current == null || regionLinesRef.current == null) {
       return
     }
@@ -712,22 +710,26 @@ function EditRegionMesh({ globeInfo }) {
 
   // Update click-and-drag
   useEffect(() => {
-    if (editState.editModeOn) {
-      let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
-      if (!moveRegion) {
-        return
-      }
-
-      let qMouseJson = editState.clickAndDrag.rotorQuaternion
-      let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
-
-      regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
-      regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
+    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.clickAndDrag", value: editState.clickAndDrag })
+    if (!editState.editModeOn) {
+      return
     }
+
+    let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
+    if (!moveRegion) {
+      return
+    }
+
+    let qMouseJson = editState.clickAndDrag.rotorQuaternion
+    let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
+
+    regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
+    regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
   }, [editState.clickAndDrag])
 
   // Update following click-and-drag
   useEffect(() => {
+    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.mouseUp", value: editState.mouseUp })
     if (!mouseState.mouseUp) {
       return
     }

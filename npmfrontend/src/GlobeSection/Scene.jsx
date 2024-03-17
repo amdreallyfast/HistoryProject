@@ -116,7 +116,8 @@ export function Scene(
 
     findMeshes(getThreeJsState().scene.children)
     setMeshes(meshesArr)
-  }, [poiReactElements, editState.primaryPinMeshExists, editState.regionBoundaries])
+    console.log(meshesArr[19])
+  }, [poiReactElements, editState.primaryPinMeshExists, editState.regionBoundaries.length])
 
   // Update POI highlight.
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
