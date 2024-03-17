@@ -1,0 +1,64 @@
+Click-and-drag:
+	For pins, I found it more user friendly to surround the pins with a bounding box that is easy to click than to have the user try to click on the pin itself. 
+	However, this made it difficult to determine where the mouse was trying to put the pin because the raycaster intersected the bounding box noticeably before it intersected the globe.
+	When starting to click-and-drag a pin, I couldn't have the position jump to the raycaster's intersection with the globe because that kind of snapping to the cursor didn't feel right.
+	So I made a quaternion rotator from where the click-and-drag began to the cursor's current position on the globe, and I made another quaternion rotor from the raycaster's initial intersection with the globe to where it intersected with the bounding box.
+	With these two rotors, I was able to apply the click-and-drag logic smoothly to the bounding box.
+	And then I had to associate the pin with the bounding box, which I did in PinMesh.jsx.
+
+	Move PinMesh:
+		Cannot simply rotate the quaternion. 
+		The pin was created at the globe origin, translated to the surface, and then rotated to point at the center of the globe. 
+		The quaternion rotator is applied after translation, so any attempts to rotate the pin's quaternion will simply result in the pin spinning on the surface of the globe.
+		
+		To rotate:
+			Calculate vector from earth origin to pin origin.
+			Apply the quaternion rotor from the cursor movement over the globe, and then apply the quaternion rotor from the raycaster's initial globe intersection to its initial intersection with the bounding box.
+			Set the pin mesh's position and bounding box mesh's position to the rotated vector.
+
+		PrimaryPOI pin:
+			Same logic as above. Nothing special.
+		
+		Region boundary pin:
+			Complications:
+				When moving, they had to retrigger the calculation of the region mesh.
+				I also wanted to be able to subdivide the region pins to get more of them, which will allow for more intricate borders.
+			
+				The latter meant that I had regenerate the pin meshes when the array of region boundary pins changed.
+				I toyed with regenerating all pins whenever any of them moved, and that resulted in the region boundary pin meshes appearing to move on click-and-drag, but they were actually being re-created, and this meant that they ignored the pin movement logic in PinMesh, which the PrimaryPOI pin _was_ following.
+			
+			Solution:
+				I didn't like the pins following different logic, so I opted instead to use a simple counter in the state machine called "regionBoundaryPinHasMoved", and whenever I moved a region boundary pin, I incremented the counter by 1, which would trigger the regeneration of the region mesh without re-creating the meshes from scratch, and then they followed the pin movement logic in PinMesh, just like the PrimaryPOI pin.
+				
+				Subdividing the region boundary pin array will generate new pins, which _should_ change the array and trigger the drawing of new pin meshes and generate a new region mesh.
+			
+			Move single pin:
+				Same logic as PrimaryPOI pin.
+			
+			Move whole region:
+				Should move all region boundary pins, but a region mesh's position is technically 0, which means that I can't 
+				It is generated using spherical math, with every point being calculated and set rather than transformed from an origin. 
+				As a result, the region mesh is created on the surface of the globe with position {0,0,0} and quaternion {0,0,0,1}. 
+				Fortunately, it's rotation axis is still technically the origin (??globe origin or world origin??) it can be rotated by simply apply the mouse movement quaternion rotor.
+				
+				The region boundary pins are then simply rotated 
+				The region boundary pins, however, are bit more touchy. I have to figure out how 
+				
+				
+				
+				This makes it difficult to tell how much it is rotating.
+			
+			TODO:
+				Region boundary pin subdivide
+					subdivide all
+					subdivide on selected lin between pins 
+						TODO:
+							draw a line that can be hovered over and highlighted
+							when line geometry is clicked, add a new boundary pin between them
+							??have to make a mesh for each line between adjacent bounding pins? probably??
+
+Move region boundary pin:
+	
+	Click-and-drag whole region:
+
+	

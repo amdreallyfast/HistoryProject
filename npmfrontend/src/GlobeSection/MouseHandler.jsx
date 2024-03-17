@@ -245,33 +245,52 @@ export const MouseHandler = () => {
           })
         )
 
-        if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
-          // Update region boundaries to trigger:
-          //  (a) updating the meshes used in mouseclick intersection calculations
-          //  (b) redrawing the region mesh
-          let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
-            if (editState.clickAndDrag.mesh.userData.whereId == boundaryMarker.id) {
-              let originJson = editState.clickAndDrag.mesh.originPos
-              let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
-              let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
-              let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
-              let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
-              let newPos = origin.clone().applyQuaternion(rotor)
+        console.log("----------")
 
-              let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
-              updatedWhere.id = boundaryMarker.id
-              return updatedWhere
-            }
-            else {
-              // Not moving this marker. Return as-is.
-              return boundaryMarker
-            }
-          })
+        // // Trigger mesh move and region recalculation
+        // reduxDispatch(
+        //   editStateActions.regionBoundaryPinHasMoved()
+        // )
 
-          reduxDispatch(
-            editStateActions.setRegionBoundaries(updatedBoundaries)
-          )
-        }
+        // if (editState.clickAndDrag.mesh.name == meshNames.Region) {
+        //   // Move all pins
+        // }
+        // else if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
+        // }
+        // else if (editState.clickAndDrag.mesh.name == meshNames.PoiPrimaryLocationPin) {
+
+        // }
+
+        // if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
+        //   // Update region boundaries to trigger:
+        //   //  (a) updating the meshes used in mouseclick intersection calculations
+        //   //  (b) redrawing the region mesh
+        //   let updatedBoundaries = editState.regionBoundaries.map((boundaryMarker, index) => {
+        //     if (editState.clickAndDrag.mesh.userData.whereId == boundaryMarker.id) {
+        //       let originJson = editState.clickAndDrag.mesh.originPos
+        //       let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
+        //       let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+        //       let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+        //       let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+        //       let newPos = origin.clone().applyQuaternion(rotor)
+
+        //       let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
+        //       updatedWhere.id = boundaryMarker.id
+        //       return updatedWhere
+        //     }
+        //     else {
+        //       // Not moving this marker. Return as-is.
+        //       return boundaryMarker
+        //     }
+        //   })
+
+        //   reduxDispatch(
+        //     editStateActions.setRegionBoundaries(updatedBoundaries)
+        //   )
+        // }
+
+
+
         // if (editState.clickAndDrag.mesh.name == meshNames.RegionBoundaryPin) {
         //   // Update region boundaries to trigger:
         //   //  (a) updating the meshes used in mouseclick intersection calculations

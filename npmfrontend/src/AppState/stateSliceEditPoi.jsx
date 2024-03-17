@@ -25,7 +25,13 @@ const initialState = {
   //  }
   primaryPinPos: null,
   // noRegion: false,
+
+  // TODO: change from array to object, key is where.id, ??only update "counter" and where pin instead of re-creating entire array??
   regionBoundaries: [],
+
+  // TODO: ??delete??
+  regionBoundaryPinMovedCounter: 0,
+
   // selectedPinId: null,
   // selectedMeshName: null,
 
@@ -138,6 +144,44 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         regionBoundaries: action.payload
+      }
+    },
+
+    // regionBoundaryPinHasMoved: (state, action) => {
+    //   console.log({ msg: "stateSliceEditPoi_regionBoundaryPinHasMoved", payload: action.payload, counter: state.regionBoundaryPinMovedCounter })
+
+    //   return {
+    //     ...state,
+    //     regionBoundaryPinMovedCounter: state.regionBoundaryPinMovedCounter + 1
+    //   }
+    // },
+
+    // Expected payload:
+    //  {
+    //    id,
+    //    lat,
+    //    long,
+    //    x,
+    //    y,
+    //    z
+    //  }
+    updateRegionBoundaryPin: (state, action) => {
+      console.log({ msg: "stateSliceEditPoi_updateRegionBoundaryPin", payload: action.payload })
+
+      let updatedWhere = action.payload
+      let updatedBoundaries = state.regionBoundaries.map((boundaryMarker, index) => {
+        if (boundaryMarker.id == updatedWhere.id) {
+          return updatedWhere
+        }
+        else {
+          // Don't change the others
+          return boundaryMarker
+        }
+      })
+
+      return {
+        ...state,
+        regionBoundaries: updatedBoundaries
       }
     },
 

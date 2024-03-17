@@ -957,13 +957,17 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
 // Triangulate by ear-clipping.
 // Note: Points must be counter-clockwise.
 function EditRegionMesh({ globeInfo }) {
-  const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
+  // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
   const editState = useSelector((state) => state.editPoiReducer)
+  const mouseState = useSelector((state) => state.mouseInfoReducer)
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
 
+  // For use during click-and-drag. Update once click-and-drag ends.
+  const preMoveQuat = useRef(new THREE.Quaternion())
+
   useEffect(() => {
-    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/regionMeshRef.current", regionMesh: regionMeshRef.current, regionLines: regionLinesRef, regionBoundaries: regionBoundaries })
+    console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.regionBoundaries", value: editState.regionBoundaries })
 
     // Need at least 3 points for a triangle (and the meshes to exist and all that).
     let nothingToDo = regionMeshRef.current == null || regionLinesRef.current == null || editState.regionBoundaries == null || editState.regionBoundaries.length < 3
@@ -971,9 +975,9 @@ function EditRegionMesh({ globeInfo }) {
       return
     }
 
-    if (!originalRegionBoundaries) {
-      setOriginalRegionBoundaries(editState.regionBoundaries)
-    }
+    // if (!originalRegionBoundaries) {
+    //   setOriginalRegionBoundaries(editState.regionBoundaries)
+    // }
 
     let geometry = GenerateRegionGeometry(editState.regionBoundaries, globeInfo)
 
@@ -1005,19 +1009,19 @@ function EditRegionMesh({ globeInfo }) {
     regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
     regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
-  }, [regionMeshRef.current, regionLinesRef.current, editState.regionBoundaries])
+  }, [editState.regionBoundaries, editState.regionBoundaryPinMovedCounter])
 
   useEffect(() => {
     if (editState.editModeOn) {
       let moveRegion = (editState.clickAndDrag?.mesh.uuid == regionMeshRef.current.uuid)
       if (moveRegion) {
-        console.log(`moveRegion: '${moveRegion}'`)
+        // console.log(`moveRegion: '${moveRegion}'`)
 
         // let originJson = editState.clickAndDrag.mesh.originPos
         // let origin = new THREE.Vector3(originJson.x, originJson.y, originJson.z)
 
-        let qOriginJson = editState.clickAndDrag.mesh.originQuaternion
-        let qOrigin = new THREE.Quaternion(qOriginJson.x, qOriginJson.y, qOriginJson.z, qOriginJson.w)
+        // let qOriginJson = editState.clickAndDrag.mesh.originQuaternion
+        // let qOrigin = new THREE.Quaternion(qOriginJson.x, qOriginJson.y, qOriginJson.z, qOriginJson.w)
 
         let qMouseJson = editState.clickAndDrag.rotorQuaternion
         let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
@@ -1038,9 +1042,9 @@ function EditRegionMesh({ globeInfo }) {
         // console.log({ msg: "regionMesh", value: regionMeshRef.current })
 
         // Move mesh
-        regionMeshRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
+        regionMeshRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
         // regionMeshRef.current.quaternion.set(q.x, q.y, q.z, q.w)
-        regionLinesRef.current.quaternion.multiplyQuaternions(qOrigin, qMouse)
+        regionLinesRef.current.quaternion.multiplyQuaternions(preMoveQuat.current, qMouse)
 
         // regionMeshRef.current.position.x = newPos.x
         // regionMeshRef.current.position.y = newPos.y
@@ -1050,6 +1054,20 @@ function EditRegionMesh({ globeInfo }) {
       }
     }
   }, [editState.clickAndDrag])
+
+  // Update following click-and-drag
+  useEffect(() => {
+    if (!mouseState.mouseUp) {
+      return
+    }
+
+    if (!preMoveQuat.current.equals(regionMeshRef.current.quaternion)) {
+      // Record updated position
+      // Note: The mesh position was already been updated in real time. We just need to update 
+      // this position reference for the next click-and-drag.
+      preMoveQuat.current = regionMeshRef.current.quaternion.clone()
+    }
+  }, [mouseState.mouseUp])
 
   return (
     <>
@@ -1158,7 +1176,7 @@ export function EditRegion({ globeInfo }) {
 
   // Create region pins when the number of region boundary points change.
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.regionBoundaries", where: editState.regionBoundaries })
+    // console.log({ msg: "EditRegion()/useEffect()/editState.regionBoundaries.length", value: editState.regionBoundaries.length })
 
     let reactElements = editState.regionBoundaries.map((where) => {
       return (
@@ -1175,7 +1193,7 @@ export function EditRegion({ globeInfo }) {
       )
     })
     setRegionPinReactElements(reactElements)
-  }, [editState.regionBoundaries])
+  }, [editState.regionBoundaries.length])
 
   return (
     <>
