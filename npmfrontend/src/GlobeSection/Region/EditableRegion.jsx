@@ -6,8 +6,8 @@ import { PinMesh } from "../PinMesh"
 import _ from "lodash"
 import { v4 as uuid, validate } from "uuid"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
-import { ConvertLatLongToXYZ, ConvertXYZToLatLong } from "../convertLatLongXYZ"
-import { createWhere } from "../createWhere"
+import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "../convertLatLongXYZ"
+import { createWhere, createWhereObjFromXYZ } from "../createWhere"
 
 
 function GenerateRegionGeometry(regionBoundaries, globeInfo) {
@@ -406,6 +406,7 @@ function EditRegionMesh({ globeInfo }) {
 
 
 
+// Generate a set of default points in a circle around the origin.
 // We _want_ a longitude that can wrap. When the region straddles the 179E <--> 179W longitude
 // line, a vector from p1 -> p2 might wrap all the way around the globe instead of taking the 
 // shortest path. To fix this, make a longitude that can wrap.
@@ -419,46 +420,53 @@ const calculateWrappedLongitude = (long, longCompare) => {
   let smallestLongDiff = 10000
   let diff = 0
 
-  diff = Math.abs(longCompare - longAsIs)
-  if (diff < smallestLongDiff) {
+  let diff1 = Math.abs(longCompare - longAsIs)
+  if (diff1 < smallestLongDiff) {
     possiblyWrappedLongitude = long
-    smallestLongDiff = diff
+    smallestLongDiff = diff1
   }
 
-  diff = Math.abs(longCompare - longPlus360)
-  if (diff < smallestLongDiff) {
+  let diff2 = Math.abs(longCompare - longPlus360)
+  if (diff2 < smallestLongDiff) {
     possiblyWrappedLongitude = longPlus360
-    smallestLongDiff = diff
+    smallestLongDiff = diff2
   }
 
-  diff = Math.abs(longCompare - longMinus360)
-  if (diff < smallestLongDiff) {
+  let diff3 = Math.abs(longCompare - longMinus360)
+  if (diff3 < smallestLongDiff) {
     possiblyWrappedLongitude = longMinus360
-    smallestLongDiff = diff
+    smallestLongDiff = dif3
   }
 
   return possiblyWrappedLongitude
 }
 
 // Generate a set of default points in a circle around the origin.
+// Note: Have to do this in 3D space because lat/long get squished near the poles, while 3D 
+// rotation with a quaternion does not.
 const createDefaultRegionBoundaries = (origin, globeInfo) => {
-  // Let the first point be the center latitude increased by a bit, and then rotate that.
+  let regionBoundaries = []
+
+  // Up a bit 
   // Note: The Latitude change is always a constant distance (unlike the longitude), so use that 
   // and rotate in a circle. 
-  let originPoint = new THREE.Vector2(origin.long, origin.lat)
-  let firstPoint = new THREE.Vector2(origin.long, origin.lat + regionInfo.defaultRegionRadius)
-  let regionBoundaries = []
-  for (let radians = 0; radians < (Math.PI * 2); radians += (Math.PI / 4)) {
-    // Note: When "radians" == 0, this captures the unrotated firstPoint.
-    let nextPoint = firstPoint.clone().rotateAround(originPoint, radians)
+  let offset = {
+    lat: origin.lat + regionInfo.defaultRegionRadius,
+    long: origin.long
+  }
+  let offsetPoint = ConvertLatLongToVec3(offset.lat, offset.long, globeInfo.radius)
 
-    // Fix the corner case when the first point (and maybe other rotated points as well) go over 
-    // a pole and thus have latitude >90 or <-90. Cleanest fix is to convert to 3D coordinates 
-    // and back again.
-    const [x, y, z] = ConvertLatLongToXYZ(nextPoint.y, nextPoint.x, globeInfo.radius)
-    const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
-    let boundaryMarker = createWhere(lat, long, x, y, z)
-    regionBoundaries.push(boundaryMarker)
+  // Generate the rest of the default region points by rotating the offset around the origin.
+  let originCoord = new THREE.Vector3(origin.x, origin.y, origin.z)
+  let rotationAxis = (new THREE.Vector3()).subVectors(originCoord, globeInfo.pos).normalize()
+  const rotateOffset = (radians) => {
+    let rotatedOffsetVector = offsetPoint.clone().applyAxisAngle(rotationAxis, radians)
+    let rotatedPoint = createWhereObjFromXYZ(rotatedOffsetVector.x, rotatedOffsetVector.y, rotatedOffsetVector.z, globeInfo)
+    return rotatedPoint
+  }
+  for (let radians = 0; radians < (Math.PI * 2); radians += (Math.PI / 4)) {
+    let rotated = rotateOffset(radians)
+    regionBoundaries.push(rotated)
   }
 
   // Create a "wrapped" longitude in the event that some of the points straddle the 179E -> 179W longitude line.

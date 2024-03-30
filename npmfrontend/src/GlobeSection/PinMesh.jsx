@@ -143,8 +143,6 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
       let rotor = (new THREE.Quaternion()).multiplyQuaternions(qMouse, qOffset)
 
       newPos = preMovePos.current.clone().applyQuaternion(rotor)
-
-
     }
     else if (moveAllPins) {
       let qMouseJson = editState.clickAndDrag.rotorQuaternion
