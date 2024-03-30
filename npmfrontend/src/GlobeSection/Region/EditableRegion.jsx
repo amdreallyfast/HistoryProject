@@ -405,36 +405,6 @@ function EditRegionMesh({ globeInfo }) {
 }
 
 
-// // Occurs when the first point of a new region is calculated near the poles and the flat latitude 
-// // increase puts it over +-90 degree limits.
-// const fixLatitudeWrap = (lat, long) => {
-//   let latCorrected = lat
-//   if (lat > 90) {
-//     let latOverflow = lat - 90
-//     latCorrected = lat - (2 * latOverflow)
-//   }
-//   else if (lat < -90) {
-//     let latOverflow = lat - (-90)
-//     latCorrected = lat - (2 * latOverflow)
-//   }
-//   else {
-//     // No fix necessary
-//   }
-
-//   let longCorrected = long
-//   if (latCorrected != lat) {
-//     // Point was moved over the pole. Move the longitude to compensate and bring the point back 
-//     // to its original globe position, but now with correct lat/long.
-//     longCorrected = long < 0 ? long + 180 : long - 180
-//   }
-
-//   return [
-//     latCorrected,
-//     longCorrected
-//   ]
-// }
-
-
 
 // We _want_ a longitude that can wrap. When the region straddles the 179E <--> 179W longitude
 // line, a vector from p1 -> p2 might wrap all the way around the globe instead of taking the 
@@ -468,103 +438,10 @@ const calculateWrappedLongitude = (long, longCompare) => {
   }
 
   return possiblyWrappedLongitude
-
-  // else if (Math.abs(longCompare - (long + 360)) <)
-  // let longDiffAsIs = longCompare - long
-  // let longDiffPlus360 = longCompare - (long + 360)
-  // let longDiffMinus360 = longCompare - (long - 360)
-
-  // let smallestLongDiff = 10000
-  // smallestLongDiff = Math.abs(longDiffAsIs < smallestLongDiff ? longDiffAsIs : smallestLongDiff)
-  // smallestLongDiff = Math.abs(longDiffPlus360 < smallestLongDiff ? longDiffPlus360 : smallestLongDiff)
-  // smallestLongDiff = Math.abs(longDiffMinus360 < smallestLongDiff ? longDiffMinus360 : smallestLongDiff)
-
-  // let result = long - smallestLongDiff
-  // return result
 }
-
-// // Region boundaries that straddle the 179E -> 179W line will appear on opposite sides of a 
-// // long/lat map, and any connecting vectors will go all the way around the world rather than the 
-// // short hop across the boundary. Avoid this by figuring out if a point's longitude should be 
-// // increased/decresed by 360 degrees to bring it closer to the other points.
-// /*
-// Input:
-//   Array of:
-//     {
-//       lat,
-//       long,
-//     }
-
-// Output:
-//   Array of:
-//     {
-//       lat,
-//       long,
-//       longNoWrap: null
-//     }
-// */
-// const setNoWrapRegionBoundaries = (regionBoundaries) => {
-//     // Create "no-wrap longitude" based on proximity to the first point.
-//     let thing = regionBoundaries.map((regionBoundary, index) => {
-//       if (index == 0) {
-//         return point
-//       }
-
-//       // Problem 1: 
-//       //  Deal with the 179E -> 179W line.
-//       let firstPoint = new THREE.Vector2(regionBoundaries[0].long, regionBoundaries[0].lat)
-//       let thisPoint = new THREE.Vector2(regionBoundary.long, regionBoundary.lat)
-//       let thisPointPlus360 = new THREE.Vector2(regionBoundary.long + 360.0, regionBoundary.lat)
-//       let thisPointMinus360 = new THREE.Vector2(regionBoundary.long - 360.0, regionBoundary.lat)
-
-//       // let dist_firstPoint_to_thisPoint = firstPoint.distanceToSquared(thisPoint)
-//       // let dist_firstPoint_to_thisPointPlus360 = firstPoint.distanceToSquared(thisPointPlus360)
-//       // let dist_firstPoint_to_thisPointMinus360 = firstPoint.distanceToSquared(thisPointMinus360)
-//       let longDiff_firstPoint_to_thisPoint = firstPoint.long - thisPoint.long
-//       let longDiff_firstPoint_to_thisPointPlus360 = firstPoint.long - thisPointPlus360.long
-//       let longDiff_firstPoint_to_thisPointMinus360 = firstPoint.long - thisPointMinus360.long
-
-//       let smallestLongDiff = 10000
-//       smallestLongDiff = longDiff_firstPoint_to_thisPoint < smallestLongDiff ? longDiff_firstPoint_to_thisPoint : smallestLongDiff
-//       smallestLongDiff = longDiff_firstPoint_to_thisPointPlus360 < smallestLongDiff ? longDiff_firstPoint_to_thisPointPlus360 : smallestLongDiff
-//       smallestLongDiff = longDiff_firstPoint_to_thisPointMinus360 < smallestLongDiff ? longDiff_firstPoint_to_thisPointMinus360 : smallestLongDiff
-
-//       // Problem 2: 
-//       //  Deal with the situation in which the first point was given a 
-//       //  latitude > 90deg or < -90deg. This doesn't mess up the math, but it does make for an 
-//       //  invalid lat/long record.
-//     let lat = nextPoint.y
-//     let long = nextPoint.x
-//     if (lat > 90) {
-//       let overflow = lat - 90
-//       lat = lat - (2 * overflow)
-//     }
-//     else if (lat < -90) {
-//       let overflow = lat - 90
-//       lat = lat - overflow
-//     }
-
-//       return {
-//         ...regionBoundary
-//         lat: thisPoint.lat,
-//         long: thisPoint.long,
-//         longNoWrap: thisPoint.long + smallestLongDiff
-//       }
-//     })
-// }
 
 // Generate a set of default points in a circle around the origin.
 const createDefaultRegionBoundaries = (origin, globeInfo) => {
-  /*
-  - work in lat/long
-  - set initial point by increasing latitude (const distance regardless of where on the globe you are)
-  - perform 2D rotation
-  - when performing click-and-drag, need to track 2x longitude values: "long" and "overflow long"
-    - "long" is the normal longitude
-    - "overflow long" for if we need to take the longitude and extend it past +-180deg in order to maintain the shortest distance
-  */
-
-
   // Let the first point be the center latitude increased by a bit, and then rotate that.
   // Note: The Latitude change is always a constant distance (unlike the longitude), so use that 
   // and rotate in a circle. 
@@ -593,22 +470,6 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
     let wrappedLongitude = calculateWrappedLongitude(regionBoundary.long, regionBoundaries[0].long)
     regionBoundary.wrappedLongitude = wrappedLongitude
   })
-
-  // regionBoundaries = regionBoundaries.map((regionBoundary, index) => {
-  //   if (index == 0) {
-  //     return {
-  //       ...regionBoundary,
-  //       wrappedLongitude: regionBoundary.long
-  //     }
-  //   }
-
-  //   let wrappedLongitude = calculateWrappedLongitude(regionBoundary.long, regionBoundaries[0].long)
-
-  //   return {
-  //     ...regionBoundary,
-  //     wrappedLongitude
-  //   }
-  // })
 
   return regionBoundaries
 }
@@ -646,37 +507,6 @@ export function EditableRegion({ globeInfo }) {
     else {
       setPrimaryLocationPinReactElement(null)
     }
-
-
-    // if (editState.primaryPinPos) {
-    //   let reactElement = (
-    //     <PinMesh
-    //       key={uuid()} // React requires unique IDs for all elements
-    //       poiId={editState.poiId}
-    //       name={meshNames.PoiPrimaryLocationPin}
-    //       where={editState.primaryPinPos}
-    //       globeInfo={globeInfo}
-    //       colorHex={pinMeshInfo.mainPinColor}
-    //       length={pinMeshInfo.length}
-    //       scale={pinMeshInfo.mainPinScale}
-    //       lookAt={globeInfo.pos} />
-    //   )
-    //   setPrimaryLocationPinReactElement(reactElement)
-
-    //   // If this is a new POI, create default boundaries, else use what is already defined
-    //   let regionBoundaries = editState.regionBoundaries
-    //   if (regionBoundaries.length == 0) {
-    //     regionBoundaries = createDefaultRegionBoundaries(editState.primaryPinPos, globeInfo)
-    //   }
-
-    //   setRegionMeshReactElements(
-    //     <EditRegionMesh key={uuid()} globeInfo={globeInfo} />
-    //   )
-    // }
-    // else {
-    //   // De-select
-    //   setPrimaryLocationPinReactElement(null)
-    // }
   }, [editState.primaryPinPos])
 
   // Wait until after ThreeJs is done integrating the mesh into the scene before flagging to 
