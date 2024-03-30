@@ -7,6 +7,8 @@ import { EditRegion, ShowRegion } from "./Region"
 import { Stars } from "@react-three/drei"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { MouseHandler } from "./MouseHandler"
+import { EditableRegion } from "./Region/EditableRegion"
+import { DisplayOnlyRegion } from "./Region/DisplayOnlyRegion"
 
 // Extract only what is needed for the state machine.
 // Note: An object with functions cannot be stored as state. Need to extract the values 
@@ -43,7 +45,7 @@ export function Scene(
 
   // Not strictly HTML.
   const [poiReactElements, setPoiReactElements] = useState()
-  const [editRegionReactElements, setEditRegionReactElements] = useState()
+  const [regionReactElements, setRegionReactElements] = useState()
 
   const [meshes, setMeshes] = useState()
   const getThreeJsState = useThree((state) => state.get)
@@ -75,24 +77,28 @@ export function Scene(
     )
   }, [poiState.allPois])
 
-  // If "edit mode" on, create an editable region for the edited POI.
+  // IfEdit mode determines whether we use "DisplayOnlyRegion" or "EditableRegion".
   useEffect(() => {
     // console.log({ msg: "Scene()/useEffect()/editState.editModeOn", value: editState.editModeOn })
 
     if (editState.editModeOn) {
       // TODO: set edit state info to current POI info
-      setEditRegionReactElements((
-        <EditRegion globeInfo={earthGlobeInfo} />
+      setRegionReactElements((
+        // <EditRegion globeInfo={earthGlobeInfo} />
+        <EditableRegion globeInfo={earthGlobeInfo} />
       ))
     }
     else {
-      setEditRegionReactElements(null)
+      setRegionReactElements((
+        <DisplayOnlyRegion globeInfo={earthGlobeInfo} />
+      ))
     }
   }, [editState.editModeOn])
 
   // Extract meshes from various groups so that it is easy to filter them.
   // Note: It is more efficient to find these only when the mesh collections change rather than 
-  // doing it every frame just before the raycaster runs.
+  // doing it every frame just before the raycaster runs. Doing so incurs some annoying searching 
+  // and notification, but it's better for progress in the long run
   useEffect(() => {
     // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.primaryPinPos, regionBoundaries: editState.regionBoundaries })
 
@@ -369,7 +375,7 @@ export function Scene(
         {poiReactElements}
       </group>
       <group name={groupNames.EditRegionGroup}>
-        {editRegionReactElements}
+        {regionReactElements}
       </group>
     </>
   )

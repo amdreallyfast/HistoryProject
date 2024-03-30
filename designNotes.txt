@@ -36,29 +36,23 @@ Click-and-drag:
 				Same logic as PrimaryPOI pin.
 			
 			Move whole region:
-				Should move all region boundary pins, but a region mesh's position is technically 0, which means that I can't 
-				It is generated using spherical math, with every point being calculated and set rather than transformed from an origin. 
-				As a result, the region mesh is created on the surface of the globe with position {0,0,0} and quaternion {0,0,0,1}. 
-				Fortunately, it's rotation axis is still technically the origin (??globe origin or world origin??) it can be rotated by simply apply the mouse movement quaternion rotor.
-				
-				The region boundary pins are then simply rotated 
-				The region boundary pins, however, are bit more touchy. I have to figure out how 
-				
-				
-				
-				This makes it difficult to tell how much it is rotating.
+				Move geometry without checking if you are a region boundary pin. 
+				When moving the whole region, move _all_ pins.
 			
+		Move whole region:
+			Whole region is generated using spherical math, with every point being calculated and set rather than transformed from an origin. 
+			That is, the geometry is not a constant (like the pins) and so should not be moved by transforms. Transforms are independent of vertices, so if you update the vertices, the transforms are applied to the new vertices, which moves them away from where they were calculated that they should be.
+			Therefore, do not move it per se, but rather rely on the movement of the region boundary pins to update the region boundaries, and then react to that to re-create the mesh.
+			
+// TODO: figure out how to convert 3D points on the surface of a globe to a 2D space, _then_ run the triangulation algorithms
+// TODO:
+	Region boundary pin subdivide
+		subdivide all
+		subdivide on selected lin between pins 
 			TODO:
-				Region boundary pin subdivide
-					subdivide all
-					subdivide on selected lin between pins 
-						TODO:
-							draw a line that can be hovered over and highlighted
-							when line geometry is clicked, add a new boundary pin between them
-							??have to make a mesh for each line between adjacent bounding pins? probably??
-
-
-	
+				draw a line that can be hovered over and highlighted
+				when line geometry is clicked, add a new boundary pin between them
+				??have to make a mesh for each line between adjacent bounding pins? probably??
 // TODO: Implement "Command" pattern so that the user can CTRL-Z the last edit
 // TODO: stateSliveEditPoi: delete whereLatLongArr: [],  
 // TODO: Scene: useEffect: editState.editModeOne: set edit state info based on currently selected POI info
@@ -66,7 +60,6 @@ Click-and-drag:
 	useEffect: mouseState.cursorRaycastIntersections.firstNonGlobe
 	useEffect: mouseState.cursorRaycastIntersections.globe
 // TODO: MouseHandler: useEffect: mouseState.mouseUp: if time is short enough, then consider hovering over the globe or not. If hovering over globe, consider lat/long changes (perhaps the user is clcik-and-drag the screen to rotate the globe). Else just check for screen space positioning
-// TODO: figure out how to convert 3D points on the surface of a globe to a 2D space, _then_ run the triangulation algorithms
 // TODO: new state: 
 	interactableMeshIds (based on ThreeJS' mesh.id)
 	when a mesh finishes creation, add the meshId to the array

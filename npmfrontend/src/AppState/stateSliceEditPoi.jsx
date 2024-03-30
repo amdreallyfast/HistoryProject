@@ -22,7 +22,7 @@ const initialState = {
   //  }
   primaryPinPos: null,
 
-  // TODO: change from array to object, key is where.id, ??only update "counter" and where pin instead of re-creating entire array??
+  // Note: _Must_ be an array. Order is important for the "ear clipping" algorithm.
   regionBoundaries: [],
 
   // For use during clicking and dragging a single point or the entire region.

@@ -171,25 +171,15 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
     boxMeshRef.current.lookAt(globeInfo.pos)
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-
-
+    // Re-creation region mesh whenever a boundary pin moves
+    // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
     if (name == meshNames.RegionBoundaryPin) {
-
-
-      // 3/16/2024, 23:26
-      //  Pin move -> update region boundary -> redraw region mesh geometry -> ??why is the intersection lost??
-      //  I can click-and-drag the region mesh even with the mesh rotation turned off, but if I deactivate this update, then it doesn't move
-
-
-
       let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
       updatedWhere.id = where.id
       reduxDispatch(
         editStateActions.updateRegionBoundaryPin(updatedWhere)
       )
     }
-
-
   }, [editState.clickAndDrag?.rotorQuaternion])
 
   // Update following click-and-drag
