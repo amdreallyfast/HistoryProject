@@ -9,8 +9,122 @@ import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { ConvertLatLongToVec3, ConvertLatLongToXYZ, ConvertXYZToLatLong } from "../convertLatLongXYZ"
 import { createWhere, createWhereObjFromXYZ } from "../createWhere"
 
+const generateRegionMesh = (regionBoundaries2D) => {
+  const isConvex = (A, B, C) => {
+    let BA = (new THREE.Vector2()).subVectors(B, A)
+    let BC = (new THREE.Vector2()).subVectors(B, C)
+    let dot = BA.dot(BC)
+    let convex = dot > 0
+    return convex
+  }
+
+  // Create vectors from A -> B and A -> C. Determine the weights of those two vectors that will combine to make point p. Then evaluate the two weights and judge accordingly.
+  // Source:
+  //  Gamedev Maths: point in triangle
+  //  https://www.youtube.com/watch?v=HYAgJN3x4GA
+  const pointInTriangle = (p, A, B, C) => {
+    let w1 = (A.x * (C.y - A.y) + (p.y - A.y) * (C.x - A.x) - p.x * (C.y - A.y)) / ((B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y))
+    let w2 = (p.y - A.y - w1 * (B.y - A.y)) / (C.y - A.y)
+
+    let insideTriangle = (w1 >= 0) && (w2 >= 0) && (w1 + w2) <= 1
+    return insideTriangle
+  }
+
+  const noOtherPointsInTriangle = (otherPoints, A, B, C) => {
+    otherPoints.forEach((point) => {
+      if (pointInTriangle(point, A, B, C)) {
+        return false
+      }
+    })
+
+    return true
+  }
+
+  // Generate triangles from the boundary markers based on "ear clipping" algorithm
+  let markers = regionBoundaries2D
+  let meshIndices = []
+  let lineIndicesDict = {} // Dictionary to avoid duplicate pairs
+  let meshCalculationId = uuid()
+  let startIndex = 0
+  while (markers.length > 0) {
+    console.log(`${meshCalculationId}: startIndex '${startIndex}'`)
+    let index1 = (startIndex + 0) % markers.length
+    let index2 = (startIndex + 1) % markers.length
+    let index3 = (startIndex + 2) % markers.length
+
+    let p1 = markers[index1]
+    let p2 = markers[index2]
+    let p3 = markers[index3]
+    let otherPoints = markers.filter((value) => {
+      return value.index != index1 && value.index != index2 && value.index != index3
+    })
+
+    if (isConvex(p1, p2, p3) && noOtherPointsInTriangle(otherPoints, p1, p2, p3)) {
+      // Make triangle
+      meshIndices.push(index1)
+      meshIndices.push(index2)
+      meshIndices.push(index3)
+
+      // Make lines for triangle edges
+      // A -> B
+      lineIndicesDict[`${index1},${index2}`] = true
+      lineIndicesDict[`${index2},${index1}`] = true
+
+      // A -> C
+      lineIndicesDict[`${index1},${index3}`] = true
+      lineIndicesDict[`${index3},${index1}`] = true
+
+      // B -> C
+      lineIndicesDict[`${index2},${index3}`] = true
+      lineIndicesDict[`${index3},${index2}`] = true
+
+      // Clip off the middle point
+      let before = markers.slice(0, index2)
+      let after = markers.slice(index2 + 1, boundaryMarkerPointsDisposable.length)
+      markers = before.concat(after)
+
+      // Begin again
+      startIndex = 0
+    }
+    else {
+      startIndex += 1
+    }
+  }
+
+  // Get line indices
+  // Note: Have to extract the unique line indices from the dictionary.
+  // Also Note: They were keyed in duplicate pairs, so skip every other one.
+  let regionLineIndicesArr = []
+  const indexPairsStrArr = Object.keys(lineIndicesDict)
+  for (let i = 0; i < indexPairsStrArr.length; i += 2) {
+    let indexPairs = indexPairsStrArr[i].split(",")
+    regionLineIndicesArr.push(indexPairs[0])
+    regionLineIndicesArr.push(indexPairs[1])
+  }
+
+
+  // Fill the triangles with more points so that they can create a more fine mesh
+  //??just subdivide twice??
+
+
+}
+
 
 function GenerateRegionGeometry(regionBoundaries, globeInfo) {
+  let disposable = []
+  regionBoundaries.forEach((boundaryMarker, index) => {
+    disposable.push({
+      p: new THREE.Vector2(boundaryMarker.wrappedLongitude, boundaryMarker.lat),
+      index: index
+    })
+  })
+
+
+
+
+
+
+
   // A plain array of [x1, y1, z1, x2, y2, z2...]
   // Note: This is fixed based on the region boundaries. The indices make the triangles from this.
   let vertices = [] // TODO: delete
@@ -28,6 +142,7 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   let boundaryMarkerPoints = []
 
   regionBoundaries.forEach((boundaryMarker, index) => {
+
     // Move the point out from the globe a tad so that it sits on the surface.
     let v = new THREE.Vector3(boundaryMarker.x, boundaryMarker.y, boundaryMarker.z)
     let vNormal = v.clone().normalize()
@@ -412,30 +527,35 @@ function EditRegionMesh({ globeInfo }) {
 // shortest path. To fix this, make a longitude that can wrap.
 const calculateWrappedLongitude = (long, longCompare) => {
   let possiblyWrappedLongitude = null
-
-  let longAsIs = long
-  let longPlus360 = long + 360
-  let longMinus360 = long - 360
-
   let smallestLongDiff = 10000
-  let diff = 0
 
-  let diff1 = Math.abs(longCompare - longAsIs)
+  // Ex:
+  //  long = -175 (west)
+  //  longCompare = -165 (west)
+  let diff1 = Math.abs(longCompare - long)
   if (diff1 < smallestLongDiff) {
     possiblyWrappedLongitude = long
     smallestLongDiff = diff1
   }
 
+  // Ex:
+  //  long = -175 (west)
+  //  longCompare = +175 (west)
+  let longPlus360 = long + 360
   let diff2 = Math.abs(longCompare - longPlus360)
   if (diff2 < smallestLongDiff) {
     possiblyWrappedLongitude = longPlus360
     smallestLongDiff = diff2
   }
 
+  // Ex:
+  //  long = +175 (east)
+  //  longCompare = -175 (west)
+  let longMinus360 = long - 360
   let diff3 = Math.abs(longCompare - longMinus360)
   if (diff3 < smallestLongDiff) {
     possiblyWrappedLongitude = longMinus360
-    smallestLongDiff = dif3
+    smallestLongDiff = diff3
   }
 
   return possiblyWrappedLongitude
@@ -508,9 +628,9 @@ export function EditableRegion({ globeInfo }) {
         editStateActions.setRegionBoundaries(regionBoundaries)
       )
 
-      // setRegionMeshReactElements(
-      //   <EditRegionMesh key={uuid()} globeInfo={globeInfo} />
-      // )
+      setRegionMeshReactElements(
+        <EditRegionMesh key={uuid()} globeInfo={globeInfo} />
+      )
     }
     else {
       setPrimaryLocationPinReactElement(null)
