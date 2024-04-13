@@ -218,8 +218,9 @@ export function Scene(
       // })
       // console.log(things)
 
-      let things = intersections.map((inter) => { return inter.object.name })
-      console.log(things)
+
+      // let things = intersections.map((inter) => { return inter.object.name })
+      // console.log(things)
 
 
 
