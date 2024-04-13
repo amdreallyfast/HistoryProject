@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import * as THREE from "three"
 import { meshNames } from "./constValues"
+import { Box } from "@react-three/drei"
 
 // Source:
 //  https://karthikkaranth.me/blog/generating-random-points-in-a-sphere/#better-choice-of-spherical-coordinates
@@ -36,10 +37,10 @@ function randomPointInSphere(minRadius, maxRadius) {
 }
 
 export function Stars({ debug }) {
-  debug && console.log("Stars(): begin")
+  // console.log("Stars(): begin")
 
   const starsMemo = useMemo(() => {
-    debug && console.log("Stars(): useMemo")
+    // console.log("Stars(): useMemo")
 
     let vertices = []
     let minRange = 100
@@ -60,8 +61,10 @@ export function Stars({ debug }) {
   }, [])
 
   return (
-    <points geometry={starsMemo.geometry}>
-      <pointsMaterial color={0xffffff} />
-    </points>
+    <>
+      <points name={meshNames.Stars} geometry={starsMemo.geometry}>
+        <pointsMaterial color={0xffffff} />
+      </points>
+    </>
   )
 }
