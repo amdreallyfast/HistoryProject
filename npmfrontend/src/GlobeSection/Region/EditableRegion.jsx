@@ -194,7 +194,23 @@ function EditRegionMesh({ globeInfo }) {
       return
     }
 
-    let geometry = GenerateRegionGeometry(editState.regionBoundaries, globeInfo)
+    // Create a "wrapped" longitude in the event that some of the points straddle the 179E <--> 179W longitude line.
+    let expandedRegionBoundaries = editState.regionBoundaries.map((regionBoundary, index) => {
+      if (index == 0) {
+        return {
+          ...regionBoundary,
+          wrappedLongitude: regionBoundary.long,
+        }
+      }
+      else {
+        return {
+          ...regionBoundary,
+          wrappedLongitude: calculateWrappedLongitude(regionBoundary.long, editState.regionBoundaries[0].long),
+        }
+      }
+    })
+
+    let geometry = GenerateRegionGeometry(expandedRegionBoundaries, globeInfo)
     let valuesPerVertex = 3
     let valuesPerIndex = 1
 
@@ -338,16 +354,6 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
     let rotated = rotateOffset(radians)
     regionBoundaries.push(rotated)
   }
-
-  // Create a "wrapped" longitude in the event that some of the points straddle the 179E -> 179W longitude line.
-  regionBoundaries.forEach((regionBoundary, index) => {
-    if (index == 0) {
-      regionBoundary.wrappedLongitude = regionBoundary.long
-    }
-
-    let wrappedLongitude = calculateWrappedLongitude(regionBoundary.long, regionBoundaries[0].long)
-    regionBoundary.wrappedLongitude = wrappedLongitude
-  })
 
   return regionBoundaries
 }
