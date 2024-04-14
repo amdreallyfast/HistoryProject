@@ -702,11 +702,11 @@ function EditRegionMesh({ globeInfo }) {
     regionMeshRef.current.geometry.attributes.position.needsUpdate = true
     regionMeshRef.current.geometry.computeBoundingSphere()
 
-    // // Line
-    // // Note: Re-use the mesh vertices. Same vertices, different indices.
-    // regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
-    // regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
-    // regionLinesRef.current.geometry.attributes.position.needsUpdate = true
+    // Line
+    // Note: Re-use the mesh vertices. Same vertices, different indices.
+    regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
+    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.regionLineIndicesArr, valuesPerIndex))
+    regionLinesRef.current.geometry.attributes.position.needsUpdate = true
   }, [editState.regionBoundaries])
 
 

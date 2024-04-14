@@ -1,7 +1,6 @@
 import { useMemo } from "react"
 import * as THREE from "three"
 import { meshNames } from "./constValues"
-import { Box } from "@react-three/drei"
 
 // Source:
 //  https://karthikkaranth.me/blog/generating-random-points-in-a-sphere/#better-choice-of-spherical-coordinates

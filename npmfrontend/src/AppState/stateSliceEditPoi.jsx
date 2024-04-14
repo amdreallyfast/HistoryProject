@@ -9,8 +9,6 @@ const initialState = {
 
   whereLatLongArr: [],  // TODO: delete
 
-  primaryPinMeshExists: false,  // you know, it would be much easier if ThreeJs' meshes could be serialized into this state machine, but they can't, so boolean flags it is
-
   // Format for location and region boundaries:
   //  {
   //    id,
@@ -25,6 +23,12 @@ const initialState = {
 
   // Note: _Must_ be an array. Order is important for the "ear clipping" algorithm.
   regionBoundaries: [],
+
+  // Can't put ThreeJs meshes into this state machine (function objects are non-serializable), so
+  // use integer counters to indicate when there has been a change in meshes that the cursor 
+  // should be able to hover over.
+  updatedPrimaryPinMeshInScene: 0,
+  updatedRegionMeshesInScene: 0,
 
   // For use during clicking and dragging a single point or the entire region.
   // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the fireld "Id" as an 
@@ -100,12 +104,12 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setPrimaryPinMeshExists: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setPrimaryPinMeshExists", payload: action.payload })
+    setUpdatedPrimaryPinMeshInScene: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_setUpdatedPrimaryPinMeshInScene", payload: action.payload })
 
       return {
         ...state,
-        primaryPinMeshExists: action.payload
+        updatedPrimaryPinMeshInScene: state.updatedPrimaryPinMeshInScene + 1
       }
     },
 
@@ -115,6 +119,15 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         regionBoundaries: action.payload
+      }
+    },
+
+    setUpdatedRegionMeshesInScene: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_updatedRegionMeshesInScene", payload: action.payload })
+
+      return {
+        ...state,
+        updatedRegionMeshesInScene: state.updatedRegionMeshesInScene + 1
       }
     },
 

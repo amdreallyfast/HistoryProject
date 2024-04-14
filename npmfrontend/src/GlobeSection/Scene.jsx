@@ -95,10 +95,10 @@ export function Scene(
     }
   }, [editState.editModeOn])
 
-  // Extract meshes from various groups so that it is easy to filter them.
+  // Extract meshes from specific groups so that it is easy to filter them.
   // Note: It is more efficient to find these only when the mesh collections change rather than 
   // doing it every frame just before the raycaster runs. Doing so incurs some annoying searching 
-  // and notification, but it's better for progress in the long run
+  // and notification, but it's better for performance in the long run (I think).
   useEffect(() => {
     // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.primaryPinPos, regionBoundaries: editState.regionBoundaries })
 
@@ -124,7 +124,7 @@ export function Scene(
     setMeshes(meshesArr)
 
     // console.log({ meshesArr, count: meshesArr.length })
-  }, [poiReactElements, editState.primaryPinMeshExists, editState.regionBoundaries])
+  }, [poiReactElements, editState.updatedPrimaryPinMeshInScene, editState.updatedRegionMeshesInScene])
 
   // Update POI highlight.
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
@@ -180,27 +180,26 @@ export function Scene(
     let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mouseState.currPos, state.camera)
 
-    // Recursive
-    let intersectableMeshes = []
-    const findMeshes = (components) => {
-      components.forEach((component) => {
-        if (component.type == "Group") {
-          if (component.children.length > 0) {
-            findMeshes(component.children)
-          }
-        }
-        else if (component.type == "Mesh") {
-          if (component.name != meshNames.Stars && component.name != meshNames.GlobeAtmosphere) {
-            intersectableMeshes.push(component)
-          }
-        }
-      })
-    }
+    // // Recursive
+    // let intersectableMeshes = []
+    // const findMeshes = (components) => {
+    //   components.forEach((component) => {
+    //     if (component.type == "Group") {
+    //       if (component.children.length > 0) {
+    //         findMeshes(component.children)
+    //       }
+    //     }
+    //     else if (component.type == "Mesh") {
+    //       if (component.name != meshNames.Stars && component.name != meshNames.GlobeAtmosphere) {
+    //         intersectableMeshes.push(component)
+    //       }
+    //     }
+    //   })
+    // }
+    // findMeshes(getThreeJsState().scene.children)
 
-    findMeshes(getThreeJsState().scene.children)
-
-    // const intersections = state.raycaster.intersectObjects(meshes)
-    const intersections = state.raycaster.intersectObjects(getThreeJsState().scene.children, true)
+    const intersections = state.raycaster.intersectObjects(meshes)
+    // const intersections = state.raycaster.intersectObjects(getThreeJsState().scene.children, true)
     // const intersections = state.raycaster.intersectObjects(intersectableMeshes)
 
     // console.log({
@@ -219,8 +218,11 @@ export function Scene(
       // console.log(things)
 
 
-      // let things = intersections.map((inter) => { return inter.object.name })
-      // console.log(things)
+      let things = intersections.map((inter) => { return inter.object.name })
+      if (things.length > 4) {
+        console.log(things)
+      }
+
 
 
 
