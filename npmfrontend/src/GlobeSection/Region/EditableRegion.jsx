@@ -147,22 +147,25 @@ const generateRegionMeshIndicesByEarClippingAlgorithm = (points) => {
 }
 
 function GenerateRegionGeometry(regionBoundaries, globeInfo) {
-  let regionBoundaries2D = []
-  let vertices = []
-  for (let i = 0; i < regionBoundaries.length; i++) {
-    let boundaryMarker = regionBoundaries[i]
-    regionBoundaries2D.push({
-      coord: new THREE.Vector2(boundaryMarker.wrappedLongitude, boundaryMarker.lat),
-      vertexIndex: i
-    })
+  // Create a "wrapped" longitude in the event that the region crosses the 179E <--> 179W 
+  // longitude line. That -179 <--> +179 border makes the vector mach weird.
+  let regionBoundaries2D = regionBoundaries.map((boundaryMarker, index) => {
+    let wrappedLongitude = (boundaryMarker.long + 360.0) % 360
+    return {
+      coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+      vertexIndex: index
+    }
+  })
 
+  let vertices = []
+  regionBoundaries.forEach((boundaryMarker, index) => {
     let vertex = new THREE.Vector3(boundaryMarker.x, boundaryMarker.y, boundaryMarker.z)
     vertex.normalize()
     vertex.multiplyScalar(globeInfo.radius * 1.2)
     vertices.push(vertex.x)
     vertices.push(vertex.y)
     vertices.push(vertex.z)
-  }
+  })
 
   const [meshIndices, lineIndices] = generateRegionMeshIndicesByEarClippingAlgorithm(regionBoundaries2D)
 
@@ -194,23 +197,7 @@ function EditRegionMesh({ globeInfo }) {
       return
     }
 
-    // Create a "wrapped" longitude in the event that some of the points straddle the 179E <--> 179W longitude line.
-    let expandedRegionBoundaries = editState.regionBoundaries.map((regionBoundary, index) => {
-      if (index == 0) {
-        return {
-          ...regionBoundary,
-          wrappedLongitude: regionBoundary.long,
-        }
-      }
-      else {
-        return {
-          ...regionBoundary,
-          wrappedLongitude: calculateWrappedLongitude(regionBoundary.long, editState.regionBoundaries[0].long),
-        }
-      }
-    })
-
-    let geometry = GenerateRegionGeometry(expandedRegionBoundaries, globeInfo)
+    let geometry = GenerateRegionGeometry(editState.regionBoundaries, globeInfo)
     let valuesPerVertex = 3
     let valuesPerIndex = 1
 
