@@ -84,7 +84,6 @@ export function Scene(
     if (editState.editModeOn) {
       // TODO: set edit state info to current POI info
       setRegionReactElements((
-        // <EditRegion globeInfo={earthGlobeInfo} />
         <EditableRegion globeInfo={earthGlobeInfo} />
       ))
     }

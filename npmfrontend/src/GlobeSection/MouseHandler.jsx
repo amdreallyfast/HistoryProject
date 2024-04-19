@@ -34,8 +34,7 @@ export const MouseHandler = () => {
     if (!mouseState.mouseDown) {
       return
     }
-    console.log({ intersection: mouseState.cursorRaycastIntersections.firstNonGlobe, globe: mouseState.cursorRaycastIntersections.globe })
-
+    // console.log({ intersection: mouseState.cursorRaycastIntersections.firstNonGlobe, globe: mouseState.cursorRaycastIntersections.globe })
 
     // Record mouse down position and any intersections that have already been detected in the scene.
     if (mouseState.cursorRaycastIntersections.firstNonGlobe) {
@@ -127,17 +126,21 @@ export const MouseHandler = () => {
         currWorldPos.y,
         currWorldPos.z,
       ).normalize()
-
       let q = (new THREE.Quaternion()).setFromUnitVectors(vFrom, vTo)
+
       if (editState.clickAndDrag) {
         // Update selected mesh position
+        let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+        let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+
+        let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
         reduxDispatch(
           editStateActions.updateClickAndDrag({
             rotorQuaternion: {
-              w: q.w,
-              x: q.x,
-              y: q.y,
-              z: q.z,
+              w: rotor.w,
+              x: rotor.x,
+              y: rotor.y,
+              z: rotor.z,
             }
           })
         )
@@ -159,6 +162,7 @@ export const MouseHandler = () => {
         let cursorPosNormalized = (new THREE.Vector3(cursorPos.x, cursorPos.y, cursorPos.z)).normalize()
 
         let qOffset = (new THREE.Quaternion).setFromUnitVectors(globePosNormalized, cursorPosNormalized)
+        let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
 
         reduxDispatch(
           editStateActions.enableClickAndDrag({
@@ -170,10 +174,10 @@ export const MouseHandler = () => {
               z: qOffset.z,
             },
             rotorQuaternion: {
-              w: q.w,
-              x: q.x,
-              y: q.y,
-              z: q.z,
+              w: rotor.w,
+              x: rotor.x,
+              y: rotor.y,
+              z: rotor.z,
             }
           })
         )

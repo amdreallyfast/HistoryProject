@@ -785,7 +785,7 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
   let rotationAxis = (new THREE.Vector3()).subVectors(originCoord, globeInfo.pos).normalize()
   const rotateOffset = (radians) => {
     let rotatedOffsetVector = offsetPoint.clone().applyAxisAngle(rotationAxis, radians)
-    let rotatedPoint = createWhereObjFromXYZ(rotatedOffsetVector.x, rotatedOffsetVector.y, rotatedOffsetVector.z, globeInfo)
+    let rotatedPoint = createWhereObjFromXYZ(rotatedOffsetVector.x, rotatedOffsetVector.y, rotatedOffsetVector.z, globeInfo.radius)
     return rotatedPoint
   }
   for (let radians = 0; radians < (Math.PI * 2); radians += (Math.PI / 4)) {

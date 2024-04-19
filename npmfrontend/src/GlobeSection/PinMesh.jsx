@@ -133,22 +133,11 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
     let moveThisPinOnly = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
     let moveAllPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
     let newPos = preMovePos.current
-    if (moveThisPinOnly) {
-      let qMouseJson = editState.clickAndDrag.rotorQuaternion
-      let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
+    if (moveThisPinOnly || moveAllPins) {
+      let qValues = editState.clickAndDrag.rotorQuaternion
+      let qRotor = new THREE.Quaternion(qValues.x, qValues.y, qValues.z, qValues.w)
 
-      let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
-      let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
-
-      let rotor = (new THREE.Quaternion()).multiplyQuaternions(qMouse, qOffset)
-
-      newPos = preMovePos.current.clone().applyQuaternion(rotor)
-    }
-    else if (moveAllPins) {
-      let qMouseJson = editState.clickAndDrag.rotorQuaternion
-      let qMouse = new THREE.Quaternion(qMouseJson.x, qMouseJson.y, qMouseJson.z, qMouseJson.w)
-
-      newPos = preMovePos.current.clone().applyQuaternion(qMouse)
+      newPos = preMovePos.current.clone().applyQuaternion(qRotor)
     }
     else {
       // No change
@@ -172,7 +161,7 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
     // Re-creation region mesh whenever a boundary pin moves
     // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
     if (name == meshNames.RegionBoundaryPin) {
-      let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo)
+      let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo.radius)
       updatedWhere.id = where.id
       reduxDispatch(
         editStateActions.updateRegionBoundaryPin(updatedWhere)
