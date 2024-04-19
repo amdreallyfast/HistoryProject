@@ -10,48 +10,65 @@ import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
 import { createWhereObjFromXYZ } from "../createWhere"
 
 // Input:
-//  THREE.Vector2 (A, B, C)
-// Calculate concave or convex
-//  Note: Concave projects outward from the polygon (that is, an "ear"), while convex bends 
-//  into the interior of the polygon and is not an "ear".
+//  A: THREE.Vector3
+//  B: THREE.Vector3
+//  C: THREE.Vector3
 const isEar = (A, B, C) => {
-  let v1 = (new THREE.Vector2()).subVectors(A, B)  // vector B -> A
-  let v2 = (new THREE.Vector2()).subVectors(C, B)  // vector B -> C
+  // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
+  //  <180deg when viewed from above (cross product points into space)
+  //  or
+  //  >180deg when viewed from above (cross product points into the earth)
+  let BA = (new THREE.Vector3()).subVectors(A, B)
+  let BC = (new THREE.Vector3()).subVectors(C, B)
+  let crossProduct = (new THREE.Vector3()).crossVectors(BC, BA)
+  let crossProductPoint = (new THREE.Vector3()).addVectors(B, crossProduct)
 
-  // Concave if the area of a parallelogram formed from v1 and v2 is positive.
-  // Area = v1.x*v2.y - v1.y*v2.x
-  //  Source:
-  //    Polygon Triangulation [2] - Ear Clipping Implementation in Code
-  //    https://www.youtube.com/watch?v=hTJFcHutls8&list=PLSlpr6o9vURx4vjomFuwrFhvhV1nhJ_Jc&index=1
-  //  Note: This is c.z from a 3D cross product calculation and also happens to give the "area" 
-  //  of a parallelogram formed from vectors v1 and v2. I say "area" in quotes because the value 
-  //  will be negative in certain circumstances. 
-  //  If going counterclockwise and v1 is B -> A and v2 is B -> C, then "concave area" will be 
-  //  negative.
-  //  But if going clockwise (like the source example) and v1 and v2 are flipped, then 
-  //  "concave area" will be positive.
-  let area = (v1.x * v2.y) - (v1.y * v2.x)
-  return area < 0
+  // Right-hande rule points up?
+  let convex = crossProductPoint.lengthSq() > B.lengthSq()
+  return convex
 }
 
-// Create vectors from A -> B and A -> C. Determine the weights of those two vectors that will 
-// combine to make point p. Then evaluate the two weights and judge accordingly.
+// Note: Don't worry about the point being "out of plane" because, at this point in the 
+// calculation, all the points are expected to be on exactly the same plane.
 // Input:
-//  THREE.Vector2 (p, A, B, C)
-// Source:
-//  Gamedev Maths: point in triangle
-//  https://www.youtube.com/watch?v=HYAgJN3x4GA
+//  p: THREE.Vector3
+//  A: THREE.Vector3
+//  B: THREE.Vector3
+//  C: THREE.Vector3
+const pointInCone = (p, A, B, C) => {
+  // Is the point within the cone centered on B?
+  let BA = (new THREE.Vector3()).subVectors(A, B).normalize()
+  let BC = (new THREE.Vector3()).subVectors(C, B).normalize()
+  let Bp = (new THREE.Vector3()).subVectors(p, B).normalize()
+  let cosThetaCone = BA.dot(BC)
+  let cosThetaPoint = BA.dot(Bp)
+  return cosThetaPoint < cosThetaCone
+}
+
+// Input:
+//  p: THREE.Vector3
+//  A: THREE.Vector3
+//  B: THREE.Vector3
+//  C: THREE.Vector3
 const pointInTriangle = (p, A, B, C) => {
-  let w1 = (A.x * (C.y - A.y) + (p.y - A.y) * (C.x - A.x) - p.x * (C.y - A.y)) / ((B.y - A.y) * (C.x - A.x) - (B.x - A.x) * (C.y - A.y))
-  let w2 = (p.y - A.y - w1 * (B.y - A.y)) / (C.y - A.y)
-
-  let insideTriangle = (w1 >= 0) && (w2 >= 0) && (w1 + w2) <= 1
-  return insideTriangle
+  // Is the point within the cone starting at A?
+  if (pointInCone(p, A, B, C)) {
+    return true
+  }
+  else if (pointInCone(p, B, C, A)) {
+    return true
+  }
+  else if (pointInCone(p, C, A, B)) {
+    return true
+  }
+  return false
 }
 
 // Input:
-//  THREE.Vector2 array
-//  THREE.Vector2 (A, B, C)
+//  allPoints: THREE.Vector3 array
+//  A: THREE.Vector3
+//  B: THREE.Vector3
+//  C: THREE.Vector3
 const noOtherPointsInTriangle = (allPoints, A, B, C) => {
   allPoints.forEach((point) => {
     // simple reference comparison
@@ -66,7 +83,10 @@ const noOtherPointsInTriangle = (allPoints, A, B, C) => {
 
 // Generate triangles from the boundary markers based on "ear clipping" algorithm
 // Input:
-//  THREE.Vector2 array
+//  points: array of {
+//    coord: THREE.Vector3,
+//    vertexIndex: int
+//  }
 const generateRegionMeshIndicesByEarClippingAlgorithm = (points) => {
   if (points.length < 3) {
     throw Error("Need at least 3 poitns to make a triangle")
@@ -104,14 +124,14 @@ const generateRegionMeshIndicesByEarClippingAlgorithm = (points) => {
     let index2 = (startIndex + 1) % points.length
     let index3 = (startIndex + 2) % points.length
 
-    let p1 = points[index1]
-    let p2 = points[index2]
-    let p3 = points[index3]
+    let A = points[index1]
+    let B = points[index2]
+    let C = points[index3]
 
-    let triangleIsConvex = isEar(p1.coord, p2.coord, p3.coord)
-    let triangleIsEmpty = noOtherPointsInTriangle(points.map((point) => point.coord), p1.coord, p2.coord, p3.coord)
+    let triangleIsConvex = isEar(A.coord, B.coord, C.coord)
+    let triangleIsEmpty = noOtherPointsInTriangle(points.map((point) => point.coord), A.coord, B.coord, C.coord)
     if (triangleIsConvex && triangleIsEmpty) {
-      makeTriangle(p1.vertexIndex, p2.vertexIndex, p3.vertexIndex)
+      makeTriangle(A.vertexIndex, B.vertexIndex, C.vertexIndex)
 
       // Clip off the middle point
       let before = points.slice(0, index2)
@@ -123,14 +143,17 @@ const generateRegionMeshIndicesByEarClippingAlgorithm = (points) => {
     }
     else {
       startIndex += 1
+      if (startIndex > (points.length * 2)) {
+        throw Error("Iterated all points twice with no triangles. Something is wrong.")
+      }
     }
   }
 
   // Last triangle. 
-  let p1 = points[0]
-  let p2 = points[1]
-  let p3 = points[2]
-  makeTriangle(p1.vertexIndex, p2.vertexIndex, p3.vertexIndex)
+  let A = points[0]
+  let B = points[1]
+  let C = points[2]
+  makeTriangle(A.vertexIndex, B.vertexIndex, C.vertexIndex)
 
   // Get line indices
   // Note: Have to extract the unique line indices from the dictionary.
@@ -147,35 +170,42 @@ const generateRegionMeshIndicesByEarClippingAlgorithm = (points) => {
 }
 
 function GenerateRegionGeometry(regionBoundaries, globeInfo) {
-  // Create a "wrapped" longitude in the event that the region crosses the 179E <--> 179W 
-  // longitude line. That -179 <--> +179 border makes the vector mach weird.
-  let regionBoundaries2D = regionBoundaries.map((boundaryMarker, index) => {
-    // // mod 360
-    // let wrappedLongitude = (boundaryMarker.long + 360.0) % 360
-    // return {
-    //   coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
-    //   vertexIndex: index
-    // }
+  // // Create a "wrapped" longitude in the event that the region crosses the 179E <--> 179W 
+  // // longitude line. That -179 <--> +179 border makes the vector mach weird.
+  // let regionBoundaries2D = regionBoundaries.map((boundaryMarker, index) => {
+  //   // // mod 360
+  //   // let wrappedLongitude = (boundaryMarker.long + 360.0) % 360
+  //   // return {
+  //   //   coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+  //   //   vertexIndex: index
+  //   // }
 
-    // // compare with marker [0]
-    // if (index == 0) {
-    //   let wrappedLongitude = boundaryMarker.long
-    //   return {
-    //     coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
-    //     vertexIndex: index
-    //   }
-    // }
-    // else {
-    //   let wrappedLongitude = calculateWrappedLongitude(boundaryMarker.long, regionBoundaries[0].long)
-    //   return {
-    //     coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
-    //     vertexIndex: index
-    //   }
-    // }
+  //   // // compare with marker [0]
+  //   // if (index == 0) {
+  //   //   let wrappedLongitude = boundaryMarker.long
+  //   //   return {
+  //   //     coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+  //   //     vertexIndex: index
+  //   //   }
+  //   // }
+  //   // else {
+  //   //   let wrappedLongitude = calculateWrappedLongitude(boundaryMarker.long, regionBoundaries[0].long)
+  //   //   return {
+  //   //     coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+  //   //     vertexIndex: index
+  //   //   }
+  //   // }
 
-    let wrappedLongitude = boundaryMarker.long
+  //   let wrappedLongitude = boundaryMarker.long
+  //   return {
+  //     coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+  //     vertexIndex: index
+  //   }
+  // })
+
+  let points = regionBoundaries.map((boundaryMarker, index) => {
     return {
-      coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+      coord: new THREE.Vector3(boundaryMarker.x, boundaryMarker.y, boundaryMarker.z),
       vertexIndex: index
     }
   })
@@ -190,7 +220,7 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
     vertices.push(vertex.z)
   })
 
-  const [meshIndices, lineIndices] = generateRegionMeshIndicesByEarClippingAlgorithm(regionBoundaries2D)
+  const [meshIndices, lineIndices] = generateRegionMeshIndicesByEarClippingAlgorithm(points)
 
   return {
     vertices: vertices,

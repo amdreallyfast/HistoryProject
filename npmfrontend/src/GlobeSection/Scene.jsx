@@ -219,7 +219,7 @@ export function Scene(
 
 
       let things = intersections.map((inter) => { return inter.object.name })
-      if (things.length > 4) {
+      if (things.length > 10) {
         console.log(things)
       }
 
