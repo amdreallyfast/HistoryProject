@@ -21,6 +21,8 @@ const initialState = {
   //  }
   primaryPinPos: null,
 
+  // Format:
+  //  Same as primaryPinPos.
   // Note: _Must_ be an array. Order is important for the "ear clipping" algorithm.
   regionBoundaries: [],
 
