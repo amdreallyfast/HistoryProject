@@ -75,7 +75,7 @@ const noOtherPointsInTriangle = (allPoints, A, B, C) => {
 // Generate triangles from the boundary markers based on "ear clipping" algorithm
 // Input:
 //  vertices: THREE.Vector3 array
-export const CalculateSphereRegionMeshIndices = (vertices) => {
+const triangulatePoints = (vertices) => {
   if (vertices.length < 3) {
     throw Error("Need at least 3 points to make a triangle")
   }
@@ -87,13 +87,13 @@ export const CalculateSphereRegionMeshIndices = (vertices) => {
     }
   })
 
-  let meshIndices = []
+  let triangleIndices = []
   let lineIndicesDict = {} // Dictionary to avoid duplicate pairs
   const makeTriangle = (index1, index2, index3) => {
     // Triangle mesh
-    meshIndices.push(index1)
-    meshIndices.push(index2)
-    meshIndices.push(index3)
+    triangleIndices.push(index1)
+    triangleIndices.push(index2)
+    triangleIndices.push(index3)
 
     // Lines for triangle edges
     // A -> B
@@ -159,7 +159,235 @@ export const CalculateSphereRegionMeshIndices = (vertices) => {
   }
 
   return {
-    meshIndicesArr: meshIndices,
-    lineIndicesArr: lineIndices
+    triangleIndices,
+    lineIndices
   }
 }
+
+// // Input:
+// //  A: THREE.Vector3
+// //  B: THREE.Vector3
+// //  C: THREE.Vector3
+// const subdivideTriangle = (A, B, C) => {
+//   // let ABLen = (new THREE.Vector3()).subVectors(B, A).length()
+//   // let midwayAB = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
+//   // let midwayABLen = (new THREE.Vector3()).subVectors(midwayAB, A).length()
+//   // let thingAB = ABLen / midwayABLen
+
+//   // let ACLen = (new THREE.Vector3()).subVectors(C, A).length()
+//   // let midwayAC = (new THREE.Vector3()).addVectors(A, C).multiplyScalar(0.5)
+//   // let midwayACLen = (new THREE.Vector3()).subVectors(midwayAC, A).length()
+//   // let thingAC = ACLen / midwayACLen
+
+//   // let BCLen = (new THREE.Vector3()).subVectors(C, B).length()
+//   // let midwayBC = (new THREE.Vector3()).addVectors(B, C).multiplyScalar(0.5)
+//   // let midwayBCLen = (new THREE.Vector3()).subVectors(midwayBC, B).length()
+//   // let thingBC = BCLen / midwayBCLen
+
+//   let midAB = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
+//   let midAC = (new THREE.Vector3()).addVectors(A, C).multiplyScalar(0.5)
+//   let midBC = (new THREE.Vector3()).addVectors(B, C).multiplyScalar(0.5)
+
+//   let vertices = [
+//     A,      // 0
+//     B,      // 1
+//     C,      // 2
+//     midAB,  // 3
+//     midAC,  // 4
+//     midBC   // 5
+//   ]
+//   let triangleIndices = [
+//     0, 3, 4,  // A, midAB, midAC
+//     1, 5, 3,  // B, midBC, midAB
+//     2, 4, 5   // C, midAC, midBC
+//   ]
+//   let lineIndices = [
+//     0, 3,   // A, midAB
+//     0, 4,   // A, midAC
+//     3, 4,   // midAB, midAC
+//     1, 5,   // B, midBC
+//     1, 3,   // B, midAB
+//     5, 3,   // midBC, midAB
+//     2, 4,   // C, midAC
+//     2, 5,   // C, midBC
+//     4, 5,   // midAC, midBC
+//   ]
+
+//   return {
+//     vertices,
+//     triangleIndices,
+//     lineIndices
+//   }
+// }
+
+// const triangleAsIs = (A, B, C) => {
+//   let vertices = [A, B, C]
+//   let triangleIndices = [0, 1, 2]
+//   let lineIndices = [
+//     0, 1, // A -> B
+//     0, 2, // A -> C
+//     1, 2  // B -> C
+//   ]
+
+//   return {
+//     vertices,
+//     triangleIndices,
+//     lineIndices
+//   }
+// }
+
+// const removeDuplicates = (vertices, triangleIndices, lineIndices) => {
+//   vertices.forEach((vertex, index) => {
+//     for (let i = index+1; i < vertices.length; i++){
+//       let otherVertex = vertices[i]
+
+//       if (vertex == otherVertex)
+//     }
+//   })
+// }
+
+// Input:
+//  vertices: THREE.Vector3 array
+//  triangleIndices: int array
+//  lineIndices: int array
+const subdivideMesh = (baseVertices, baseTriangleIndices) => {
+  const maxLineSegmentLenSq = (0.5 * 0.5)
+  // let newVertices = []
+  let newVertices = baseVertices.map((value) => value)  // shallow copy
+  let newTriangleIndices = []
+  // let newLineIndices = []
+
+  let lineIndicesDict = {} // Dictionary to avoid duplicate pairs
+  const makeLineIndicesPair = (index1, index2) => {
+    lineIndicesDict[`${index1},${index2}`] = true
+    lineIndicesDict[`${index2},${index1}`] = true
+  }
+
+  for (let i = 0; i < baseTriangleIndices.length; i += 3) {
+    // for (let i = 0; i < 3; i += 3) {
+    let numVerticesSoFar = newVertices.length
+
+    // Each triangle has 3x corners, each with 1x vertex.
+    let vertexAIndex = baseTriangleIndices[i + 0]
+    let vertexBIndex = baseTriangleIndices[i + 1]
+    let vertexCIndex = baseTriangleIndices[i + 2]
+
+    let A = baseVertices[vertexAIndex]
+    let B = baseVertices[vertexBIndex]
+    let C = baseVertices[vertexCIndex]
+
+    let ABLen = (new THREE.Vector3()).subVectors(B, A).lengthSq()
+    let ACLen = (new THREE.Vector3()).subVectors(C, A).lengthSq()
+    let BCLen = (new THREE.Vector3()).subVectors(C, B).lengthSq()
+    let atLeastOneSegmentTooBig = (ABLen > maxLineSegmentLenSq) || (ACLen > maxLineSegmentLenSq) || (BCLen > maxLineSegmentLenSq)
+    let geometry = undefined
+    // if (segmentTooBig) {
+    //   geometry = subdivideTriangle(A, B, C)
+    // }
+    // else {
+    //   geometry = triangleAsIs(A, B, C)
+    // }
+
+    atLeastOneSegmentTooBig = true
+    if (atLeastOneSegmentTooBig) {
+      // Create midpoints
+      let midAB = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
+      let midAC = (new THREE.Vector3()).addVectors(A, C).multiplyScalar(0.5)
+      let midBC = (new THREE.Vector3()).addVectors(B, C).multiplyScalar(0.5)
+
+      // Add them to the vertices
+      let vertexMidABIndex = newVertices.push(midAB)
+      let vertexMidACIndex = newVertices.push(midAC)
+      let vertexMidBCIndex = newVertices.push(midBC)
+
+      // Three new triangles
+      let triangleIndices = [
+        vertexAIndex, vertexMidABIndex, vertexMidACIndex,  // A, midAB, midAC
+        vertexBIndex, vertexMidBCIndex, vertexMidABIndex,  // B, midBC, midAB
+        vertexCIndex, vertexMidACIndex, vertexMidBCIndex   // C, midAC, midBC
+      ]
+
+      // Lots of new lines
+      makeLineIndicesPair(vertexAIndex, vertexMidABIndex)
+      makeLineIndicesPair(vertexAIndex, vertexMidACIndex)
+      makeLineIndicesPair(vertexMidABIndex, vertexMidACIndex)
+      makeLineIndicesPair(vertexBIndex, vertexMidBCIndex)
+      makeLineIndicesPair(vertexBIndex, vertexMidABIndex)
+      makeLineIndicesPair(vertexMidBCIndex, vertexMidABIndex)
+      makeLineIndicesPair(vertexCIndex, vertexMidACIndex)
+      makeLineIndicesPair(vertexCIndex, vertexMidBCIndex)
+      makeLineIndicesPair(vertexMidACIndex, vertexMidBCIndex)
+
+      triangleIndices.forEach((value) => newTriangleIndices.push(value))
+      // lineIndices.forEach((value) => newLineIndices.push(value))
+    }
+    else {
+      // Already small enough. Take the triangle as-is.
+      let triangleIndices = [vertexAIndex, vertexBIndex, vertexCIndex]
+      makeLineIndicesPair(vertexAIndex, vertexBIndex)
+      makeLineIndicesPair(vertexAIndex, vertexCIndex)
+      makeLineIndicesPair(vertexBIndex, vertexCIndex)
+
+      triangleIndices.forEach((value) => newTriangleIndices.push(value))
+      // lineIndices.forEach((value) => newLineIndices.push(value))
+    }
+  }
+
+  // Get line indices
+  // Note: Have to extract the unique line indices from the dictionary.
+  // Also Note: They were keyed in duplicate pairs, so skip every other one.
+  let lineIndices = []
+  const indexPairsStrArr = Object.keys(lineIndicesDict)
+  for (let i = 0; i < indexPairsStrArr.length; i += 2) {
+    let indexPairs = indexPairsStrArr[i].split(",")
+    lineIndices.push(indexPairs[0])
+    lineIndices.push(indexPairs[1])
+  }
+
+  return {
+    vertices: newVertices,
+    triangleIndices: newTriangleIndices,
+    lineIndices: lineIndices
+  }
+}
+
+// Input:
+//  vertices: THREE.Vector3 array
+export const generateRegionMesh = (baseVertices) => {
+  const baseGeometry = triangulatePoints(baseVertices)
+
+  let baseVerticesFlattened = []
+  baseVertices.forEach((value) => {
+    baseVerticesFlattened.push(value.x)
+    baseVerticesFlattened.push(value.y)
+    baseVerticesFlattened.push(value.z)
+  })
+  let base = {
+    vertices: baseVerticesFlattened,
+    triangleIndices: baseGeometry.triangleIndices,
+    lineIndices: baseGeometry.lineIndices
+  }
+
+  const subdividedGeometry = subdivideMesh(baseVertices, baseGeometry.triangleIndices)
+
+  // Split the vertices into their x, y, z values, then rescale the indices accordingly to point 
+  // at the first item in the set.
+  let verticesFlattened = []
+  subdividedGeometry.vertices.forEach((value) => {
+    verticesFlattened.push(value.x)
+    verticesFlattened.push(value.y)
+    verticesFlattened.push(value.z)
+  })
+  let triangleIndicesRescaled = subdividedGeometry.triangleIndices.map((value) => value)
+  let lineIndicesRescaled = subdividedGeometry.lineIndices.map((value) => value)
+
+  let subdivded = {
+    vertices: verticesFlattened,
+    triangleIndices: triangleIndicesRescaled,
+    lineIndices: lineIndicesRescaled
+  }
+  return subdivded
+}
+
+
+// TODO: ??put main function at the top and then organize down??

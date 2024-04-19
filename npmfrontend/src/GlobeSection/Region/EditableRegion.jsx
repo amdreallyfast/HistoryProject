@@ -8,7 +8,7 @@ import { v4 as uuid } from "uuid"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
 import { createWhereObjFromXYZ } from "../createWhere"
-import { CalculateSphereRegionMeshIndices } from "./generateRegionMesh"
+import { generateRegionMesh } from "./generateRegionMesh"
 
 function EditRegionMesh({ }) {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
@@ -30,26 +30,26 @@ function EditRegionMesh({ }) {
     let vertices = []
     let rawVertices = []
     editState.regionBoundaries.forEach((value, index) => {
-      vertices.push(new THREE.Vector3(value.x, value.y, value.z))
+      vertices.push(new THREE.Vector3(value.x * 1.2, value.y * 1.2, value.z * 1.2))
       rawVertices.push(value.x * 1.2)
       rawVertices.push(value.y * 1.2)
       rawVertices.push(value.z * 1.2)
     })
 
-    let geometry = CalculateSphereRegionMeshIndices(vertices)
+    let geometry = generateRegionMesh(vertices)
     let valuesPerVertex = 3
     let valuesPerIndex = 1
 
-    // Region mesh
-    regionMeshRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(rawVertices, valuesPerVertex))
-    regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.meshIndicesArr, valuesPerIndex))
-    regionMeshRef.current.geometry.attributes.position.needsUpdate = true
-    regionMeshRef.current.geometry.computeBoundingSphere()
+    // // Region mesh
+    // regionMeshRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
+    // regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.triangleIndices, valuesPerIndex))
+    // regionMeshRef.current.geometry.attributes.position.needsUpdate = true
+    // regionMeshRef.current.geometry.computeBoundingSphere()
 
     // Line
     // Note: Re-use the mesh vertices. Same vertices, different indices.
-    regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(rawVertices, valuesPerVertex))
-    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.lineIndicesArr, valuesPerIndex))
+    regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
+    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.lineIndices, valuesPerIndex))
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
     regionLinesRef.current.geometry.computeBoundingSphere()
   }, [editState.regionBoundaries])
@@ -60,7 +60,7 @@ function EditRegionMesh({ }) {
         <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} />
       </mesh>
 
-      <line ref={regionLinesRef} name={meshNames.RegionLines} width={4}>
+      <line ref={regionLinesRef} name={meshNames.RegionLines} width={10}>
         <lineBasicMaterial color={0xff0000} />
       </line>
     </>
