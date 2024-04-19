@@ -150,7 +150,30 @@ function GenerateRegionGeometry(regionBoundaries, globeInfo) {
   // Create a "wrapped" longitude in the event that the region crosses the 179E <--> 179W 
   // longitude line. That -179 <--> +179 border makes the vector mach weird.
   let regionBoundaries2D = regionBoundaries.map((boundaryMarker, index) => {
-    let wrappedLongitude = (boundaryMarker.long + 360.0) % 360
+    // // mod 360
+    // let wrappedLongitude = (boundaryMarker.long + 360.0) % 360
+    // return {
+    //   coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+    //   vertexIndex: index
+    // }
+
+    // // compare with marker [0]
+    // if (index == 0) {
+    //   let wrappedLongitude = boundaryMarker.long
+    //   return {
+    //     coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+    //     vertexIndex: index
+    //   }
+    // }
+    // else {
+    //   let wrappedLongitude = calculateWrappedLongitude(boundaryMarker.long, regionBoundaries[0].long)
+    //   return {
+    //     coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
+    //     vertexIndex: index
+    //   }
+    // }
+
+    let wrappedLongitude = boundaryMarker.long
     return {
       coord: new THREE.Vector2(wrappedLongitude, boundaryMarker.lat),
       vertexIndex: index
@@ -279,7 +302,7 @@ function EditRegionMesh({ globeInfo }) {
 // line, a vector from p1 -> p2 might wrap all the way around the globe instead of taking the 
 // shortest path. To fix this, make a longitude that can wrap.
 const calculateWrappedLongitude = (long, longCompare) => {
-  let possiblyWrappedLongitude = null
+  let expandedLongitude = null
   let smallestLongDiff = 10000
 
   // Ex:
@@ -287,7 +310,7 @@ const calculateWrappedLongitude = (long, longCompare) => {
   //  longCompare = -165 (west)
   let diff1 = Math.abs(longCompare - long)
   if (diff1 < smallestLongDiff) {
-    possiblyWrappedLongitude = long
+    expandedLongitude = long
     smallestLongDiff = diff1
   }
 
@@ -297,7 +320,7 @@ const calculateWrappedLongitude = (long, longCompare) => {
   let longPlus360 = long + 360
   let diff2 = Math.abs(longCompare - longPlus360)
   if (diff2 < smallestLongDiff) {
-    possiblyWrappedLongitude = longPlus360
+    expandedLongitude = longPlus360
     smallestLongDiff = diff2
   }
 
@@ -307,11 +330,11 @@ const calculateWrappedLongitude = (long, longCompare) => {
   let longMinus360 = long - 360
   let diff3 = Math.abs(longCompare - longMinus360)
   if (diff3 < smallestLongDiff) {
-    possiblyWrappedLongitude = longMinus360
+    expandedLongitude = longMinus360
     smallestLongDiff = diff3
   }
 
-  return possiblyWrappedLongitude
+  return expandedLongitude
 }
 
 // Generate a set of default points in a circle around the origin.
