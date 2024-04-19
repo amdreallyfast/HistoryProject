@@ -109,7 +109,7 @@ export function EditableRegion({ globeInfo }) {
 
   // Create PrimaryPOI pin mesh + (maybe) region pins + region mesh
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.primaryPinPos", where: editState.primaryPinPos })
+    // console.log({ msg: "EditableRegion()/useEffect()/editState.primaryPinPos", where: editState.primaryPinPos })
     if (!editState.editModeOn) {
       return
     }
@@ -136,7 +136,7 @@ export function EditableRegion({ globeInfo }) {
   // Set flag to alert that the primary POI pin's meshes are present in ThreeJs' scene and need 
   // to be added to the list of things for the raycaster to check against.
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/primaryLocationPinReactElement", value: primaryLocationPinReactElement })
+    // console.log({ msg: "EditableRegion()/useEffect()/primaryLocationPinReactElement", value: primaryLocationPinReactElement })
 
     reduxDispatch(
       editStateActions.setUpdatedPrimaryPinMeshInScene()
@@ -145,7 +145,7 @@ export function EditableRegion({ globeInfo }) {
 
   // Same for region meshes (there are several of them (pins, etc.)).
   useEffect(() => {
-    console.log({ msg: "EditRegion()/useEffect()/regionMeshesUpdated", pins: regionPinReactElements, mesh: regionMeshReactElements })
+    console.log({ msg: "EditableRegion()/useEffect()/regionMeshesUpdated", pins: regionPinReactElements, mesh: regionMeshReactElements })
 
     reduxDispatch(
       editStateActions.setUpdatedRegionMeshesInScene()
@@ -154,7 +154,7 @@ export function EditableRegion({ globeInfo }) {
 
   // Create region pins when the number of region boundary points change.
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/editState.regionBoundaries.length", value: editState.regionBoundaries.length })
+    // console.log({ msg: "EditableRegion()/useEffect()/editState.regionBoundaries.length", value: editState.regionBoundaries.length })
 
     let reactElements = editState.regionBoundaries.map((where) => {
       return (

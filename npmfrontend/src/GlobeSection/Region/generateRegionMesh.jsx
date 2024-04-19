@@ -1,5 +1,4 @@
 import * as THREE from "three"
-import { v4 as uuid } from "uuid"
 
 // Input:
 //  A: THREE.Vector3
@@ -111,11 +110,8 @@ export const CalculateSphereRegionMeshIndices = (vertices) => {
   }
 
   // Ear-clipping algorithm
-  let meshCalculationId = uuid()
   let startIndex = 0
   while (points.length > 3) {
-    // console.log(`${meshCalculationId}: startIndex '${startIndex}'`)
-
     let index1 = (startIndex + 0) % points.length
     let index2 = (startIndex + 1) % points.length
     let index3 = (startIndex + 2) % points.length
