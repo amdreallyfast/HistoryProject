@@ -42,14 +42,14 @@ function EditRegionMesh({ }) {
 
     // // Region mesh
     // regionMeshRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
-    // regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.triangleIndices, valuesPerIndex))
+    // regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.triangles, valuesPerIndex))
     // regionMeshRef.current.geometry.attributes.position.needsUpdate = true
     // regionMeshRef.current.geometry.computeBoundingSphere()
 
     // Line
     // Note: Re-use the mesh vertices. Same vertices, different indices.
     regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
-    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.lineIndices, valuesPerIndex))
+    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.lines, valuesPerIndex))
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
     regionLinesRef.current.geometry.computeBoundingSphere()
   }, [editState.regionBoundaries])

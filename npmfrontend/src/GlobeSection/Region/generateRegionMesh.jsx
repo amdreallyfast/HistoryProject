@@ -167,7 +167,7 @@ Can you see this?
 class MeshSubdivider {
   constructor(startingVertices, startingTriangleIndexArrays) {
     this.indicesDict = {}
-    this.vertices = startingVertices.map((vec3) => vec3) // begin as a shallow copy
+    this.vertices = startingVertices.map((vec3) => [vec3.x, vec3.y, vec3.z]) // begin as a shallow copy
     this.triangleIndexArrays = startingTriangleIndexArrays
     this.lineIndexArrays = []
   }
@@ -196,13 +196,19 @@ class MeshSubdivider {
       // let geometry = this.subdivideTriangleUntilSmallEnough(triangleIndex, maxEdgeLength)
     }
 
-    // Eliminate the deleted triangle index arrays.
-    // Note: A javascript array will delete the item, but won't eliminate the place.
-    this.triangleIndexArrays = this.triangleIndexArrays.filter((value) => value)
+    // this.triangleIndexArrays = this.triangleIndexArrays.filter((value) => value)
+
+    // Flatten everything into primitive arrays for use with OpenGL buffering
+    // Note: Eliminate the deleted triangle index arrays before flattening. A javascript array 
+    // will delete the item, but won't eliminate the place.
+    let flattenedVertices = this.vertices.flat()
+    let flattenedTriangleIndices = this.triangleIndexArrays.filter((value) => value).flat()
+    let flattenedLineIndices = this.lineIndexArrays.flat()
+
     return {
-      vertices: this.vertices,
-      triangleIndexArrays: this.triangleIndexArrays,
-      lineIndexArrays: this.lineIndexArrays
+      vertices: flattenedVertices,
+      triangles: flattenedTriangleIndices,
+      lines: flattenedLineIndices
     }
   }
 
@@ -237,61 +243,59 @@ class MeshSubdivider {
 
   triangleEdgeTooLong(triangleIndex, maxEdgeLength) {
     let indexArr = this.triangleIndexArrays[triangleIndex]
-    let A = this.vertices[indexArr[0]]
-    let B = this.vertices[indexArr[1]]
-    let C = this.vertices[indexArr[2]]
+    let ABLenSq = this.distAToB(indexArr[0], indexArr[1])
+    let BCLenSq = this.distAToB(indexArr[1], indexArr[2])
+    let CALenSq = this.distAToB(indexArr[2], indexArr[0])
 
-    let ABLenSq = (new THREE.Vector3()).subVectors(B, A).lengthSq()
-    let ACLenSq = (new THREE.Vector3()).subVectors(C, A).lengthSq()
-    let BCLenSq = (new THREE.Vector3()).subVectors(C, B).lengthSq()
     let maxEdgeLengthSq = maxEdgeLength * maxEdgeLength
-    let tooLong = (ABLenSq > maxEdgeLengthSq) || (ACLenSq > maxEdgeLengthSq) || (BCLenSq > maxEdgeLengthSq)
+    let tooLong = (ABLenSq > maxEdgeLengthSq) || (BCLenSq > maxEdgeLengthSq) || (CALenSq > maxEdgeLengthSq)
     return tooLong
   }
 
-  distAToB(AIndex, BIndex) {
-    let x = bArr[0] - aArr[0]
-    let y = bArr[1] - aArr[1]
-    let z = bArr[2] - aArr[2]
-    let vec = new THREE.Vector3(x, y, z)
-    let distSq = vec.dot(vec)
+  distAToB(aIndex, bIndex) {
+    let A = this.vertices[aIndex]
+    let B = this.vertices[bIndex]
+    let x = B[0] - A[0]
+    let y = B[1] - A[1]
+    let z = B[2] - A[2]
+    let distSq = (x * x) + (y * y) + (z * z)
     return distSq
   }
 
   subdivideTriangle(triangleIndex) {
     let indexArr = this.triangleIndexArrays[triangleIndex]
-    let AIndex = indexArr[0]
-    let BIndex = indexArr[1]
-    let CIndex = indexArr[2]
+    let aIndex = indexArr[0]
+    let bIndex = indexArr[1]
+    let cIndex = indexArr[2]
 
     // Create midpoints
-    let midABIndex = this.makeMidpointIfNotExists(AIndex, BIndex)
-    let midACIndex = this.makeMidpointIfNotExists(AIndex, CIndex)
-    let midBCIndex = this.makeMidpointIfNotExists(BIndex, CIndex)
+    let midABIndex = this.makeMidpointIfNotExists(aIndex, bIndex)
+    let midACIndex = this.makeMidpointIfNotExists(aIndex, cIndex)
+    let midBCIndex = this.makeMidpointIfNotExists(bIndex, cIndex)
 
     // Three new triangles
     // let triangles = []
-    // triangles.push([AIndex, midABIndex, midACIndex])  // A, midAB, midAC
-    // triangles.push([BIndex, midBCIndex, midABIndex])  // B, midBC, midAB
-    // triangles.push([CIndex, midACIndex, midBCIndex])  // C, midAC, midBC
-    this.triangleIndexArrays.push([AIndex, midABIndex, midACIndex])  // A, midAB, midAC
-    this.triangleIndexArrays.push([BIndex, midBCIndex, midABIndex])  // B, midBC, midAB
-    this.triangleIndexArrays.push([CIndex, midACIndex, midBCIndex])  // C, midAC, midBC
+    // triangles.push([aIndex, midABIndex, midACIndex])  // A, midAB, midAC
+    // triangles.push([bIndex, midBCIndex, midABIndex])  // B, midBC, midAB
+    // triangles.push([cIndex, midACIndex, midBCIndex])  // C, midAC, midBC
+    this.triangleIndexArrays.push([aIndex, midABIndex, midACIndex])  // A, midAB, midAC
+    this.triangleIndexArrays.push([bIndex, midBCIndex, midABIndex])  // B, midBC, midAB
+    this.triangleIndexArrays.push([cIndex, midACIndex, midBCIndex])  // C, midAC, midBC
 
     // Delete the old triangle
     delete this.triangleIndexArrays[triangleIndex]
 
     // // New lines
     // let lines = []
-    // lines.push([AIndex, midACIndex])
-    // lines.push([midACIndex, CIndex])
-    // lines.push([CIndex, midBCIndex])
+    // lines.push([aIndex, midACIndex])
+    // lines.push([midACIndex, cIndex])
+    // lines.push([cIndex, midBCIndex])
     // lines.push([midBCIndex, midACIndex])
     // lines.push([midACIndex, midABIndex])
     // lines.push([midABIndex, midBCIndex])
-    // lines.push([midBCIndex, BIndex])
-    // lines.push([BIndex, midABIndex])
-    // lines.push([midABIndex, AIndex])
+    // lines.push([midBCIndex, bIndex])
+    // lines.push([bIndex, midABIndex])
+    // lines.push([midABIndex, aIndex])
 
 
     // return {
@@ -300,17 +304,20 @@ class MeshSubdivider {
     // }
   }
 
-  makeMidpointIfNotExists(AIndex, BIndex) {
-    let key1 = `${AIndex},${BIndex}`
-    let key2 = `${BIndex},${AIndex}` // could be either key
+  makeMidpointIfNotExists(aIndex, bIndex) {
+    let key1 = `${aIndex},${bIndex}`
+    let key2 = `${bIndex},${aIndex}` // could be either key
     let midABIndex = this.indicesDict[key1]
     if (!midABIndex) {
       midABIndex = this.indicesDict[key2]
       if (!midABIndex) {
         // No midpoint on record. Make one.
-        let A = this.vertices[AIndex]
-        let B = this.vertices[BIndex]
-        let mid = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
+        let A = this.vertices[aIndex]
+        let B = this.vertices[bIndex]
+        let x = (A[0] + B[0]) * 0.5
+        let y = (A[1] + B[1]) * 0.5
+        let z = (A[2] + B[2]) * 0.5
+        let mid = [x, y, z]
         let newVertexCount = this.vertices.push(mid)
         midABIndex = newVertexCount - 1
 
@@ -465,18 +472,13 @@ export const generateRegionMesh = (baseVertices, sphereRadius) => {
   // const subdividedGeometry = subdivideMesh(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
   let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices)
   const subdividedGeometry = meshSubdivider.subdivide(maxEdgeLength)
-
-
-  // Flatten the vertices into their x, y, z values because OpenGL takes arrays of floats, not
-  // arrays of ThreeJs Vector3.
-  let flattenedVertices = []
-  for (let i = 0, n = subdividedGeometry.vertices.length; i < n; i++) {
-    flattenedVertices.push(subdividedGeometry.vertices[i].x)
-    flattenedVertices.push(subdividedGeometry.vertices[i].y)
-    flattenedVertices.push(subdividedGeometry.vertices[i].z)
+  return subdividedGeometry
+  return {
+    vertices: subdividedGeometry.vertices,
+    triangleIndices: subdividedGeometry,
+    lines: flattenedLineIndices
   }
-  let flattenedTriangleIndices = subdividedGeometry.triangleIndexArrays.flat()
-  let flattenedLineIndices = subdividedGeometry.lineIndexArrays.flat()
+
 
   return {
     vertices: flattenedVertices,
