@@ -207,17 +207,14 @@ class MeshSubdivider {
       }
     }
 
-    // Flatten everything into primitive arrays for use with OpenGL buffering
-    // Note: Eliminate the deleted triangle index arrays before flattening. A javascript array 
+    // Note: Eliminate the "deleted" triangle index arrays. A javascript array 
     // will delete the item, but won't eliminate the place.
-    let flattenedVertices = this.#vertices.flat()
-    let flattenedTriangleIndices = this.#triangleIndexArrays.filter((value) => value).flat()
-    let flattenedLineIndices = this.#lineIndexArrays.flat()
+    this.#triangleIndexArrays = this.#triangleIndexArrays.filter((value) => value)
 
     this.geometry = {
-      vertices: flattenedVertices,
-      triangles: flattenedTriangleIndices,
-      lines: flattenedLineIndices
+      vertices: this.#vertices,
+      triangles: this.#triangleIndexArrays,
+      lines: this.#lineIndexArrays
     }
   }
 
@@ -287,6 +284,8 @@ class MeshSubdivider {
     return midABIndex
   }
 }
+
+
 
 // Input:
 //  vertices: THREE.Vector3 array

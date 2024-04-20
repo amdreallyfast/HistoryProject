@@ -28,28 +28,32 @@ function EditRegionMesh({ }) {
     }
 
     let vertices = []
-    let rawVertices = []
     editState.regionBoundaries.forEach((value, index) => {
       vertices.push(new THREE.Vector3(value.x * 1.2, value.y * 1.2, value.z * 1.2))
-      rawVertices.push(value.x * 1.2)
-      rawVertices.push(value.y * 1.2)
-      rawVertices.push(value.z * 1.2)
     })
 
     let geometry = generateRegionMesh(vertices)
+
+    // Flatten everything into primitive arrays for use with OpenGL buffering
+    let flattenedVertices = geometry.vertices.flat()
+    let flattenedMeshIndices = geometry.triangles.flat()
+    let flattenedLineIndices = geometry.lines.flat()
+
     let valuesPerVertex = 3
     let valuesPerIndex = 1
 
-    // // Region mesh
-    // regionMeshRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
-    // regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.triangles, valuesPerIndex))
-    // regionMeshRef.current.geometry.attributes.position.needsUpdate = true
-    // regionMeshRef.current.geometry.computeBoundingSphere()
+    let vertexBuffer = new THREE.Float32BufferAttribute(flattenedVertices, valuesPerVertex)
+
+    // Region mesh
+    regionMeshRef.current.geometry.setAttribute("position", vertexBuffer)
+    regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedMeshIndices, valuesPerIndex))
+    regionMeshRef.current.geometry.attributes.position.needsUpdate = true
+    regionMeshRef.current.geometry.computeBoundingSphere()
 
     // Line
     // Note: Re-use the mesh vertices. Same vertices, different indices.
-    regionLinesRef.current.geometry.setAttribute("position", new THREE.Float32BufferAttribute(geometry.vertices, valuesPerVertex))
-    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(geometry.lines, valuesPerIndex))
+    regionLinesRef.current.geometry.setAttribute("position", vertexBuffer)
+    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedLineIndices, valuesPerIndex))
     regionLinesRef.current.geometry.attributes.position.needsUpdate = true
     regionLinesRef.current.geometry.computeBoundingSphere()
   }, [editState.regionBoundaries])
