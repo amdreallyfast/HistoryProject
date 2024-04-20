@@ -305,70 +305,7 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
     for (let i = 0, n = geometry.lines.length; i < n; i++) { lineIndexArrays.push(geometry.lines[i]) }
     // for (let i = 0, n = geometry.triangles.length; i < n; i++) { trianglesDict[geometry.triangles[i]] = true }
     // for (let i = 0, n = geometry.lines.length; i < n; i++) { linesDict[geometry.lines[i]] = true }
-
-
-
-
-
-    // let ABLen = (new THREE.Vector3()).subVectors(B, A).lengthSq()
-    // let ACLen = (new THREE.Vector3()).subVectors(C, A).lengthSq()
-    // let BCLen = (new THREE.Vector3()).subVectors(C, B).lengthSq()
-    // let atLeastOneSegmentTooBig = (ABLen > maxLineSegmentLenSq) || (ACLen > maxLineSegmentLenSq) || (BCLen > maxLineSegmentLenSq)
-    // if (atLeastOneSegmentTooBig) {
-    //   let geometry = subdivideTriangle(vertexAIndex, vertexBIndex, vertexCIndex)
-
-    //   atLeastOneSegmentTooBig = false
-
-    //   // // Create midpoints
-    //   // let vertexMidABIndex = makeMidpoint(vertexAIndex, vertexBIndex)
-    //   // let vertexMidACIndex = makeMidpoint(vertexAIndex, vertexCIndex)
-    //   // let vertexMidBCIndex = makeMidpoint(vertexBIndex, vertexCIndex)
-
-    //   // // Three new triangles
-    //   // let triangleIndices = [
-    //   //   vertexAIndex, vertexMidABIndex, vertexMidACIndex,  // A, midAB, midAC
-    //   //   vertexBIndex, vertexMidBCIndex, vertexMidABIndex,  // B, midBC, midAB
-    //   //   vertexCIndex, vertexMidACIndex, vertexMidBCIndex   // C, midAC, midBC
-    //   // ]
-    //   // triangleIndices.forEach((value) => newTriangleIndices.push(value))
-
-    //   // // Lots of new lines
-    //   // // Note: ORDER IMPORTANT. ThreJs draws lines with a "line strip", in which the first vertex
-    //   // // is the origin, and then every vertex after that gets a line drawn to it.
-    //   // // Also Note: This also means a line stripp cannot have disconnected lines. Every new 
-    //   // // vertex in the list will have a line drawn to it from the previous vertex.
-    //   // if (newLineIndices.length == 0) {
-    //   //   // Start a new line strip
-    //   //   newLineIndices.push(vertexAIndex)
-    //   //   lastLineIndex = vertexAIndex
-    //   // }
-    //   // addNewLineSegment(vertexMidACIndex)
-    //   // addNewLineSegment(vertexCIndex)
-    //   // addNewLineSegment(vertexMidBCIndex)
-    //   // addNewLineSegment(vertexMidACIndex)
-    //   // addNewLineSegment(vertexMidABIndex)
-    //   // addNewLineSegment(vertexMidBCIndex)
-    //   // addNewLineSegment(vertexBIndex)
-    //   // addNewLineSegment(vertexMidABIndex)
-    //   // addNewLineSegment(vertexAIndex)
-    // }
-    // else {
-    //   // Already small enough. Take the triangle as-is.
-    //   newTriangleIndices.push(vertexAIndex)
-    //   newTriangleIndices.push(vertexBIndex)
-    //   newTriangleIndices.push(vertexCIndex)
-
-    //   addNewLineSegmentIfNotExists(vertexAIndex, vertexBIndex)
-    //   addNewLineSegmentIfNotExists(vertexAIndex, vertexCIndex)
-    //   addNewLineSegmentIfNotExists(vertexBIndex, vertexCIndex)
-    // }
   }
-
-  // return {
-  //   vertices: newVertices,
-  //   triangleIndices: newTriangleIndices,
-  //   lineIndices: newLineIndices
-  // }
 
   // Flatten the vertices into their x, y, z values because OpenGL takes arrays of floats, not
   // arrays of ThreeJs Vector3.
@@ -404,37 +341,13 @@ export const generateRegionMesh = (baseVertices) => {
     baseVerticesFlattened.push(value.y)
     baseVerticesFlattened.push(value.z)
   })
-  let base = {
-    vertices: baseVerticesFlattened,
-    triangleIndices: baseGeometry.triangleIndices,
-    lineIndices: baseGeometry.lineIndices
-  }
 
   const subdividedGeometry = subdivideMesh(baseVertices, baseGeometry.triangleIndices)
-
   return {
     vertices: subdividedGeometry.vertices,
     triangleIndices: subdividedGeometry.triangles,
     lineIndices: subdividedGeometry.lines
   }
-
-  // Split the vertices into their x, y, z values, then rescale the indices accordingly to point 
-  // at the first item in the set.
-  let verticesFlattened = []
-  subdividedGeometry.vertices.forEach((value) => {
-    verticesFlattened.push(value.x)
-    verticesFlattened.push(value.y)
-    verticesFlattened.push(value.z)
-  })
-  let triangleIndicesRescaled = subdividedGeometry.triangleIndices.map((value) => value)
-  let lineIndicesRescaled = subdividedGeometry.lineIndices.map((value) => value)
-
-  let subdivded = {
-    vertices: verticesFlattened,
-    triangleIndices: triangleIndicesRescaled,
-    lineIndices: lineIndicesRescaled
-  }
-  return subdivded
 }
 
 
