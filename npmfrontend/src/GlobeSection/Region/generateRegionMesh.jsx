@@ -275,9 +275,6 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
         let moreGeometry = subdivideTriangleUntilSmallEnough(indices[0], indices[1], indices[2], maxEdgeLength)
         for (let i = 0, n = moreGeometry.triangles.length; i < n; i++) { triangles.push(moreGeometry.triangles[i]) }
         for (let i = 0, n = moreGeometry.lines.length; i < n; i++) { lines.push(moreGeometry.lines[i]) }
-        console.log(triangles)
-        console.log(lines)
-        console.log("-----")
       })
     }
     else {
@@ -286,7 +283,6 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
       lines.push([vertexAIndex, vertexBIndex])
       lines.push([vertexBIndex, vertexCIndex])
       lines.push([vertexCIndex, vertexAIndex])
-      console.log("----------")
     }
 
     return {
