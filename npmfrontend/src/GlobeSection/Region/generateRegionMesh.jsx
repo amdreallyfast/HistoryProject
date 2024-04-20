@@ -251,9 +251,10 @@ class MeshSubdivider {
     let midBCIndex = this.#makeMidpointIfNotExists(bIndex, cIndex)
 
     // Three new triangles
-    this.#triangleIndexArrays.push([aIndex, midABIndex, midACIndex])  // A, midAB, midAC
-    this.#triangleIndexArrays.push([bIndex, midBCIndex, midABIndex])  // B, midBC, midAB
-    this.#triangleIndexArrays.push([cIndex, midACIndex, midBCIndex])  // C, midAC, midBC
+    this.#triangleIndexArrays.push([aIndex, midABIndex, midACIndex])
+    this.#triangleIndexArrays.push([midACIndex, midABIndex, midBCIndex])
+    this.#triangleIndexArrays.push([bIndex, midBCIndex, midABIndex])
+    this.#triangleIndexArrays.push([cIndex, midACIndex, midBCIndex])
 
     // Delete the old triangle
     delete this.#triangleIndexArrays[triangleIndex]
