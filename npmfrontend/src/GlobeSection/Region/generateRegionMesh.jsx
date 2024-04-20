@@ -255,12 +255,47 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
   // let newVertices = []
   let newVertices = baseVertices.map((value) => value)  // shallow copy
   let newTriangleIndices = []
-  // let newLineIndices = []
+  let newLineIndices = []
 
-  let lineIndicesDict = {} // Dictionary to avoid duplicate pairs
+  // Avoid duplicate midpoints by using a dictionary.
+  let midpointTriangleIndicesDict = {}
+  const makeMidpoint = (index1, index2) => {
+    let key1 = `${index1},${index2}`
+    let key2 = `${index2},${index1}` // could be either key
+    let vertexMidABIndex = midpointTriangleIndicesDict[key1]
+    if (!vertexMidABIndex) {
+      vertexMidABIndex = midpointTriangleIndicesDict[key2]
+    }
+
+    // If still no midpoint, make one.
+    if (!vertexMidABIndex) {
+      let A = baseVertices[index1]
+      let B = baseVertices[index2]
+      let mid = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
+      vertexMidABIndex = newVertices.push(mid)
+
+      midpointTriangleIndicesDict[key1] = vertexMidABIndex
+      midpointTriangleIndicesDict[key2] = vertexMidABIndex
+    }
+
+    return vertexMidABIndex
+  }
+
+  // Avoid duplicate lines by using a dictionary.
+  let lineIndicesDict = {}
   const makeLineIndicesPair = (index1, index2) => {
-    lineIndicesDict[`${index1},${index2}`] = true
-    lineIndicesDict[`${index2},${index1}`] = true
+    let key1 = `${index1},${index2}`
+    let key2 = `${index2},${index1}`
+    let pair = lineIndicesDict[key1]
+    if (!pair) {
+      pair = lineIndicesDict[key2]
+    }
+
+    // If still no match, make the line.
+    if (!pair) {
+      newLineIndices.push(index1)
+      newLineIndices.push(index2)
+    }
   }
 
   for (let i = 0; i < baseTriangleIndices.length; i += 3) {
@@ -288,17 +323,12 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
     //   geometry = triangleAsIs(A, B, C)
     // }
 
-    atLeastOneSegmentTooBig = true
+    atLeastOneSegmentTooBig = i < 3
     if (atLeastOneSegmentTooBig) {
       // Create midpoints
-      let midAB = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
-      let midAC = (new THREE.Vector3()).addVectors(A, C).multiplyScalar(0.5)
-      let midBC = (new THREE.Vector3()).addVectors(B, C).multiplyScalar(0.5)
-
-      // Add them to the vertices
-      let vertexMidABIndex = newVertices.push(midAB)
-      let vertexMidACIndex = newVertices.push(midAC)
-      let vertexMidBCIndex = newVertices.push(midBC)
+      let vertexMidABIndex = makeMidpoint(vertexAIndex, vertexBIndex)
+      let vertexMidACIndex = makeMidpoint(vertexAIndex, vertexCIndex)
+      let vertexMidBCIndex = makeMidpoint(vertexBIndex, vertexCIndex)
 
       // Three new triangles
       let triangleIndices = [
@@ -306,6 +336,7 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
         vertexBIndex, vertexMidBCIndex, vertexMidABIndex,  // B, midBC, midAB
         vertexCIndex, vertexMidACIndex, vertexMidBCIndex   // C, midAC, midBC
       ]
+      triangleIndices.forEach((value) => newTriangleIndices.push(value))
 
       // Lots of new lines
       makeLineIndicesPair(vertexAIndex, vertexMidABIndex)
@@ -317,37 +348,51 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
       makeLineIndicesPair(vertexCIndex, vertexMidACIndex)
       makeLineIndicesPair(vertexCIndex, vertexMidBCIndex)
       makeLineIndicesPair(vertexMidACIndex, vertexMidBCIndex)
-
-      triangleIndices.forEach((value) => newTriangleIndices.push(value))
-      // lineIndices.forEach((value) => newLineIndices.push(value))
     }
     else {
       // Already small enough. Take the triangle as-is.
-      let triangleIndices = [vertexAIndex, vertexBIndex, vertexCIndex]
+      newTriangleIndices.push(vertexAIndex)
+      newTriangleIndices.push(vertexBIndex)
+      newTriangleIndices.push(vertexCIndex)
+
       makeLineIndicesPair(vertexAIndex, vertexBIndex)
       makeLineIndicesPair(vertexAIndex, vertexCIndex)
       makeLineIndicesPair(vertexBIndex, vertexCIndex)
-
-      triangleIndices.forEach((value) => newTriangleIndices.push(value))
-      // lineIndices.forEach((value) => newLineIndices.push(value))
     }
+
+    i = baseTriangleIndices.length
   }
 
-  // Get line indices
-  // Note: Have to extract the unique line indices from the dictionary.
-  // Also Note: They were keyed in duplicate pairs, so skip every other one.
-  let lineIndices = []
-  const indexPairsStrArr = Object.keys(lineIndicesDict)
-  for (let i = 0; i < indexPairsStrArr.length; i += 2) {
-    let indexPairs = indexPairsStrArr[i].split(",")
-    lineIndices.push(indexPairs[0])
-    lineIndices.push(indexPairs[1])
+  // // Get line indices
+  // // Note: Have to extract the unique line indices from the dictionary.
+  // // Also Note: They were keyed in duplicate pairs, so skip every other one.
+  // let lineIndices = []
+  // const indexPairsStrArr = Object.keys(lineIndicesDict)
+  // for (let i = 0; i < indexPairsStrArr.length; i += 2) {
+  //   let indexPairs = indexPairsStrArr[i].split(",")
+  //   lineIndices.push(indexPairs[0])
+  //   lineIndices.push(indexPairs[1])
+  // }
+
+  console.log(`vertices: '${newVertices.length}'`)
+  for (let i = 0; i < newLineIndices.length; i += 2) {
+    let lineIndex1 = newLineIndices[i]
+    let lineIndex2 = newLineIndices[i + 1]
+    let vertex1 = newVertices[lineIndex1]
+    let vertex2 = newVertices[lineIndex2]
+    console.log(`line '${i}':`)
+    // console.log(` vertex1.x: '${vertex1.x}', vertex1.y: '${vertex1.y}', vertex1.x: '${vertex1.z}'`)
+    // console.log(` vertex2.x: '${vertex2.x}', vertex2.y: '${vertex2.y}', vertex2.x: '${vertex2.z}'`)
+    console.log(`index: '${lineIndex1}' -> vertex: '${vertex1}'`)
+    console.log(`index: '${lineIndex2}' -> vertex: '${vertex2}'`)
   }
+
+  console.log("--------------------------------")
 
   return {
     vertices: newVertices,
     triangleIndices: newTriangleIndices,
-    lineIndices: lineIndices
+    lineIndices: newLineIndices
   }
 }
 
