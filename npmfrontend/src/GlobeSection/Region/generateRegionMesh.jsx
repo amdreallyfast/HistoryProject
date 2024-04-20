@@ -272,7 +272,8 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
       let A = baseVertices[index1]
       let B = baseVertices[index2]
       let mid = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
-      vertexMidABIndex = newVertices.push(mid)
+      let newVertexCount = newVertices.push(mid)
+      vertexMidABIndex = newVertexCount - 1
 
       midpointTriangleIndicesDict[key1] = vertexMidABIndex
       midpointTriangleIndicesDict[key2] = vertexMidABIndex
@@ -360,7 +361,7 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
       makeLineIndicesPair(vertexBIndex, vertexCIndex)
     }
 
-    i = baseTriangleIndices.length
+    // i = baseTriangleIndices.length
   }
 
   // // Get line indices
