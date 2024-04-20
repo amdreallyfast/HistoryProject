@@ -316,6 +316,17 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
     flattenedVertices.push(vertices[i].z)
   }
   let triangleIndices = triangleIndexArrays.flat()
+
+  triangleIndexArrays.forEach((indexArr) => {
+    trianglesDict[indexArr] = true
+  })
+  let uniqueTriangleIndexArrays = Object.keys(trianglesDict)
+
+  lineIndexArrays.forEach((indexArr) => {
+    linesDict[indexArr] = true
+  })
+  let uniqueLineIndexArrays = Object.keys(linesDict)
+
   let lineIndices = lineIndexArrays.flat()
   return {
     vertices: flattenedVertices,
