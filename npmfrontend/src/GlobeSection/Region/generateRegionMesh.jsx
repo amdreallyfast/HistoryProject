@@ -294,7 +294,7 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
 
     // If still no match, make the line.
     if (!pair) {
-      newLineIndices.push(index1)
+      // newLineIndices.push(index1)
       newLineIndices.push(index2)
     }
   }
@@ -324,7 +324,7 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
     //   geometry = triangleAsIs(A, B, C)
     // }
 
-    atLeastOneSegmentTooBig = i < 3
+    // atLeastOneSegmentTooBig = i < 3
     if (atLeastOneSegmentTooBig) {
       // Create midpoints
       let vertexMidABIndex = makeMidpoint(vertexAIndex, vertexBIndex)
@@ -340,15 +340,19 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
       triangleIndices.forEach((value) => newTriangleIndices.push(value))
 
       // Lots of new lines
-      makeLineIndicesPair(vertexAIndex, vertexMidABIndex)
+      // Note: ORDER IMPORTANT. I don't know why, but if you get some of these out of order, an 
+      // extra line will connect them. I suspect that ThreeJs is using a "line segment" to draw
+      // the lines. In this situation, it is expected that each new line will begin where the 
+      // previous one ended. If it doesn't, then OpenGL will make an extra line to connect them.
       makeLineIndicesPair(vertexAIndex, vertexMidACIndex)
-      makeLineIndicesPair(vertexMidABIndex, vertexMidACIndex)
-      makeLineIndicesPair(vertexBIndex, vertexMidBCIndex)
-      makeLineIndicesPair(vertexBIndex, vertexMidABIndex)
-      makeLineIndicesPair(vertexMidBCIndex, vertexMidABIndex)
-      makeLineIndicesPair(vertexCIndex, vertexMidACIndex)
+      makeLineIndicesPair(vertexMidACIndex, vertexCIndex)
       makeLineIndicesPair(vertexCIndex, vertexMidBCIndex)
-      makeLineIndicesPair(vertexMidACIndex, vertexMidBCIndex)
+      makeLineIndicesPair(vertexMidBCIndex, vertexMidACIndex)
+      makeLineIndicesPair(vertexMidACIndex, vertexMidABIndex)
+      makeLineIndicesPair(vertexMidABIndex, vertexMidBCIndex)
+      makeLineIndicesPair(vertexMidBCIndex, vertexBIndex)
+      makeLineIndicesPair(vertexBIndex, vertexMidABIndex)
+      makeLineIndicesPair(vertexMidABIndex, vertexAIndex)
     }
     else {
       // Already small enough. Take the triangle as-is.
