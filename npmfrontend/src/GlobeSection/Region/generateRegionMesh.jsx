@@ -283,21 +283,41 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
   }
 
   // Avoid duplicate lines by using a dictionary.
+  let lastLineIndex
   let lineIndicesDict = {}
-  const makeLineIndicesPair = (index1, index2) => {
-    let key1 = `${index1},${index2}`
-    let key2 = `${index2},${index1}`
+  const addNewLineSegment = (index) => {
+    let key1 = `${lastLineIndex},${index}`
+    let key2 = `${index},${lastLineIndex}`
     let pair = lineIndicesDict[key1]
     if (!pair) {
       pair = lineIndicesDict[key2]
-    }
-
-    // If still no match, make the line.
-    if (!pair) {
-      // newLineIndices.push(index1)
-      newLineIndices.push(index2)
+      if (!pair) {
+        newLineIndices.push(index)
+        lastLineIndex = index
+      }
     }
   }
+
+  // const makeNewLineSegment = (index1, index2) => {
+  //   let key1 = `${index1},${index2}`
+  //   let key2 = `${index2},${index1}`
+  //   let pair = lineIndicesDict[key1]
+  //   if (!pair) {
+  //     pair = lineIndicesDict[key2]
+  //     if (!pair) {
+  //       // Make a new line
+  //       if (Object.keys(lineIndicesDict).length == 0) {
+  //         // Start a new line strip
+  //         newLineIndices.push(index1)
+  //       }
+
+  //       // Next endpoint
+  //       newLineIndices.push(index2)
+  //     }
+  //   }
+
+  //   // If still no match, make the line.
+  // }
 
   for (let i = 0; i < baseTriangleIndices.length; i += 3) {
     // for (let i = 0; i < 3; i += 3) {
@@ -340,19 +360,24 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
       triangleIndices.forEach((value) => newTriangleIndices.push(value))
 
       // Lots of new lines
-      // Note: ORDER IMPORTANT. I don't know why, but if you get some of these out of order, an 
-      // extra line will connect them. I suspect that ThreeJs is using a "line segment" to draw
-      // the lines. In this situation, it is expected that each new line will begin where the 
-      // previous one ended. If it doesn't, then OpenGL will make an extra line to connect them.
-      makeLineIndicesPair(vertexAIndex, vertexMidACIndex)
-      makeLineIndicesPair(vertexMidACIndex, vertexCIndex)
-      makeLineIndicesPair(vertexCIndex, vertexMidBCIndex)
-      makeLineIndicesPair(vertexMidBCIndex, vertexMidACIndex)
-      makeLineIndicesPair(vertexMidACIndex, vertexMidABIndex)
-      makeLineIndicesPair(vertexMidABIndex, vertexMidBCIndex)
-      makeLineIndicesPair(vertexMidBCIndex, vertexBIndex)
-      makeLineIndicesPair(vertexBIndex, vertexMidABIndex)
-      makeLineIndicesPair(vertexMidABIndex, vertexAIndex)
+      // Note: ORDER IMPORTANT. ThreJs draws lines with a "line strip", in which the first vertex
+      // is the origin, and then every vertex after that gets a line drawn to it.
+      // Also Note: This also means a line stripp cannot have disconnected lines. Every new 
+      // vertex in the list will have a line drawn to it from the previous vertex.
+      if (newLineIndices.length == 0) {
+        // Start a new line strip
+        newLineIndices.push(vertexAIndex)
+        lastLineIndex = vertexAIndex
+      }
+      addNewLineSegment(vertexMidACIndex)
+      addNewLineSegment(vertexCIndex)
+      addNewLineSegment(vertexMidBCIndex)
+      addNewLineSegment(vertexMidACIndex)
+      addNewLineSegment(vertexMidABIndex)
+      addNewLineSegment(vertexMidBCIndex)
+      addNewLineSegment(vertexBIndex)
+      addNewLineSegment(vertexMidABIndex)
+      addNewLineSegment(vertexAIndex)
     }
     else {
       // Already small enough. Take the triangle as-is.
@@ -360,9 +385,9 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
       newTriangleIndices.push(vertexBIndex)
       newTriangleIndices.push(vertexCIndex)
 
-      makeLineIndicesPair(vertexAIndex, vertexBIndex)
-      makeLineIndicesPair(vertexAIndex, vertexCIndex)
-      makeLineIndicesPair(vertexBIndex, vertexCIndex)
+      addNewLineSegment(vertexAIndex, vertexBIndex)
+      addNewLineSegment(vertexAIndex, vertexCIndex)
+      addNewLineSegment(vertexBIndex, vertexCIndex)
     }
 
     // i = baseTriangleIndices.length
