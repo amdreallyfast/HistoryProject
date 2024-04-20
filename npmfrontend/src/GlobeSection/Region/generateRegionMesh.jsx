@@ -91,9 +91,7 @@ const triangulatePoints = (vertices) => {
   let lineIndicesDict = {} // Dictionary to avoid duplicate pairs
   const makeTriangle = (index1, index2, index3) => {
     // Triangle mesh
-    triangleIndices.push(index1)
-    triangleIndices.push(index2)
-    triangleIndices.push(index3)
+    triangleIndices.push([index1, index2, index3])
 
     // Lines for triangle edges
     // A -> B
@@ -154,8 +152,7 @@ const triangulatePoints = (vertices) => {
   const indexPairsStrArr = Object.keys(lineIndicesDict)
   for (let i = 0; i < indexPairsStrArr.length; i += 2) {
     let indexPairs = indexPairsStrArr[i].split(",")
-    lineIndices.push(indexPairs[0])
-    lineIndices.push(indexPairs[1])
+    lineIndices.push([indexPairs[0], indexPairs[1]])
   }
 
   return {
@@ -164,67 +161,85 @@ const triangulatePoints = (vertices) => {
   }
 }
 
-// Input:
-//  vertices: THREE.Vector3 array
-//  triangleIndices: int array
-//  lineIndices: int array
-const subdivideMesh = (baseVertices, baseTriangleIndices) => {
-  const maxLineSegmentLenSq = (0.5 * 0.5)
-  // let newVertices = []
-  let newVertices = baseVertices.map((value) => value)  // shallow copy
-  let vertices = baseVertices.map((value) => value)  // begin as a shallow copy of the starting vertices
-  let triangleIndexArrays = []
-  let lineIndexArrays = []
-  let newTriangleIndices = []
-  let newLineIndices = []
-
-  // Avoid duplicate midpoints by using a dictionary.
-  // TODO: 
-  //  dict[[index1,index2]] = [x,y,z]
-  // TODO: Skip ThreeJs.Vector3 and just work with straight x,y,z
-  let midpointTriangleIndicesDict = {}
-  const makeMidpointIfNotExists = (vertexAIndex, vertexBIndex) => {
-    let key1 = `${vertexAIndex},${vertexBIndex}`
-    let key2 = `${vertexBIndex},${vertexAIndex}` // could be either key
-    let vertexMidABIndex = midpointTriangleIndicesDict[key1]
-    if (!vertexMidABIndex) {
-      vertexMidABIndex = midpointTriangleIndicesDict[key2]
-      if (!vertexMidABIndex) {
-        // No midpoint on record. Make one.
-        let A = vertices[vertexAIndex]
-        let B = vertices[vertexBIndex]
-        let mid = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
-        let newVertexCount = vertices.push(mid)
-        vertexMidABIndex = newVertexCount - 1
-
-        midpointTriangleIndicesDict[key1] = vertexMidABIndex
-        midpointTriangleIndicesDict[key2] = vertexMidABIndex
-      }
-    }
-
-    return vertexMidABIndex
+/*
+Can you see this?
+*/
+class MeshSubdivider {
+  constructor(startingVertices, startingTriangleIndexArrays) {
+    this.indicesDict = {}
+    this.vertices = startingVertices.map((vec3) => vec3) // begin as a shallow copy
+    this.triangleIndexArrays = startingTriangleIndexArrays
+    this.lineIndexArrays = []
   }
 
-  // Avoid duplicate lines by using a dictionary.
-  let lastLineIndex = undefined
-  let lineIndicesDict = {}
-  const addNewLineSegmentIfNotExists = (index) => {
-    let key1 = `${lastLineIndex},${index}`
-    let key2 = `${index},${lastLineIndex}`
-    let pair = lineIndicesDict[key1]
-    if (!pair) {
-      pair = lineIndicesDict[key2]
-      if (!pair) {
-        newLineIndices.push(index)
-        lastLineIndex = index
+  subdivide(maxEdgeLength) {
+    for (let i = 0; i < this.triangleIndexArrays.length; i++) {
+      // let indexArr = this.triangleIndexArrays[i]
+      // let Aindex = indexArr[0]
+      // let Bindex = indexArr[1]
+      // let Cindex = indexArr[2]
+      if (this.triangleEdgeTooLong(i, maxEdgeLength)) {
+        this.subdivideTriangle(i)
       }
+      else {
+        // triangle is ok
+        console.log("ok")
+        let indexArr = this.triangleIndexArrays[i]
+        this.lineIndexArrays.push([indexArr[0], indexArr[1]])
+        this.lineIndexArrays.push([indexArr[1], indexArr[2]])
+        this.lineIndexArrays.push([indexArr[2], indexArr[0]])  // complete the triangle on the line strip
+        // this.lineIndexArrays.push(indexArr[0])  
+        // if (this.lineIndexArrays.length == 0) {
+        //   this.lineIndexArrays.push()
+        // }
+      }
+      // let geometry = this.subdivideTriangleUntilSmallEnough(triangleIndex, maxEdgeLength)
+    }
+
+    // Eliminate the deleted triangle index arrays.
+    // Note: A javascript array will delete the item, but won't eliminate the place.
+    this.triangleIndexArrays = this.triangleIndexArrays.filter((value) => value)
+    return {
+      vertices: this.vertices,
+      triangleIndexArrays: this.triangleIndexArrays,
+      lineIndexArrays: this.lineIndexArrays
     }
   }
 
-  const triangleEdgeTooLong = (vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength) => {
-    let A = vertices[vertexAIndex]
-    let B = vertices[vertexBIndex]
-    let C = vertices[vertexCIndex]
+  // subdivideTriangleUntilSmallEnough(triangleIndex, maxEdgeLength) {
+  //   let triangles = []
+  //   // let lines = []
+  //   if (this.triangleEdgeTooLong(triangleIndex, maxEdgeLength)) {
+  //     let geometry = this.subdivideTriangle(triangleIndex)
+  //     geometry.triangles.forEach((indices) => {
+  //       let moreGeometry = this.subdivideTriangleUntilSmallEnough(triangleIndex, maxEdgeLength)
+
+  //       // Need an optimized array concatenation, and Javascript's array.concat(...) is not it 
+  //       // (from what I've ready on Stack Overflow).
+  //       for (let i = 0, n = moreGeometry.triangles.length; i < n; i++) { triangles.push(moreGeometry.triangles[i]) }
+  //       // for (let i = 0, n = moreGeometry.lines.length; i < n; i++) { lines.push(moreGeometry.lines[i]) }
+  //     })
+  //   }
+  //   else {
+  //     // No more subdivision.
+  //     let indexArr = this.triangleIndexArrays[triangleIndex]
+  //     triangles.push(indexArr)
+  //     // lines.push([indexArr[0], indexArr[1]])
+  //     // lines.push([indexArr[1], indexArr[2]])
+  //     // lines.push([indexArr[2], indexArr[0]])
+  //   }
+
+  //   return {
+  //     triangles,
+  //     lines
+  //   }
+  // }
+
+  triangleEdgeTooLong(triangleIndex, maxEdgeLength) {
+    let indexArr = this.triangleIndexArrays[triangleIndex]
+    let A = this.vertices[indexArr[0]]
+    let B = this.vertices[indexArr[1]]
+    let C = this.vertices[indexArr[2]]
 
     let ABLenSq = (new THREE.Vector3()).subVectors(B, A).lengthSq()
     let ACLenSq = (new THREE.Vector3()).subVectors(C, A).lengthSq()
@@ -234,104 +249,205 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
     return tooLong
   }
 
-  const subdivideTriangle = (vertexAIndex, vertexBIndex, vertexCIndex) => {
-    let triangles = []
-    let lines = []
+  distAToB(AIndex, BIndex) {
+    let x = bArr[0] - aArr[0]
+    let y = bArr[1] - aArr[1]
+    let z = bArr[2] - aArr[2]
+    let vec = new THREE.Vector3(x, y, z)
+    let distSq = vec.dot(vec)
+    return distSq
+  }
+
+  subdivideTriangle(triangleIndex) {
+    let indexArr = this.triangleIndexArrays[triangleIndex]
+    let AIndex = indexArr[0]
+    let BIndex = indexArr[1]
+    let CIndex = indexArr[2]
 
     // Create midpoints
-    let vertexMidABIndex = makeMidpointIfNotExists(vertexAIndex, vertexBIndex)
-    let vertexMidACIndex = makeMidpointIfNotExists(vertexAIndex, vertexCIndex)
-    let vertexMidBCIndex = makeMidpointIfNotExists(vertexBIndex, vertexCIndex)
+    let midABIndex = this.makeMidpointIfNotExists(AIndex, BIndex)
+    let midACIndex = this.makeMidpointIfNotExists(AIndex, CIndex)
+    let midBCIndex = this.makeMidpointIfNotExists(BIndex, CIndex)
 
     // Three new triangles
-    triangles.push([vertexAIndex, vertexMidABIndex, vertexMidACIndex])  // A, midAB, midAC
-    triangles.push([vertexBIndex, vertexMidBCIndex, vertexMidABIndex])  // B, midBC, midAB
-    triangles.push([vertexCIndex, vertexMidACIndex, vertexMidBCIndex])  // C, midAC, midBC
+    // let triangles = []
+    // triangles.push([AIndex, midABIndex, midACIndex])  // A, midAB, midAC
+    // triangles.push([BIndex, midBCIndex, midABIndex])  // B, midBC, midAB
+    // triangles.push([CIndex, midACIndex, midBCIndex])  // C, midAC, midBC
+    this.triangleIndexArrays.push([AIndex, midABIndex, midACIndex])  // A, midAB, midAC
+    this.triangleIndexArrays.push([BIndex, midBCIndex, midABIndex])  // B, midBC, midAB
+    this.triangleIndexArrays.push([CIndex, midACIndex, midBCIndex])  // C, midAC, midBC
 
-    // New lines
-    lines.push([vertexAIndex, vertexMidACIndex])
-    lines.push([vertexMidACIndex, vertexCIndex])
-    lines.push([vertexCIndex, vertexMidBCIndex])
-    lines.push([vertexMidBCIndex, vertexMidACIndex])
-    lines.push([vertexMidACIndex, vertexMidABIndex])
-    lines.push([vertexMidABIndex, vertexMidBCIndex])
-    lines.push([vertexMidBCIndex, vertexBIndex])
-    lines.push([vertexBIndex, vertexMidABIndex])
-    lines.push([vertexMidABIndex, vertexAIndex])
+    // Delete the old triangle
+    delete this.triangleIndexArrays[triangleIndex]
 
-    return {
-      triangles,
-      lines
+    // // New lines
+    // let lines = []
+    // lines.push([AIndex, midACIndex])
+    // lines.push([midACIndex, CIndex])
+    // lines.push([CIndex, midBCIndex])
+    // lines.push([midBCIndex, midACIndex])
+    // lines.push([midACIndex, midABIndex])
+    // lines.push([midABIndex, midBCIndex])
+    // lines.push([midBCIndex, BIndex])
+    // lines.push([BIndex, midABIndex])
+    // lines.push([midABIndex, AIndex])
+
+
+    // return {
+    //   triangles,
+    //   lines
+    // }
+  }
+
+  makeMidpointIfNotExists(AIndex, BIndex) {
+    let key1 = `${AIndex},${BIndex}`
+    let key2 = `${BIndex},${AIndex}` // could be either key
+    let midABIndex = this.indicesDict[key1]
+    if (!midABIndex) {
+      midABIndex = this.indicesDict[key2]
+      if (!midABIndex) {
+        // No midpoint on record. Make one.
+        let A = this.vertices[AIndex]
+        let B = this.vertices[BIndex]
+        let mid = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
+        let newVertexCount = this.vertices.push(mid)
+        midABIndex = newVertexCount - 1
+
+        this.indicesDict[key1] = midABIndex
+        this.indicesDict[key2] = midABIndex
+      }
     }
+
+    return midABIndex
   }
 
 
-  const subdivideTriangleUntilSmallEnough = (vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength) => {
-    let triangles = []
-    let lines = []
-    if (triangleEdgeTooLong(vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength)) {
-      let geometry = subdivideTriangle(vertexAIndex, vertexBIndex, vertexCIndex)
-      geometry.triangles.forEach((indices) => {
-        let moreGeometry = subdivideTriangleUntilSmallEnough(indices[0], indices[1], indices[2], maxEdgeLength)
-        for (let i = 0, n = moreGeometry.triangles.length; i < n; i++) { triangles.push(moreGeometry.triangles[i]) }
-        for (let i = 0, n = moreGeometry.lines.length; i < n; i++) { lines.push(moreGeometry.lines[i]) }
-      })
-    }
-    else {
-      // No more subdivision.
-      triangles.push([vertexAIndex, vertexBIndex, vertexCIndex])
-      lines.push([vertexAIndex, vertexBIndex])
-      lines.push([vertexBIndex, vertexCIndex])
-      lines.push([vertexCIndex, vertexAIndex])
-    }
+}
 
-    return {
-      triangles,
-      lines
-    }
-  }
+// Input:
+//  vertices: THREE.Vector3 array
+//  triangleIndices: int array
+//  lineIndices: int array
+const subdivideMesh = (baseVertices, baseTriangleIndices, maxEdgeLength) => {
+  let vertices = baseVertices.map((vec3) => vec3) // begin as a shallow copy of the starting vertices
+  let triangleIndexArrays = []
+  let lineIndexArrays = []
 
-  let trianglesDict = {}
-  let linesDict = {}
+  // console.log(thing.indicesDict)
+  // console.log(thing.vertices)
 
-  for (let i = 0; i < baseTriangleIndices.length; i += 3) {
-    // Each triangle has 3x corners, each with 1x vertex.
-    let vertexAIndex = baseTriangleIndices[i + 0]
-    let vertexBIndex = baseTriangleIndices[i + 1]
-    let vertexCIndex = baseTriangleIndices[i + 2]
-    let maxEdgeLength = 0.5
-    let geometry = subdivideTriangleUntilSmallEnough(vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength)
-    for (let i = 0, n = geometry.triangles.length; i < n; i++) { triangleIndexArrays.push(geometry.triangles[i]) }
-    for (let i = 0, n = geometry.lines.length; i < n; i++) { lineIndexArrays.push(geometry.lines[i]) }
-    // for (let i = 0, n = geometry.triangles.length; i < n; i++) { trianglesDict[geometry.triangles[i]] = true }
-    // for (let i = 0, n = geometry.lines.length; i < n; i++) { linesDict[geometry.lines[i]] = true }
-  }
+  // // Avoid duplicate midpoints by using a dictionary.
+  // let midpointTriangleIndicesDict = {}
+  // const makeMidpointIfNotExists = (vertexAIndex, vertexBIndex) => {
+  //   let key1 = `${vertexAIndex},${vertexBIndex}`
+  //   let key2 = `${vertexBIndex},${vertexAIndex}` // could be either key
+  //   let vertexMidABIndex = midpointTriangleIndicesDict[key1]
+  //   if (!vertexMidABIndex) {
+  //     vertexMidABIndex = midpointTriangleIndicesDict[key2]
+  //     if (!vertexMidABIndex) {
+  //       // No midpoint on record. Make one.
+  //       let A = vertices[vertexAIndex]
+  //       let B = vertices[vertexBIndex]
+  //       let mid = (new THREE.Vector3()).addVectors(A, B).multiplyScalar(0.5)
+  //       let newVertexCount = vertices.push(mid)
+  //       vertexMidABIndex = newVertexCount - 1
 
-  // Flatten the vertices into their x, y, z values because OpenGL takes arrays of floats, not
-  // arrays of ThreeJs Vector3.
-  let flattenedVertices = []
-  for (let i = 0, n = vertices.length; i < n; i++) {
-    flattenedVertices.push(vertices[i].x)
-    flattenedVertices.push(vertices[i].y)
-    flattenedVertices.push(vertices[i].z)
-  }
-  let triangleIndices = triangleIndexArrays.flat()
+  //       midpointTriangleIndicesDict[key1] = vertexMidABIndex
+  //       midpointTriangleIndicesDict[key2] = vertexMidABIndex
+  //     }
+  //   }
 
-  triangleIndexArrays.forEach((indexArr) => {
-    trianglesDict[indexArr] = true
-  })
-  let uniqueTriangleIndexArrays = Object.keys(trianglesDict)
+  //   return vertexMidABIndex
+  // }
 
-  lineIndexArrays.forEach((indexArr) => {
-    linesDict[indexArr] = true
-  })
-  let uniqueLineIndexArrays = Object.keys(linesDict)
+  // const triangleEdgeTooLong = (vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength) => {
+  //   let A = vertices[vertexAIndex]
+  //   let B = vertices[vertexBIndex]
+  //   let C = vertices[vertexCIndex]
 
-  let lineIndices = lineIndexArrays.flat()
+  //   let ABLenSq = (new THREE.Vector3()).subVectors(B, A).lengthSq()
+  //   let ACLenSq = (new THREE.Vector3()).subVectors(C, A).lengthSq()
+  //   let BCLenSq = (new THREE.Vector3()).subVectors(C, B).lengthSq()
+  //   let maxEdgeLengthSq = maxEdgeLength * maxEdgeLength
+  //   let tooLong = (ABLenSq > maxEdgeLengthSq) || (ACLenSq > maxEdgeLengthSq) || (BCLenSq > maxEdgeLengthSq)
+  //   return tooLong
+  // }
+
+  // const subdivideTriangle = (vertexAIndex, vertexBIndex, vertexCIndex) => {
+  //   let triangles = []
+  //   let lines = []
+
+  //   // Create midpoints
+  //   let vertexMidABIndex = uniqueVertices.makeMidpointIfNotExists(vertexAIndex, vertexBIndex)
+  //   let vertexMidACIndex = uniqueVertices.makeMidpointIfNotExists(vertexAIndex, vertexCIndex)
+  //   let vertexMidBCIndex = uniqueVertices.makeMidpointIfNotExists(vertexBIndex, vertexCIndex)
+
+  //   // Three new triangles
+  //   triangles.push([vertexAIndex, vertexMidABIndex, vertexMidACIndex])  // A, midAB, midAC
+  //   triangles.push([vertexBIndex, vertexMidBCIndex, vertexMidABIndex])  // B, midBC, midAB
+  //   triangles.push([vertexCIndex, vertexMidACIndex, vertexMidBCIndex])  // C, midAC, midBC
+
+  //   // New lines
+  //   lines.push([vertexAIndex, vertexMidACIndex])
+  //   lines.push([vertexMidACIndex, vertexCIndex])
+  //   lines.push([vertexCIndex, vertexMidBCIndex])
+  //   lines.push([vertexMidBCIndex, vertexMidACIndex])
+  //   lines.push([vertexMidACIndex, vertexMidABIndex])
+  //   lines.push([vertexMidABIndex, vertexMidBCIndex])
+  //   lines.push([vertexMidBCIndex, vertexBIndex])
+  //   lines.push([vertexBIndex, vertexMidABIndex])
+  //   lines.push([vertexMidABIndex, vertexAIndex])
+
+  //   return {
+  //     triangles,
+  //     lines
+  //   }
+  // }
+
+  // const subdivideTriangleUntilSmallEnough = (vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength) => {
+  //   let triangles = []
+  //   let lines = []
+  //   if (triangleEdgeTooLong(vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength)) {
+  //     let geometry = subdivideTriangle(vertexAIndex, vertexBIndex, vertexCIndex)
+  //     geometry.triangles.forEach((indices) => {
+  //       let moreGeometry = subdivideTriangleUntilSmallEnough(indices[0], indices[1], indices[2], maxEdgeLength)
+
+  //       // Need an optimized array concatenation, and Javascript's array.concat(...) is not it 
+  //       // (from what I've ready on Stack Overflow).
+  //       for (let i = 0, n = moreGeometry.triangles.length; i < n; i++) { triangles.push(moreGeometry.triangles[i]) }
+  //       for (let i = 0, n = moreGeometry.lines.length; i < n; i++) { lines.push(moreGeometry.lines[i]) }
+  //     })
+  //   }
+  //   else {
+  //     // No more subdivision.
+  //     triangles.push([vertexAIndex, vertexBIndex, vertexCIndex])
+  //     lines.push([vertexAIndex, vertexBIndex])
+  //     lines.push([vertexBIndex, vertexCIndex])
+  //     lines.push([vertexCIndex, vertexAIndex])
+  //   }
+
+  //   return {
+  //     triangles,
+  //     lines
+  //   }
+  // }
+
+  // for (let i = 0; i < baseTriangleIndices.length; i += 3) {
+  //   // Each triangle has 3x corners, each with 1x vertex.
+  //   let vertexAIndex = baseTriangleIndices[i + 0]
+  //   let vertexBIndex = baseTriangleIndices[i + 1]
+  //   let vertexCIndex = baseTriangleIndices[i + 2]
+  //   // let geometry = subdivideTriangleUntilSmallEnough(vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength)
+  //   // for (let i = 0, n = geometry.triangles.length; i < n; i++) { triangleIndexArrays.push(geometry.triangles[i]) }
+  //   // for (let i = 0, n = geometry.lines.length; i < n; i++) { lineIndexArrays.push(geometry.lines[i]) }
+  //   meshSubdivider.subdivideTriangleUntilSmallEnough(vertexAIndex, vertexBIndex, vertexCIndex, maxEdgeLength)
+  // }
+
   return {
-    vertices: flattenedVertices,
-    triangles: triangleIndices,
-    lines: lineIndices
+    vertices,
+    triangleIndexArrays,
+    lineIndexArrays
   }
 }
 
@@ -343,21 +459,29 @@ const subdivideMesh = (baseVertices, baseTriangleIndices) => {
 //    triangles,  // array of integer (3x per triangles)
 //    lines,      // array of integer (for a line strip)
 //  }
-export const generateRegionMesh = (baseVertices) => {
+export const generateRegionMesh = (baseVertices, sphereRadius) => {
   const baseGeometry = triangulatePoints(baseVertices)
+  let maxEdgeLength = 0.5
+  // const subdividedGeometry = subdivideMesh(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
+  let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices)
+  const subdividedGeometry = meshSubdivider.subdivide(maxEdgeLength)
 
-  let baseVerticesFlattened = []
-  baseVertices.forEach((value) => {
-    baseVerticesFlattened.push(value.x)
-    baseVerticesFlattened.push(value.y)
-    baseVerticesFlattened.push(value.z)
-  })
 
-  const subdividedGeometry = subdivideMesh(baseVertices, baseGeometry.triangleIndices)
+  // Flatten the vertices into their x, y, z values because OpenGL takes arrays of floats, not
+  // arrays of ThreeJs Vector3.
+  let flattenedVertices = []
+  for (let i = 0, n = subdividedGeometry.vertices.length; i < n; i++) {
+    flattenedVertices.push(subdividedGeometry.vertices[i].x)
+    flattenedVertices.push(subdividedGeometry.vertices[i].y)
+    flattenedVertices.push(subdividedGeometry.vertices[i].z)
+  }
+  let flattenedTriangleIndices = subdividedGeometry.triangleIndexArrays.flat()
+  let flattenedLineIndices = subdividedGeometry.lineIndexArrays.flat()
+
   return {
-    vertices: subdividedGeometry.vertices,
-    triangleIndices: subdividedGeometry.triangles,
-    lineIndices: subdividedGeometry.lines
+    vertices: flattenedVertices,
+    triangleIndices: flattenedTriangleIndices,
+    lineIndices: flattenedLineIndices
   }
 }
 
