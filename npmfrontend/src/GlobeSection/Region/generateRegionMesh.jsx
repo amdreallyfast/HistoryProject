@@ -2,72 +2,83 @@ import * as THREE from "three"
 
 // Using the "ear clipping" algorithms. Vertices expected to be counterclockwise.
 class EarClipping {
+  #points = []
+  #triangleIndices = []
+  #lineIndicesDict = {} // Dictionary to avoid duplicate pairs
+
   constructor(vertices) {
     if (vertices.length < 3) {
       throw Error("Need at least 3 points to make a triangle")
     }
 
-    this.points = vertices.map((vertex, index) => {
+    this.#points = vertices.map((vertex, index) => {
       return {
         coord: vertex,
         vertexIndex: index
       }
     })
-    this.triangleIndices = []
-    this.lineIndicesDict = {} // Dictionary to avoid duplicate pairs
+    this.#triangleIndices = []
+    this.#lineIndicesDict = {}
+
+    this.geometry = {
+      triangles: [],
+      lines: []
+    }
+
+    this.#triangulate()
   }
 
-  triangulate() {
+  #triangulate() {
     // Ear-clipping algorithm
     let startIndex = 0
-    while (this.points.length > 3) {
-      let index1 = (startIndex + 0) % this.points.length
-      let index2 = (startIndex + 1) % this.points.length
-      let index3 = (startIndex + 2) % this.points.length
+    while (this.#points.length > 3) {
+      let index1 = (startIndex + 0) % this.#points.length
+      let index2 = (startIndex + 1) % this.#points.length
+      let index3 = (startIndex + 2) % this.#points.length
 
-      let A = this.points[index1]
-      let B = this.points[index2]
-      let C = this.points[index3]
+      let A = this.#points[index1]
+      let B = this.#points[index2]
+      let C = this.#points[index3]
 
-      let triangleIsConvex = this.isEar(A.coord, B.coord, C.coord)
-      let triangleIsEmpty = this.noOtherPointsInTriangle(this.points.map((point) => point.coord), A.coord, B.coord, C.coord)
+      let triangleIsConvex = this.#isEar(A.coord, B.coord, C.coord)
+      let triangleIsEmpty = this.#noOtherPointsInTriangle(this.#points.map((point) => point.coord), A.coord, B.coord, C.coord)
       if (triangleIsConvex && triangleIsEmpty) {
-        this.makeTriangle(A.vertexIndex, B.vertexIndex, C.vertexIndex)
+        this.#makeTriangle(A.vertexIndex, B.vertexIndex, C.vertexIndex)
 
         // Clip off the middle point
-        let before = this.points.slice(0, index2)
-        let after = this.points.slice(index2 + 1, this.points.length)
-        this.points = before.concat(after)
+        let before = this.#points.slice(0, index2)
+        let after = this.#points.slice(index2 + 1, this.#points.length)
+        this.#points = before.concat(after)
 
         // Begin again
         startIndex = 0
       }
       else {
         startIndex += 1
-        if (startIndex > (this.points.length * 2)) {
+        if (startIndex > (this.#points.length * 2)) {
           throw Error("Iterated all points twice with no triangles. Something is wrong.")
         }
       }
     }
 
     // Last triangle. 
-    let A = this.points[0]
-    let B = this.points[1]
-    let C = this.points[2]
-    this.makeTriangle(A.vertexIndex, B.vertexIndex, C.vertexIndex)
+    let A = this.#points[0]
+    let B = this.#points[1]
+    let C = this.#points[2]
+    this.#makeTriangle(A.vertexIndex, B.vertexIndex, C.vertexIndex)
 
     // Get line indices
     // Note: Have to extract the unique line indices from the dictionary.
     // Also Note: They were keyed in duplicate pairs, so skip every other one.
     let lineIndices = []
-    const indexPairsStrArr = Object.keys(this.lineIndicesDict)
+    const indexPairsStrArr = Object.keys(this.#lineIndicesDict)
     for (let i = 0; i < indexPairsStrArr.length; i += 2) {
       let indexPairs = indexPairsStrArr[i].split(",")
       lineIndices.push([indexPairs[0], indexPairs[1]])
     }
 
-    return {
-      triangleIndices: this.triangleIndices,
+    this.geometry = {
+      triangleIndices: this.#triangleIndices,
       lineIndices: lineIndices
     }
   }
@@ -76,7 +87,7 @@ class EarClipping {
   //  A: THREE.Vector3
   //  B: THREE.Vector3
   //  C: THREE.Vector3
-  isEar(A, B, C) {
+  #isEar(A, B, C) {
     // Use the right-hand rule to determine if v1 -> v2 -> v3 is:
     //  <180deg when viewed from above (cross product points into space)
     //  or
@@ -96,11 +107,11 @@ class EarClipping {
   //  A: THREE.Vector3
   //  B: THREE.Vector3
   //  C: THREE.Vector3
-  noOtherPointsInTriangle(A, B, C) {
-    this.points.forEach((point) => {
+  #noOtherPointsInTriangle(A, B, C) {
+    this.#points.forEach((point) => {
       // simple reference comparison
       let otherPoint = (point != A) && (point != B) && (point != C)
-      if (otherPoint && this.pointInTriangle(point, A, B, C)) {
+      if (otherPoint && this.#pointInTriangle(point, A, B, C)) {
         return false
       }
     })
@@ -113,15 +124,15 @@ class EarClipping {
   //  A: THREE.Vector3
   //  B: THREE.Vector3
   //  C: THREE.Vector3
-  pointInTriangle(p, A, B, C) {
+  #pointInTriangle(p, A, B, C) {
     // Is the point within the cone starting at A?
-    if (this.pointInCone(p, A, B, C)) {
+    if (this.#pointInCone(p, A, B, C)) {
       return true
     }
-    else if (this.pointInCone(p, B, C, A)) {
+    else if (this.#pointInCone(p, B, C, A)) {
       return true
     }
-    else if (this.pointInCone(p, C, A, B)) {
+    else if (this.#pointInCone(p, C, A, B)) {
       return true
     }
     return false
@@ -134,7 +145,7 @@ class EarClipping {
   //  A: THREE.Vector3
   //  B: THREE.Vector3
   //  C: THREE.Vector3
-  pointInCone(p, A, B, C) {
+  #pointInCone(p, A, B, C) {
     // Is the point within the cone centered on B?
     let BA = (new THREE.Vector3()).subVectors(A, B).normalize()
     let BC = (new THREE.Vector3()).subVectors(C, B).normalize()
@@ -144,22 +155,22 @@ class EarClipping {
     return cosThetaPoint < cosThetaCone
   }
 
-  makeTriangle(index1, index2, index3) {
+  #makeTriangle(index1, index2, index3) {
     // Triangle mesh
-    this.triangleIndices.push([index1, index2, index3])
+    this.#triangleIndices.push([index1, index2, index3])
 
     // Lines for triangle edges
     // A -> B
-    this.lineIndicesDict[`${index1},${index2}`] = true
-    this.lineIndicesDict[`${index2},${index1}`] = true
+    this.#lineIndicesDict[`${index1},${index2}`] = true
+    this.#lineIndicesDict[`${index2},${index1}`] = true
 
     // A -> C
-    this.lineIndicesDict[`${index1},${index3}`] = true
-    this.lineIndicesDict[`${index3},${index1}`] = true
+    this.#lineIndicesDict[`${index1},${index3}`] = true
+    this.#lineIndicesDict[`${index3},${index1}`] = true
 
     // B -> C
-    this.lineIndicesDict[`${index2},${index3}`] = true
-    this.lineIndicesDict[`${index3},${index2}`] = true
+    this.#lineIndicesDict[`${index2},${index3}`] = true
+    this.#lineIndicesDict[`${index3},${index2}`] = true
   }
 }
 
@@ -258,29 +269,39 @@ class EarClipping {
 Can you see this?
 */
 class MeshSubdivider {
-  constructor(startingVertices, startingTriangleIndexArrays) {
-    this.indicesDict = {}
-    this.vertices = startingVertices.map((vec3) => [vec3.x, vec3.y, vec3.z]) // begin as a shallow copy
-    this.triangleIndexArrays = startingTriangleIndexArrays
-    this.lineIndexArrays = []
+  #indicesDict = {}
+  #vertices = []
+  #triangleIndexArrays = []
+  #lineIndexArrays = []
+  geometry = {
+    vertices: [],   // Array of [x, y, z] arrays
+    triangles: [],  // Array of [aIndex, bIndex, cIndex] arrays
+    lines: [],      // Array of [aIndex, bIndex] arrays
   }
 
-  subdivide(maxEdgeLength) {
-    for (let i = 0; i < this.triangleIndexArrays.length; i++) {
+  constructor(startingVertices, startingTriangleIndexArrays, maxEdgeLength) {
+    this.#vertices = startingVertices.map((vec3) => [vec3.x, vec3.y, vec3.z]) // begin as a shallow copy
+    this.#triangleIndexArrays = startingTriangleIndexArrays
+
+    this.#subdivide(maxEdgeLength)
+  }
+
+  #subdivide(maxEdgeLength) {
+    for (let i = 0; i < this.#triangleIndexArrays.length; i++) {
       // let indexArr = this.triangleIndexArrays[i]
       // let Aindex = indexArr[0]
       // let Bindex = indexArr[1]
       // let Cindex = indexArr[2]
-      if (this.triangleEdgeTooLong(i, maxEdgeLength)) {
-        this.subdivideTriangle(i)
+      if (this.#triangleEdgeTooLong(i, maxEdgeLength)) {
+        this.#subdivideTriangle(i)
       }
       else {
         // triangle is ok
         // console.log("ok")
-        let indexArr = this.triangleIndexArrays[i]
-        this.lineIndexArrays.push([indexArr[0], indexArr[1]])
-        this.lineIndexArrays.push([indexArr[1], indexArr[2]])
-        this.lineIndexArrays.push([indexArr[2], indexArr[0]])  // complete the triangle on the line strip
+        let indexArr = this.#triangleIndexArrays[i]
+        this.#lineIndexArrays.push([indexArr[0], indexArr[1]])
+        this.#lineIndexArrays.push([indexArr[1], indexArr[2]])
+        this.#lineIndexArrays.push([indexArr[2], indexArr[0]])  // complete the triangle on the line strip
         // this.lineIndexArrays.push(indexArr[0])  
         // if (this.lineIndexArrays.length == 0) {
         //   this.lineIndexArrays.push()
@@ -296,11 +317,11 @@ class MeshSubdivider {
     // Flatten everything into primitive arrays for use with OpenGL buffering
     // Note: Eliminate the deleted triangle index arrays before flattening. A javascript array 
     // will delete the item, but won't eliminate the place.
-    let flattenedVertices = this.vertices.flat()
-    let flattenedTriangleIndices = this.triangleIndexArrays.filter((value) => value).flat()
-    let flattenedLineIndices = this.lineIndexArrays.flat()
+    let flattenedVertices = this.#vertices.flat()
+    let flattenedTriangleIndices = this.#triangleIndexArrays.filter((value) => value).flat()
+    let flattenedLineIndices = this.#lineIndexArrays.flat()
 
-    return {
+    this.geometry = {
       vertices: flattenedVertices,
       triangles: flattenedTriangleIndices,
       lines: flattenedLineIndices
@@ -336,20 +357,20 @@ class MeshSubdivider {
   //   }
   // }
 
-  triangleEdgeTooLong(triangleIndex, maxEdgeLength) {
-    let indexArr = this.triangleIndexArrays[triangleIndex]
-    let ABLenSq = this.distAToB(indexArr[0], indexArr[1])
-    let BCLenSq = this.distAToB(indexArr[1], indexArr[2])
-    let CALenSq = this.distAToB(indexArr[2], indexArr[0])
+  #triangleEdgeTooLong(triangleIndex, maxEdgeLength) {
+    let indexArr = this.#triangleIndexArrays[triangleIndex]
+    let ABLenSq = this.#distAToB(indexArr[0], indexArr[1])
+    let BCLenSq = this.#distAToB(indexArr[1], indexArr[2])
+    let CALenSq = this.#distAToB(indexArr[2], indexArr[0])
 
     let maxEdgeLengthSq = maxEdgeLength * maxEdgeLength
     let tooLong = (ABLenSq > maxEdgeLengthSq) || (BCLenSq > maxEdgeLengthSq) || (CALenSq > maxEdgeLengthSq)
     return tooLong
   }
 
-  distAToB(aIndex, bIndex) {
-    let A = this.vertices[aIndex]
-    let B = this.vertices[bIndex]
+  #distAToB(aIndex, bIndex) {
+    let A = this.#vertices[aIndex]
+    let B = this.#vertices[bIndex]
     let x = B[0] - A[0]
     let y = B[1] - A[1]
     let z = B[2] - A[2]
@@ -357,28 +378,28 @@ class MeshSubdivider {
     return distSq
   }
 
-  subdivideTriangle(triangleIndex) {
-    let indexArr = this.triangleIndexArrays[triangleIndex]
+  #subdivideTriangle(triangleIndex) {
+    let indexArr = this.#triangleIndexArrays[triangleIndex]
     let aIndex = indexArr[0]
     let bIndex = indexArr[1]
     let cIndex = indexArr[2]
 
     // Create midpoints
-    let midABIndex = this.makeMidpointIfNotExists(aIndex, bIndex)
-    let midACIndex = this.makeMidpointIfNotExists(aIndex, cIndex)
-    let midBCIndex = this.makeMidpointIfNotExists(bIndex, cIndex)
+    let midABIndex = this.#makeMidpointIfNotExists(aIndex, bIndex)
+    let midACIndex = this.#makeMidpointIfNotExists(aIndex, cIndex)
+    let midBCIndex = this.#makeMidpointIfNotExists(bIndex, cIndex)
 
     // Three new triangles
     // let triangles = []
     // triangles.push([aIndex, midABIndex, midACIndex])  // A, midAB, midAC
     // triangles.push([bIndex, midBCIndex, midABIndex])  // B, midBC, midAB
     // triangles.push([cIndex, midACIndex, midBCIndex])  // C, midAC, midBC
-    this.triangleIndexArrays.push([aIndex, midABIndex, midACIndex])  // A, midAB, midAC
-    this.triangleIndexArrays.push([bIndex, midBCIndex, midABIndex])  // B, midBC, midAB
-    this.triangleIndexArrays.push([cIndex, midACIndex, midBCIndex])  // C, midAC, midBC
+    this.#triangleIndexArrays.push([aIndex, midABIndex, midACIndex])  // A, midAB, midAC
+    this.#triangleIndexArrays.push([bIndex, midBCIndex, midABIndex])  // B, midBC, midAB
+    this.#triangleIndexArrays.push([cIndex, midACIndex, midBCIndex])  // C, midAC, midBC
 
     // Delete the old triangle
-    delete this.triangleIndexArrays[triangleIndex]
+    delete this.#triangleIndexArrays[triangleIndex]
 
     // // New lines
     // let lines = []
@@ -399,25 +420,25 @@ class MeshSubdivider {
     // }
   }
 
-  makeMidpointIfNotExists(aIndex, bIndex) {
+  #makeMidpointIfNotExists(aIndex, bIndex) {
     let key1 = `${aIndex},${bIndex}`
     let key2 = `${bIndex},${aIndex}` // could be either key
-    let midABIndex = this.indicesDict[key1]
+    let midABIndex = this.#indicesDict[key1]
     if (!midABIndex) {
-      midABIndex = this.indicesDict[key2]
+      midABIndex = this.#indicesDict[key2]
       if (!midABIndex) {
         // No midpoint on record. Make one.
-        let A = this.vertices[aIndex]
-        let B = this.vertices[bIndex]
+        let A = this.#vertices[aIndex]
+        let B = this.#vertices[bIndex]
         let x = (A[0] + B[0]) * 0.5
         let y = (A[1] + B[1]) * 0.5
         let z = (A[2] + B[2]) * 0.5
         let mid = [x, y, z]
-        let newVertexCount = this.vertices.push(mid)
+        let newVertexCount = this.#vertices.push(mid)
         midABIndex = newVertexCount - 1
 
-        this.indicesDict[key1] = midABIndex
-        this.indicesDict[key2] = midABIndex
+        this.#indicesDict[key1] = midABIndex
+        this.#indicesDict[key2] = midABIndex
       }
     }
 
@@ -564,12 +585,12 @@ const subdivideMesh = (baseVertices, baseTriangleIndices, maxEdgeLength) => {
 export const generateRegionMesh = (baseVertices, sphereRadius) => {
   // const baseGeometry = triangulatePoints(baseVertices)
   let triangulator = new EarClipping(baseVertices)
-  let baseGeometry = triangulator.triangulate()
+  let baseGeometry = triangulator.geometry
 
   let maxEdgeLength = 0.5
   // const subdividedGeometry = subdivideMesh(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
-  let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices)
-  const subdividedGeometry = meshSubdivider.subdivide(maxEdgeLength)
+  let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
+  const subdividedGeometry = meshSubdivider.geometry
   return subdividedGeometry
   return {
     vertices: subdividedGeometry.vertices,
