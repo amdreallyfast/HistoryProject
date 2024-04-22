@@ -175,7 +175,9 @@ class EarClipping {
 }
 
 class MeshSubdivider {
-  #indicesDict = {}
+  #triangleIndicesDict = {}
+  #lineIndicesDict = {}
+
   #vertices = []
   #triangleIndexArrays = []
   #lineIndexArrays = []
@@ -200,10 +202,13 @@ class MeshSubdivider {
       else {
         // triangle is ok
         // console.log("ok")
-        let indexArr = this.#triangleIndexArrays[i]
-        this.#lineIndexArrays.push([indexArr[0], indexArr[1]])
-        this.#lineIndexArrays.push([indexArr[1], indexArr[2]])
-        this.#lineIndexArrays.push([indexArr[2], indexArr[0]])  // complete the triangle on the line strip
+        let triangleIndexes = this.#triangleIndexArrays[i]
+        // this.#lineIndexArrays.push([indexArr[0], indexArr[1]])
+        // this.#lineIndexArrays.push([indexArr[1], indexArr[2]])
+        // this.#lineIndexArrays.push([indexArr[2], indexArr[0]])  // complete the triangle on the line strip
+        this.#addLineSegmentIfNotExists(triangleIndexes[0], triangleIndexes[1])
+        this.#addLineSegmentIfNotExists(triangleIndexes[1], triangleIndexes[2])
+        this.#addLineSegmentIfNotExists(triangleIndexes[2], triangleIndexes[0])
       }
     }
 
@@ -219,10 +224,10 @@ class MeshSubdivider {
   }
 
   #triangleEdgeTooLong(triangleIndex, maxEdgeLength) {
-    let indexArr = this.#triangleIndexArrays[triangleIndex]
-    let ABLenSq = this.#distAToB(indexArr[0], indexArr[1])
-    let BCLenSq = this.#distAToB(indexArr[1], indexArr[2])
-    let CALenSq = this.#distAToB(indexArr[2], indexArr[0])
+    let triangleIndexes = this.#triangleIndexArrays[triangleIndex]
+    let ABLenSq = this.#distAToB(triangleIndexes[0], triangleIndexes[1])
+    let BCLenSq = this.#distAToB(triangleIndexes[1], triangleIndexes[2])
+    let CALenSq = this.#distAToB(triangleIndexes[2], triangleIndexes[0])
 
     let maxEdgeLengthSq = maxEdgeLength * maxEdgeLength
     let tooLong = (ABLenSq > maxEdgeLengthSq) || (BCLenSq > maxEdgeLengthSq) || (CALenSq > maxEdgeLengthSq)
@@ -256,6 +261,12 @@ class MeshSubdivider {
     this.#triangleIndexArrays.push([bIndex, midBCIndex, midABIndex])
     this.#triangleIndexArrays.push([cIndex, midACIndex, midBCIndex])
 
+    // TODO:
+    //  associate an array of lines with each triangle
+    //  create new ones when new triangles are created (and be sure that they wrap around to the origin)
+    //  delete the old set when its triangle is deleted
+    //  ??will this even work if the triangle origins are not connect? isn't there still a risk of a cross-line??
+
     // Delete the old triangle
     delete this.#triangleIndexArrays[triangleIndex]
   }
@@ -263,9 +274,9 @@ class MeshSubdivider {
   #makeMidpointIfNotExists(aIndex, bIndex) {
     let key1 = `${aIndex},${bIndex}`
     let key2 = `${bIndex},${aIndex}` // could be either key
-    let midABIndex = this.#indicesDict[key1]
+    let midABIndex = this.#triangleIndicesDict[key1]
     if (!midABIndex) {
-      midABIndex = this.#indicesDict[key2]
+      midABIndex = this.#triangleIndicesDict[key2]
       if (!midABIndex) {
         // No midpoint on record. Make one.
         let A = this.#vertices[aIndex]
@@ -277,12 +288,28 @@ class MeshSubdivider {
         let newVertexCount = this.#vertices.push(mid)
         midABIndex = newVertexCount - 1
 
-        this.#indicesDict[key1] = midABIndex
-        this.#indicesDict[key2] = midABIndex
+        this.#triangleIndicesDict[key1] = midABIndex
+        this.#triangleIndicesDict[key2] = midABIndex
       }
     }
 
     return midABIndex
+  }
+
+  #addLineSegmentIfNotExists(aIndex, bIndex) {
+    let key1 = `${aIndex},${bIndex}`
+    let key2 = `${bIndex},${aIndex}` // could be either key
+    let lineIndex = this.#lineIndicesDict[key1]
+    if (!lineIndex) {
+      lineIndex = this.#lineIndicesDict[key2]
+      if (!lineIndex) {
+        let newLineCount = this.#lineIndexArrays.push([aIndex, bIndex])
+        lineIndex = newLineCount - 1
+
+        this.#lineIndicesDict[key1] = lineIndex
+        this.#lineIndicesDict[key2] = lineIndex
+      }
+    }
   }
 }
 

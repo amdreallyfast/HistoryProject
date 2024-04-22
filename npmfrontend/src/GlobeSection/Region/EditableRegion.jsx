@@ -9,12 +9,14 @@ import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
 import { createWhereObjFromXYZ } from "../createWhere"
 import { generateRegionMesh } from "./generateRegionMesh"
+import { Line } from "@react-three/drei"
 
 function EditRegionMesh({ }) {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
   const editState = useSelector((state) => state.editPoiReducer)
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
+  const [linePoints, setLinePoints] = useState([])
 
   // Region changed => regenerate mesh
   useEffect(() => {
@@ -44,18 +46,26 @@ function EditRegionMesh({ }) {
 
     let vertexBuffer = new THREE.Float32BufferAttribute(flattenedVertices, valuesPerVertex)
 
-    // Region mesh
-    regionMeshRef.current.geometry.setAttribute("position", vertexBuffer)
-    regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedMeshIndices, valuesPerIndex))
-    regionMeshRef.current.geometry.attributes.position.needsUpdate = true
-    regionMeshRef.current.geometry.computeBoundingSphere()
+    let thing = []
+    for (let i = 0; i < geometry.lines.length; i++) {
+      let lineIndicesArr = geometry.lines[i]
+      thing.push(geometry.vertices[lineIndicesArr[0]])
+      thing.push(geometry.vertices[lineIndicesArr[1]])
+    }
+    setLinePoints(thing)
 
-    // Line
-    // Note: Re-use the mesh vertices. Same vertices, different indices.
-    regionLinesRef.current.geometry.setAttribute("position", vertexBuffer)
-    regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedLineIndices, valuesPerIndex))
-    regionLinesRef.current.geometry.attributes.position.needsUpdate = true
-    regionLinesRef.current.geometry.computeBoundingSphere()
+    // // Region mesh
+    // regionMeshRef.current.geometry.setAttribute("position", vertexBuffer)
+    // regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedMeshIndices, valuesPerIndex))
+    // regionMeshRef.current.geometry.attributes.position.needsUpdate = true
+    // regionMeshRef.current.geometry.computeBoundingSphere()
+
+    // // Line
+    // // Note: Re-use the mesh vertices. Same vertices, different indices.
+    // regionLinesRef.current.geometry.setAttribute("position", vertexBuffer)
+    // regionLinesRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedLineIndices, valuesPerIndex))
+    // regionLinesRef.current.geometry.attributes.position.needsUpdate = true
+    // regionLinesRef.current.geometry.computeBoundingSphere()
   }, [editState.regionBoundaries])
 
   return (
@@ -63,6 +73,18 @@ function EditRegionMesh({ }) {
       <mesh ref={regionMeshRef} name={meshNames.Region}>
         <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} />
       </mesh>
+      {/* 
+      // TODO:
+      // Render line segments:
+      //  https://github.com/pmndrs/drei?tab=readme-ov-file#line
+      <Line segments={true} points={}>
+
+      </Line> 
+      */}
+      {/* <Line segments={true} points={[[-0.4654105536434958, 1.0391354453486736, 5.890975347323843], [-0.991496954146922, 0.6397333656088963, 5.882828827260239], [-1.081688693159433, -0.014381027945934254, 5.901672877847965], [-0.6831526731815147, -0.5400363949148507, 5.936468909822767]]} >
+      </Line> */}
+      <Line segments={true} points={linePoints} >
+      </Line>
 
       <line ref={regionLinesRef} name={meshNames.RegionLines} width={10}>
         <lineBasicMaterial color={0xff0000} />
