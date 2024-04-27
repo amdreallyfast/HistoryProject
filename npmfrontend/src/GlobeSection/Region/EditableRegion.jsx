@@ -83,7 +83,9 @@ function EditRegionMesh({ }) {
       */}
       {/* <Line segments={true} points={[[-0.4654105536434958, 1.0391354453486736, 5.890975347323843], [-0.991496954146922, 0.6397333656088963, 5.882828827260239], [-1.081688693159433, -0.014381027945934254, 5.901672877847965], [-0.6831526731815147, -0.5400363949148507, 5.936468909822767]]} >
       </Line> */}
-      <Line segments={true} points={linePoints} >
+
+      {/* https://github.com/pmndrs/drei?tab=readme-ov-file#line */}
+      <Line segments={true} points={linePoints} lineWidth={4} >
       </Line>
 
       <line ref={regionLinesRef} name={meshNames.RegionLines} width={10}>
