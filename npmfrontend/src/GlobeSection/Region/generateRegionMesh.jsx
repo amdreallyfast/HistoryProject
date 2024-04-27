@@ -13,21 +13,18 @@ export const generateRegionMesh = (baseVertices, sphereRadius, maxEdgeLength = 0
   let triangulator = new EarClipping(baseVertices)
   let baseGeometry = triangulator.geometry
 
-  // let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
-  // let subdividedGeometry = meshSubdivider.geometry
+  let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangles, maxEdgeLength)
+  let subdividedGeometry = meshSubdivider.geometry
 
-  // let scaledVertices = rescaleToSphere(subdividedGeometry.vertices, sphereRadius)
-  // subdividedGeometry.vertices = scaledVertices
+  let scaledVertices = rescaleToSphere(subdividedGeometry.vertices, sphereRadius)
+  subdividedGeometry.vertices = scaledVertices
 
-  // return subdividedGeometry
-
-  return baseGeometry
+  return subdividedGeometry
 }
 
 // Using the "ear clipping" algorithms. Vertices expected to be counterclockwise.
 class EarClipping {
   #points = []
-  #triangleIndices = []
   #lineIndicesDict = {} // Dictionary to avoid duplicate pairs
 
   constructor(vertices) {
@@ -172,18 +169,10 @@ class EarClipping {
     let BC = (new THREE.Vector3()).subVectors(C, B).normalize()
     let Bp = (new THREE.Vector3()).subVectors(p, B).normalize()
 
-    let thingBA = (new THREE.Vector3()).subVectors(A, B).normalize()
-    let thingBC = (new THREE.Vector3()).subVectors(C, B).normalize()
-    let thingBp = (new THREE.Vector3()).subVectors(p, B).normalize()
-    let thing1 = thingBA.clone().cross(thingBC).length()
-    let thing2 = thingBA.clone().cross(thingBp).length()
-    let thing3 = thingBC.clone().cross(thingBp).length()
-    let thingInCone = thing2 < thing1 && thing3 < thing1
-
     let cosThetaCone = BA.dot(BC)
     let cosThetaBAToPoint = BA.dot(Bp)
     let cosThetaBCToPoint = BC.dot(Bp)
-    let inCone = BA.dot(Bp) > cosThetaCone && BC.dot(Bp) > cosThetaCone
+    let inCone = (cosThetaBAToPoint > cosThetaCone) && (cosThetaBCToPoint > cosThetaCone)
     return inCone
   }
 
@@ -218,7 +207,7 @@ class MeshSubdivider {
     this.#vertices = startingVertices.map((vertex) => vertex) // begin as a shallow copy
     this.#triangleIndexArrays = startingTriangleIndexArrays
 
-    geometry = {
+    this.geometry = {
       vertices: [],   // Array of [x, y, z] arrays
       triangles: [],  // Array of [aIndex, bIndex, cIndex] arrays
       lines: [],      // Array of [aIndex, bIndex] arrays
