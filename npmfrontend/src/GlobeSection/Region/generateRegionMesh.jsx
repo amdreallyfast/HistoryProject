@@ -13,13 +13,15 @@ export const generateRegionMesh = (baseVertices, sphereRadius, maxEdgeLength = 0
   let triangulator = new EarClipping(baseVertices)
   let baseGeometry = triangulator.geometry
 
-  let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
-  let subdividedGeometry = meshSubdivider.geometry
+  // let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
+  // let subdividedGeometry = meshSubdivider.geometry
 
-  let scaledVertices = rescaleToSphere(subdividedGeometry.vertices, sphereRadius)
-  subdividedGeometry.vertices = scaledVertices
+  // let scaledVertices = rescaleToSphere(subdividedGeometry.vertices, sphereRadius)
+  // subdividedGeometry.vertices = scaledVertices
 
-  return subdividedGeometry
+  // return subdividedGeometry
+
+  return baseGeometry
 }
 
 // Using the "ear clipping" algorithms. Vertices expected to be counterclockwise.
@@ -39,12 +41,11 @@ class EarClipping {
         vertexIndex: index
       }
     })
-    this.#triangleIndices = []
-    this.#lineIndicesDict = {}
 
     this.geometry = {
-      triangles: [],
-      lines: []
+      vertices: vertices, // shallow copy
+      triangles: [],  // Array of [aIndex, bIndex, cIndex] arrays
+      lines: [],      // Array of [aIndex, bIndex] arrays
     }
 
     this.#triangulate()
@@ -54,6 +55,10 @@ class EarClipping {
     // Ear-clipping algorithm
     let startIndex = 0
     while (this.#points.length > 3) {
+      if (this.#points.length == 4) {
+        console.log("thing")
+      }
+
       let index1 = (startIndex + 0) % this.#points.length
       let index2 = (startIndex + 1) % this.#points.length
       let index3 = (startIndex + 2) % this.#points.length
@@ -63,7 +68,7 @@ class EarClipping {
       let C = this.#points[index3]
 
       let triangleIsConvex = this.#isEar(A.coord, B.coord, C.coord)
-      let triangleIsEmpty = this.#noOtherPointsInTriangle(this.#points.map((point) => point.coord), A.coord, B.coord, C.coord)
+      let triangleIsEmpty = this.#noOtherPointsInTriangle(A.coord, B.coord, C.coord)
       if (triangleIsConvex && triangleIsEmpty) {
         this.#makeTriangle(A.vertexIndex, B.vertexIndex, C.vertexIndex)
 
@@ -96,12 +101,7 @@ class EarClipping {
     const indexPairsStrArr = Object.keys(this.#lineIndicesDict)
     for (let i = 0; i < indexPairsStrArr.length; i += 2) {
       let indexPairs = indexPairsStrArr[i].split(",")
-      lineIndices.push([indexPairs[0], indexPairs[1]])
-    }
-
-    this.geometry = {
-      triangleIndices: this.#triangleIndices,
-      lineIndices: lineIndices
+      this.geometry.lines.push([indexPairs[0], indexPairs[1]])
     }
   }
 
@@ -130,13 +130,15 @@ class EarClipping {
   //  B: THREE.Vector3
   //  C: THREE.Vector3
   #noOtherPointsInTriangle(A, B, C) {
-    this.#points.forEach((point) => {
+    for (let i = 0; i < this.#points.length; i++) {
+      let coord = this.#points[i].coord
+
       // simple reference comparison
-      let otherPoint = (point != A) && (point != B) && (point != C)
-      if (otherPoint && this.#pointInTriangle(point, A, B, C)) {
+      let otherPoint = (coord != A) && (coord != B) && (coord != C)
+      if (otherPoint && this.#pointInTriangle(coord, A, B, C)) {
         return false
       }
-    })
+    }
 
     return true
   }
@@ -148,16 +150,13 @@ class EarClipping {
   //  C: THREE.Vector3
   #pointInTriangle(p, A, B, C) {
     // Is the point within the cone starting at A?
-    if (this.#pointInCone(p, A, B, C)) {
-      return true
-    }
-    else if (this.#pointInCone(p, B, C, A)) {
-      return true
-    }
-    else if (this.#pointInCone(p, C, A, B)) {
-      return true
-    }
-    return false
+
+    // where "A" is the midpoint
+    let inConeA = this.#pointInCone(p, C, A, B)
+    let inConeB = this.#pointInCone(p, A, B, C)
+    let inConeC = this.#pointInCone(p, B, C, A)
+    let inTriangle = inConeA && inConeB && inConeC
+    return inTriangle
   }
 
   // Note: Don't worry about the point being "out of plane" because, at this point in the 
@@ -172,14 +171,25 @@ class EarClipping {
     let BA = (new THREE.Vector3()).subVectors(A, B).normalize()
     let BC = (new THREE.Vector3()).subVectors(C, B).normalize()
     let Bp = (new THREE.Vector3()).subVectors(p, B).normalize()
+
+    let thingBA = (new THREE.Vector3()).subVectors(A, B).normalize()
+    let thingBC = (new THREE.Vector3()).subVectors(C, B).normalize()
+    let thingBp = (new THREE.Vector3()).subVectors(p, B).normalize()
+    let thing1 = thingBA.clone().cross(thingBC).length()
+    let thing2 = thingBA.clone().cross(thingBp).length()
+    let thing3 = thingBC.clone().cross(thingBp).length()
+    let thingInCone = thing2 < thing1 && thing3 < thing1
+
     let cosThetaCone = BA.dot(BC)
-    let cosThetaPoint = BA.dot(Bp)
-    return cosThetaPoint < cosThetaCone
+    let cosThetaBAToPoint = BA.dot(Bp)
+    let cosThetaBCToPoint = BC.dot(Bp)
+    let inCone = BA.dot(Bp) < cosThetaCone && BC.dot(Bp) < cosThetaCone
+    return thingInCone
   }
 
   #makeTriangle(index1, index2, index3) {
     // Triangle mesh
-    this.#triangleIndices.push([index1, index2, index3])
+    this.geometry.triangles.push([index1, index2, index3])
 
     // Lines for triangle edges
     // A -> B
@@ -203,15 +213,16 @@ class MeshSubdivider {
   #vertices = []
   #triangleIndexArrays = []
   #lineIndexArrays = []
-  geometry = {
-    vertices: [],   // Array of [x, y, z] arrays
-    triangles: [],  // Array of [aIndex, bIndex, cIndex] arrays
-    lines: [],      // Array of [aIndex, bIndex] arrays
-  }
 
   constructor(startingVertices, startingTriangleIndexArrays, maxEdgeLength) {
     this.#vertices = startingVertices.map((vertex) => vertex) // begin as a shallow copy
     this.#triangleIndexArrays = startingTriangleIndexArrays
+
+    geometry = {
+      vertices: [],   // Array of [x, y, z] arrays
+      triangles: [],  // Array of [aIndex, bIndex, cIndex] arrays
+      lines: [],      // Array of [aIndex, bIndex] arrays
+    }
 
     this.#subdivide(maxEdgeLength)
   }
