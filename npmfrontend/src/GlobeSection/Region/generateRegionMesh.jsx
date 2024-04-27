@@ -1,5 +1,27 @@
 import * as THREE from "three"
 
+// Input:
+//  vertices: Array of [x, y, z]
+// Output:
+//  {
+//    vertices,   // array of [x, y, z] (float)
+//    triangles,  // array of [a, b, c] (integer)
+//    lines,      // array of [a, b] (integer)
+//  }
+export const generateRegionMesh = (baseVertices, sphereRadius, maxEdgeLength = 0.5) => {
+  // const baseGeometry = triangulatePoints(baseVertices)
+  let triangulator = new EarClipping(baseVertices)
+  let baseGeometry = triangulator.geometry
+
+  let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
+  let subdividedGeometry = meshSubdivider.geometry
+
+  let scaledVertices = rescaleToSphere(subdividedGeometry.vertices, sphereRadius)
+  subdividedGeometry.vertices = scaledVertices
+
+  return subdividedGeometry
+}
+
 // Using the "ear clipping" algorithms. Vertices expected to be counterclockwise.
 class EarClipping {
   #points = []
@@ -331,40 +353,3 @@ const rescaleToSphere = (vertices, sphereRadius) => {
   return scaledVertices
 }
 
-// Input:
-//  vertices: Array of [x, y, z]
-// Output:
-//  {
-//    vertices,   // array of [x, y, z] (float)
-//    triangles,  // array of [a, b, c] (integer)
-//    lines,      // array of [a, b] (integer)
-//  }
-export const generateRegionMesh = (baseVertices, sphereRadius, maxEdgeLength = 0.5) => {
-  // const baseGeometry = triangulatePoints(baseVertices)
-  let triangulator = new EarClipping(baseVertices)
-  let baseGeometry = triangulator.geometry
-
-  let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
-  let subdividedGeometry = meshSubdivider.geometry
-
-  let scaledVertices = rescaleToSphere(subdividedGeometry.vertices, sphereRadius)
-  subdividedGeometry.vertices = scaledVertices
-
-
-
-  // TODO
-  //  EarClipping
-  //    change name to "TriangulateCounterClockwisePlane"
-  //    move to its own file
-  //    Take array of [x, y, z] arrays and convert to Vec3 internally
-  //  MeshSubdivider
-  //    move to its own file
-  //  make sphere
-  //    for each vertex
-  //      create vec3 -> normalize -> scale -> vector3.toArray()
-
-  return subdividedGeometry
-}
-
-
-// TODO: ??put main function at the top and then organize down??
