@@ -183,8 +183,8 @@ class EarClipping {
     let cosThetaCone = BA.dot(BC)
     let cosThetaBAToPoint = BA.dot(Bp)
     let cosThetaBCToPoint = BC.dot(Bp)
-    let inCone = BA.dot(Bp) < cosThetaCone && BC.dot(Bp) < cosThetaCone
-    return thingInCone
+    let inCone = BA.dot(Bp) > cosThetaCone && BC.dot(Bp) > cosThetaCone
+    return inCone
   }
 
   #makeTriangle(index1, index2, index3) {
