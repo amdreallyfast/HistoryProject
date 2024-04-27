@@ -11,7 +11,7 @@ import { createWhereObjFromXYZ } from "../createWhere"
 import { generateRegionMesh } from "./generateRegionMesh"
 import { Line } from "@react-three/drei"
 
-function EditRegionMesh({ }) {
+function EditRegionMesh({ sphereRadius }) {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
   const editState = useSelector((state) => state.editPoiReducer)
   let regionMeshRef = useRef()
@@ -21,7 +21,7 @@ function EditRegionMesh({ }) {
   // Region changed => regenerate mesh
   useEffect(() => {
     // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.regionBoundaries", value: editState.regionBoundaries })
-    if (regionMeshRef.current == null || regionLinesRef.current == null) {
+    if (regionMeshRef.current == null) {
       return
     }
     else if (editState.regionBoundaries.length < 3) {
@@ -29,23 +29,12 @@ function EditRegionMesh({ }) {
       return
     }
 
-    let vertices = []
-    editState.regionBoundaries.forEach((value, index) => {
-      vertices.push(new THREE.Vector3(value.x * 1.2, value.y * 1.2, value.z * 1.2))
-    })
+    // offset the mesh just a bit from the sphere so that it will sit on top
+    let meshRadius = sphereRadius + 0.01
+    let baseVertices = editState.regionBoundaries.map((boundaryMarker) => [boundaryMarker.x, boundaryMarker.y, boundaryMarker.z])
+    let geometry = generateRegionMesh(baseVertices, meshRadius)
 
-    let geometry = generateRegionMesh(vertices)
-
-    // Flatten everything into primitive arrays for use with OpenGL buffering
-    let flattenedVertices = geometry.vertices.flat()
-    let flattenedMeshIndices = geometry.triangles.flat()
-    let flattenedLineIndices = geometry.lines.flat()
-
-    let valuesPerVertex = 3
-    let valuesPerIndex = 1
-
-    let vertexBuffer = new THREE.Float32BufferAttribute(flattenedVertices, valuesPerVertex)
-
+    // wireframe
     let thing = []
     for (let i = 0; i < geometry.lines.length; i++) {
       let lineIndicesArr = geometry.lines[i]
@@ -54,11 +43,24 @@ function EditRegionMesh({ }) {
     }
     setLinePoints(thing)
 
-    // // Region mesh
-    // regionMeshRef.current.geometry.setAttribute("position", vertexBuffer)
-    // regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedMeshIndices, valuesPerIndex))
-    // regionMeshRef.current.geometry.attributes.position.needsUpdate = true
-    // regionMeshRef.current.geometry.computeBoundingSphere()
+    // mesh
+    // Flatten everything into primitive arrays for use with OpenGL buffering
+    let flattenedVertices = geometry.vertices.flat()
+    let flattenedMeshIndices = geometry.triangles.flat()
+    let valuesPerVertex = 3
+    let valuesPerIndex = 1
+    let vertexBuffer = new THREE.Float32BufferAttribute(flattenedVertices, valuesPerVertex)
+    regionMeshRef.current.geometry.setAttribute("position", vertexBuffer)
+    regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedMeshIndices, valuesPerIndex))
+    regionMeshRef.current.geometry.attributes.position.needsUpdate = true
+    regionMeshRef.current.geometry.computeBoundingSphere()
+
+
+    // let flattenedLineIndices = geometry.lines.flat()
+
+
+
+
 
     // // Line
     // // Note: Re-use the mesh vertices. Same vertices, different indices.
@@ -88,9 +90,9 @@ function EditRegionMesh({ }) {
       <Line segments={true} points={linePoints} lineWidth={4} >
       </Line>
 
-      <line ref={regionLinesRef} name={meshNames.RegionLines} width={10}>
+      {/* <line ref={regionLinesRef} name={meshNames.RegionLines} width={10}>
         <lineBasicMaterial color={0xff0000} />
-      </line>
+      </line> */}
     </>
   )
 }
@@ -153,7 +155,7 @@ export function EditableRegion({ globeInfo }) {
       )
 
       setRegionMeshReactElements(
-        <EditRegionMesh key={uuid()} />
+        <EditRegionMesh key={uuid()} sphereRadius={globeInfo.radius} />
       )
     }
     else {

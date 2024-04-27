@@ -13,7 +13,7 @@ class EarClipping {
 
     this.#points = vertices.map((vertex, index) => {
       return {
-        coord: vertex,
+        coord: new THREE.Vector3(vertex[0], vertex[1], vertex[2]),
         vertexIndex: index
       }
     })
@@ -188,7 +188,7 @@ class MeshSubdivider {
   }
 
   constructor(startingVertices, startingTriangleIndexArrays, maxEdgeLength) {
-    this.#vertices = startingVertices.map((vec3) => [vec3.x, vec3.y, vec3.z]) // begin as a shallow copy
+    this.#vertices = startingVertices.map((vertex) => vertex) // begin as a shallow copy
     this.#triangleIndexArrays = startingTriangleIndexArrays
 
     this.#subdivide(maxEdgeLength)
@@ -313,24 +313,56 @@ class MeshSubdivider {
   }
 }
 
+// Input:
+//  vertices: Array of [x, y, z]
+//  sphereRadius: float
+const rescaleToSphere = (vertices, sphereRadius) => {
+  let scaledVertices = []
+  for (let i = 0; i < vertices.length; i++) {
+    let x = vertices[i][0]
+    let y = vertices[i][1]
+    let z = vertices[i][2]
 
+    let v = new THREE.Vector3(x, y, z)
+    v.normalize().multiplyScalar(sphereRadius)
+    scaledVertices.push(v.toArray())
+  }
+
+  return scaledVertices
+}
 
 // Input:
-//  vertices: THREE.Vector3 array
+//  vertices: Array of [x, y, z]
 // Output:
 //  {
-//    vertices,   // array of float (3x per vertex)
-//    triangles,  // array of integer (3x per triangles)
-//    lines,      // array of integer (for a line strip)
+//    vertices,   // array of [x, y, z] (float)
+//    triangles,  // array of [a, b, c] (integer)
+//    lines,      // array of [a, b] (integer)
 //  }
-export const generateRegionMesh = (baseVertices, sphereRadius) => {
+export const generateRegionMesh = (baseVertices, sphereRadius, maxEdgeLength = 0.5) => {
   // const baseGeometry = triangulatePoints(baseVertices)
   let triangulator = new EarClipping(baseVertices)
   let baseGeometry = triangulator.geometry
 
-  let maxEdgeLength = 0.5
   let meshSubdivider = new MeshSubdivider(baseVertices, baseGeometry.triangleIndices, maxEdgeLength)
-  const subdividedGeometry = meshSubdivider.geometry
+  let subdividedGeometry = meshSubdivider.geometry
+
+  let scaledVertices = rescaleToSphere(subdividedGeometry.vertices, sphereRadius)
+  subdividedGeometry.vertices = scaledVertices
+
+
+
+  // TODO
+  //  EarClipping
+  //    change name to "TriangulateCounterClockwisePlane"
+  //    move to its own file
+  //    Take array of [x, y, z] arrays and convert to Vec3 internally
+  //  MeshSubdivider
+  //    move to its own file
+  //  make sphere
+  //    for each vertex
+  //      create vec3 -> normalize -> scale -> vector3.toArray()
+
   return subdividedGeometry
 }
 

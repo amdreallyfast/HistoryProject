@@ -75,7 +75,7 @@ export function Globe({ globeRadius }) {
           vertexShader={globeVertShaderText}
           fragmentShader={globeFragShaderText}
           blending={THREE.AdditiveBlending}
-          transparent={true}
+          transparent={false}
           uniforms={  // Yes, there are a lot of parenthesis
             {
               globeTexture: {
