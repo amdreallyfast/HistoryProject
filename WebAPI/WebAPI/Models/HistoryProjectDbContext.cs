@@ -24,6 +24,6 @@ namespace WebAPI.Models
 
         public DbSet<EventLocation> Locations { get; set; } = default!;
 
-        public DbSet<EventSource> Sources { get; set; }
+        public DbSet<EventSource> Sources { get; set; } = default!;
     }
 }
