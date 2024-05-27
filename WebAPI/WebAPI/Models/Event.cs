@@ -2,6 +2,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
+using WebAPI.ModelDTOs;
 using static System.Net.Mime.MediaTypeNames;
 
 
@@ -23,7 +25,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace WebAPI.Models
 {
-    public class ClaimedEvent : IEquatable<ClaimedEvent>
+    public class Event: IEquatable<Event>
     {
         /*
          * TODO: new class
@@ -36,15 +38,24 @@ namespace WebAPI.Models
          *  PrevRevision (guid, nullable): link to previous revision of ClaimedEvent
          *  NextRevision (guid, nullable): link to next revision of ClaimedEvent
          *  Title (string)
-         *  Image (guid, nullable): link to Image object { uniqueId, name, ??stored in database somehow??}
+         *  EventImage (guid, nullable): link to EventImage object { uniqueId, name, ??stored in database somehow??}
          *  Summary (string)
          *  Source
          */
+
+
+        // Unique to this event.
         [Key]
         public Guid Id { get; set; }
 
-        [Key]
-        public int Revision { get; set; }
+        // Shared between all revisions.
+
+        [Required]
+        public Guid EventId { get; set; }
+
+        // To show revisions, grab all events for a particular EventId, then sort them.
+        [Required]
+        public int Revision { get; set; } = 1;
 
         [Required]
         public DateTime RevisionDateTime { get; set; } = DateTime.Now;
@@ -52,127 +63,130 @@ namespace WebAPI.Models
         [Required, MaxLength(64)]
         public string RevisionAuthor { get; set; } = string.Empty;
 
-        public List<HistoricalEvent2Reference> Predecessors { get; set; } = new List<HistoricalEvent2Reference>();
+        [Required]
+        public List<string> Tags { get; set; } = new List<string>();
 
         [Required, MaxLength(128)]
         public string Title { get; set; } = string.Empty;
 
-        [Required, MaxLength(256)]
-        public string ImageFilePath { get; set; } = string.Empty;
+        [Required]
+        public EventImage? EventImage { get; set; }
 
         [Required, MaxLength(2048)]
         public string Summary { get; set; } = string.Empty;
 
-        // Track time elements separately. DateTime does not accept null or negative values for
-        // any part of it, but only 1s for the minimum date and 0s for the minimum time. There may
-        // be edge case events that occur around the 0th hour, or 0th minute, etc., so I can't
-        // assume that "0" in any field means "no value".
-        // Ex: Suppose an event occurred in ~1000BC. We don't know the month, much less the day and
-        // the hour. The UI will need to parse this info and know to only print the year.
-        // Ex: The Attack on Pearl Harbor occurred at a precisely recorded time. The UI will need to
-        // be able to recognize this and print accordingly.
-        // Note: Leave the "BC/BCE" and "AD/CE" debate for the UI and only represent the year in
-        // the DB as "+/-".
         [Required]
-        public int TimeLowerBoundYear { get; set; } = -1337;
-        public int? TimeLowerBoundMonth { get; set; }
-        public int? TimeLowerBoundDay { get; set; }
-        public int? TimeLowerBoundHour { get; set; }
-        public int? TimeLowerBoundMin { get; set; }
+        public EventTimeRange TimeRange { get; set; } = new EventTimeRange();
+
+        // Depending on the accuracy of the source, we can get either a specific location or a region, or possibly both, but we need at least one.
+        // TODO:
+        //  Enforce use of at least one location.
+        [AllowNull]
+        public EventLocation? SpecificLocation { get; set; }
+
+        [AllowNull]
+        public List<EventLocation>? Region { get; set; } = new List<EventLocation>();
 
         [Required]
-        public int TimeUpperBoundYear { get; set; } = -1337;
-        public int? TimeUpperBoundMonth { get; set; }
-        public int? TimeUpperBoundDay { get; set; }
-        public int? TimeUpperBoundHour { get; set; }
-        public int? TimeUpperBoundMin { get; set; }
+        public List<string> Sources { get; set; } = new List<string>();
 
-        [Required]
-        public List<EventLocation> Locations { get; set; } = new List<EventLocation>();
+        public Event()
+        {
+        }
 
-        [Required]
-        public List<EventSource> Sources { get; set; } = new List<EventSource>();
+        public Event(Event other)
+        {
+            Id = other.Id;
+            EventId = other.EventId;
+            Revision = other.Revision;
+            RevisionDateTime = other.RevisionDateTime;
+            RevisionAuthor = other.RevisionAuthor;
+            Tags = other.Tags;
+            Title = other.Title;
+            EventImage = other.EventImage;
+            Summary = other.Summary;
+            TimeRange = other.TimeRange;
+            SpecificLocation = other.SpecificLocation;
+            Region = other.Region;
+            Sources = other.Sources;
+        }
 
-        public bool Equals(ClaimedEvent? other)
+        public EventDto ToDto()
+        {
+            return new EventDto(this);
+        }
+
+        public static Event FromDto(EventDto eventDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(Event? other)
         {
             if (ReferenceEquals(this, other)) return true;
-            else if (other is null) return false;
-            else return Same(other);
+            if (other is null) return false;
+            return Same(other);
         }
 
         public override bool Equals(object? other)
         {
             if (ReferenceEquals(this, other)) return true;
-            else if (other is null) return false;
-            else if (this.GetType() != other.GetType()) return false;
-            else return Same((other as ClaimedEvent)!);
+            if (other is null) return false;
+            if (this.GetType() != other.GetType()) return false;
+            return Same((other as Event)!);
         }
 
-        public static bool operator ==(ClaimedEvent? left, ClaimedEvent? right)
+        public static bool operator ==(Event? left, Event? right)
         {
             if (ReferenceEquals(left, right)) return false;
-            else if (left is null) return false;
-            else if (right is null) return false;
-            else return left.Same(right);
+            if (left is null) return false;
+            if (right is null) return false;
+            return left.Same(right);
         }
 
-        public static bool operator !=(ClaimedEvent? left, ClaimedEvent? right)
+        public static bool operator !=(Event? left, Event? right)
         {
             if (ReferenceEquals(left, right)) return false;
-            else if (left is null) return false;
-            else if (right is null) return false;
-            else return !left.Same(right);
+            if (left is null) return false;
+            if (right is null) return false;
+            return !left.Same(right);
         }
 
         public override int GetHashCode()
         {
             HashCode hash = new();
             hash.Add(Id);
+            hash.Add(EventId);
             hash.Add(Revision);
             hash.Add(RevisionDateTime);
             hash.Add(RevisionAuthor);
-            hash.Add(Predecessors);
+            hash.Add(Tags);             // only same on reference equals
             hash.Add(Title);
-            hash.Add(ImageFilePath);
+            hash.Add(EventImage.GetHashCode());
             hash.Add(Summary);
-            hash.Add(TimeLowerBoundYear);
-            hash.Add(TimeLowerBoundMonth);
-            hash.Add(TimeLowerBoundDay);
-            hash.Add(TimeLowerBoundHour);
-            hash.Add(TimeLowerBoundMin);
-            hash.Add(TimeUpperBoundYear);
-            hash.Add(TimeUpperBoundMonth);
-            hash.Add(TimeUpperBoundDay);
-            hash.Add(TimeUpperBoundHour);
-            hash.Add(TimeUpperBoundMin);
-            hash.Add(Locations);
-            hash.Add(Sources);
+            hash.Add(TimeRange);
+            hash.Add(SpecificLocation);
+            hash.Add(Region);           // only same on reference equals
+            hash.Add(Sources);          // only same on reference equals
             return hash.ToHashCode();
         }
 
-        private bool Same(ClaimedEvent other)
+        private bool Same(Event other)
         {
             bool same = true;
             same &= Id == other.Id;
+            same &= EventId == other.EventId;
             same &= Revision == other.Revision;
             same &= RevisionDateTime == other.RevisionDateTime;
             same &= RevisionAuthor == other.RevisionAuthor;
-            same &= Predecessors == other.Predecessors;
+            same &= Tags == other.Tags;         // only true for reference equals
             same &= Title == other.Title;
-            same &= ImageFilePath == other.ImageFilePath;
+            same &= EventImage == other.EventImage;
             same &= Summary == other.Summary;
-            same &= TimeLowerBoundYear == other.TimeLowerBoundYear;
-            same &= TimeLowerBoundMonth == other.TimeLowerBoundMonth;
-            same &= TimeLowerBoundDay == other.TimeLowerBoundDay;
-            same &= TimeLowerBoundHour == other.TimeLowerBoundHour;
-            same &= TimeLowerBoundMin == other.TimeLowerBoundMin;
-            same &= TimeUpperBoundYear == other.TimeUpperBoundYear;
-            same &= TimeUpperBoundMonth == other.TimeUpperBoundMonth;
-            same &= TimeUpperBoundDay == other.TimeUpperBoundDay;
-            same &= TimeUpperBoundHour == other.TimeUpperBoundHour;
-            same &= TimeUpperBoundMin == other.TimeUpperBoundMin;
-            same &= Locations == other.Locations;
-            same &= Sources == other.Sources;
+            same &= TimeRange == other.TimeRange;
+            same &= SpecificLocation == other.SpecificLocation;
+            same &= Region == other.Region;     // only same on reference equals
+            same &= Sources == other.Sources;   // only same on reference equals
             return same;
         }
     }

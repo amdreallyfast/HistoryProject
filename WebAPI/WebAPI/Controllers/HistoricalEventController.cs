@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebAPI.ModelDTOs;
 using WebAPI.Models;
 
 namespace WebAPI.Controllers
@@ -21,78 +22,87 @@ namespace WebAPI.Controllers
 
         [Route("GetLatestRevision/{eventId}")]
         [HttpGet]
-        public async Task<ActionResult<ClaimedEvent>> GetLatestRevision(Guid eventId)
+        public async Task<ActionResult<EventDto>> GetLatestRevision(Guid eventId)
         {
-            var latestEvent = await dbContext.ClaimedEvents
+            var latestEvent = await dbContext.Events
                 .Where(x => x.Id == eventId)
                 .OrderByDescending(x => x.Revision)   // biggest revision number first
                 .Take(1)
-                .Include(x => x.Predecessors)
-                .Include(x => x.Locations)
-                .Include(x => x.Sources)
+                .Include(x => x.EventImage)
+                .Include(x => x.TimeRange)
+                .Include(x => x.SpecificLocation)
+                .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (latestEvent == null)
             {
                 return NotFound($"Unknown HistoricalEvent Id: '{eventId}'");
             }
 
-            return Ok(latestEvent);
+            var dto = latestEvent.ToDto();
+            return Ok(dto);
         }
 
         [Route("GetAllRevisions/{eventId}")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ClaimedEvent>>> GetAllRevisions(Guid eventId)
+        public async Task<ActionResult<IEnumerable<EventDto>>> GetAllRevisions(Guid eventId)
         {
-            var eventRevisions = await dbContext.ClaimedEvents
+            var eventRevisions = await dbContext.Events
                 .Where(x => x.Id == eventId)
-                .Include(x => x.Predecessors)
-                .Include(x => x.Locations)
-                .Include(x => x.Sources)
+                .OrderByDescending(x => x.Revision)   // biggest revision number first
+                .Include(x => x.EventImage)
+                .Include(x => x.TimeRange)
+                .Include(x => x.SpecificLocation)
+                .Include(x => x.Region)
                 .ToListAsync();
             if (eventRevisions == null)
             {
                 return NotFound($"Unknown HistoricalEvent Id: '{eventId}'");
             }
 
-            return Ok(eventRevisions);
+            List<EventDto> dtos = eventRevisions.Select(x => x.ToDto()).ToList();
+            return Ok(dtos);
         }
 
         [Route("GetSpecificRevision/{eventId}/{revisionId}")]
         [HttpGet]
-        public async Task<ActionResult<ClaimedEvent>> GetSpecificRevision(Guid eventId, int revision)
+        public async Task<ActionResult<EventDto>> GetSpecificRevision(Guid eventId, int revision)
         {
-            var specificRevision = await dbContext.ClaimedEvents
+            var specificRevision = await dbContext.Events
                 .Where(x => x.Id == eventId)
                 .Where(x => x.Revision == revision)
-                .Include(x => x.Predecessors)
-                .Include(x => x.Locations)
-                .Include(x => x.Sources)
+                .Include(x => x.EventImage)
+                .Include(x => x.TimeRange)
+                .Include(x => x.SpecificLocation)
+                .Include(x => x.Region)
                 .FirstOrDefaultAsync();
             if (specificRevision == null)
             {
                 return NotFound($"Unknown HistoricalEvent Id and revision: eventID: '{eventId}', revision: '{revision}'");
             }
 
-            return Ok(specificRevision);
+            var dto = specificRevision.ToDto();
+            return Ok(dto);
         }
 
         [Route("GetFirst100")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ClaimedEvent>>> GetFirst100()
+        public async Task<ActionResult<IEnumerable<EventDto>>> GetFirst100()
         {
-            var first100Events = await dbContext.ClaimedEvents
+            var first100Events = await dbContext.Events
                 .Take(100)
-                .Include(x => x.Predecessors)
-                .Include(x => x.Locations)
-                .Include(x => x.Sources)
+                .Include(x => x.EventImage)
+                .Include(x => x.TimeRange)
+                .Include(x => x.SpecificLocation)
+                .Include(x => x.Region)
                 .ToListAsync();
 
-            return Ok(first100Events);
+            List<EventDto> dtos = first100Events.Select(x => x.ToDto()).ToList();
+            return Ok(dtos);
         }
 
         [Route("GetEventOfTheDay")]
         [HttpGet]
-        public async Task<ActionResult<HistoricalEventDto>> GetEventOfTheDay()
+        public async Task<ActionResult<EventDto>> GetEventOfTheDay()
         {
             // TODO: get info from somewhere else
             throw new NotImplementedException();
@@ -126,7 +136,7 @@ namespace WebAPI.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<HistoricalEventDto>> Create(HistoricalEventDto eventDto)
+        public async Task<ActionResult<EventDto>> Create(EventDto eventDto)
         {
             if (string.IsNullOrEmpty(eventDto.Title))
             {
@@ -141,6 +151,14 @@ namespace WebAPI.Controllers
                 return UnprocessableEntity("Must specify where (or approximately where)");
             }
 
+            try
+            {
+
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity(e.Message);
+            }
             // Take the new entry as-is.
             // Note: After much thought, I am not comfortable with trying to find duplicate
             // entries. It is extremely unlikely that two different people are going to choose
@@ -148,6 +166,7 @@ namespace WebAPI.Controllers
             // TODO: Similarity search. ??maybe a machine learning search engine for similarity?? Suggest existing items and pop them up in a modal for preview prior to the user getting all the way through their creation.
             var newEvent = new HistoricalEvent(eventDto);
             dbContext.Events.Add(newEvent);
+
             await dbContext.SaveChangesAsync();
             return Ok(newEvent);
         }
