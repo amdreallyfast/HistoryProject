@@ -25,6 +25,21 @@ namespace WebAPI.Models
 {
     public class HistoricalEvent2 : IEquatable<HistoricalEvent2>
     {
+        /*
+         * TODO: new class
+         *  class: ClaimedEvent
+         *  Id (guid): unique entry in database
+         *  EventId (guid): constant across revisions
+         *  Revision (int): human readable counter (starts at 1)
+         *  RevisionDateTime (DateTime): time of revision
+         *  RevisionAuthor (string): account name of author
+         *  PrevRevision (guid, nullable): link to previous revision of ClaimedEvent
+         *  NextRevision (guid, nullable): link to next revision of ClaimedEvent
+         *  Title (string)
+         *  Image (guid, nullable): link to Image object { uniqueId, name, ??stored in database somehow??}
+         *  Summary (string)
+         *  Source
+         */
         [Key]
         public Guid Id { get; set; }
 

@@ -9,6 +9,8 @@ Prerequisite software:
 	Python 3 (??for what? was this for my java experiments??)
 	Visual Studio (for editing ASP.NET Core 6 code)
 	Visual Studio Code (for working with javascript)
+	SQL Server Management Studio
+	SQL Server Express
 
 VS Code settings:
 	Extension:
@@ -93,120 +95,247 @@ Setup summary:
 		People at work: 
 			Michael Crewe, Josh Baugher, Larry Wilcher, Brian McMullen, (partially) John 
 
-	Create SQL server + SQL database in Azure:
-		??and connect with SQL Server Management Studio (SSMS).??
-		
-		Josh Baugher guided me through.
-		Azure portal -> Create resource -> "Azure SQL" -> "How do you plan to use the service?" -> SQL databases -> Resource type: Single database -> Create
-			Basics:
-				Resource group: 
-					HistoryProject-RG
-				Database name:
-					HistoryProjectSqlDb
-				Server:
-					Create new
-						Server name: "historyproject" (.database.windows.net automatically appended)
-						Location: (US) East US
-							Note: East US was the default for me. It may have chosen this based on IP geolocation.
-						Authentication method:
-							Use both SQL and Azure AD authentication
-								Set Azure AD admin
-								Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
-							Server admin login
-								historyprojectadmin
-							Password
-								<not stored here; check HistoryProjectKV -> Secrets -> SQLServerAdmin>
+	Database:
+		Create on your own machine:
+			Note: I created the SQL server on an old PC, but connected to it from my newer PC dev box.
+			
+
+			Install SQL Server Management Studio (SSMS)
+			Install SQL Server Express
+				Note: Also installs "Sql Server Configuration Manager", which is separate and does different things than SSMS.
+
+			Windows Firewall:
+				CANCEL.
+				Apparently not necessary. Just set up Sql Server Configuration Manager to allow the right porst.
+				
+				New inbound rule:
+					Allow_SQL_TCP_1433
+					Allow_SQL_TCP_62229
+
+			Note: Notes below based on user interfaces for SSMS 20.1 and SQL Server Express 2022.
+
+			Sql Server Configuration Manager:
+				SQL Server Network Configuration
+					Protocols for <sqlServerName>
+						TCP/IP
+							If disabled -> right-click -> Enable
+							Wait until finished
 						
-						All other options default.
+						TCP/IP -> richt-click -> Properties -> tab: "IP Addresses"
+							Scroll down to the bottom
+							IPAll:
+								TCP Port:
+									Should be blank at this point.
+									Add:
+										1433
+									button: "OK"
+							
+				SQL Server Services
+					SQL Server (<sqlServerName>)
+						If stopped
+							right-click -> Start -> wait
+
+						If running:
+							right-click -> Restart -> wait
+
+			SQL Server Management Studio:
+				1. Connect -> Database Engine
+					Server Name: 
+						<drop-down> -> <Browse for more ...> -> tab: "Local Servers" -> Database Engine -> <select>
+						Note: Should be only the one database unless you've installed SQL server before and selected a different database name this time.
+					Authentication: 
+						Windows Authentication
+					Encryption:
+						Mandatory
+						check: "Trust server certificate"
+						Note: Cert is locally signed by this computer that you just installed it on, so unless you don't trust the computer that you just installed SQL Server on, trust the cert.
+						Note: Failure to trust cert results in error:
+							"A connection was successfully established with the server, but then an error occurred during the login process. (provider: SSL Provider, error: 0 - There certificate chain was issued by an authority that is not trusted.)"
+							
+							"Should SSMS added the 'Trust Server Certificate' setting to the connection to unblock the connection?"
+								button: "Yes"
+				
+				2. <sqlServer> -> Security -> Logins -> right-click -> New Login
+					tab: "General"
+						Login name		Any string
+						Login type		SQL Server Authentication
+						Password		test
+						Confirm Pass..	TestTest
+						check: "Enforce password policy"
+						check: "Enforce password expiration"
+						un_check: "User must change password at next login"
+							Note: Not necessary right now. We are making a non-default account for ourselves and setting the password now.
+					tab: "Server Roles"
+						check: "serveradmin"
+					tab: "User Mapping"
+						Users mapped to this login:
+							Check all
+						Database role membership for: master
+							Check all
+					tab: "Securables"
+						button: "Search" -> select: "The server '<sqlServerName>'
+					tab: "Status"
+						Permission to connecto to database engine:
+							Grant
+						Login:
+							Enabled
+				
+				3. <sqlServer> -> right-click -> Properties -> Security -> Server authentication: "SQL Server and Windows Authentication mode"
+					Seriously, you have to do this.
+					Otherwise, possible error:
+						Error: Microsoft ODBC Seicwe `7 for SQL Server : Login failed for user 'test'
+					
+					Check SQL Server logs:
+						<sqlServer> -> Management -> SQL Server Logs
+							Double-click "Current"
+							Button: "Search"
+								Search: "login"
+								Ex:
+									Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 127.0.0.1]
+									Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 192.168.1.117]
+				
+				4. Restart sql server:
+					<sqlServer> -> right-click -> Restart -> wait
+
+			Test:
+				Diagnosis:
+					PowerShell:
+						tnc <ipAddress> -p <port>
 						
-						-> Apply
-				Want to use SQL elastic pool?: 
-					No
-					(default)
-				Workload environment:
-					Development
-				Compute + storage -> Configure database
-					Service tier: 
-						General Purpose
+						Note: For this command to work, a program must be listening at the destination. This will not test if you can login to the SQL server, but it may be useful in determining if you can actually hit the SQL server program even if you can't login.
+				
+				On PC where database is installed:
+					PowerShell (any):
+						sqlcmd -S 127.0.0.1 -U test -P TestTest
+						Prompt:
+							select @@version
+							go
+							
+							Should print out the version of SQL server.
+				
+				On another PC that has SSMS installed:
+					PowerShell (any):
+						sqlcmd -S 192.168.1.101 -U test -P TestTest
+						Prompt:
+							select @@version
+							go
+							
+							Should print same version.
+
+		Create SQL server + SQL database in Azure:
+			??and connect with SQL Server Management Studio (SSMS).??
+			
+			Josh Baugher guided me through.
+			Azure portal -> Create resource -> "Azure SQL" -> "How do you plan to use the service?" -> SQL databases -> Resource type: Single database -> Create
+				Basics:
+					Resource group: 
+						HistoryProject-RG
+					Database name:
+						HistoryProjectSqlDb
+					Server:
+						Create new
+							Server name: "historyproject" (.database.windows.net automatically appended)
+							Location: (US) East US
+								Note: East US was the default for me. It may have chosen this based on IP geolocation.
+							Authentication method:
+								Use both SQL and Azure AD authentication
+									Set Azure AD admin
+									Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
+								Server admin login
+									historyprojectadmin
+								Password
+									<not stored here; check HistoryProjectKV -> Secrets -> SQLServerAdmin
+							
+							All other options default.
+							
+							-> Apply
+					Want to use SQL elastic pool?: 
+						No
 						(default)
-					Compute tier: 
-						Serverless
-						Note: That is, share a big VM with many others. Performance is less than having a dedicated, on-demand server, but it is much cheaper, and this is useful for dev work.
-					Hardware Configuration: 
-						Gen5
-						(default)
-					Max vCores: 
-						2
-						(default)
-					Min vCores: 
-						1
-						(default)
-					Auto-pause delay: 
-						Enable auto-pause: 
-							<checked>
+					Workload environment:
+						Development
+					Compute + storage -> Configure database
+						Service tier: 
+							General Purpose
 							(default)
-						Days: 
-							0
+						Compute tier: 
+							Serverless
+							Note: That is, share a big VM with many others. Performance is less than having a dedicated, on-demand server, but it is much cheaper, and this is useful for dev work.
+						Hardware Configuration: 
+							Gen5
 							(default)
-						Hours: 
+						Max vCores: 
+							2
+							(default)
+						Min vCores: 
 							1
 							(default)
-						Minutes: 
-							0
-							(default)
-					Data max size (GB): 
-						50
-					Would you like to make this database zone redundant?: 
+						Auto-pause delay: 
+							Enable auto-pause: 
+								<checked>
+								(default)
+							Days: 
+								0
+								(default)
+							Hours: 
+								1
+								(default)
+							Minutes: 
+								0
+								(default)
+						Data max size (GB): 
+							50
+						Would you like to make this database zone redundant?: 
+							No
+						
+						-> Apply
+						
+					Backup storage redundancy: 
+						Locally-redundant backup storage
+				Networking:
+					Allow Azure services and resources to access this server: 
+						Yes
+					Add current client IP address: 
+						Yes
+					Connection policy: 
+						Default
+						Note: Literally called "Default".
+				Security:
+					Enable Microsoft Defender for SQL: 
 						No
-					
-					-> Apply
-					
-				Backup storage redundancy: 
-					Locally-redundant backup storage
-			Networking:
-				Allow Azure services and resources to access this server: 
-					Yes
-				Add current client IP address: 
-					Yes
-				Connection policy: 
-					Default
-					Note: Literally called "Default".
-			Security:
-				Enable Microsoft Defender for SQL: 
-					No
-					(default)
-				Ledger -> Configure ledger:
-					Ledger:
-						Enable for all future tables in this database: 
-							<checked>
-					Digest storage:
-						Enable automatic digest storage: 
-							<not checked>
-							(default)
-			Additional settings:
-				Use existing data: 
-					None
-					(default)
-				Collation:
-					SQL_Latin1_General_CP1_CI_AS
-					(default)
-				Maintenance window: 
-					System default (5pm - 8am)
-					(default)
+						(default)
+					Ledger -> Configure ledger:
+						Ledger:
+							Enable for all future tables in this database: 
+								<checked>
+						Digest storage:
+							Enable automatic digest storage: 
+								<not checked>
+								(default)
+				Additional settings:
+					Use existing data: 
+						None
+						(default)
+					Collation:
+						SQL_Latin1_General_CP1_CI_AS
+						(default)
+					Maintenance window: 
+						System default (5pm - 8am)
+						(default)
 
-			-> Review + create
-		
-		Wait for resource creation to complete.
-		
-		Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)" -> Overview
-			Copy "Server name"
-				historyproject.database.windows.net
-		
-		Open SQL Server Management Studio (SSMS)
-			At login, use the "server name" copied ealier.
-			Sign in with username and password used in "Authentication method" during the SQL database creation
-				historyprojectadmin
-				<password>
+				-> Review + create
+			
+			Wait for resource creation to complete.
+			
+			Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)" -> Overview
+				Copy "Server name"
+					historyproject.database.windows.net
+			
+			Open SQL Server Management Studio (SSMS)
+				At login, use the "server name" copied ealier.
+				Sign in with username and password used in "Authentication method" during the SQL database creation
+					historyprojectadmin
+					<password>
 
 	Create Web App
 		Azure portal -> Create resource -> "Web App" 
@@ -587,4 +716,10 @@ Windows Start menu -> Run -> "certmgr.msc"
 
 12/27/2022
 	npm install --save react-bootstrap 
-	
+
+5/4/2024
+	Installing SQL Server + SQL Server Management Studio
+		https://www.sqlservertutorial.net/getting-started/install-sql-server/
+
+	??but which computers should I run them on??
+
