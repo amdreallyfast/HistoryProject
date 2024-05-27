@@ -23,7 +23,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace WebAPI.Models
 {
-    public class HistoricalEvent2 : IEquatable<HistoricalEvent2>
+    public class ClaimedEvent : IEquatable<ClaimedEvent>
     {
         /*
          * TODO: new class
@@ -93,7 +93,7 @@ namespace WebAPI.Models
         [Required]
         public List<EventSource> Sources { get; set; } = new List<EventSource>();
 
-        public bool Equals(HistoricalEvent2? other)
+        public bool Equals(ClaimedEvent? other)
         {
             if (ReferenceEquals(this, other)) return true;
             else if (other is null) return false;
@@ -105,10 +105,10 @@ namespace WebAPI.Models
             if (ReferenceEquals(this, other)) return true;
             else if (other is null) return false;
             else if (this.GetType() != other.GetType()) return false;
-            else return Same((other as HistoricalEvent2)!);
+            else return Same((other as ClaimedEvent)!);
         }
 
-        public static bool operator ==(HistoricalEvent2? left, HistoricalEvent2? right)
+        public static bool operator ==(ClaimedEvent? left, ClaimedEvent? right)
         {
             if (ReferenceEquals(left, right)) return false;
             else if (left is null) return false;
@@ -116,7 +116,7 @@ namespace WebAPI.Models
             else return left.Same(right);
         }
 
-        public static bool operator !=(HistoricalEvent2? left, HistoricalEvent2? right)
+        public static bool operator !=(ClaimedEvent? left, ClaimedEvent? right)
         {
             if (ReferenceEquals(left, right)) return false;
             else if (left is null) return false;
@@ -150,7 +150,7 @@ namespace WebAPI.Models
             return hash.ToHashCode();
         }
 
-        private bool Same(HistoricalEvent2 other)
+        private bool Same(ClaimedEvent other)
         {
             bool same = true;
             same &= Id == other.Id;

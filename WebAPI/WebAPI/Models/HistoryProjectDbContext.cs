@@ -19,7 +19,7 @@ namespace WebAPI.Models
         //public DbSet<EventTime> TimeRanges { get; set; } = default!;
 
         //public DbSet<EventRegion> Regions { get; set; } = default!;
-        public DbSet<HistoricalEvent2> HistoricalEvents { get; set; } = default!;
+        public DbSet<ClaimedEvent> ClaimedEvents { get; set; } = default!;
         public DbSet<HistoricalEvent2Reference> PredecessorEvents { get; set; } = default!;
 
         public DbSet<EventLocation> Locations { get; set; } = default!;

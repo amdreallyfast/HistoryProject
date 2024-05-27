@@ -21,9 +21,9 @@ namespace WebAPI.Controllers
 
         [Route("GetLatestRevision/{eventId}")]
         [HttpGet]
-        public async Task<ActionResult<HistoricalEvent2>> GetLatestRevision(Guid eventId)
+        public async Task<ActionResult<ClaimedEvent>> GetLatestRevision(Guid eventId)
         {
-            var latestEvent = await dbContext.HistoricalEvents
+            var latestEvent = await dbContext.ClaimedEvents
                 .Where(x => x.Id == eventId)
                 .OrderByDescending(x => x.Revision)   // biggest revision number first
                 .Take(1)
@@ -41,9 +41,9 @@ namespace WebAPI.Controllers
 
         [Route("GetAllRevisions/{eventId}")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<HistoricalEvent2>>> GetAllRevisions(Guid eventId)
+        public async Task<ActionResult<IEnumerable<ClaimedEvent>>> GetAllRevisions(Guid eventId)
         {
-            var eventRevisions = await dbContext.HistoricalEvents
+            var eventRevisions = await dbContext.ClaimedEvents
                 .Where(x => x.Id == eventId)
                 .Include(x => x.Predecessors)
                 .Include(x => x.Locations)
@@ -59,9 +59,9 @@ namespace WebAPI.Controllers
 
         [Route("GetSpecificRevision/{eventId}/{revisionId}")]
         [HttpGet]
-        public async Task<ActionResult<HistoricalEvent2>> GetSpecificRevision(Guid eventId, int revision)
+        public async Task<ActionResult<ClaimedEvent>> GetSpecificRevision(Guid eventId, int revision)
         {
-            var specificRevision = await dbContext.HistoricalEvents
+            var specificRevision = await dbContext.ClaimedEvents
                 .Where(x => x.Id == eventId)
                 .Where(x => x.Revision == revision)
                 .Include(x => x.Predecessors)
@@ -78,9 +78,9 @@ namespace WebAPI.Controllers
 
         [Route("GetFirst100")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<HistoricalEvent2>>> GetFirst100()
+        public async Task<ActionResult<IEnumerable<ClaimedEvent>>> GetFirst100()
         {
-            var first100Events = await dbContext.HistoricalEvents
+            var first100Events = await dbContext.ClaimedEvents
                 .Take(100)
                 .Include(x => x.Predecessors)
                 .Include(x => x.Locations)
