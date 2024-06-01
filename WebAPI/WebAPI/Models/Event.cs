@@ -113,7 +113,10 @@ namespace WebAPI.Models
             Revision = other.Revision;
             RevisionDateTime = other.RevisionDateTime;
             RevisionAuthor = other.RevisionAuthor;
-            Tags = other.Tags;
+
+            // Same values, different reference so that editing one object's list doesn't affect another.
+            Tags = new List<Tag>(other.Tags);
+
             Title = other.Title;
             EventImage = other.EventImage;
             Summary = other.Summary;
@@ -128,8 +131,9 @@ namespace WebAPI.Models
             UBHour = other.UBHour;
             UBMin = other.UBMin;
             SpecificLocation = other.SpecificLocation;
-            Region = other.Region;
-            Sources = other.Sources;
+
+            Region = new List<EventLocation>(other.Region);
+            Sources = new List<EventSource>(other.Sources);
         }
 
         //public EventDto ToDto()
@@ -212,13 +216,13 @@ namespace WebAPI.Models
             same &= RevisionDateTime == other.RevisionDateTime;
             same &= RevisionAuthor == other.RevisionAuthor;
 
-            // Deep compare
+            // Deep compare Tags
             //??necessary??
             var thisTagValues = Tags.Select(x => x.Value);
             var otherTagValues = other.Tags.Select(x => x.Value);
-            var inThisTagsButNotOtherTags = thisTagValues.Except(otherTagValues).ToList();
-            var inOtherTagsButNotThisTags = otherTagValues.Except(thisTagValues).ToList();
-            same &= (!inThisTagsButNotOtherTags.Any() && !inOtherTagsButNotThisTags.Any());
+            var inThisButNotOther = thisTagValues.Except(otherTagValues).ToList();
+            var inOtherButNotThis = otherTagValues.Except(thisTagValues).ToList();
+            same &= (!inThisButNotOther.Any() && !inOtherButNotThis.Any());
 
             same &= Title == other.Title;
             same &= EventImage == other.EventImage;

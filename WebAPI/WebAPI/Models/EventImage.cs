@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 namespace WebAPI.Models
 {
@@ -15,7 +17,24 @@ namespace WebAPI.Models
         [Key]
         public Guid Id { get; set; }
 
-        public byte[] ImageBinary { get; set; } = Array.Empty<byte>();
+        private byte[] imageBinary = Array.Empty<byte>();
+        [Required]
+        public byte[] ImageBinary { 
+            get { return imageBinary; }
+            set
+            {
+                imageBinary = value;
+                const string formatAsHex = "x2";
+                using (var md5 = new System.Security.Cryptography.HMACMD5())
+                {
+                    var md5ByteArr = md5.ComputeHash(imageBinary);
+                    ImageMD5 = string.Concat(md5ByteArr.Select(x => x.ToString(formatAsHex)));
+                }
+            }
+        }
+
+        [Required]
+        public string ImageMD5 { get; private set; } = string.Empty!;
 
         public EventImage()
         {
@@ -24,7 +43,7 @@ namespace WebAPI.Models
         public EventImage(EventImage other)
         {
             Id = other.Id;
-            ImageBinary = other.ImageBinary;
+            other.ImageBinary.CopyTo(ImageBinary, 0);
         }
 
         public bool Equals(EventImage? other)
@@ -69,10 +88,16 @@ namespace WebAPI.Models
 
         private bool Same(EventImage other)
         {
-            // Ignore array of binary. Extremely unlikely that anyone is going to change a single
-            // byte in the array. Id is enough.
             bool same = true;
             same &= Id == other.Id;
+
+            // Only valid on same reference. Don't bother with a deep compare. Extremely
+            // unlikely that anyone is going to change a single byte in the array.
+            // Note: I'm considering the possibility that this class will be serialized to a JSON
+            // string and then re-formed into the class, in which case it will be a different
+            // array with the same values as the source, but I'll deal with that when I come to
+            // it. I might be able to skirt that comparison.
+            same &= ImageBinary == other.ImageBinary;
             return same;
         }
     }

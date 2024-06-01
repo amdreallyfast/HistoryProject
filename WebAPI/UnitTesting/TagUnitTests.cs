@@ -1,4 +1,5 @@
-﻿using WebAPI.Models;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WebAPI.Models;
 
 namespace TagUnitTesting
 {
@@ -16,7 +17,7 @@ namespace TagUnitTesting
         public void DefaultValues()
         {
             var obj = new Tag();
-            Assert.IsTrue(obj.Value == string.Empty);
+            Assert.IsNull(obj.Value);
         }
 
         [TestMethod]
@@ -41,6 +42,12 @@ namespace TagUnitTesting
             Assert.IsTrue(ref1 == ref2);
             Assert.IsFalse(ref1 != ref2);
             Assert.IsTrue(ref1.GetHashCode() == ref2.GetHashCode());
+        }
+
+        [TestMethod]
+        public void DiffReferenceSameValuesEqual()
+        {
+            throw new NotImplementedException();
         }
 
         [TestMethod]

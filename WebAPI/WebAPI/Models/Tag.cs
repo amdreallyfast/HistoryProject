@@ -9,7 +9,7 @@ namespace WebAPI.Models
         public Guid Id { get; set; }
 
         [Required, MaxLength(128)]
-        public string Value { get; set; } = string.Empty;
+        public string Value { get; set; } = default!;
 
         [Required]
         public List<Event> Events { get; set; } = default!;
@@ -22,7 +22,7 @@ namespace WebAPI.Models
         {
             Id = other.Id;
             Value = other.Value;
-            Events = other.Events;
+            Events = new List<Event>(other.Events);
         }
 
         public bool Equals(Tag? other)
@@ -61,6 +61,15 @@ namespace WebAPI.Models
             bool same = true;
             same &= Id == other.Id;
             same &= Value == other.Value;
+
+            // Semi-deep compare Events (EventId only)
+            //??necessary??
+            var thisEventIds = Events.Select(x => x.EventId);
+            var otherEventIds = other.Events.Select(x => x.EventId);
+            var inThisButNotOther = thisEventIds.Except(otherEventIds).ToList();
+            var inOtherButNotThis = otherEventIds.Except(thisEventIds).ToList();
+            same &= (!inThisButNotOther.Any() && !inOtherButNotThis.Any());
+
             same &= Events == other.Events; // only same on reference equals
             return same;
         }

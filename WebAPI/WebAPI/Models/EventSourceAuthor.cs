@@ -8,7 +8,17 @@ namespace WebAPI.Models
         public Guid Id { get; set; }
 
         [Required, MaxLength(256)]
-        public string Author { get; set; } = default!;
+        public string Name { get; set; } = default!;
+
+        public EventSourceAuthor()
+        {
+        }
+
+        public EventSourceAuthor(EventSourceAuthor other)
+        {
+            Id = other.Id;
+            Name = other.Name;
+        }
 
         public bool Equals(EventSourceAuthor? other)
         {
@@ -45,7 +55,7 @@ namespace WebAPI.Models
         {
             HashCode hash = new();
             hash.Add(Id);
-            hash.Add(Author);
+            hash.Add(Name);
             return hash.ToHashCode();
         }
 
@@ -53,7 +63,7 @@ namespace WebAPI.Models
         {
             bool same = true;
             same &= Id == other.Id;
-            same &= Author == other.Author;
+            same &= Name == other.Name;
             return same;
         }
     }

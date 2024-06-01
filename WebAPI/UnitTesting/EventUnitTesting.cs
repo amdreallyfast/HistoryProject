@@ -77,6 +77,12 @@ namespace EventUnitTesting
         }
 
         [TestMethod]
+        public void DiffReferenceSameValuesEqual()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TestMethod]
         public void IdChangedNotEqual()
         {
             var testEvent1 = TestValues.CreateEvent();
@@ -440,7 +446,7 @@ namespace EventUnitTesting
                         Where = "Chapter 2, paragraph 3",
                         Authors = new List<EventSourceAuthor>
                         {
-                            new() { Author = "Steve"}
+                            new() { Name = "Steve"}
                         },
                         PublicationLBYear = 607,
                         PublicationUBYear = 613
@@ -451,7 +457,7 @@ namespace EventUnitTesting
                         Where = "Section 5",
                         Authors = new List<EventSourceAuthor>
                         {
-                            new() { Author = "Golly Gee Whilikers"}
+                            new() { Name = "Golly Gee Whilikers"}
                         },
                         PublicationLBYear = 1967,
                         PublicationUBYear = 1968
