@@ -42,7 +42,7 @@ var dbConnStr = builder.Configuration.GetValue<String>("MyPersonalComputerDBConn
 // Add services to the container.
 builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
 {
-    options.UseSqlServer("bergers");
+    options.UseSqlServer(dbConnStr);
 });
 
 // Enable CORS
