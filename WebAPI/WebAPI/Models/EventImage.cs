@@ -12,7 +12,7 @@ namespace WebAPI.Models
     //      https://stackoverflow.com/questions/69084661/create-a-table-in-different-file-group-with-ef-core-code-first
     //      https://stackoverflow.com/questions/4653095/how-to-store-images-using-entity-framework-code-first-ctp-5
     //  2. ??Use a default image or force the use of an image, even if it's just an image of the source??
-    public class EventImage : IEquatable<EventImage>
+    public class EventImage //: IEquatable<EventImage>
     {
         [Key]
         public Guid Id { get; set; }
@@ -36,69 +36,69 @@ namespace WebAPI.Models
         [Required]
         public string ImageMD5 { get; private set; } = string.Empty!;
 
-        public EventImage()
-        {
-        }
+        //public EventImage()
+        //{
+        //}
 
-        public EventImage(EventImage other)
-        {
-            Id = other.Id;
-            other.ImageBinary.CopyTo(ImageBinary, 0);
-        }
+        //public EventImage(EventImage other)
+        //{
+        //    Id = other.Id;
+        //    other.ImageBinary.CopyTo(ImageBinary, 0);
+        //}
 
-        public bool Equals(EventImage? other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is null) return false;
-            return Same(other);
-        }
+        //public bool Equals(EventImage? other)
+        //{
+        //    if (ReferenceEquals(this, other)) return true;
+        //    if (other is null) return false;
+        //    return Same(other);
+        //}
 
-        public override bool Equals(object? other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is null) return false;
-            if (this.GetType() != other.GetType()) return false;
-            return Same((other as EventImage)!);
-        }
+        //public override bool Equals(object? other)
+        //{
+        //    if (ReferenceEquals(this, other)) return true;
+        //    if (other is null) return false;
+        //    if (this.GetType() != other.GetType()) return false;
+        //    return Same((other as EventImage)!);
+        //}
 
-        public static bool operator ==(EventImage? left, EventImage? right)
-        {
-            if (ReferenceEquals(left, right)) return true;
-            if (left is null) return false;
-            if (right is null) return false;
-            return left.Same(right);
-        }
+        //public static bool operator ==(EventImage? left, EventImage? right)
+        //{
+        //    if (ReferenceEquals(left, right)) return true;
+        //    if (left is null) return false;
+        //    if (right is null) return false;
+        //    return left.Same(right);
+        //}
 
-        public static bool operator !=(EventImage? left, EventImage? right)
-        {
-            if (ReferenceEquals(left, right)) return false;
-            if (left is null) return false;
-            if (right is null) return false;
-            return !left.Same(right);
-        }
+        //public static bool operator !=(EventImage? left, EventImage? right)
+        //{
+        //    if (ReferenceEquals(left, right)) return false;
+        //    if (left is null) return false;
+        //    if (right is null) return false;
+        //    return !left.Same(right);
+        //}
 
-        public override int GetHashCode()
-        {
-            // Ignore array of binary. Extremely unlikely that anyone is going to change a single
-            // byte in the array. Id is enough.
-            HashCode hash = new();
-            hash.Add(Id);
-            return hash.ToHashCode();
-        }
+        //public override int GetHashCode()
+        //{
+        //    // Ignore array of binary. Extremely unlikely that anyone is going to change a single
+        //    // byte in the array. Id is enough.
+        //    HashCode hash = new();
+        //    hash.Add(Id);
+        //    return hash.ToHashCode();
+        //}
 
-        private bool Same(EventImage other)
-        {
-            bool same = true;
-            same &= Id == other.Id;
+        //private bool Same(EventImage other)
+        //{
+        //    bool same = true;
+        //    same &= Id == other.Id;
 
-            // Only valid on same reference. Don't bother with a deep compare. Extremely
-            // unlikely that anyone is going to change a single byte in the array.
-            // Note: I'm considering the possibility that this class will be serialized to a JSON
-            // string and then re-formed into the class, in which case it will be a different
-            // array with the same values as the source, but I'll deal with that when I come to
-            // it. I might be able to skirt that comparison.
-            same &= ImageBinary == other.ImageBinary;
-            return same;
-        }
+        //    // Only valid on same reference. Don't bother with a deep compare. Extremely
+        //    // unlikely that anyone is going to change a single byte in the array.
+        //    // Note: I'm considering the possibility that this class will be serialized to a JSON
+        //    // string and then re-formed into the class, in which case it will be a different
+        //    // array with the same values as the source, but I'll deal with that when I come to
+        //    // it. I might be able to skirt that comparison.
+        //    same &= ImageBinary == other.ImageBinary;
+        //    return same;
+        //}
     }
 }

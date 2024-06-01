@@ -2,7 +2,7 @@
 
 namespace WebAPI.Models
 {
-    public class EventLocation : IEquatable<EventLocation>
+    public class EventLocation //: IEquatable<EventLocation>
     {
         [Key]
         public Guid Id { get; set; }
@@ -13,54 +13,54 @@ namespace WebAPI.Models
         [Required]
         public double Longitude { get; set; }
 
-        public bool Equals(EventLocation? other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is null) return false;
-            return Same(other);
-        }
+        //public bool Equals(EventLocation? other)
+        //{
+        //    if (ReferenceEquals(this, other)) return true;
+        //    if (other is null) return false;
+        //    return Same(other);
+        //}
 
-        public override bool Equals(object? other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is null) return false;
-            if (this.GetType() != other.GetType()) return false;
+        //public override bool Equals(object? other)
+        //{
+        //    if (ReferenceEquals(this, other)) return true;
+        //    if (other is null) return false;
+        //    if (this.GetType() != other.GetType()) return false;
 
-            // Note: If the object type is the same, then it can be guaranteed cast to this object
-            // without risk of null.
-            return Same((other as EventLocation)!);
-        }
+        //    // Note: If the object type is the same, then it can be guaranteed cast to this object
+        //    // without risk of null.
+        //    return Same((other as EventLocation)!);
+        //}
 
-        public static bool operator ==(EventLocation? left, EventLocation? right)
-        {
-            if (ReferenceEquals(left, right)) return true;
-            if (left is null) return false;
-            if (right is null) return false;
-            return left.Same(right);
-        }
+        //public static bool operator ==(EventLocation? left, EventLocation? right)
+        //{
+        //    if (ReferenceEquals(left, right)) return true;
+        //    if (left is null) return false;
+        //    if (right is null) return false;
+        //    return left.Same(right);
+        //}
 
-        public static bool operator !=(EventLocation? left, EventLocation? right)
-        {
-            if (ReferenceEquals(left, right)) return false;
-            if (left is null) return false;
-            if (right is null) return false;
-            return !left.Same(right);
-        }
+        //public static bool operator !=(EventLocation? left, EventLocation? right)
+        //{
+        //    if (ReferenceEquals(left, right)) return false;
+        //    if (left is null) return false;
+        //    if (right is null) return false;
+        //    return !left.Same(right);
+        //}
 
-        private bool Same(EventLocation other)
-        {
-            bool same = true;
-            //same &= Id == other.Id;
-            same &= Latitude == other.Latitude;
-            same &= Longitude == other.Longitude;
+        //private bool Same(EventLocation other)
+        //{
+        //    bool same = true;
+        //    //same &= Id == other.Id;
+        //    same &= Latitude == other.Latitude;
+        //    same &= Longitude == other.Longitude;
 
-            return same;
-        }
+        //    return same;
+        //}
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Id, Latitude, Longitude);
-        }
+        //public override int GetHashCode()
+        //{
+        //    return HashCode.Combine(Id, Latitude, Longitude);
+        //}
     }
 
     // Testing

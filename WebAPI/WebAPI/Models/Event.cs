@@ -7,54 +7,17 @@ using System.Linq;
 using WebAPI.ModelDTOs;
 using static System.Net.Mime.MediaTypeNames;
 
-
-
-
-// (done) TODO: get SingleEventDto compiling
-// (done) TODO: get Create method compiling
-// (done) TODO: get Get methods compiling
-// (done) TODO: get Update method compiling
-// (done) TODO: get Delete method compiling
-// TODO: implement equals, operator overrides, and GetHashCode for all classes
-// TODO: create database
-//      in initial migration, insert "null" items (that is, all zeros/empty strings
-// 1.Report errors during creation
-// 2. Create
-// 3. Get
-// 4. Change "when" display based 
-// 5. Add question-mark-hover-text above "where" section to explain what it does
-
 namespace WebAPI.Models
 {
-    public class Event: IEquatable<Event>
+    public class Event // : IEquatable<Event>
     {
-        /*
-         * TODO: new class
-         *  class: ClaimedEvent
-         *  Id (guid): unique entry in database
-         *  EventId (guid): constant across revisions
-         *  Revision (int): human readable counter (starts at 1)
-         *  RevisionDateTime (DateTime): time of revision
-         *  RevisionAuthor (string): account name of author
-         *  PrevRevision (guid, nullable): link to previous revision of ClaimedEvent
-         *  NextRevision (guid, nullable): link to next revision of ClaimedEvent
-         *  Title (string)
-         *  EventImage (guid, nullable): link to EventImage object { uniqueId, name, ??stored in database somehow??}
-         *  Summary (string)
-         *  Source
-         */
-
-
-        // Unique to this event.
         [Key]
         public Guid Id { get; set; }
 
-        // Shared between all revisions.
-
+        // Shared between all revisions
         [Required]
         public Guid EventId { get; set; }
 
-        // To show revisions, grab all events for a particular EventId, then sort them.
         [Required]
         public int Revision { get; set; } = 1;
 
@@ -76,8 +39,6 @@ namespace WebAPI.Models
         [Required, MaxLength(2048)]
         public string Summary { get; set; } = default!;
 
-        //[Required]
-        //public EventTimeRange TimeRange { get; set; } = new EventTimeRange();
         public int LBYear { get; set; } = -99999; // default value ridiculous
         public int? LBMonth { get; set; }
         public int? LBDay { get; set; }
@@ -102,146 +63,146 @@ namespace WebAPI.Models
         [Required]
         public List<EventSource> Sources { get; set; } = default!;
 
-        public Event()
-        {
-        }
-
-        public Event(Event other)
-        {
-            Id = other.Id;
-            EventId = other.EventId;
-            Revision = other.Revision;
-            RevisionDateTime = other.RevisionDateTime;
-            RevisionAuthor = other.RevisionAuthor;
-
-            // Same values, different reference so that editing one object's list doesn't affect another.
-            Tags = new List<Tag>(other.Tags);
-
-            Title = other.Title;
-            EventImage = other.EventImage;
-            Summary = other.Summary;
-            LBYear = other.LBYear;
-            LBMonth = other.LBMonth;
-            LBDay = other.LBDay;
-            LBHour = other.LBHour;
-            LBMin = other.LBMin;
-            UBYear = other.UBYear;
-            UBMonth = other.UBMonth;
-            UBDay = other.UBDay;
-            UBHour = other.UBHour;
-            UBMin = other.UBMin;
-            SpecificLocation = other.SpecificLocation;
-
-            Region = new List<EventLocation>(other.Region);
-            Sources = new List<EventSource>(other.Sources);
-        }
-
-        //public EventDto ToDto()
+        //public Event()
         //{
-        //    return new EventDto(this);
         //}
 
-        //public static Event FromDto(EventDto eventDto)
+        //public Event(Event other)
         //{
-        //    throw new NotImplementedException();
+        //    Id = other.Id;
+        //    EventId = other.EventId;
+        //    Revision = other.Revision;
+        //    RevisionDateTime = other.RevisionDateTime;
+        //    RevisionAuthor = other.RevisionAuthor;
+
+        //    // Same values, different reference so that editing one object's list doesn't affect another.
+        //    Tags = new List<Tag>(other.Tags);
+
+        //    Title = other.Title;
+        //    EventImage = other.EventImage;
+        //    Summary = other.Summary;
+        //    LBYear = other.LBYear;
+        //    LBMonth = other.LBMonth;
+        //    LBDay = other.LBDay;
+        //    LBHour = other.LBHour;
+        //    LBMin = other.LBMin;
+        //    UBYear = other.UBYear;
+        //    UBMonth = other.UBMonth;
+        //    UBDay = other.UBDay;
+        //    UBHour = other.UBHour;
+        //    UBMin = other.UBMin;
+        //    SpecificLocation = other.SpecificLocation;
+
+        //    Region = new List<EventLocation>(other.Region);
+        //    Sources = new List<EventSource>(other.Sources);
         //}
 
-        public bool Equals(Event? other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is null) return false;
-            return Same(other);
-        }
+        ////public EventDto ToDto()
+        ////{
+        ////    return new EventDto(this);
+        ////}
 
-        public override bool Equals(object? other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is null) return false;
-            if (this.GetType() != other.GetType()) return false;
-            return Same((other as Event)!);
-        }
+        ////public static Event FromDto(EventDto eventDto)
+        ////{
+        ////    throw new NotImplementedException();
+        ////}
 
-        public static bool operator ==(Event? left, Event? right)
-        {
-            if (ReferenceEquals(left, right)) return true;
-            if (left is null) return false;
-            if (right is null) return false;
-            return left.Same(right);
-        }
+        //public bool Equals(Event? other)
+        //{
+        //    if (ReferenceEquals(this, other)) return true;
+        //    if (other is null) return false;
+        //    return Same(other);
+        //}
 
-        public static bool operator !=(Event? left, Event? right)
-        {
-            if (ReferenceEquals(left, right)) return false;
-            if (left is null) return false;
-            if (right is null) return false;
-            return !left.Same(right);
-        }
+        //public override bool Equals(object? other)
+        //{
+        //    if (ReferenceEquals(this, other)) return true;
+        //    if (other is null) return false;
+        //    if (this.GetType() != other.GetType()) return false;
+        //    return Same((other as Event)!);
+        //}
 
-        public override int GetHashCode()
-        {
-            HashCode hash = new();
-            hash.Add(Id);
-            hash.Add(EventId);
-            hash.Add(Revision);
-            hash.Add(RevisionDateTime);
-            hash.Add(RevisionAuthor);
-            if (Tags != null) hash.Add(Tags.GetHashCode());         // only same on reference equals
-            hash.Add(Tags);
-            hash.Add(Title);
-            hash.Add(EventImage?.GetHashCode());
-            hash.Add(Summary);
-            hash.Add(LBYear);
-            hash.Add(LBMonth);
-            hash.Add(LBDay);
-            hash.Add(LBHour);
-            hash.Add(LBMin);
-            hash.Add(UBYear);
-            hash.Add(UBMonth);
-            hash.Add(UBDay);
-            hash.Add(UBHour);
-            hash.Add(UBMin);
-            hash.Add(SpecificLocation);
-            if (Region != null) hash.Add(Region.GetHashCode());     // only same on reference equals
-            if (Sources != null) hash.Add(Sources.GetHashCode());   // only same on reference equals
+        //public static bool operator ==(Event? left, Event? right)
+        //{
+        //    if (ReferenceEquals(left, right)) return true;
+        //    if (left is null) return false;
+        //    if (right is null) return false;
+        //    return left.Same(right);
+        //}
 
-            return hash.ToHashCode();
-        }
+        //public static bool operator !=(Event? left, Event? right)
+        //{
+        //    if (ReferenceEquals(left, right)) return false;
+        //    if (left is null) return false;
+        //    if (right is null) return false;
+        //    return !left.Same(right);
+        //}
 
-        private bool Same(Event other)
-        {
-            bool same = true;
-            same &= Id == other.Id;
-            same &= EventId == other.EventId;
-            same &= Revision == other.Revision;
-            same &= RevisionDateTime == other.RevisionDateTime;
-            same &= RevisionAuthor == other.RevisionAuthor;
+        //public override int GetHashCode()
+        //{
+        //    HashCode hash = new();
+        //    hash.Add(Id);
+        //    hash.Add(EventId);
+        //    hash.Add(Revision);
+        //    hash.Add(RevisionDateTime);
+        //    hash.Add(RevisionAuthor);
+        //    if (Tags != null) hash.Add(Tags.GetHashCode());         // only same on reference equals
+        //    hash.Add(Tags);
+        //    hash.Add(Title);
+        //    hash.Add(EventImage?.GetHashCode());
+        //    hash.Add(Summary);
+        //    hash.Add(LBYear);
+        //    hash.Add(LBMonth);
+        //    hash.Add(LBDay);
+        //    hash.Add(LBHour);
+        //    hash.Add(LBMin);
+        //    hash.Add(UBYear);
+        //    hash.Add(UBMonth);
+        //    hash.Add(UBDay);
+        //    hash.Add(UBHour);
+        //    hash.Add(UBMin);
+        //    hash.Add(SpecificLocation);
+        //    if (Region != null) hash.Add(Region.GetHashCode());     // only same on reference equals
+        //    if (Sources != null) hash.Add(Sources.GetHashCode());   // only same on reference equals
 
-            // Deep compare Tags
-            //??necessary??
-            var thisTagValues = Tags.Select(x => x.Value);
-            var otherTagValues = other.Tags.Select(x => x.Value);
-            var inThisButNotOther = thisTagValues.Except(otherTagValues).ToList();
-            var inOtherButNotThis = otherTagValues.Except(thisTagValues).ToList();
-            same &= (!inThisButNotOther.Any() && !inOtherButNotThis.Any());
+        //    return hash.ToHashCode();
+        //}
 
-            same &= Title == other.Title;
-            same &= EventImage == other.EventImage;
-            same &= Summary == other.Summary;
-            same &= LBYear == other.LBYear;
-            same &= LBMonth == other.LBMonth;
-            same &= LBDay == other.LBDay;
-            same &= LBHour == other.LBHour;
-            same &= LBMin == other.LBMin;
-            same &= UBYear == other.UBYear;
-            same &= UBMonth == other.UBMonth;
-            same &= UBDay == other.UBDay;
-            same &= UBHour == other.UBHour;
-            same &= UBMin == other.UBMin;
-            same &= SpecificLocation == other.SpecificLocation;
-            same &= Region == other.Region;     // only same on reference equals
-            same &= Sources == other.Sources;   // only same on reference equals
-            return same;
-        }
+        //private bool Same(Event other)
+        //{
+        //    bool same = true;
+        //    same &= Id == other.Id;
+        //    same &= EventId == other.EventId;
+        //    same &= Revision == other.Revision;
+        //    same &= RevisionDateTime == other.RevisionDateTime;
+        //    same &= RevisionAuthor == other.RevisionAuthor;
+
+        //    // Deep compare Tags
+        //    //??necessary??
+        //    var thisTagValues = Tags.Select(x => x.Value);
+        //    var otherTagValues = other.Tags.Select(x => x.Value);
+        //    var inThisButNotOther = thisTagValues.Except(otherTagValues).ToList();
+        //    var inOtherButNotThis = otherTagValues.Except(thisTagValues).ToList();
+        //    same &= (!inThisButNotOther.Any() && !inOtherButNotThis.Any());
+
+        //    same &= Title == other.Title;
+        //    same &= EventImage == other.EventImage;
+        //    same &= Summary == other.Summary;
+        //    same &= LBYear == other.LBYear;
+        //    same &= LBMonth == other.LBMonth;
+        //    same &= LBDay == other.LBDay;
+        //    same &= LBHour == other.LBHour;
+        //    same &= LBMin == other.LBMin;
+        //    same &= UBYear == other.UBYear;
+        //    same &= UBMonth == other.UBMonth;
+        //    same &= UBDay == other.UBDay;
+        //    same &= UBHour == other.UBHour;
+        //    same &= UBMin == other.UBMin;
+        //    same &= SpecificLocation == other.SpecificLocation;
+        //    same &= Region == other.Region;     // only same on reference equals
+        //    same &= Sources == other.Sources;   // only same on reference equals
+        //    return same;
+        //}
     }
 
     //public class HistoricalEvent : IEquatable<HistoricalEvent>
