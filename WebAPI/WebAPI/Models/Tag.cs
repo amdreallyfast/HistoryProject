@@ -8,8 +8,11 @@ namespace WebAPI.Models
         [Key]
         public Guid Id { get; set; }
 
-        [Required, MaxLength(64)]
+        [Required, MaxLength(128)]
         public string Value { get; set; } = string.Empty;
+
+        [Required]
+        public List<Event> Events { get; set; } = default!;
 
         public Tag()
         {
@@ -17,7 +20,9 @@ namespace WebAPI.Models
 
         public Tag(Tag other)
         {
+            Id = other.Id;
             Value = other.Value;
+            Events = other.Events;
         }
 
         public bool Equals(Tag? other)
@@ -45,16 +50,18 @@ namespace WebAPI.Models
 
         public static bool operator !=(Tag? left, Tag? right)
         {
-            if (ReferenceEquals(left, right)) return true;
+            if (ReferenceEquals(left, right)) return false;
             if (left is null) return false;
             if (right is null) return false;
-            return left.Same(right);
+            return !left.Same(right);
         }
 
         private bool Same(Tag other)
         {
             bool same = true;
-            same &= other.Value == Value;
+            same &= Id == other.Id;
+            same &= Value == other.Value;
+            same &= Events == other.Events; // only same on reference equals
             return same;
         }
 
@@ -63,6 +70,7 @@ namespace WebAPI.Models
             var hash = new HashCode();
             hash.Add(Id);
             hash.Add(Value);
+            if (Events != null) { hash.Add(Events.GetHashCode()); }
             return hash.ToHashCode();
         }
     }

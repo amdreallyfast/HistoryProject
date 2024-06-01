@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebAPI.Models
 {
@@ -7,8 +8,35 @@ namespace WebAPI.Models
         [Key]
         public Guid Id { get; set; }
 
+        [AllowNull, MaxLength(32)]
+        public string ISBN { get; set; }    // Not all sources are officially registered
+        
         [Required, MaxLength(256)]
-        public string Value { get; set; } = string.Empty;
+        public string Title { get; set; } = default!;
+
+        [Required, MaxLength(128)]
+        public string Where { get; set; } = default!;
+
+        [Required]
+        public List<EventSourceAuthor> Authors { get; set; } = default!;
+
+        [Required]
+        public int PublicationLBYear { get; set; } = -99999;
+
+        [AllowNull]
+        public int? PublicationLBMonth { get; set; }
+
+        [AllowNull]
+        public int? PublicationLBDay { get; set; }
+
+        [Required]
+        public int PublicationUBYear { get; set; } = +99990;
+
+        [AllowNull]
+        public int? PublicationUBMonth { get; set; }
+
+        [AllowNull]
+        public int? PublicationUBDay { get; set; }
 
         public bool Equals(EventSource? other)
         {
@@ -45,7 +73,16 @@ namespace WebAPI.Models
         {
             HashCode hash = new();
             hash.Add(Id);
-            hash.Add(Value);
+            hash.Add(ISBN);
+            hash.Add(Title);
+            hash.Add(Where);
+            hash.Add(Authors);
+            hash.Add(PublicationUBYear);
+            hash.Add(PublicationUBMonth);
+            hash.Add(PublicationUBDay);
+            hash.Add(PublicationLBYear);
+            hash.Add(PublicationLBMonth);
+            hash.Add(PublicationLBDay);
             return hash.ToHashCode();
         }
 
@@ -53,7 +90,16 @@ namespace WebAPI.Models
         {
             bool same = true;
             same &= Id == other.Id;
-            same &= Value == other.Value;
+            same &= ISBN == other.ISBN;
+            same &= Title == other.Title;
+            same &= Where == other.Where;
+            same &= Authors == other.Authors;
+            same &= PublicationUBYear == other.PublicationUBYear;
+            same &= PublicationUBMonth == other.PublicationUBMonth;
+            same &= PublicationUBDay == other.PublicationUBDay;
+            same &= PublicationLBYear == other.PublicationLBYear;
+            same &= PublicationLBMonth == other.PublicationLBMonth;
+            same &= PublicationLBDay == other.PublicationLBDay;
             return same;
         }
     }

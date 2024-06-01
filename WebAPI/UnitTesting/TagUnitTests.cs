@@ -24,7 +24,7 @@ namespace TagUnitTesting
         {
             var obj = new Tag { Value = "thingsAndSuch" };
             var copy = new Tag(obj);
-            Assert.Equals(obj, copy);
+            Assert.AreEqual(obj, copy);
         }
     }
 
@@ -34,9 +34,9 @@ namespace TagUnitTesting
         [TestMethod]
         public void SameRef()
         {
-            var tags = new Tag { Value = "thingsAndSuch" };
-            var ref1 = tags;
-            var ref2 = tags;
+            var tag = TestValues.Create();
+            var ref1 = tag;
+            var ref2 = tag;
             Assert.IsTrue(ref1.Equals(ref2));
             Assert.IsTrue(ref1 == ref2);
             Assert.IsFalse(ref1 != ref2);
@@ -44,25 +44,43 @@ namespace TagUnitTesting
         }
 
         [TestMethod]
-        public void DiffRefSameValues()
+        public void IdChangedNotEqual()
         {
-            var tags1 = new Tag { Value = "thingsAndSuch" };
-            var tags2 = new Tag { Value = "thingsAndSuch" };
-            Assert.IsTrue(tags1.Equals(tags2));
-            Assert.IsTrue(tags1 == tags2);
-            Assert.IsFalse(tags1 != tags2);
-            Assert.IsTrue(tags1.GetHashCode() == tags2.GetHashCode());
+            var tag1 = TestValues.Create();
+            var tag2 = new Tag(tag1)
+            {
+                Id = Guid.NewGuid()
+            };
+            Assert.IsFalse(tag1.Equals(tag2));
+            Assert.IsFalse(tag1 == tag2);
+            Assert.IsTrue(tag1 != tag2);
+            Assert.IsFalse(tag1.GetHashCode() == tag2.GetHashCode());
         }
 
         [TestMethod]
-        public void ValueChanged()
+        public void ValueChangedNotEqual()
         {
-            var tags1 = new Tag { Value = "thingsAndSuch" };
-            var tags2 = new Tag { Value = "otherSuchThings" };
-            Assert.IsFalse(tags1.Equals(tags2));
-            Assert.IsFalse(tags1 == tags2);
-            Assert.IsTrue(tags1 != tags2);
-            Assert.IsFalse(tags1.GetHashCode() == tags2.GetHashCode());
+            var tag1 = TestValues.Create();
+            var tag2 = new Tag(tag1)
+            {
+                Value = "Another tag"
+            };
+            Assert.IsFalse(tag1.Equals(tag2));
+            Assert.IsFalse(tag1 == tag2);
+            Assert.IsTrue(tag1 != tag2);
+            Assert.IsFalse(tag1.GetHashCode() == tag2.GetHashCode());
+        }
+    }
+
+    class TestValues
+    {
+        public static Tag Create()
+        {
+            return new Tag
+            {
+                Id = Guid.NewGuid(),
+                Value = "Test tag"
+            };
         }
     }
 }

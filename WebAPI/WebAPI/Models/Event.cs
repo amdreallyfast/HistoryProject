@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using WebAPI.ModelDTOs;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -61,22 +62,33 @@ namespace WebAPI.Models
         public DateTime RevisionDateTime { get; set; } = DateTime.Now;
 
         [Required, MaxLength(64)]
-        public string RevisionAuthor { get; set; } = string.Empty;
+        public string RevisionAuthor { get; set; } = default!;
 
         [Required]
-        public List<string> Tags { get; set; } = new List<string>();
+        public List<Tag> Tags { get; set; } = default!;
 
         [Required, MaxLength(128)]
-        public string Title { get; set; } = string.Empty;
+        public string Title { get; set; } = default!;
 
         [Required]
         public EventImage? EventImage { get; set; }
 
         [Required, MaxLength(2048)]
-        public string Summary { get; set; } = string.Empty;
+        public string Summary { get; set; } = default!;
 
-        [Required]
-        public EventTimeRange TimeRange { get; set; } = new EventTimeRange();
+        //[Required]
+        //public EventTimeRange TimeRange { get; set; } = new EventTimeRange();
+        public int LBYear { get; set; } = -99999; // default value ridiculous
+        public int? LBMonth { get; set; }
+        public int? LBDay { get; set; }
+        public int? LBHour { get; set; }
+        public int? LBMin { get; set; }
+
+        public int UBYear { get; set; } = +99999; // default value ridiculous
+        public int? UBMonth { get; set; }
+        public int? UBDay { get; set; }
+        public int? UBHour { get; set; }
+        public int? UBMin { get; set; }
 
         // Depending on the accuracy of the source, we can get either a specific location or a region, or possibly both, but we need at least one.
         // TODO:
@@ -85,10 +97,10 @@ namespace WebAPI.Models
         public EventLocation? SpecificLocation { get; set; }
 
         [AllowNull]
-        public List<EventLocation>? Region { get; set; } = new List<EventLocation>();
+        public List<EventLocation>? Region { get; set; }
 
         [Required]
-        public List<string> Sources { get; set; } = new List<string>();
+        public List<EventSource> Sources { get; set; } = default!;
 
         public Event()
         {
@@ -105,21 +117,30 @@ namespace WebAPI.Models
             Title = other.Title;
             EventImage = other.EventImage;
             Summary = other.Summary;
-            TimeRange = other.TimeRange;
+            LBYear = other.LBYear;
+            LBMonth = other.LBMonth;
+            LBDay = other.LBDay;
+            LBHour = other.LBHour;
+            LBMin = other.LBMin;
+            UBYear = other.UBYear;
+            UBMonth = other.UBMonth;
+            UBDay = other.UBDay;
+            UBHour = other.UBHour;
+            UBMin = other.UBMin;
             SpecificLocation = other.SpecificLocation;
             Region = other.Region;
             Sources = other.Sources;
         }
 
-        public EventDto ToDto()
-        {
-            return new EventDto(this);
-        }
+        //public EventDto ToDto()
+        //{
+        //    return new EventDto(this);
+        //}
 
-        public static Event FromDto(EventDto eventDto)
-        {
-            throw new NotImplementedException();
-        }
+        //public static Event FromDto(EventDto eventDto)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public bool Equals(Event? other)
         {
@@ -138,7 +159,7 @@ namespace WebAPI.Models
 
         public static bool operator ==(Event? left, Event? right)
         {
-            if (ReferenceEquals(left, right)) return false;
+            if (ReferenceEquals(left, right)) return true;
             if (left is null) return false;
             if (right is null) return false;
             return left.Same(right);
@@ -160,14 +181,25 @@ namespace WebAPI.Models
             hash.Add(Revision);
             hash.Add(RevisionDateTime);
             hash.Add(RevisionAuthor);
-            hash.Add(Tags);             // only same on reference equals
+            if (Tags != null) hash.Add(Tags.GetHashCode());         // only same on reference equals
+            hash.Add(Tags);
             hash.Add(Title);
-            hash.Add(EventImage.GetHashCode());
+            hash.Add(EventImage?.GetHashCode());
             hash.Add(Summary);
-            hash.Add(TimeRange);
+            hash.Add(LBYear);
+            hash.Add(LBMonth);
+            hash.Add(LBDay);
+            hash.Add(LBHour);
+            hash.Add(LBMin);
+            hash.Add(UBYear);
+            hash.Add(UBMonth);
+            hash.Add(UBDay);
+            hash.Add(UBHour);
+            hash.Add(UBMin);
             hash.Add(SpecificLocation);
-            hash.Add(Region);           // only same on reference equals
-            hash.Add(Sources);          // only same on reference equals
+            if (Region != null) hash.Add(Region.GetHashCode());     // only same on reference equals
+            if (Sources != null) hash.Add(Sources.GetHashCode());   // only same on reference equals
+
             return hash.ToHashCode();
         }
 
@@ -179,11 +211,28 @@ namespace WebAPI.Models
             same &= Revision == other.Revision;
             same &= RevisionDateTime == other.RevisionDateTime;
             same &= RevisionAuthor == other.RevisionAuthor;
-            same &= Tags == other.Tags;         // only true for reference equals
+
+            // Deep compare
+            //??necessary??
+            var thisTagValues = Tags.Select(x => x.Value);
+            var otherTagValues = other.Tags.Select(x => x.Value);
+            var inThisTagsButNotOtherTags = thisTagValues.Except(otherTagValues).ToList();
+            var inOtherTagsButNotThisTags = otherTagValues.Except(thisTagValues).ToList();
+            same &= (!inThisTagsButNotOtherTags.Any() && !inOtherTagsButNotThisTags.Any());
+
             same &= Title == other.Title;
             same &= EventImage == other.EventImage;
             same &= Summary == other.Summary;
-            same &= TimeRange == other.TimeRange;
+            same &= LBYear == other.LBYear;
+            same &= LBMonth == other.LBMonth;
+            same &= LBDay == other.LBDay;
+            same &= LBHour == other.LBHour;
+            same &= LBMin == other.LBMin;
+            same &= UBYear == other.UBYear;
+            same &= UBMonth == other.UBMonth;
+            same &= UBDay == other.UBDay;
+            same &= UBHour == other.UBHour;
+            same &= UBMin == other.UBMin;
             same &= SpecificLocation == other.SpecificLocation;
             same &= Region == other.Region;     // only same on reference equals
             same &= Sources == other.Sources;   // only same on reference equals

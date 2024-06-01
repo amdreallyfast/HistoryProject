@@ -28,7 +28,7 @@ namespace EventTimeUnitTesting
         {
             var obj = new EventTime { Year = 5, Month = 4, Day = 3, Hour = 2, Min = 1 };
             var copy = new EventTime(obj);
-            Assert.Equals(obj, copy);
+            Assert.AreEqual(obj, copy);
         }
     }
 

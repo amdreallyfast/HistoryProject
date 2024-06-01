@@ -19,14 +19,19 @@ namespace WebAPI.Models
         // "this isn't null, trust me".
         public DbSet<Event> Events { get; set; } = default!;
 
+        public DbSet<Tag> Tags { get; set; } = default!;
+
+        public DbSet<EventImage> Images { get; set; } = default!;
+
         public DbSet<EventLocation> Locations { get; set; } = default!;
 
         public DbSet<EventSource> Sources { get; set; } = default!;
 
-        public DbSet<EventTime> Times { get; set; } = default!;
+        public DbSet<EventSourceAuthor> SourceAuthors { get; set; } = default!;
 
-        public DbSet<EventTimeRange> EventTimeRanges { get; set; } = default!;
+        //public DbSet<EventTime> Times { get; set; } = default!;
 
-        public DbSet<EventImage> Images { get; set; } = default!;
+        //public DbSet<EventTimeRange> EventTimeRanges { get; set; } = default!;
+
     }
 }

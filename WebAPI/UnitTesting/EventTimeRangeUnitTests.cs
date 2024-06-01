@@ -25,7 +25,7 @@ namespace EventTimeRangeUnitTesting
         {
             var obj = TestValues.CreateDefault();
             var copy = new EventTimeRange(obj);
-            Assert.Equals(obj, copy);
+            Assert.AreEqual(obj, copy);
         }
     }
 

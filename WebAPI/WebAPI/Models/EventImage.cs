@@ -44,7 +44,7 @@ namespace WebAPI.Models
 
         public static bool operator ==(EventImage? left, EventImage? right)
         {
-            if (ReferenceEquals(left, right)) return false;
+            if (ReferenceEquals(left, right)) return true;
             if (left is null) return false;
             if (right is null) return false;
             return left.Same(right);
