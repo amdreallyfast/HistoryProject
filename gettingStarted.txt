@@ -102,6 +102,8 @@ Setup summary:
 				
 				Install SQL Server Management Studio (SSMS)
 				Install SQL Server Express
+					Default options
+					Creates server "SQLEXPRESS"
 					Note: Also installs "Sql Server Configuration Manager", which is separate and does different things than SSMS.
 
 				Windows Firewall:
@@ -163,14 +165,15 @@ Setup summary:
 					
 					2. <sqlServer> -> Security -> Logins -> right-click -> New Login
 						tab: "General"
-							Login name		Any string
+							Login name		test
 							Login type		SQL Server Authentication
-							Password		test
-							Confirm Pass..	TestTest
-							check: "Enforce password policy"
-							check: "Enforce password expiration"
-							un_check: "User must change password at next login"
+							Password		TestTest
+							Confirm Pass..	<copyPaste>
+							check: 			"Enforce password policy"
+							check: 			"Enforce password expiration"
+							un_check: 		"User must change password at next login"
 								Note: Not necessary right now. We are making a non-default account for ourselves and setting the password now.
+						
 						tab: "Server Roles"
 							check: "serveradmin"
 						tab: "User Mapping"
@@ -200,7 +203,72 @@ Setup summary:
 										Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 127.0.0.1]
 										Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 192.168.1.117]
 					
-					4. Restart sql server:
+					4. Create database:
+						SQL Server Management Studio -> Databases -> right-click -> New Database
+							tab: "General"
+								Database name: 	HistoryProjectOfflineDb
+							
+						//	??necessary??
+						//		tab: "Files" -> section: "Database files"
+						//			column: "Filename":
+						//				Name files (not strictly necessary, but just doing some files.
+						//				HistoryProjectOfflineDb.mdf
+						//				HistoryProjectOfflineLogs.ldf
+						//
+						//	button: "OK"
+						//
+						//Modify to allow FILESTREAM filegroups:
+						//	// Source:
+						//	//	https://stackoverflow.com/questions/21093255/filestream-feature-is-disabled
+						//	SQL Server Management Studio -> Databases -> HistoryProjectOfflineDb -> right-click -> New Query
+						//		sp_configure 'filestream access level', 2
+						//		reconfigure with override
+						//		
+						//		button: "Execute"
+						//		
+						//		Output:
+						//			Configuration option 'filestream access level' changed from 0 to 2. Run the RECONFIGURE statement to install.
+						//			
+						//			Completion time: <timestamp>
+						//
+						//Add FILESTREAM filegroup:
+						//	SQL Server Management Studio -> Databases -> right-click -> Properties
+						//		tab: "Filegroups" -> section: "FILESTREAM" -> button: "Add"
+						//			Name:		IMAGES
+						//			Default:	Checked	(that is, default destination for filestream files ??verify??)
+						//			All others default
+						//		
+						//		tab: "Files" -> section: "Database files"
+						//			button: "Add"
+						//				Logical Name:			ImagesDb
+						//				File Type:				FILESTREAM
+						//				Filegroup:				IMAGES (create just a moment ago)
+						//				Initial Size (MB)		<default>
+						//				Autogrowth / Maxsize:	<default>
+						//				Path:					<default>
+						//				File Name:				<default>
+						//			
+						//			??necessary??
+						//				column: "Filename"
+						//					Name all files.
+						//					HistoryProjectOfflineDb.mdf
+						//					HistoryProjectOfflineLogs.ldf
+						//					HistoryProjectOfflineImages.ndf	// "ndf" == "Not master Database File"
+						//		
+						//		button: "OK"
+						//		
+						//		Error:
+						//			Could not process the operation. Always On Availability Groups replica manager is disabled on this instance of SQL Server. Enable Always On Availability Groups, by using the SQL Server Configuration Manager. Then, restart the SQL Server service, and retry the current operation.
+						//			
+						//			SQL Server Configuration Manager -> SQL Server Services -> SQL Server (SQLEXPRESS) -> right-click -> Properties -> tab: "Always On Availability Groups"
+						//				"Always On Availability Groups is unavailable in this edition of SQL Server or Windows."
+						//				
+						//				Well. Crap. Guess it's just a regular database with varbinary(max).
+					
+					5. Give sql server admin permission to alter the database
+						SQL Server Management Studio -> Databases -> HistoryProjectOfflineDb -> Security -> Users -> test -> right-click -> Properties -> tab: "Membership" -> check "db_owner"
+					
+					6. Restart sql server:
 						<sqlServer> -> right-click -> Restart -> wait
 
 				Test:
@@ -227,6 +295,76 @@ Setup summary:
 								go
 								
 								Should print same version.
+
+				Database:
+					Create:
+						Direct SQL:
+							Source:
+								https://learn.microsoft.com/en-us/sql/relational-databases/blob/create-a-filestream-enabled-database?view=sql-server-ver15
+						
+						Tools:
+							SQL Server Management Studio -> Databases -> right-click -> New Database
+								tab: "General"
+									Database name: 	HistoryProjectOfflineDb
+								
+								??necessary??
+									tab: "Files" -> section: "Database files"
+										column: "Filename":
+											Name files (not strictly necessary, but just doing some files.
+											HistoryProjectOfflineDb.mdf
+											HistoryProjectOfflineLogs.ldf
+
+								button: "OK"
+							
+							Modify to allow FILESTREAM filegroups:
+								// Source:
+								//	https://stackoverflow.com/questions/21093255/filestream-feature-is-disabled
+								SQL Server Management Studio -> Databases -> HistoryProjectOfflineDb -> right-click -> New Query
+									sp_configure 'filestream access level', 2
+									reconfigure with override
+									
+									button: "Execute"
+									
+									Output:
+										Configuration option 'filestream access level' changed from 0 to 2. Run the RECONFIGURE statement to install.
+										
+										Completion time: <timestamp>
+							
+							Add FILESTREAM filegroup:
+								SQL Server Management Studio -> Databases -> right-click -> Properties
+									tab: "Filegroups" -> section: "FILESTREAM" -> button: "Add"
+										Name:		IMAGES
+										Default:	Checked	(that is, default destination for filestream files ??verify??)
+										All others default
+									
+									tab: "Files" -> section: "Database files"
+										button: "Add"
+											Logical Name:			ImagesDb
+											File Type:				FILESTREAM
+											Filegroup:				IMAGES (create just a moment ago)
+											Initial Size (MB)		<default>
+											Autogrowth / Maxsize:	<default>
+											Path:					<default>
+											File Name:				<default>
+										
+										??necessary??
+											column: "Filename"
+												Name all files.
+												HistoryProjectOfflineDb.mdf
+												HistoryProjectOfflineLogs.ldf
+												HistoryProjectOfflineImages.ndf	// "ndf" == "Not master Database File"
+									
+									button: "OK"
+									
+									Error:
+										Could not process the operation. Always On Availability Groups replica manager is disabled on this instance of SQL Server. Enable Always On Availability Groups, by using the SQL Server Configuration Manager. Then, restart the SQL Server service, and retry the current operation.
+										
+										SQL Server Configuration Manager -> SQL Server Services -> SQL Server (SQLEXPRESS) -> right-click -> Properties -> tab: "Always On Availability Groups"
+											"Always On Availability Groups is unavailable in this edition of SQL Server or Windows."
+											
+											Well. Crap. Guess it's just a regular database with varbinary(max).
+				
+
 
 			Create SQL server + SQL database in Azure:
 				??and connect with SQL Server Management Studio (SSMS).??
@@ -342,74 +480,6 @@ Setup summary:
 					Sign in with username and password used in "Authentication method" during the SQL database creation
 						historyprojectadmin
 						<password>
-		
-		Database:
-			Create:
-				Direct SQL:
-					Source:
-						https://learn.microsoft.com/en-us/sql/relational-databases/blob/create-a-filestream-enabled-database?view=sql-server-ver15
-				
-				Tools:
-					SQL Server Management Studio -> Databases -> right-click -> New Database
-						tab: "General"
-							Database name: 	HistoryProjectOfflineDb
-						
-						??necessary??
-							tab: "Files" -> section: "Database files"
-								column: "Filename":
-									Name files (not strictly necessary, but just doing some files.
-									HistoryProjectOfflineDb.mdf
-									HistoryProjectOfflineLogs.ldf
-
-						button: "OK"
-					
-					Modify to allow FILESTREAM filegroups:
-						// Source:
-						//	https://stackoverflow.com/questions/21093255/filestream-feature-is-disabled
-						SQL Server Management Studio -> Databases -> HistoryProjectOfflineDb -> right-click -> New Query
-							sp_configure 'filestream access level', 2
-							reconfigure with override
-							
-							button: "Execute"
-							
-							Output:
-								Configuration option 'filestream access level' changed from 0 to 2. Run the RECONFIGURE statement to install.
-								
-								Completion time: <timestamp>
-					
-					Add FILESTREAM filegroup:
-						SQL Server Management Studio -> Databases -> right-click -> Properties
-							tab: "Filegroups" -> section: "FILESTREAM" -> button: "Add"
-								Name:		IMAGES
-								Default:	Checked	(that is, default destination for filestream files ??verify??)
-								All others default
-							
-							tab: "Files" -> section: "Database files"
-								button: "Add"
-									Logical Name:			ImagesDb
-									File Type:				FILESTREAM
-									Filegroup:				IMAGES (create just a moment ago)
-									Initial Size (MB)		<default>
-									Autogrowth / Maxsize:	<default>
-									Path:					<default>
-									File Name:				<default>
-								
-								??necessary??
-									column: "Filename"
-										Name all files.
-										HistoryProjectOfflineDb.mdf
-										HistoryProjectOfflineLogs.ldf
-										HistoryProjectOfflineImages.ndf	// "ndf" == "Not master Database File"
-							
-							button: "OK"
-							
-							Error:
-								Could not process the operation. Always On Availability Groups replica manager is disabled on this instance of SQL Server. Enable Always On Availability Groups, by using the SQL Server Configuration Manager. Then, restart the SQL Server service, and retry the current operation.
-								
-								SQL Server Configuration Manager -> SQL Server Services -> SQL Server (SQLEXPRESS) -> right-click -> Properties -> tab: "Always On Availability Groups"
-									"Always On Availability Groups is unavailable in this edition of SQL Server or Windows."
-									
-									Well. Crap. Guess it's just a regular database with varbinary(max).
 		
 		Test conn string:
 			PowerShell (7):
