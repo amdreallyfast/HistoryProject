@@ -96,247 +96,339 @@ Setup summary:
 			Michael Crewe, Josh Baugher, Larry Wilcher, Brian McMullen, (partially) John 
 
 	Database:
-		Create on your own machine:
-			Note: I created the SQL server on an old PC, but connected to it from my newer PC dev box.
-			
-
-			Install SQL Server Management Studio (SSMS)
-			Install SQL Server Express
-				Note: Also installs "Sql Server Configuration Manager", which is separate and does different things than SSMS.
-
-			Windows Firewall:
-				CANCEL.
-				Apparently not necessary. Just set up Sql Server Configuration Manager to allow the right porst.
+		SQL Server:
+			Create on your own machine:
+				Note: I created the SQL server on an old PC, but connected to it from my newer PC dev box.
 				
-				New inbound rule:
-					Allow_SQL_TCP_1433
-					Allow_SQL_TCP_62229
+				Install SQL Server Management Studio (SSMS)
+				Install SQL Server Express
+					Note: Also installs "Sql Server Configuration Manager", which is separate and does different things than SSMS.
 
-			Note: Notes below based on user interfaces for SSMS 20.1 and SQL Server Express 2022.
-
-			Sql Server Configuration Manager:
-				SQL Server Network Configuration
-					Protocols for <sqlServerName>
-						TCP/IP
-							If disabled -> right-click -> Enable
-							Wait until finished
-						
-						TCP/IP -> richt-click -> Properties -> tab: "IP Addresses"
-							Scroll down to the bottom
-							IPAll:
-								TCP Port:
-									Should be blank at this point.
-									Add:
-										1433
-									button: "OK"
-							
-				SQL Server Services
-					SQL Server (<sqlServerName>)
-						If stopped
-							right-click -> Start -> wait
-
-						If running:
-							right-click -> Restart -> wait
-
-			SQL Server Management Studio:
-				1. Connect -> Database Engine
-					Server Name: 
-						<drop-down> -> <Browse for more ...> -> tab: "Local Servers" -> Database Engine -> <select>
-						Note: Should be only the one database unless you've installed SQL server before and selected a different database name this time.
-					Authentication: 
-						Windows Authentication
-					Encryption:
-						Mandatory
-						check: "Trust server certificate"
-						Note: Cert is locally signed by this computer that you just installed it on, so unless you don't trust the computer that you just installed SQL Server on, trust the cert.
-						Note: Failure to trust cert results in error:
-							"A connection was successfully established with the server, but then an error occurred during the login process. (provider: SSL Provider, error: 0 - There certificate chain was issued by an authority that is not trusted.)"
-							
-							"Should SSMS added the 'Trust Server Certificate' setting to the connection to unblock the connection?"
-								button: "Yes"
-				
-				2. <sqlServer> -> Security -> Logins -> right-click -> New Login
-					tab: "General"
-						Login name		Any string
-						Login type		SQL Server Authentication
-						Password		test
-						Confirm Pass..	TestTest
-						check: "Enforce password policy"
-						check: "Enforce password expiration"
-						un_check: "User must change password at next login"
-							Note: Not necessary right now. We are making a non-default account for ourselves and setting the password now.
-					tab: "Server Roles"
-						check: "serveradmin"
-					tab: "User Mapping"
-						Users mapped to this login:
-							Check all
-						Database role membership for: master
-							Check all
-					tab: "Securables"
-						button: "Search" -> select: "The server '<sqlServerName>'
-					tab: "Status"
-						Permission to connecto to database engine:
-							Grant
-						Login:
-							Enabled
-				
-				3. <sqlServer> -> right-click -> Properties -> Security -> Server authentication: "SQL Server and Windows Authentication mode"
-					Seriously, you have to do this.
-					Otherwise, possible error:
-						Error: Microsoft ODBC Seicwe `7 for SQL Server : Login failed for user 'test'
+				Windows Firewall:
+					CANCEL.
+					Apparently not necessary. Just set up Sql Server Configuration Manager to allow the right porst.
 					
-					Check SQL Server logs:
-						<sqlServer> -> Management -> SQL Server Logs
-							Double-click "Current"
-							Button: "Search"
-								Search: "login"
-								Ex:
-									Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 127.0.0.1]
-									Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 192.168.1.117]
-				
-				4. Restart sql server:
-					<sqlServer> -> right-click -> Restart -> wait
+					New inbound rule:
+						Allow_SQL_TCP_1433
+						Allow_SQL_TCP_62229
 
-			Test:
-				Diagnosis:
-					PowerShell:
-						tnc <ipAddress> -p <port>
+				Note: Notes below based on user interfaces for SSMS 20.1 and SQL Server Express 2022.
+				
+				Sql Server Configuration Manager:
+					SQL Server Network Configuration
+						Protocols for <sqlServerName>
+							TCP/IP
+								If disabled -> right-click -> Enable
+								Wait until finished
+							
+							TCP/IP -> right-click -> Properties -> tab: "IP Addresses"
+								Scroll down to the bottom
+								IPAll:
+									TCP Port:
+										Should be blank at this point.
+										Add:
+											1433
+										button: "OK"
+								
+					SQL Server Services
+						SQL Server (<sqlServerName>)
+							??necessary??
+							right-click -> Properties -> tab: "FILESTREAM"
+								check: "Enable FILESTREAM for Transact-SQL access
+								check: "Enable FILESTREAM for I/O access
+								Windows share name: <default>
+
+							If stopped:
+								right-click -> Start -> wait
+
+							If running:
+								right-click -> Restart -> wait
+
+				SQL Server Management Studio:
+					1. Connect -> Database Engine
+						Server Name: 
+							<drop-down> -> <Browse for more ...> -> tab: "Local Servers" -> Database Engine -> <select>
+							Note: Should be only the one database unless you've installed SQL server before and selected a different database name this time.
+						Authentication: 
+							Windows Authentication
+						Encryption:
+							Mandatory
+							check: "Trust server certificate"
+							Note: Cert is locally signed by this computer that you just installed it on, so unless you don't trust the computer that you just installed SQL Server on, trust the cert.
+							Note: Failure to trust cert results in error:
+								"A connection was successfully established with the server, but then an error occurred during the login process. (provider: SSL Provider, error: 0 - There certificate chain was issued by an authority that is not trusted.)"
+								
+								"Should SSMS added the 'Trust Server Certificate' setting to the connection to unblock the connection?"
+									button: "Yes"
+					
+					2. <sqlServer> -> Security -> Logins -> right-click -> New Login
+						tab: "General"
+							Login name		Any string
+							Login type		SQL Server Authentication
+							Password		test
+							Confirm Pass..	TestTest
+							check: "Enforce password policy"
+							check: "Enforce password expiration"
+							un_check: "User must change password at next login"
+								Note: Not necessary right now. We are making a non-default account for ourselves and setting the password now.
+						tab: "Server Roles"
+							check: "serveradmin"
+						tab: "User Mapping"
+							Users mapped to this login:
+								Check all
+							Database role membership for: master
+								Check all
+						tab: "Securables"
+							button: "Search" -> select: "The server '<sqlServerName>'
+						tab: "Status"
+							Permission to connecto to database engine:
+								Grant
+							Login:
+								Enabled
+					
+					3. <sqlServer> -> right-click -> Properties -> Security -> Server authentication: "SQL Server and Windows Authentication mode"
+						Seriously, you have to do this.
+						Otherwise, possible error:
+							Error: Microsoft ODBC Seicwe `7 for SQL Server : Login failed for user 'test'
 						
-						Note: For this command to work, a program must be listening at the destination. This will not test if you can login to the SQL server, but it may be useful in determining if you can actually hit the SQL server program even if you can't login.
-				
-				On PC where database is installed:
-					PowerShell (any):
-						sqlcmd -S 127.0.0.1 -U test -P TestTest
-						Prompt:
-							select @@version
-							go
-							
-							Should print out the version of SQL server.
-				
-				On another PC that has SSMS installed:
-					PowerShell (any):
-						sqlcmd -S 192.168.1.101 -U test -P TestTest
-						Prompt:
-							select @@version
-							go
-							
-							Should print same version.
+						Check SQL Server logs:
+							<sqlServer> -> Management -> SQL Server Logs
+								Double-click "Current"
+								Button: "Search"
+									Search: "login"
+									Ex:
+										Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 127.0.0.1]
+										Login failed for user 'test'. Reason: An attempt to login using SQL authentication failed. Server is configured for integrated authentication onlye. [CLIENT 192.168.1.117]
+					
+					4. Restart sql server:
+						<sqlServer> -> right-click -> Restart -> wait
 
-		Create SQL server + SQL database in Azure:
-			??and connect with SQL Server Management Studio (SSMS).??
-			
-			Josh Baugher guided me through.
-			Azure portal -> Create resource -> "Azure SQL" -> "How do you plan to use the service?" -> SQL databases -> Resource type: Single database -> Create
-				Basics:
-					Resource group: 
-						HistoryProject-RG
-					Database name:
-						HistoryProjectSqlDb
-					Server:
-						Create new
-							Server name: "historyproject" (.database.windows.net automatically appended)
-							Location: (US) East US
-								Note: East US was the default for me. It may have chosen this based on IP geolocation.
-							Authentication method:
-								Use both SQL and Azure AD authentication
-									Set Azure AD admin
-									Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
-								Server admin login
-									historyprojectadmin
-								Password
-									<not stored here; check HistoryProjectKV -> Secrets -> SQLServerAdmin
+				Test:
+					Diagnosis:
+						PowerShell:
+							tnc <ipAddress> -p <port>
 							
-							All other options default.
-							
-							-> Apply
-					Want to use SQL elastic pool?: 
-						No
-						(default)
-					Workload environment:
-						Development
-					Compute + storage -> Configure database
-						Service tier: 
-							General Purpose
+							Note: For this command to work, a program must be listening at the destination. This will not test if you can login to the SQL server, but it may be useful in determining if you can actually hit the SQL server program even if you can't login.
+					
+					On PC where database is installed:
+						PowerShell (any):
+							sqlcmd -S 127.0.0.1 -U test -P TestTest
+							Prompt:
+								select @@version
+								go
+								
+								Should print out the version of SQL server.
+					
+					On another PC that has SSMS installed:
+						PowerShell (any):
+							sqlcmd -S 192.168.1.101 -U test -P TestTest
+							Prompt:
+								select @@version
+								go
+								
+								Should print same version.
+
+			Create SQL server + SQL database in Azure:
+				??and connect with SQL Server Management Studio (SSMS).??
+				
+				Josh Baugher guided me through.
+				Azure portal -> Create resource -> "Azure SQL" -> "How do you plan to use the service?" -> SQL databases -> Resource type: Single database -> Create
+					Basics:
+						Resource group: 
+							HistoryProject-RG
+						Database name:
+							HistoryProjectSqlDb
+						Server:
+							Create new
+								Server name: "historyproject" (.database.windows.net automatically appended)
+								Location: (US) East US
+									Note: East US was the default for me. It may have chosen this based on IP geolocation.
+								Authentication method:
+									Use both SQL and Azure AD authentication
+										Set Azure AD admin
+										Note: Cannot select my @hotmail.com self (Josh was confused by this), so we had me select "coxjohn-cluster" (whatever that is)
+									Server admin login
+										historyprojectadmin
+									Password
+										<not stored here; check HistoryProjectKV -> Secrets -> SQLServerAdmin
+								
+								All other options default.
+								
+								-> Apply
+						Want to use SQL elastic pool?: 
+							No
 							(default)
-						Compute tier: 
-							Serverless
-							Note: That is, share a big VM with many others. Performance is less than having a dedicated, on-demand server, but it is much cheaper, and this is useful for dev work.
-						Hardware Configuration: 
-							Gen5
-							(default)
-						Max vCores: 
-							2
-							(default)
-						Min vCores: 
-							1
-							(default)
-						Auto-pause delay: 
-							Enable auto-pause: 
-								<checked>
+						Workload environment:
+							Development
+						Compute + storage -> Configure database
+							Service tier: 
+								General Purpose
 								(default)
-							Days: 
-								0
+							Compute tier: 
+								Serverless
+								Note: That is, share a big VM with many others. Performance is less than having a dedicated, on-demand server, but it is much cheaper, and this is useful for dev work.
+							Hardware Configuration: 
+								Gen5
 								(default)
-							Hours: 
+							Max vCores: 
+								2
+								(default)
+							Min vCores: 
 								1
 								(default)
-							Minutes: 
-								0
-								(default)
-						Data max size (GB): 
-							50
-						Would you like to make this database zone redundant?: 
+							Auto-pause delay: 
+								Enable auto-pause: 
+									<checked>
+									(default)
+								Days: 
+									0
+									(default)
+								Hours: 
+									1
+									(default)
+								Minutes: 
+									0
+									(default)
+							Data max size (GB): 
+								50
+							Would you like to make this database zone redundant?: 
+								No
+							
+							-> Apply
+							
+						Backup storage redundancy: 
+							Locally-redundant backup storage
+					Networking:
+						Allow Azure services and resources to access this server: 
+							Yes
+						Add current client IP address: 
+							Yes
+						Connection policy: 
+							Default
+							Note: Literally called "Default".
+					Security:
+						Enable Microsoft Defender for SQL: 
 							No
-						
-						-> Apply
-						
-					Backup storage redundancy: 
-						Locally-redundant backup storage
-				Networking:
-					Allow Azure services and resources to access this server: 
-						Yes
-					Add current client IP address: 
-						Yes
-					Connection policy: 
-						Default
-						Note: Literally called "Default".
-				Security:
-					Enable Microsoft Defender for SQL: 
-						No
-						(default)
-					Ledger -> Configure ledger:
-						Ledger:
-							Enable for all future tables in this database: 
-								<checked>
-						Digest storage:
-							Enable automatic digest storage: 
-								<not checked>
-								(default)
-				Additional settings:
-					Use existing data: 
-						None
-						(default)
-					Collation:
-						SQL_Latin1_General_CP1_CI_AS
-						(default)
-					Maintenance window: 
-						System default (5pm - 8am)
-						(default)
+							(default)
+						Ledger -> Configure ledger:
+							Ledger:
+								Enable for all future tables in this database: 
+									<checked>
+							Digest storage:
+								Enable automatic digest storage: 
+									<not checked>
+									(default)
+					Additional settings:
+						Use existing data: 
+							None
+							(default)
+						Collation:
+							SQL_Latin1_General_CP1_CI_AS
+							(default)
+						Maintenance window: 
+							System default (5pm - 8am)
+							(default)
 
-				-> Review + create
-			
-			Wait for resource creation to complete.
-			
-			Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)" -> Overview
-				Copy "Server name"
-					historyproject.database.windows.net
-			
-			Open SQL Server Management Studio (SSMS)
-				At login, use the "server name" copied ealier.
-				Sign in with username and password used in "Authentication method" during the SQL database creation
-					historyprojectadmin
-					<password>
+					-> Review + create
+				
+				Wait for resource creation to complete.
+				
+				Open resource "HistoryProjectSQL-DB (historyproject/HistoryProjectSQL-DB)" -> Overview
+					Copy "Server name"
+						historyproject.database.windows.net
+				
+				Open SQL Server Management Studio (SSMS)
+					At login, use the "server name" copied ealier.
+					Sign in with username and password used in "Authentication method" during the SQL database creation
+						historyprojectadmin
+						<password>
+		
+		Database:
+			Create:
+				Direct SQL:
+					Source:
+						https://learn.microsoft.com/en-us/sql/relational-databases/blob/create-a-filestream-enabled-database?view=sql-server-ver15
+				
+				Tools:
+					SQL Server Management Studio -> Databases -> right-click -> New Database
+						tab: "General"
+							Database name: 	HistoryProjectOfflineDb
+						
+						??necessary??
+							tab: "Files" -> section: "Database files"
+								column: "Filename":
+									Name files (not strictly necessary, but just doing some files.
+									HistoryProjectOfflineDb.mdf
+									HistoryProjectOfflineLogs.ldf
 
+						button: "OK"
+					
+					Modify to allow FILESTREAM filegroups:
+						// Source:
+						//	https://stackoverflow.com/questions/21093255/filestream-feature-is-disabled
+						SQL Server Management Studio -> Databases -> HistoryProjectOfflineDb -> right-click -> New Query
+							sp_configure 'filestream access level', 2
+							reconfigure with override
+							
+							button: "Execute"
+							
+							Output:
+								Configuration option 'filestream access level' changed from 0 to 2. Run the RECONFIGURE statement to install.
+								
+								Completion time: <timestamp>
+					
+					Add FILESTREAM filegroup:
+						SQL Server Management Studio -> Databases -> right-click -> Properties
+							tab: "Filegroups" -> section: "FILESTREAM" -> button: "Add"
+								Name:		IMAGES
+								Default:	Checked	(that is, default destination for filestream files ??verify??)
+								All others default
+							
+							tab: "Files" -> section: "Database files"
+								button: "Add"
+									Logical Name:			ImagesDb
+									File Type:				FILESTREAM
+									Filegroup:				IMAGES (create just a moment ago)
+									Initial Size (MB)		<default>
+									Autogrowth / Maxsize:	<default>
+									Path:					<default>
+									File Name:				<default>
+								
+								??necessary??
+									column: "Filename"
+										Name all files.
+										HistoryProjectOfflineDb.mdf
+										HistoryProjectOfflineLogs.ldf
+										HistoryProjectOfflineImages.ndf	// "ndf" == "Not master Database File"
+							
+							button: "OK"
+							
+							Error:
+								Could not process the operation. Always On Availability Groups replica manager is disabled on this instance of SQL Server. Enable Always On Availability Groups, by using the SQL Server Configuration Manager. Then, restart the SQL Server service, and retry the current operation.
+								
+								SQL Server Configuration Manager -> SQL Server Services -> SQL Server (SQLEXPRESS) -> right-click -> Properties -> tab: "Always On Availability Groups"
+									"Always On Availability Groups is unavailable in this edition of SQL Server or Windows."
+									
+									Well. Crap. Guess it's just a regular database with varbinary(max).
+		
+		Test conn string:
+			PowerShell (7):
+				$conn = New-Object System.Data.SqlClient.SqlConnection
+				$conn.ConnectionString = "Server=192.168.1.101;Database=HistoryProjectOfflineDb;User Id=test;Password=TestTest"
+				$conn.Open()
+				$conn.ServerVersion
+					16.00.1115
+				$conn.Close()
+		
+		Update database:
+			Program.cs
+				Must be set up to connect to the database on "app.run".
+				If it doesn't, then EF Core won't be able to update the database either.
+				
+			Visual Studio -> View -> Other Windows -> Package Manager Console
+				Add-Migration MigrationBaseName
+				Update-Database
+	
 	Create Web App
 		Azure portal -> Create resource -> "Web App" 
 			Resource Group: 

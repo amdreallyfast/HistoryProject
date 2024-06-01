@@ -9,37 +9,40 @@ using WebAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var tenantId = builder.Configuration.GetValue<String>("KeyVaultAccess:TenantId");
-var appId = builder.Configuration.GetValue<String>("KeyVaultAccess:AppId");
-var vaultUri = builder.Configuration.GetValue<String>("KeyVaultAccess:VaultUrl");
-var secretName = builder.Configuration.GetValue<String>("KeyVaultAccess:SecretName");
+//var tenantId = builder.Configuration.GetValue<String>("KeyVaultAccess:TenantId");
+//var appId = builder.Configuration.GetValue<String>("KeyVaultAccess:AppId");
+//var vaultUri = builder.Configuration.GetValue<String>("KeyVaultAccess:VaultUrl");
+//var secretName = builder.Configuration.GetValue<String>("KeyVaultAccess:SecretName");
 
-var certStore = new X509Store(StoreLocation.CurrentUser);
-certStore.Open(OpenFlags.ReadOnly);
-var certsByName = certStore.Certificates.Find(X509FindType.FindBySubjectName, "derblarglewhatever", false);
-if (certsByName.Count == 0)
-{
-    throw new Exception("no certificate available");
-}
+//var certStore = new X509Store(StoreLocation.CurrentUser);
+//certStore.Open(OpenFlags.ReadOnly);
+//var certsByName = certStore.Certificates.Find(X509FindType.FindBySubjectName, "derblarglewhatever", false);
+//if (certsByName.Count == 0)
+//{
+//    throw new Exception("no certificate available");
+//}
 
-var cert = certsByName.First();
+//var cert = certsByName.First();
 
-var loginCredential = new ClientCertificateCredential(tenantId, appId, cert);
-var client = new SecretClient(new Uri(vaultUri), loginCredential);
-var response = await client.GetSecretAsync(secretName);
-var rawResponse = response.GetRawResponse();
-if (rawResponse.Status != 200)
-{
-    throw new Exception($"Could not get secret '{secretName}' from key vault. Response code: '{rawResponse.Status}', reason: '{rawResponse.ReasonPhrase}'");
-}
+//var loginCredential = new ClientCertificateCredential(tenantId, appId, cert);
+//var client = new SecretClient(new Uri(vaultUri), loginCredential);
+//var response = await client.GetSecretAsync(secretName);
+//var rawResponse = response.GetRawResponse();
+//if (rawResponse.Status != 200)
+//{
+//    throw new Exception($"Could not get secret '{secretName}' from key vault. Response code: '{rawResponse.Status}', reason: '{rawResponse.ReasonPhrase}'");
+//}
 
-var keyVaultSecret = response.Value;
-var dbConnStr = keyVaultSecret.Value;
+//var keyVaultSecret = response.Value;
+//var dbConnStr = keyVaultSecret.Value;
+
+
+var dbConnStr = builder.Configuration.GetValue<String>("MyPersonalComputerDBConnStr");
 
 // Add services to the container.
 builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
 {
-    options.UseSqlServer(dbConnStr);
+    options.UseSqlServer("bergers");
 });
 
 // Enable CORS

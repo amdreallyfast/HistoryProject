@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
 namespace WebAPI.Models
@@ -28,13 +29,13 @@ namespace WebAPI.Models
                 using (var md5 = new System.Security.Cryptography.HMACMD5())
                 {
                     var md5ByteArr = md5.ComputeHash(imageBinary);
-                    ImageMD5 = string.Concat(md5ByteArr.Select(x => x.ToString(formatAsHex)));
+                    ImageMD5Hash = string.Concat(md5ByteArr.Select(x => x.ToString(formatAsHex)));
                 }
             }
         }
 
-        [Required]
-        public string ImageMD5 { get; private set; } = string.Empty!;
+        [Required, MaxLength(32)]
+        public string ImageMD5Hash { get; private set; } = string.Empty!;
 
         //public EventImage()
         //{
