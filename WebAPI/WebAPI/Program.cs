@@ -36,12 +36,6 @@ if (rawResponse.Status != 200)
 var keyVaultSecret = response.Value;
 var dbConnStr = keyVaultSecret.Value;
 
-
-//var dbConnStr = builder.Configuration.GetValue<String>("MyPersonalComputerDBConnStr");
-//var dbConnStr = "Server=192.168.1.101;Initial Catalog=HistoryProjectOfflineDb;Persist Security Info=False;User ID=test;Password=TestTest;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
-//var dbConnStr = "Server=192.168.1.101;Initial Catalog=HistoryProjectOfflineDb;Persist Security Info=False;User ID=test;Password=TestTest;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;";
-//var dbConnStr = "Server=192.168.1.101;Database=HistoryProjectOfflineDb;User Id=historyprojectadmin;Password=FlavorForHistory1!;Connection Timeout=30;";
-
 // Add services to the container.
 builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
 {
