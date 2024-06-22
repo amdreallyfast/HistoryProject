@@ -67,7 +67,7 @@ namespace WebAPI.Controllers
             return Ok(eventRevisions);
         }
 
-        [Route("GetSpecificRevision/{eventId}/{eventId}")]
+        [Route("GetSpecificRevision/{eventId}/{revision}")]
         [HttpGet]
         public async Task<ActionResult<Event>> GetSpecificRevision(Guid eventId, int revision)
         {
