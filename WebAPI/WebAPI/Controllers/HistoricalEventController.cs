@@ -94,6 +94,8 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetFirst100()
         {
+            var things = await dbContext.Events.Take(1).ToListAsync();
+
             var first100Events = await dbContext.Events
                 .Take(100)
                 .Include(x => x.Tags)

@@ -316,53 +316,53 @@ Setup summary:
 
 								button: "OK"
 							
-							Modify to allow FILESTREAM filegroups:
-								// Source:
-								//	https://stackoverflow.com/questions/21093255/filestream-feature-is-disabled
-								SQL Server Management Studio -> Databases -> HistoryProjectOfflineDb -> right-click -> New Query
-									sp_configure 'filestream access level', 2
-									reconfigure with override
-									
-									button: "Execute"
-									
-									Output:
-										Configuration option 'filestream access level' changed from 0 to 2. Run the RECONFIGURE statement to install.
-										
-										Completion time: <timestamp>
-							
-							Add FILESTREAM filegroup:
-								SQL Server Management Studio -> Databases -> right-click -> Properties
-									tab: "Filegroups" -> section: "FILESTREAM" -> button: "Add"
-										Name:		IMAGES
-										Default:	Checked	(that is, default destination for filestream files ??verify??)
-										All others default
-									
-									tab: "Files" -> section: "Database files"
-										button: "Add"
-											Logical Name:			ImagesDb
-											File Type:				FILESTREAM
-											Filegroup:				IMAGES (create just a moment ago)
-											Initial Size (MB)		<default>
-											Autogrowth / Maxsize:	<default>
-											Path:					<default>
-											File Name:				<default>
-										
-										??necessary??
-											column: "Filename"
-												Name all files.
-												HistoryProjectOfflineDb.mdf
-												HistoryProjectOfflineLogs.ldf
-												HistoryProjectOfflineImages.ndf	// "ndf" == "Not master Database File"
-									
-									button: "OK"
-									
-									Error:
-										Could not process the operation. Always On Availability Groups replica manager is disabled on this instance of SQL Server. Enable Always On Availability Groups, by using the SQL Server Configuration Manager. Then, restart the SQL Server service, and retry the current operation.
-										
-										SQL Server Configuration Manager -> SQL Server Services -> SQL Server (SQLEXPRESS) -> right-click -> Properties -> tab: "Always On Availability Groups"
-											"Always On Availability Groups is unavailable in this edition of SQL Server or Windows."
-											
-											Well. Crap. Guess it's just a regular database with varbinary(max).
+							// Modify to allow FILESTREAM filegroups:
+							// 	// Source:
+							// 	//	https://stackoverflow.com/questions/21093255/filestream-feature-is-disabled
+							// 	SQL Server Management Studio -> Databases -> HistoryProjectOfflineDb -> right-click -> New Query
+							// 		sp_configure 'filestream access level', 2
+							// 		reconfigure with override
+							// 		
+							// 		button: "Execute"
+							// 		
+							// 		Output:
+							// 			Configuration option 'filestream access level' changed from 0 to 2. Run the RECONFIGURE statement to install.
+							// 			
+							// 			Completion time: <timestamp>
+							// 
+							// Add FILESTREAM filegroup:
+							// 	SQL Server Management Studio -> Databases -> right-click -> Properties
+							// 		tab: "Filegroups" -> section: "FILESTREAM" -> button: "Add"
+							// 			Name:		IMAGES
+							// 			Default:	Checked	(that is, default destination for filestream files ??verify??)
+							// 			All others default
+							// 		
+							// 		tab: "Files" -> section: "Database files"
+							// 			button: "Add"
+							// 				Logical Name:			ImagesDb
+							// 				File Type:				FILESTREAM
+							// 				Filegroup:				IMAGES (create just a moment ago)
+							// 				Initial Size (MB)		<default>
+							// 				Autogrowth / Maxsize:	<default>
+							// 				Path:					<default>
+							// 				File Name:				<default>
+							// 			
+							// 			??necessary??
+							// 				column: "Filename"
+							// 					Name all files.
+							// 					HistoryProjectOfflineDb.mdf
+							// 					HistoryProjectOfflineLogs.ldf
+							// 					HistoryProjectOfflineImages.ndf	// "ndf" == "Not master Database File"
+							// 		
+							// 		button: "OK"
+							// 		
+							// 		Error:
+							// 			Could not process the operation. Always On Availability Groups replica manager is disabled on this instance of SQL Server. Enable Always On Availability Groups, by using the SQL Server Configuration Manager. Then, restart the SQL Server service, and retry the current operation.
+							// 			
+							// 			SQL Server Configuration Manager -> SQL Server Services -> SQL Server (SQLEXPRESS) -> right-click -> Properties -> tab: "Always On Availability Groups"
+							// 				"Always On Availability Groups is unavailable in this edition of SQL Server or Windows."
+							// 				
+							// 				Well. Crap. Guess it's just a regular database with varbinary(max).
 				
 
 
@@ -634,9 +634,12 @@ Setup summary:
 		
 	Install cert on local PC:
 		Right-click .pfx file -> Install
-		Password:
-			<blank>
-			Note: It seems that the password here is not the same as the one set when running openssl pkcs12`.
+			Store location:
+				Current user
+			Password:
+				<pfx password, created when running `openssl pkcs12`>
+			Cert store:
+				Automatic (defaul)
 
 	??ignore??
 	//Generate certificate (in key vault):

@@ -21,6 +21,7 @@
     npm install --save delaunator                         # For creating a triangular mesh of unordered vertices
                                                           #   Note: https://github.com/mapbox/delaunator
     npm install --save d3                                 # ??https://d3js.org/getting-started
+    npm install --save axios                              # For easier handling of REST requests
 
     Redux Toolkit
       Start management.

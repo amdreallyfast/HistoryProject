@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
+import axios from "axios";
 
 export function DetailsEdit() {
   const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
@@ -67,6 +68,12 @@ export function DetailsEdit() {
     }
   }, [selectedLatLong, prevSelectedLatLong])
 
+  const onSubmitClick = (e) => {
+    console.log("onSubmitClick")
+    // reduxDispatch(editStateActions.endEditMode())
+    axios.get("https://localhost:7121/api/HistoricalEvent/GetFirst100")
+  }
+
   return (
     <div className="flex flex-col h-full">
       <span className="border-2 border-gray-600 bg-gray-400 m-1">
@@ -84,7 +91,7 @@ export function DetailsEdit() {
       <div className="items-start flex mt-auto ">
         <button
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded "
-          onClick={() => reduxDispatch(editStateActions.endEditMode())}
+          onClick={(e) => onSubmitClick(e)}
         >
           Submit
         </button>
