@@ -30,13 +30,13 @@ const initialState = {
   // Note: Using mesh.uuid instead of mesh.Id, the latter of which is an integer used by ThreeJs 
   //  for something.
   //  {
-  //    point: null,         // Raycast intersection point
+  //    point: null,         // Raycast intersection point (x, y, z)
   //    mesh: {
   //      name: <name>,
   //      uuid: <guid>,
   //      userData: {            // Only applies to region pins and primary POI pins
   //        poiId: <poiId>,
-  //        whereId: <guid>
+  //        locationId: <spherePoint.Id>
   //      }
   //    }
   //  },
@@ -53,12 +53,12 @@ export const stateSliceMouseInfo = createSlice({
     setMousePos: (state, action) => {
       // console.log({ msg: "stateSliceMouseInfo_setMousePos", value: action.payload })
 
-      let where = action.payload
+      let normalizedScreenSpaceXY = action.payload
       return {
         ...state,
         currPos: {
-          x: where.x,
-          y: where.y
+          x: normalizedScreenSpaceXY.x,
+          y: normalizedScreenSpaceXY.y
         },
         prevPos: {
           x: state.currPos.x,

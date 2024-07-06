@@ -1,26 +1,20 @@
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
-import { createSpherePointFromXYZ } from "./createWhere"
+import { createSpherePointFromXYZ } from "./createSpherePoint"
 import { meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import _ from "lodash"
-import { positionGeometry } from "three/examples/jsm/nodes/Nodes.js"
-import { v4 as uuid } from "uuid"
 
-// TODO: replcae "where" with "spherePoint"
-// TODO: replace "sphereicalPoint" with "spherePoint"
-
-
-export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+export function PinMesh({ pinType, poiId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (!pinType) {
     throw new Error(`'${Object.keys({ pinType })}' must be defined`)
   }
   if (!poiId) {
     throw new Error(`'${Object.keys({ poiId })}' must be defined`)
   }
-  if (!(where?.id)) {
-    throw new Error(`'${Object.keys({ where })}.id' must be defined`)
+  if (!(spherePoint?.id)) {
+    throw new Error(`'${Object.keys({ spherePoint })}.id' must be defined`)
   }
 
   const editState = useSelector((state) => state.editPoiReducer)
@@ -70,9 +64,9 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
     // Z axis so that +Z points at the globe center. At that point, the object's base will be at 
     // the globe's surface and the top will be inside the globe, so we need to back off the 
     // length of the pin.
-    meshRef.current.position.x = where.x
-    meshRef.current.position.y = where.y
-    meshRef.current.position.z = where.z
+    meshRef.current.position.x = spherePoint.x
+    meshRef.current.position.y = spherePoint.y
+    meshRef.current.position.z = spherePoint.z
     meshRef.current.lookAt(lookAt)
 
     // Mesh origin was the top of the pin. Shift the whole thing so that the end of the pin (
@@ -102,9 +96,9 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
     let indicesAttribute = new THREE.Uint32BufferAttribute(boxGeometry.index.array, valuesPerIndex)
     boxMeshRef.current.geometry.setIndex(indicesAttribute)
 
-    boxMeshRef.current.position.x = where.x
-    boxMeshRef.current.position.y = where.y
-    boxMeshRef.current.position.z = where.z
+    boxMeshRef.current.position.x = spherePoint.x
+    boxMeshRef.current.position.y = spherePoint.y
+    boxMeshRef.current.position.z = spherePoint.z
     boxMeshRef.current.geometry.scale(scale, scale, scale)
     boxMeshRef.current.lookAt(lookAt)
 
@@ -128,7 +122,7 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
     preMovePos.current = meshRef.current.position.clone()
 
     boxMeshRef.current.userData.poiId = poiId
-    boxMeshRef.current.userData.whereId = where.id
+    boxMeshRef.current.userData.locationId = spherePoint.id
   }, [meshRef.current, boxMeshRef.current])
 
 
@@ -169,7 +163,7 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
 
     // Update state
     let pinLocation = createSpherePointFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo.radius)
-    pinLocation.id = where.id
+    pinLocation.id = spherePoint.id
 
     if (pinType == meshNames.PrimaryPin) {
       reduxDispatch(

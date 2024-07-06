@@ -24,7 +24,7 @@ const parseIntersectionForState = (intersection) => {
       uuid: intersection.object.uuid,
       userData: {
         poi: intersection.object.userData?.poiId,
-        whereId: intersection.object.userData?.whereId,
+        locationId: intersection.object.userData?.locationId,
       }
     }
   }
@@ -62,7 +62,7 @@ export function Scene(
       if (poi.id != editState.poiId) {
         poiInfo.push({
           id: poi.id,
-          where: poi.where
+          location: poi.location
         })
       }
     })
@@ -70,7 +70,7 @@ export function Scene(
     setPoiReactElements(
       poiInfo.map((info, index) => {
         return (
-          <ShowRegion poiId={null} lat={info.where.lat} long={info.where.long} globePos={globeInfo.pos} />
+          <ShowRegion poiId={null} lat={info.location.lat} long={info.location.long} globePos={globeInfo.pos} />
         )
       })
     )
@@ -98,7 +98,7 @@ export function Scene(
   // doing it every frame just before the raycaster runs. Doing so incurs some annoying searching 
   // and notification, but it's better for performance in the long run (I think).
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.primaryPin, regionBoundaries: editState.regionBoundaries })
+    // console.log({ msg: "Scene()/useEffect()/meshes changed", primaryPin: editState.primaryPin, regionBoundaries: editState.regionBoundaries })
 
     const meshesArr = []
 

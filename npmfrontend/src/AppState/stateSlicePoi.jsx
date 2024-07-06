@@ -8,9 +8,9 @@ let poi = {
   image: <nullable>
   description: <string>
   ??which planet??
-  where: {
+  location: {
     // ??also store x,y,z in the database??
-    lat,long,x,y,z
+    id,lat,long,x,y,z
   }
   regionBoundaryPoints: [
     {

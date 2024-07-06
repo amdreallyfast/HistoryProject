@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
+import { createSpherePointFromLatLong } from "../createSpherePoint"
 
 
 export function DisplayOnlyRegion({ poiId, lat, long, globeInfo }) {
@@ -14,11 +14,15 @@ export function DisplayOnlyRegion({ poiId, lat, long, globeInfo }) {
     console.log({ msg: "DisplayOnlyRegion()/useEffect()", value: null })
   }, [])
 
-  let where = ConvertLatLongToVec3(lat, long, globeInfo.radius)
+  let location = createSpherePointFromLatLong(lat, long, globeInfo.radius)
 
   return (
     <>
-      <PinMesh name={meshNames.PoiPrimaryLocationPin} where={where} globeInfo={globeInfo} lookAt={globeInfo.pos} />
+      <PinMesh
+        pinType={meshNames.PoiPrimaryLocationPin}
+        spherePoint={location}
+        globeInfo={globeInfo}
+        lookAt={globeInfo.pos} />
     </>
   )
 }

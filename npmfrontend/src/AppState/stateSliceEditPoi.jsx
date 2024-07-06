@@ -9,8 +9,6 @@ const initialState = {
 
   image: null,
 
-  whereLatLongArr: [],  // TODO: delete
-
   // Format for location and region boundaries:
   //  {
   //    id,
@@ -210,38 +208,6 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         clickAndDrag: null
-      }
-    },
-
-    // TODO: delete with "whereLatLongArr"
-    addLocation: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_addLocation", payload: action.payload })
-
-      let newEntry = {
-        id: uuid(),
-        lat: action.payload.lat,
-        long: action.payload.long
-      }
-
-      return {
-        ...state,
-        whereLatLongArr: [...state.whereLatLongArr, newEntry]
-      }
-    },
-
-    // TODO: delete with "whereLatLongArr"
-    removeLocation: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_removeLocation", payload: action.payload })
-
-      let removeId = action.payload
-      let index = state.whereLatLongArr.findIndex((x) => x.id == removeId)
-      if (index == -1) {
-        throw new Error(`No location exists with id '${removeId}'`)
-      }
-
-      return {
-        ...state,
-        whereLatLongArr: [...state.whereLatLongArr.slice(0, index - 1), ...state.whereLatLongArr.slice(index + 1)]
       }
     },
 

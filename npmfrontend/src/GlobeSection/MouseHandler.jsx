@@ -1,11 +1,10 @@
 import * as THREE from "three"
-import { v4 as uuid } from "uuid"
+import { useEffect, useRef } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
-import { ConvertXYZToLatLong } from "./convertLatLongXYZ"
-import { globeInfo, meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { useEffect, useRef } from "react"
+import { globeInfo, meshNames } from "./constValues"
+import { createSpherePointFromXYZ } from "./createSpherePoint"
 
 export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
@@ -20,10 +19,9 @@ export const MouseHandler = () => {
     let x = globePos.x
     let y = globePos.y
     let z = globePos.z
-    const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
-    let whereObj = { id: uuid(), lat, long, x, y, z }
+    let spherePoint = createSpherePointFromXYZ(x, y, z, globeInfo.radius)
     reduxDispatch(
-      editStateActions.setPrimaryPin(whereObj)
+      editStateActions.setPrimaryPin(spherePoint)
     )
   }
 

@@ -23,8 +23,14 @@ export function ConvertLatLongToXYZ(lat, long, sphereRadius) {
     Arguments: lat: '${lat}', long: '${long}', radius: '${sphereRadius}'`)
   }
 
-  return [x, y, z,]
+  return [x, y, z]
 }
+
+
+// TODO: generalize and take "globeInfo", and modify "globeInfo" with a vector representing the origin vector for that planet
+//  ??how to transform coordinate system to handle that??
+
+
 
 export function ConvertXYZToLatLong(x, y, z, sphereRadius) {
   // Note: Camera defaults to being on the Z axis. With that perspective:
@@ -34,17 +40,6 @@ export function ConvertXYZToLatLong(x, y, z, sphereRadius) {
   // That makes XZ the horizontal plane.
   const radToDeg = 180.0 / Math.PI
 
-  // Re-scale coordinates due to slowly accumulating precision loses with 32bit float.
-  let xSq = x * x
-  let ySq = y * y
-  let zSq = z * z
-  let sum = xSq + ySq + zSq
-  let currLen = Math.sqrt(sum)
-  let scale = sphereRadius / currLen
-  let rescaledX = x * scale
-  let rescaledY = y * scale
-  let rescaledZ = z * scale
-
   // Note: The arcsine trigonometry functions is only capable of calculating an angle 
   //  on the range [0, Pi]. The latitude is the vertical angle between the
   //  "earth center -> north pole" vector and the vertical component of a point on the globe. By 
@@ -52,7 +47,8 @@ export function ConvertXYZToLatLong(x, y, z, sphereRadius) {
   //  latitude is _always_ defined on the range [0, 180] degrees, and therefore the arcsine 
   //  function is always defined.
   let lenHypotenuse = sphereRadius
-  let latRadians = Math.asin(rescaledY / lenHypotenuse)
+  let latRadians = Math.asin(y / lenHypotenuse)
+  let latDegrees = latRadians * radToDeg
 
   // Note: In contrast, the longitude is defined as the horizontal angle between the 
   //  "earth center -> Greenwich Meridian" vector and the horizontal component of a point on the
@@ -63,8 +59,9 @@ export function ConvertXYZToLatLong(x, y, z, sphereRadius) {
   //  Therefore, use the arcus function to calculate the angle on the range [0,180] degrees, and 
   //  then use the X axis' "left or right of origin" to determine "west" or "east".
   let radiusAtY = Math.cos(latRadians) * lenHypotenuse
-  let longRadians = Math.acos(rescaledZ / radiusAtY)
-  longRadians = longRadians * (rescaledX < 0 ? -1 : 1)
+  let longRadians = Math.acos(z / radiusAtY)
+  longRadians = longRadians * (x < 0 ? -1 : 1)
+  let longDegrees = longRadians * radToDeg
 
   if (isNaN(latRadians) || isNaN(longRadians)) {
     throw new Error(`Evaluated NaN: latRadians: '${latRadians}', longRadians: '${longRadians}'
@@ -72,8 +69,6 @@ export function ConvertXYZToLatLong(x, y, z, sphereRadius) {
   }
 
   // console.log({ x: x, y: y, z: z, lat: latRadians * radToDeg, long: longRadians * radToDeg })
-  return [
-    latRadians * radToDeg,
-    longRadians * radToDeg,
-  ]
+
+  return [latDegrees, longDegrees]
 }

@@ -7,7 +7,7 @@ import _ from "lodash"
 import { v4 as uuid } from "uuid"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
-import { createSpherePointFromXYZ } from "../createWhere"
+import { createSpherePointFromXYZ } from "../createSpherePoint"
 import { EditRegionMesh } from "./EditRegionMesh"
 
 // Generate a set of default points in a circle around the origin.
@@ -52,7 +52,7 @@ export function EditableRegion({ globeInfo }) {
 
   // Create PrimaryPOI pin mesh + (maybe) region pins + region mesh
   useEffect(() => {
-    // console.log({ msg: "EditableRegion()/useEffect()/editState.primaryPin", where: editState.primaryPin })
+    // console.log({ msg: "EditableRegion()/useEffect()/editState.primaryPin", primaryPin: editState.primaryPin })
     if (!editState.editModeOn) {
       return
     }
@@ -68,12 +68,11 @@ export function EditableRegion({ globeInfo }) {
       )
 
       setPrimaryLocationPinReactElement(
-        //{ name, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }
         <PinMesh
           key={uuid()}
           pinType={meshNames.PrimaryPin}
           poiId={editState.poiId}
-          where={editState.primaryPin}
+          spherePoint={editState.primaryPin}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.primaryPinColor}
           length={pinMeshInfo.length}
@@ -112,13 +111,13 @@ export function EditableRegion({ globeInfo }) {
   useEffect(() => {
     // console.log({ msg: "EditableRegion()/useEffect()/editState.regionBoundaries.length", value: editState.regionBoundaries.length })
 
-    let reactElements = editState.regionBoundaries.map((where) => {
+    let reactElements = editState.regionBoundaries.map((spherePoint) => {
       return (
         <PinMesh
           key={uuid()}
           pinType={meshNames.RegionBoundaryPin}
           poiId={editState.poiId}
-          where={where}
+          spherePoint={spherePoint}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.regionPinColor}
           length={pinMeshInfo.length}
