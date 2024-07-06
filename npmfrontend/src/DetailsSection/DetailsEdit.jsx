@@ -33,13 +33,17 @@ export function DetailsEdit() {
     }
 
     // Gather all pin locations together
-    let pinArr = [editState.primaryPin]
-    for (let i = 0; i < editState.regionBoundaries.length; i++) {
-      pinArr.push(editState.regionBoundaries[i])
+    let pinArr = []
+    if (editState.primaryPin) {
+      pinArr.push(editState.primaryPin)
+      for (let i = 0; i < editState.regionBoundaries.length; i++) {
+        pinArr.push(editState.regionBoundaries[i])
+      }
     }
 
     // And make HTML elements out of them
-    let htmlReactElements = editState.regionBoundaries?.map((pin) => {
+    let htmlReactElements = pinArr.map((pin) => {
+      console.log(pin)
       let roundedLat = roundFloat(pin.lat, 4)
       let roundedLong = roundFloat(pin.long, 4)
       // console.log({ lat: roundedLat, long: roundedLong })
