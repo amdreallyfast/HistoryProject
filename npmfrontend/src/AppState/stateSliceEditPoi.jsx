@@ -14,7 +14,6 @@ const initialState = {
   //    id,
   //    lat,
   //    long,
-  //    wrappedLongitude,
   //    x,
   //    y,
   //    z
