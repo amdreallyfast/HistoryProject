@@ -15,8 +15,8 @@ export const regionInfo = {
 
 export const pinMeshInfo = {
   length: 3,
-  mainPinScale: 0.1,
-  mainPinColor: 0xff0000,
+  primaryPinScale: 0.1,
+  primaryPinColor: 0xff0000,
   regionPinScale: 0.05,
   regionPinColor: 0xffd700
 }
@@ -24,7 +24,7 @@ export const pinMeshInfo = {
 export const meshNames = {
   Stars: "StarsMesh",
 
-  PoiPrimaryLocationPin: "PoiPrimaryLocationPinMesh",
+  PrimaryPin: "PrimaryPinMesh",
   RegionBoundaryPin: "RegionBoundaryPinMesh",
   PinBoundingBox: "PinBoundingBox",
 

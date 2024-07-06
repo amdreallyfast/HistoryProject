@@ -14,6 +14,8 @@ export function DetailsEdit() {
   const latLongHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const latLongHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
+  console.log("DetailsEdit")
+
   // If source array changes, re-create selectable elements.
   useEffect(() => {
     // console.log({ "DetailsEdit_useEffect_latLongChanged": whereLatLongArr.length })

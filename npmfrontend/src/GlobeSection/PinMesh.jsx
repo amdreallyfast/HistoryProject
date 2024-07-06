@@ -6,7 +6,7 @@ import { meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import _ from "lodash"
 
-export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (poiId == null) {
     throw new Error("'id' cannot be null")
   }
@@ -158,9 +158,9 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
     boxMeshRef.current.lookAt(globeInfo.pos)
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-    // Re-creation region mesh whenever a boundary pin moves
+    // Re-create region mesh whenever a boundary pin moves
     // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
-    if (name == meshNames.RegionBoundaryPin) {
+    if (pinType == meshNames.RegionBoundaryPin) {
       let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo.radius)
       updatedWhere.id = where.id
       reduxDispatch(
@@ -186,7 +186,7 @@ export function PinMesh({ name, poiId, where, globeInfo, colorHex, length = 3, s
 
   return (
     <>
-      <mesh ref={meshRef} name={name}>
+      <mesh ref={meshRef} name={pinType}>
         <meshBasicMaterial side={THREE.DoubleSide} opacity={0.8} transparent={false} wireframe={false} />
       </mesh>
       <mesh ref={boxMeshRef} name={meshNames.PinBoundingBox}>

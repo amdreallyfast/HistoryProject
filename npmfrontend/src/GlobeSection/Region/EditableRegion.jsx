@@ -8,68 +8,7 @@ import { v4 as uuid } from "uuid"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
 import { createWhereObjFromXYZ } from "../createWhere"
-import { generateRegionMesh } from "./generateRegionMesh"
-import { Line } from "@react-three/drei"
-
-function EditRegionMesh({ sphereRadius }) {
-  // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
-  const editState = useSelector((state) => state.editPoiReducer)
-  let regionMeshRef = useRef()
-  let regionLinesRef = useRef()
-  const [linePoints, setLinePoints] = useState([])
-
-  // Region changed => regenerate mesh
-  useEffect(() => {
-    // console.log({ msg: "RegionMeshRegionMesh()/useEffect()/editState.regionBoundaries", value: editState.regionBoundaries })
-    if (regionMeshRef.current == null) {
-      return
-    }
-    else if (editState.regionBoundaries.length < 3) {
-      // Not enough points for a triangle
-      return
-    }
-
-    // offset the mesh just a bit from the sphere so that it will sit on top
-    let meshRadius = sphereRadius + 0.01
-    let baseVertices = editState.regionBoundaries.map((boundaryMarker) => [boundaryMarker.x, boundaryMarker.y, boundaryMarker.z])
-    let geometry = generateRegionMesh(baseVertices, meshRadius)
-
-    // wireframe
-    let linePoints = []
-    for (let i = 0; i < geometry.lines.length; i++) {
-      let lineIndicesArr = geometry.lines[i]
-      linePoints.push(geometry.vertices[lineIndicesArr[0]])
-      linePoints.push(geometry.vertices[lineIndicesArr[1]])
-    }
-    // setLinePoints(thing)
-    setLinePoints(linePoints)
-
-    // mesh
-    // Flatten everything into primitive arrays for use with OpenGL buffering
-    let flattenedVertices = geometry.vertices.flat()
-    let flattenedMeshIndices = geometry.triangles.flat()
-    let valuesPerVertex = 3
-    let valuesPerIndex = 1
-    let vertexBuffer = new THREE.Float32BufferAttribute(flattenedVertices, valuesPerVertex)
-    regionMeshRef.current.geometry.setAttribute("position", vertexBuffer)
-    regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedMeshIndices, valuesPerIndex))
-    regionMeshRef.current.geometry.attributes.position.needsUpdate = true
-    regionMeshRef.current.geometry.computeBoundingSphere()
-  }, [editState.regionBoundaries])
-
-  return (
-    <>
-      <mesh ref={regionMeshRef} name={meshNames.Region}>
-        <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} />
-      </mesh>
-      {/* 
-
-      {/* https://github.com/pmndrs/drei?tab=readme-ov-file#line */}
-      <Line segments={true} points={linePoints} lineWidth={4} >
-      </Line>
-    </>
-  )
-}
+import { EditRegionMesh } from "./EditRegionMesh"
 
 // Generate a set of default points in a circle around the origin.
 // Note: Have to do this in 3D space because lat/long get squished near the poles, while 3D 
@@ -128,6 +67,19 @@ export function EditableRegion({ globeInfo }) {
         editStateActions.setRegionBoundaries(regionBoundaries)
       )
 
+      setPrimaryLocationPinReactElement(
+        //{ name, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }
+        <PinMesh
+          key={uuid()}
+          poiId={editState.poiId}
+          pinType={meshNames.PoiPrimaryLocationPin}
+          where={editState.primaryPinPos}
+          globeInfo={globeInfo}
+          colorHex={pinMeshInfo.primaryPinColor}
+          length={pinMeshInfo.length}
+          scale={pinMeshInfo.primaryPinScale}
+          lookAt={globeInfo.pos} />
+      )
       setRegionMeshReactElements(
         <EditRegionMesh key={uuid()} sphereRadius={globeInfo.radius} />
       )
@@ -165,7 +117,7 @@ export function EditableRegion({ globeInfo }) {
         <PinMesh
           key={uuid()}
           poiId={editState.poiId}
-          name={meshNames.RegionBoundaryPin}
+          pinType={meshNames.RegionBoundaryPin}
           where={where}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.regionPinColor}
