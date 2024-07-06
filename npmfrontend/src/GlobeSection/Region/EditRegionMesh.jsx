@@ -116,9 +116,10 @@ class EarClipping {
     // Ear-clipping algorithm
     let startIndex = 0
     while (this.#points.length > 3) {
-      if (this.#points.length == 4) {
-        console.log("thing")
-      }
+      // Debugging what happens when the number of points remaining is (should be) about to leave this loop.
+      // if (this.#points.length == 4) {
+      //   console.log("thing")
+      // }
 
       let index1 = (startIndex + 0) % this.#points.length
       let index2 = (startIndex + 1) % this.#points.length

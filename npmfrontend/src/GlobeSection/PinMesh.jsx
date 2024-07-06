@@ -1,17 +1,25 @@
 import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
-import { createWhereObjFromXYZ } from "./createWhere"
+import { createSpherePointFromXYZ } from "./createWhere"
 import { meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import _ from "lodash"
+import { positionGeometry } from "three/examples/jsm/nodes/Nodes.js"
+
+// TODO: replcae "where" with "spherePoint"
+// TODO: replace "sphereicalPoint" with "spherePoint"
+
 
 export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
-  if (poiId == null) {
-    throw new Error("'id' cannot be null")
+  if (!pinType) {
+    throw new Error(`'${Object.keys({ pinType })}' must be defined`)
   }
-  if (where.id == null) {
-    throw new Error("'where.id' cannot be null")
+  if (!poiId) {
+    throw new Error(`'${Object.keys({ poiId })}' must be defined`)
+  }
+  if (!(where?.id)) {
+    throw new Error(`'${Object.keys({ where })}.id' must be defined`)
   }
 
   const editState = useSelector((state) => state.editPoiReducer)
@@ -144,6 +152,8 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
       return
     }
 
+    console.log("moving")
+
     // Move Pin
     meshRef.current.position.x = newPos.x
     meshRef.current.position.y = newPos.y
@@ -158,15 +168,26 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
     boxMeshRef.current.lookAt(globeInfo.pos)
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-    // Re-create region mesh whenever a boundary pin moves
-    // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
-    if (pinType == meshNames.RegionBoundaryPin) {
-      let updatedWhere = createWhereObjFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo.radius)
-      updatedWhere.id = where.id
+    // Update state
+    let pinLocation = createSpherePointFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo.radius)
+    pinLocation.id = where.id
+
+    if (pinType == meshNames.PrimaryPin) {
       reduxDispatch(
-        editStateActions.updateRegionBoundaryPin(updatedWhere)
+        editStateActions.setPrimaryPin(pinLocation)
       )
     }
+    else if (pinType == meshNames.RegionBoundaryPin) {
+      // Re-create region mesh whenever a boundary pin moves
+      // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
+      reduxDispatch(
+        editStateActions.updateRegionBoundaryPin(pinLocation)
+      )
+    }
+    else {
+      throw new Error(`Unrecognized pin type '${pinType}'`)
+    }
+
   }, [editState.clickAndDrag?.rotorQuaternion])
 
   // Update following click-and-drag

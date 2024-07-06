@@ -98,7 +98,7 @@ export function Scene(
   // doing it every frame just before the raycaster runs. Doing so incurs some annoying searching 
   // and notification, but it's better for performance in the long run (I think).
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.primaryPinPos, regionBoundaries: editState.regionBoundaries })
+    // console.log({ msg: "Scene()/useEffect()/meshes changed", where: editState.primaryPin, regionBoundaries: editState.regionBoundaries })
 
     const meshesArr = []
 

@@ -5,7 +5,8 @@ import { roundFloat } from "../RoundFloat";
 import axios from "axios";
 
 export function DetailsEdit() {
-  const whereLatLongArr = useSelector((state) => state.editPoiReducer.whereLatLongArr)
+  const editState = useSelector((state) => state.editPoiReducer)
+
   const selectedLatLong = useSelector((state) => state.editPoiReducer.selectedLatLong)
   const prevSelectedLatLong = useSelector((state) => state.editPoiReducer.prevSelectedLatLong)
   const reduxDispatch = useDispatch()
@@ -14,35 +15,41 @@ export function DetailsEdit() {
   const latLongHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const latLongHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
-  console.log("DetailsEdit")
-
-  // If source array changes, re-create selectable elements.
+  // Display pin locations.
+  // TODO: Change so that the items are clearly labeled as "primaryPin", "regionPin0", "regionPin1", etc.
   useEffect(() => {
-    // console.log({ "DetailsEdit_useEffect_latLongChanged": whereLatLongArr.length })
+    // console.log({ msg: "DetailsEdit()/useEffect()/pin position changed", primaryPin: editState.primaryPin, regionBoundaries: editState.regionBoundaries })
 
     // Callback
-    const onLatLongClicked = (e, latLongJson) => {
+    const onPinLocationClicked = (e, pin) => {
       // If already selected, de-select.
       // Note: Using bold text as a proxy for "is selected".
       if (e.target.className.includes("font-bold")) {
-        reduxDispatch(editStateActions.setSelectedLatLong(null))
+        reduxDispatch(editStateActions.setSelectedPin(null))
       }
       else {
-        reduxDispatch(editStateActions.setSelectedLatLong(latLongJson.id))
+        reduxDispatch(editStateActions.setSelectedPin(pin))
       }
     }
 
-    let htmlReactElements = whereLatLongArr?.map((latLongJson) => {
-      let roundedLat = roundFloat(latLongJson.lat, 4)
-      let roundedLong = roundFloat(latLongJson.long, 4)
+    // Gather all pin locations together
+    let pinArr = [editState.primaryPin]
+    for (let i = 0; i < editState.regionBoundaries.length; i++) {
+      pinArr.push(editState.regionBoundaries[i])
+    }
+
+    // And make HTML elements out of them
+    let htmlReactElements = editState.regionBoundaries?.map((pin) => {
+      let roundedLat = roundFloat(pin.lat, 4)
+      let roundedLong = roundFloat(pin.long, 4)
       // console.log({ lat: roundedLat, long: roundedLong })
 
       // PARENTHESIS PARENTHESIS PARENTHESIS (not curly braces)
       return (
-        <p id={latLongJson.id}
-          key={latLongJson.id}
+        <p id={pin.id}
+          key={pin.id}
           className={latLongHtmlClassNameNormal}
-          onClick={(e) => onLatLongClicked(e, latLongJson)}
+          onClick={(e) => onPinLocationClicked(e, pin)}
         >
           {`${roundedLat}, ${roundedLong}`}
         </p>
@@ -51,11 +58,11 @@ export function DetailsEdit() {
 
     // Notify this component to re-render with the new values.
     setLatLongReactElements(htmlReactElements)
-  }, [selectedLatLong, whereLatLongArr.length])
+  }, [editState.primaryPin, editState.regionBoundaries])
 
   // If selected latLong changes, change highlight.
   useEffect(() => {
-    console.log({ "DetailsEdit_useEffect_selectedLatLongChanged": selectedLatLong })
+    // console.log({ "DetailsEdit_useEffect_selectedLatLongChanged": selectedLatLong })
 
     if (selectedLatLong) {
       let selectedHtmlElement = document.getElementById(selectedLatLong.id)

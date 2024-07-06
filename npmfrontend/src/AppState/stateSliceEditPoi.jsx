@@ -7,6 +7,8 @@ const initialState = {
 
   poiId: 99,
 
+  image: null,
+
   whereLatLongArr: [],  // TODO: delete
 
   // Format for location and region boundaries:
@@ -18,10 +20,10 @@ const initialState = {
   //    y,
   //    z
   //  }
-  primaryPinPos: null,
+  primaryPin: null,
 
   // Format:
-  //  Same as primaryPinPos.
+  //  Same as primaryPin.
   // Note: _Must_ be an array. Order is important for the "ear clipping" algorithm.
   regionBoundaries: [],
 
@@ -60,8 +62,8 @@ const initialState = {
   //  },
   clickAndDrag: null,
 
-  selectedLatLong: null,  // TODO: delete
-  prevSelectedLatLong: null, // TODO: delete
+  selectedPinId: null,
+  prevSelectPinId: null,
 }
 
 export const stateSliceEditPoi = createSlice({
@@ -89,18 +91,19 @@ export const stateSliceEditPoi = createSlice({
       return initialState
     },
 
-    setPrimaryPinPos: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setPrimaryPinPos", payload: action.payload })
+    setPrimaryPin: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_setPrimaryPin", payload: action.payload })
 
+      let spherePoint = action.payload
       return {
         ...state,
-        primaryPinPos: {
-          id: action.payload.id,
-          lat: action.payload.lat,
-          long: action.payload.long,
-          x: action.payload.x,
-          y: action.payload.y,
-          z: action.payload.z
+        primaryPin: {
+          id: spherePoint.id,
+          lat: spherePoint.lat,
+          long: spherePoint.long,
+          x: spherePoint.x,
+          y: spherePoint.y,
+          z: spherePoint.z
         },
       }
     },
@@ -242,22 +245,18 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setSelectedLatLong: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setSelectedLatLong", payload: action.payload })
+    setSelectedPin: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi_setSelectedPin", payload: action.payload })
 
-      if (action.payload == null) {
-        // Deselect current item.
+      let pin = action.payload
+      if (pin == null) {
+        // Ok. It means "deselect current item".
       }
 
-      // Note: If the payload is a null ID, then the find will fail and newSelectedLatLong will be
-      // null. This is expected. This is one way that the currently selected latLong item is
-      // deselected.
-      let selectedLatLongId = action.payload
-      let newSelectedLatLong = state.whereLatLongArr.find((x) => x.id == selectedLatLongId)
       return {
         ...state,
-        prevSelectedLatLong: state.selectedLatLong,
-        selectedLatLong: newSelectedLatLong
+        selectedPinId: pin.id,
+        prevSelectPinId: state.selectedPinId,
       }
     }
   }

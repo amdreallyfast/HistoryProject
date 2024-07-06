@@ -23,7 +23,7 @@ export const MouseHandler = () => {
     const [lat, long] = ConvertXYZToLatLong(x, y, z, globeInfo.radius)
     let whereObj = { id: uuid(), lat, long, x, y, z }
     reduxDispatch(
-      editStateActions.setPrimaryPinPos(whereObj)
+      editStateActions.setPrimaryPin(whereObj)
     )
   }
 
@@ -86,7 +86,7 @@ export const MouseHandler = () => {
     if (clicked) {
       let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.mesh.name
       let cursorGlobePos = mouseState.cursorRaycastIntersections.globe?.point
-      if (editState.editModeOn && !editState.primaryPinPos && !selectedMeshName && cursorGlobePos) {
+      if (editState.editModeOn && !editState.primaryPin && !selectedMeshName && cursorGlobePos) {
         // Edit mode: No region selected and clicked a blank part of the globe.
         console.log("clicked: create new region")
         createNewRegion(cursorGlobePos, globeInfo)

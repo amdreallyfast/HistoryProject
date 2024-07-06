@@ -7,7 +7,7 @@ import _ from "lodash"
 import { v4 as uuid } from "uuid"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
-import { createWhereObjFromXYZ } from "../createWhere"
+import { createSpherePointFromXYZ } from "../createWhere"
 import { EditRegionMesh } from "./EditRegionMesh"
 
 // Generate a set of default points in a circle around the origin.
@@ -30,7 +30,7 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
   let rotationAxis = (new THREE.Vector3()).subVectors(originCoord, globeInfo.pos).normalize()
   const rotateOffset = (radians) => {
     let rotatedOffsetVector = offsetPoint.clone().applyAxisAngle(rotationAxis, radians)
-    let rotatedPoint = createWhereObjFromXYZ(rotatedOffsetVector.x, rotatedOffsetVector.y, rotatedOffsetVector.z, globeInfo.radius)
+    let rotatedPoint = createSpherePointFromXYZ(rotatedOffsetVector.x, rotatedOffsetVector.y, rotatedOffsetVector.z, globeInfo.radius)
     return rotatedPoint
   }
   for (let radians = 0; radians < (Math.PI * 2); radians += (Math.PI / 4)) {
@@ -52,15 +52,15 @@ export function EditableRegion({ globeInfo }) {
 
   // Create PrimaryPOI pin mesh + (maybe) region pins + region mesh
   useEffect(() => {
-    // console.log({ msg: "EditableRegion()/useEffect()/editState.primaryPinPos", where: editState.primaryPinPos })
+    // console.log({ msg: "EditableRegion()/useEffect()/editState.primaryPin", where: editState.primaryPin })
     if (!editState.editModeOn) {
       return
     }
 
-    if (editState.primaryPinPos) {
+    if (editState.primaryPin) {
       let regionBoundaries = editState.regionBoundaries
       if (regionBoundaries.length == 0) {
-        regionBoundaries = createDefaultRegionBoundaries(editState.primaryPinPos, globeInfo)
+        regionBoundaries = createDefaultRegionBoundaries(editState.primaryPin, globeInfo)
       }
 
       reduxDispatch(
@@ -71,9 +71,9 @@ export function EditableRegion({ globeInfo }) {
         //{ name, poiId, where, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }
         <PinMesh
           key={uuid()}
+          pinType={meshNames.PrimaryPin}
           poiId={editState.poiId}
-          pinType={meshNames.PoiPrimaryLocationPin}
-          where={editState.primaryPinPos}
+          where={editState.primaryPin}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.primaryPinColor}
           length={pinMeshInfo.length}
@@ -87,7 +87,7 @@ export function EditableRegion({ globeInfo }) {
     else {
       setPrimaryLocationPinReactElement(null)
     }
-  }, [editState.primaryPinPos])
+  }, [editState.primaryPin?.id])
 
   // Set flag to alert that the primary POI pin's meshes are present in ThreeJs' scene and need 
   // to be added to the list of things for the raycaster to check against.
@@ -101,7 +101,7 @@ export function EditableRegion({ globeInfo }) {
 
   // Same for region meshes (there are several of them (pins, etc.)).
   useEffect(() => {
-    console.log({ msg: "EditableRegion()/useEffect()/regionMeshesUpdated", pins: regionPinReactElements, mesh: regionMeshReactElements })
+    // console.log({ msg: "EditableRegion()/useEffect()/regionMeshesUpdated", pins: regionPinReactElements, mesh: regionMeshReactElements })
 
     reduxDispatch(
       editStateActions.setUpdatedRegionMeshesInScene()
@@ -116,8 +116,8 @@ export function EditableRegion({ globeInfo }) {
       return (
         <PinMesh
           key={uuid()}
-          poiId={editState.poiId}
           pinType={meshNames.RegionBoundaryPin}
+          poiId={editState.poiId}
           where={where}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.regionPinColor}
