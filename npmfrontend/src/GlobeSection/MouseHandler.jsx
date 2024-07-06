@@ -14,7 +14,7 @@ export const MouseHandler = () => {
   const maxClickTimeMs = 400
   const maxClickCursorMovementPx = 1
 
-  const mouseDownWorldPosNormalizedRef = useRef()
+  const mouseLeftButtonDownWorldPosNormalizedRef = useRef()
 
   const createNewRegion = (globePos, globeInfo) => {
     let x = globePos.x
@@ -29,9 +29,9 @@ export const MouseHandler = () => {
 
   // Mouse down
   useEffect(() => {
-    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseDown", value: mouseState.mouseDown })
+    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.leftMouseDown", value: mouseState.leftMouseDown })
 
-    if (!mouseState.mouseDown) {
+    if (!mouseState.leftMouseDown) {
       return
     }
     // console.log({ intersection: mouseState.cursorRaycastIntersections.firstNonGlobe, globe: mouseState.cursorRaycastIntersections.globe })
@@ -39,7 +39,7 @@ export const MouseHandler = () => {
     // Record mouse down position and any intersections that have already been detected in the scene.
     if (mouseState.cursorRaycastIntersections.firstNonGlobe) {
       let intersection = mouseState.cursorRaycastIntersections.firstNonGlobe
-      mouseDownWorldPosNormalizedRef.current = new THREE.Vector3(
+      mouseLeftButtonDownWorldPosNormalizedRef.current = new THREE.Vector3(
         intersection.point.x,
         intersection.point.y,
         intersection.point.z
@@ -64,24 +64,24 @@ export const MouseHandler = () => {
         }
       }
     }
-  }, [mouseState.mouseDown])
+  }, [mouseState.leftMouseDown])
 
   // Mouse up
   useEffect(() => {
-    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.mouseUp", value: mouseState.mouseUp })
+    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.leftMouseUp", value: mouseState.leftMouseUp })
 
-    if (!mouseState.mouseUp) {
+    if (!mouseState.leftMouseUp) {
       return
     }
 
-    mouseDownWorldPosNormalizedRef.current = null
+    mouseLeftButtonDownWorldPosNormalizedRef.current = null
 
     // Determine if "mouse up" is short enough to be considered a "click" (and what to do if it is).
-    let mouseUp = mouseState.mouseUp
-    let mouseDown = mouseState.mouseDown
-    let timeDiffMs = mouseUp.timeMs - mouseDown.timeMs
-    let xDiff = Math.abs(mouseUp.pos.x - mouseDown.pos.x)
-    let yDiff = Math.abs(mouseUp.pos.y - mouseDown.pos.y)
+    let leftMouseUp = mouseState.leftMouseUp
+    let leftMouseDown = mouseState.leftMouseDown
+    let timeDiffMs = leftMouseUp.timeMs - leftMouseDown.timeMs
+    let xDiff = Math.abs(leftMouseUp.pos.x - leftMouseDown.pos.x)
+    let yDiff = Math.abs(leftMouseUp.pos.y - leftMouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
       let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.mesh.name
@@ -105,9 +105,9 @@ export const MouseHandler = () => {
 
     // Reset mouse click.
     reduxDispatch(
-      mouseStateActions.resetMouseUpDown()
+      mouseStateActions.resetLeftMouseUpDown()
     )
-  }, [mouseState.mouseUp])
+  }, [mouseState.leftMouseUp])
 
   // Mouse move
   useEffect(() => {
@@ -115,11 +115,11 @@ export const MouseHandler = () => {
 
     let currTimeMs = (new Date()).getTime()
     let clickAndDrag = editState.editModeOn &&         // edit mode
-      mouseDownWorldPosNormalizedRef.current &&        // implicitly clicked on a mesh
+      mouseLeftButtonDownWorldPosNormalizedRef.current &&        // implicitly clicked on a mesh
       mouseState.cursorRaycastIntersections.globe &&   // mouse is over the globe
       currTimeMs > maxClickTimeMs  // clicked long enough to not be mistaken for a regular click
     if (clickAndDrag) {
-      let vFrom = mouseDownWorldPosNormalizedRef.current
+      let vFrom = mouseLeftButtonDownWorldPosNormalizedRef.current
       let currWorldPos = mouseState.cursorRaycastIntersections.globe.point
       let vTo = new THREE.Vector3(
         currWorldPos.x,

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { createSpherePointFromXYZ } from "./createWhere"
@@ -6,6 +6,7 @@ import { meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import _ from "lodash"
 import { positionGeometry } from "three/examples/jsm/nodes/Nodes.js"
+import { v4 as uuid } from "uuid"
 
 // TODO: replcae "where" with "spherePoint"
 // TODO: replace "sphereicalPoint" with "spherePoint"
@@ -152,8 +153,6 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
       return
     }
 
-    console.log("moving")
-
     // Move Pin
     meshRef.current.position.x = newPos.x
     meshRef.current.position.y = newPos.y
@@ -192,18 +191,18 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
 
   // Update following click-and-drag
   useEffect(() => {
-    if (!mouseState.mouseUp) {
+    if (!mouseState.leftMouseUp) {
       return
     }
 
     if (!preMovePos.current.equals(meshRef.current.position)) {
       // Record updated position
-      // Note: The mesh position was already been updated in real time. We just need to update 
+      // Note: The mesh position has already been updated in real time. We just need to update 
       // this position reference for the next click-and-drag.
       preMovePos.current = meshRef.current.position.clone()
     }
 
-  }, [mouseState.mouseUp])
+  }, [mouseState.leftMouseUp])
 
   return (
     <>
@@ -216,3 +215,4 @@ export function PinMesh({ pinType, poiId, where, globeInfo, colorHex, length = 3
     </>
   )
 }
+

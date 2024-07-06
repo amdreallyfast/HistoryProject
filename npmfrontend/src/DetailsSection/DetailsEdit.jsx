@@ -43,7 +43,6 @@ export function DetailsEdit() {
 
     // And make HTML elements out of them
     let htmlReactElements = pinArr.map((pin) => {
-      console.log(pin)
       let roundedLat = roundFloat(pin.lat, 4)
       let roundedLong = roundFloat(pin.long, 4)
       // console.log({ lat: roundedLat, long: roundedLong })

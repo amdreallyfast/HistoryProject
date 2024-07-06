@@ -18,8 +18,10 @@ const initialState = {
   //    },
   //    timeMs: null
   //  }
-  mouseDown: null,
-  mouseUp: null,
+  leftMouseDown: null,
+  leftMouseUp: null,
+  rightMouseDown: null,
+  leftMouseDown: null,
 
   // via ThreeJs raycasting
   // Note: An object with functions cannot be stored as state. Need to extract the values manually
@@ -65,32 +67,56 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    setMouseIsDown: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setMouseIsDown", value: action.payload })
+    setLeftMouseIsDown: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setLeftMouseIsDown", value: action.payload })
 
       return {
         ...state,
-        mouseDown: {
+        leftMouseDown: {
           timeMs: action.payload.timeMs,
           pos: action.payload.pos
         }
       }
     },
 
-    setMouseIsUp: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setMouseIsUp", value: action.payload })
+    setLeftMouseIsUp: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setLeftMouseIsUp", value: action.payload })
 
       return {
         ...state,
-        mouseUp: {
+        leftMouseUp: {
           timeMs: action.payload.timeMs,
           pos: action.payload.pos
         }
       }
     },
 
-    resetMouseUpDown: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_resetMouseUpDown", value: action.payload })
+    setRightMouseIsDown: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setRightMouseIsDown", value: action.payload })
+
+      return {
+        ...state,
+        rightMouseDown: {
+          timeMs: action.payload.timeMs,
+          pos: action.payload.pos
+        }
+      }
+    },
+
+    setRightMouseIsUp: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_setRightMouseIsUp", value: action.payload })
+
+      return {
+        ...state,
+        rightMouseUp: {
+          timeMs: action.payload.timeMs,
+          pos: action.payload.pos
+        }
+      }
+    },
+
+    resetLeftMouseUpDown: (state, action) => {
+      // console.log({ msg: "stateSliceMouseInfo_resetLeftMouseUpDown", value: action.payload })
 
       return {
         ...state,

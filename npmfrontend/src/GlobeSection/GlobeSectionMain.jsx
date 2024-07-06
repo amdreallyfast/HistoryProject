@@ -74,30 +74,58 @@ export function GlobeSectionMain() {
     // console.log({ "onCanvasMouseDown": e })
 
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
-    reduxDispatch(
-      mouseStateActions.setMouseIsDown({
-        timeMs: (new Date()).getTime(),
-        pos: {
-          x: normalized.x,
-          y: normalized.y
-        }
-      })
-    )
+    let metadata = {
+      timeMs: (new Date()).getTime(),
+      pos: {
+        x: normalized.x,
+        y: normalized.y
+      }
+    }
+
+    if (e.button == 0) {
+      // Left mouse button
+      reduxDispatch(
+        mouseStateActions.setLeftMouseIsDown(metadata)
+      )
+    }
+    else if (e.button == 1) {
+      // Right mouse button
+      reduxDispatch(
+        mouseStateActions.setRightMouseIsDown(metadata)
+      )
+    }
+    else {
+      // ignore other buttons
+    }
   }
 
   function onCanvasMouseUp(e) {
     // console.log({ "onCanvasMouseUp": e })
 
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
-    reduxDispatch(
-      mouseStateActions.setMouseIsUp({
-        timeMs: (new Date()).getTime(),
-        pos: {
-          x: normalized.x,
-          y: normalized.y
-        }
-      })
-    )
+    let metadata = {
+      timeMs: (new Date()).getTime(),
+      pos: {
+        x: normalized.x,
+        y: normalized.y
+      }
+    }
+
+    if (e.button == 0) {
+      // Left mouse button
+      reduxDispatch(
+        mouseStateActions.setLeftMouseIsUp(metadata)
+      )
+    }
+    else if (e.button == 1) {
+      // Right mouse button
+      reduxDispatch(
+        mouseStateActions.setRightMouseIsUp(metadata)
+      )
+    }
+    else {
+      // ignore other buttons
+    }
   }
 
   function onCanvasKeyDown(e) {
