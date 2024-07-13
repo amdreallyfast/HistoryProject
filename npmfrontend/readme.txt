@@ -22,7 +22,7 @@
                                                           #   Note: https://github.com/mapbox/delaunator
     npm install --save d3                                 # ??https://d3js.org/getting-started
     npm install --save axios                              # For easier handling of REST requests
-
+    
     Redux Toolkit
       Start management.
       npm install --save react-redux @reduxjs/toolkit
