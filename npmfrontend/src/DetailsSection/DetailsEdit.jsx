@@ -4,6 +4,9 @@ import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
 import axios from "axios";
 
+// TODO: move the latlong display into its own object
+// TODO: move the image handling + display into its own object
+
 export function DetailsEdit() {
   const editState = useSelector((state) => state.editPoiReducer)
   const selectedLatLong = useSelector((state) => state.editPoiReducer.selectedLatLong)
@@ -89,24 +92,24 @@ export function DetailsEdit() {
   }
 
   const imageUpload = (e) => {
-    console.log({ "read image file": e })
+    // console.log({ "read image file": e })
+    if (!e?.target?.files || e.target.files.length == 0) {
+      throw Error("Function 'imageUpload' called without target files. Check that you called it _after_ the user selected a file to upload.")
+    }
+
+    let file = e.target.files[0]  // Only loading 1 file.
     const reader = new FileReader()
-    console.log({ "Reader": reader })
-
     reader.onload = () => {
-      console.log("loading...")
-      console.log({
-        file: e.target.files[0],
-        src: reader.result
-      })
-      console.log("image upload done")
-    }
-    reader.onloadend = () => {
-      console.log("load end")
+      let payload = {
+        filename: file.name,
+        dataUrl: reader.result
+      }
+      reduxDispatch(
+        editStateActions.setImageDataUrl(payload)
+      )
     }
 
-    reader.readAsDataURL(e.target.files[0])
-    console.log("load now?")
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -115,11 +118,16 @@ export function DetailsEdit() {
         Titleahdlfhlaskh
       </span>
 
-      <div className="items-start flex mt-auto">
-        {/* <Button variant="primary" onClick={(e) => console.log("clicked me")}>Upload image</Button> */}
-        {/* <input className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" type="file" onClick={(e) => imageUpload(e)} /> */}
-        {/* <input className="m-2" type="file" onClick={(e) => console.log({ "on click": e })} onInput={(e) => console.log({ "on input": e })} accept="image/png, image/jpeg" /> */}
-        <input className="m-2" type="file" onInput={(e) => imageUpload(e)} accept="image/png, image/jpeg" />
+      <div>
+        {editState.imageDataUrl ?
+          <img style={{ "maxWidth": "100%", "maxHeight": "200px", display: "block", margin: "auto" }} src={editState.imageDataUrl} alt="ERROR: Bad dataUrl." />
+          :
+          <span>No image</span>
+        }
+        <div className="items-start flex mt-auto">
+          {/* To load multiple, add the "multiple" field. */}
+          <input className="m-2" type="file" onInput={(e) => imageUpload(e)} accept="image/png, image/jpeg" />
+        </div>
       </div>
 
       <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">

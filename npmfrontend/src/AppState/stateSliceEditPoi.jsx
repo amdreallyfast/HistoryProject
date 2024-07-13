@@ -7,7 +7,7 @@ const initialState = {
 
   poiId: 99,
 
-  image: null,
+  imageDataUrl: null,
 
   // Format for location and region boundaries:
   //  {
@@ -78,8 +78,10 @@ export const stateSliceEditPoi = createSlice({
 
     startEditMode: (state, action) => {
       // console.log("stateSliceEditPoi_startEditMode")
+
+      // let poiId = action.payload.poiId
       return {
-        ...state,
+        ...initialState,
         editModeOn: true
       }
     },
@@ -87,6 +89,17 @@ export const stateSliceEditPoi = createSlice({
     endEditMode: (state, action) => {
       // console.log("stateSliceEditPoi_endEditMode")
       return initialState
+    },
+
+    setImageDataUrl: (state, action) => {
+      console.log({ "stateSliceEditPoi_setImageDataUrl": action.payload })
+
+      let filename = action.payload.filename
+      let dataUrl = action.payload.dataUrl
+      return {
+        ...state,
+        imageDataUrl: dataUrl
+      }
     },
 
     setPrimaryPin: (state, action) => {
