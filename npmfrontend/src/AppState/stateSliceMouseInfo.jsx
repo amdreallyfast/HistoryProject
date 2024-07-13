@@ -18,7 +18,7 @@ const initialState = {
   //    },
   //    timeMs: null
   //  }
-  leftMouseDown: null,
+  rightMouseUp: null,
   leftMouseUp: null,
   rightMouseDown: null,
   leftMouseDown: null,
