@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
 import axios from "axios";
-import { Button, Modal } from "react-bootstrap";
+// import { Button, Modal } from "react-bootstrap";
+
 
 export function DetailsEdit() {
   const editState = useSelector((state) => state.editPoiReducer)
@@ -89,69 +90,90 @@ export function DetailsEdit() {
     axios.get("https://localhost:7121/api/HistoricalEvent/GetFirst100")
   }
 
-  // TODO: ??break out into its own jsx file??
-  const imageHtml = () => {
-    console.log({ "model is on:": selectImageModelVisible })
+  // // TODO: ??break out into its own jsx file??
+  // const imageHtml = () => {
+  //   console.log({ "model is on:": selectImageModelVisible })
 
-    const SelectImageModal = () => {
-      const imageUpload = (e) => {
-        console.log("read image file")
-        const reader = new FileReader()
+  //   const SelectImageModal = () => {
+  //     const imageUpload = (e) => {
+  //       console.log("read image file")
+  //       const reader = new FileReader()
 
-        reader.addEventListener("load", () => {
-          console.log("loading...")
-          console.log({
-            file: e.target.files[0],
-            src: reader.result
-          })
-          console.log("image upload done")
-        })
+  //       reader.addEventListener("load", () => {
+  //         console.log("loading...")
+  //         console.log({
+  //           file: e.target.files[0],
+  //           src: reader.result
+  //         })
+  //         console.log("image upload done")
+  //       })
 
-        reader.readAsDataURL(e.target.files[0])
-      }
+  //       reader.readAsDataURL(e.target.files[0])
+  //     }
 
-      const cancel = () => {
-        console.log("cancel")
-        setSelectImageModelVisible(false)
-      }
+  //     const cancel = () => {
+  //       console.log("cancel")
+  //       setSelectImageModelVisible(false)
+  //     }
 
-      const submit = () => {
-        console.log("submit")
-        setSelectImageModelVisible(false)
-      }
+  //     const submit = () => {
+  //       console.log("submit")
+  //       setSelectImageModelVisible(false)
+  //     }
 
-      return (
-        <Modal show={selectImageModelVisible} onHide={cancel}>
-          <Modal.Header closeButton>
-            <Modal.Title>
-              Select image
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div>
-              display uploaded image here
-            </div>
-            <div>
-              <input className="m-2" type="file" onChange={imageUpload} />
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={cancel}>Cancel</Button>
-            {imageData === "" ?
-              <Button variant="primary" disabled>Submit</Button>
-              :
-              <Button variant="primary" onClick={submit}>Submit</Button>
-            }
-          </Modal.Footer>
-        </Modal>
-      )
+  //     return (
+  //       <Modal show={selectImageModelVisible} onHide={cancel}>
+  //         <Modal.Header closeButton>
+  //           <Modal.Title>
+  //             Select image
+  //           </Modal.Title>
+  //         </Modal.Header>
+  //         <Modal.Body>
+  //           <div>
+  //             display uploaded image here
+  //           </div>
+  //           <div>
+  //             <input className="m-2" type="file" onChange={imageUpload} />
+  //           </div>
+  //         </Modal.Body>
+  //         <Modal.Footer>
+  //           <Button variant="secondary" onClick={cancel}>Cancel</Button>
+  //           {imageData === "" ?
+  //             <Button variant="primary" disabled>Submit</Button>
+  //             :
+  //             <Button variant="primary" onClick={submit}>Submit</Button>
+  //           }
+  //         </Modal.Footer>
+  //       </Modal>
+  //     )
+  //   }
+
+  //   return (
+  //     <div>
+  //       <SelectImageModal />
+  //     </div>
+  //   )
+  // }
+
+  const imageUpload = (e) => {
+    console.log({ "read image file": e })
+    const reader = new FileReader()
+    console.log({ "Reader": reader })
+
+    reader.onload = () => {
+      console.log("loading...")
+      console.log({
+        file: e.target.files[0],
+        src: reader.result
+      })
+      console.log("image upload done")
+    }
+    reader.onloadend = () => {
+      console.log("load end")
     }
 
-    return (
-      <div>
-        <SelectImageModal />
-      </div>
-    )
+    reader.readAsDataURL(e.target.files[0])
+    console.log("load now?")
   }
 
   return (
@@ -160,8 +182,11 @@ export function DetailsEdit() {
         Titleahdlfhlaskh
       </span>
 
-      <div>
-        <Button variant="primary" onClick={console.log("clicked me")}>Upload image</Button>
+      <div className="items-start flex mt-auto">
+        {/* <Button variant="primary" onClick={(e) => console.log("clicked me")}>Upload image</Button> */}
+        {/* <input className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" type="file" onClick={(e) => imageUpload(e)} /> */}
+        {/* <input className="m-2" type="file" onClick={(e) => console.log({ "on click": e })} onInput={(e) => console.log({ "on input": e })} accept="image/png, image/jpeg" /> */}
+        <input className="m-2" type="file" onInput={(e) => imageUpload(e)} accept="image/png, image/jpeg" />
       </div>
 
       <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">
