@@ -44,7 +44,7 @@ const initialState = {
   //      uuid: <guid>,
   //      userData: {
   //        poiId: <poiId>,
-  //        whereId: <whereId>
+  //        locationId: <spherePoint.Id>
   //      }
   //    },
   //
@@ -136,19 +136,11 @@ export const stateSliceEditPoi = createSlice({
     updateRegionBoundaryPin: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_updateRegionBoundaryPin", payload: action.payload })
 
-      // Expected payload:
-      //  {
-      //    id,
-      //    lat,
-      //    long,
-      //    x,
-      //    y,
-      //    z
-      //  }
-      let updatedWhere = action.payload
+      // Expected format: See comment block on field.
+      let updatedLocation = action.payload
       let updatedBoundaries = state.regionBoundaries.map((boundaryMarker, index) => {
-        if (boundaryMarker.id == updatedWhere.id) {
-          return updatedWhere
+        if (boundaryMarker.id == updatedLocation.id) {
+          return updatedLocation
         }
         else {
           // Don't change the others
@@ -165,20 +157,7 @@ export const stateSliceEditPoi = createSlice({
     enableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditPoi_startClickAndDrag", payload: action.payload })
 
-      // Expected payload:
-      //  {
-      //    enabled: false,
-      //    mesh: {
-      //      name: name,
-      //      uuid: guid,
-      //      userData: {
-      //        poiId: poiId,
-      //        whereId: whereId
-      //      }
-      //    },
-      //    initialOffsetQuaternion: { w, x, y, z },
-      //    rotorQuaternion: { w, x, y, z }
-      //  },
+      // Expected format: See comment block on field.
       return {
         ...state,
         clickAndDrag: {
