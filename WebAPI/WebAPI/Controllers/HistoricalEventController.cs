@@ -94,20 +94,21 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetFirst100()
         {
-            var things = await dbContext.Events.Take(1).ToListAsync();
+            //var things = await dbContext.Events.Take(1).ToListAsync();
 
-            var first100Events = await dbContext.Events
-                .Take(100)
-                .Include(x => x.Tags)
-                .Include(x => x.EventImage)
-                .Include(x => x.SpecificLocation)
-                .Include(x => x.Region)
-                .Include(x => x.Sources)
-                    .ThenInclude(source => source.Authors)
-                .ToListAsync();
+            //var first100Events = await dbContext.Events
+            //    .Take(100)
+            //    .Include(x => x.Tags)
+            //    .Include(x => x.EventImage)
+            //    .Include(x => x.SpecificLocation)
+            //    .Include(x => x.Region)
+            //    .Include(x => x.Sources)
+            //        .ThenInclude(source => source.Authors)
+            //    .ToListAsync();
 
             //List<EventDto> dtos = first100Events.Select(x => x.ToDto()).ToList();
-            return Ok(first100Events);
+            //return Ok(first100Events);
+            return Ok("hi there and things");
         }
 
         [Route("GetEventOfTheDay")]
@@ -146,6 +147,14 @@ namespace WebAPI.Controllers
         // TODO: CreateNewWithPredecessor/{eventId}
         // TODO: CreateNewRevision/{eventId}
         //https://stackoverflow.com/questions/39121358/route-with-multiple-ids-laravel
+
+        [Route("Create2")]
+        [HttpPost]
+        public async Task<ActionResult<string>> Create(IDictionary<string, string> d)
+        {
+            return Ok("things");
+        }
+
 
         [Route("Create")]
         [HttpPost]

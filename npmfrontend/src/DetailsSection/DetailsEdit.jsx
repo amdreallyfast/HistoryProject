@@ -88,7 +88,20 @@ export function DetailsEdit() {
   const onSubmitClick = (e) => {
     console.log("onSubmitClick")
     // reduxDispatch(editStateActions.endEditMode())
-    axios.get("https://localhost:7121/api/HistoricalEvent/GetFirst100")
+    let data = {
+      poiId: editState.poiId,
+      imageDataUrl: editState.imageDataUrl
+    }
+    axios.post("https://localhost:7121/api/HistoricalEvent/Create2", data)
+      .then((response) => {
+        console.log({ response })
+      })
+      .catch((error) => {
+        console.error({ msg: "oh no!", error })
+      })
+      .finally(() => {
+        console.log("finally")
+      })
   }
 
   const imageUpload = (e) => {
