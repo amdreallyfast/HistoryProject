@@ -68,7 +68,12 @@ export const MouseHandler = () => {
   useEffect(() => {
     // console.log({ msg: "MouseHandler()/useEffect()/mouseState.leftMouseUp", value: mouseState.leftMouseUp })
 
-    if (!mouseState.leftMouseUp) {
+    if (!mouseState.leftMouseUp || !mouseState.leftMouseDown) {
+      // Watch for mouse up without a mouse down.
+      // Corner case: If you start the program and immediately try to load an image by 
+      // double-clicking in the "browse" dialog, the selection will register on the second mouse 
+      // down (not up), and then the mouse up is caught by the program, triggering this 
+      // useEffect(...) without a corresponding mouse down.
       return
     }
 
