@@ -35,7 +35,7 @@ const initialState = {
   //      name: <name>,
   //      uuid: <guid>,
   //      userData: {            // Only applies to region pins and primary POI pins
-  //        poiId: <poiId>,
+  //        eventId: <eventId>,
   //        locationId: <spherePoint.Id>
   //      }
   //    }
