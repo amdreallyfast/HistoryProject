@@ -121,46 +121,18 @@ export function DetailsEdit() {
 
     let tagValue = tagsInputRef?.current.value
     if (e.code == "Tab" && tagValue) {
+      // Take unique combination.
+      // Note: Make a copy before working with the existing state.
       let tags = []
       for (let i = 0; i < editState.tags?.length; i++) {
         tags.push(editState.tags[i])
       }
       tags.push(tagValue)
-      // tags.sort()
-
-      let thing = [...new Set(tags)]
-      thing.sort()
-
-      // let thing = tagReactElements ? tagReactElements.map((t) => t.props.children) : []
-      // thing.push(tagValue)
-      // thing.sort()
+      tags = [...new Set(tags)]
+      tags.sort()
       reduxDispatch(
-        editStateActions.setTags(thing)
+        editStateActions.setTags(tags)
       )
-
-      // let tagDict = {}
-      // for (let i = 0; i < tagReactElements?.length; i++) {
-      //   let reactElement = tagReactElements[i]
-      //   let paragraphValue = reactElement.props.children
-      //   tagDict[paragraphValue] = reactElement
-      // }
-      // tagDict[tagValue] = (
-      //   <p className="m-1 border-2 border-gray-600" key={tagValue}>{tagValue}</p>
-      // )
-
-      // let sortedTags = Object.keys(tagDict).sort()
-      // reduxDispatch(
-      //   editStateActions.setTags(sortedTags)
-      // )
-
-      // let newTagReactElements = []
-      // for (let i = 0; i < sortedTags.length; i++) {
-      //   newTagReactElements.push(tagDict[sortedTags[i]])
-      // }
-
-      // setTagReactElements(newTagReactElements)
-      // tagsInputRef.current.value = null
-
       // // Don't tab away from the input if the user just entered a valid tag. Often, a single tag is not alone and the user wants to enter multiple in a row (??avoid this non-standard behavior??)
       // e.preventDefault()
 
