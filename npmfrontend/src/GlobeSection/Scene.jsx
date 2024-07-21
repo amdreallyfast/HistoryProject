@@ -23,7 +23,7 @@ const parseIntersectionForState = (intersection) => {
       name: intersection.object.name,
       uuid: intersection.object.uuid,
       userData: {
-        poi: intersection.object.userData?.poiId,
+        poi: intersection.object.userData?.eventId,
         locationId: intersection.object.userData?.locationId,
       }
     }
@@ -59,7 +59,7 @@ export function Scene(
     let poiInfo = []
     poiState.allPois?.forEach((poi) => {
       // skip any item being edited
-      if (poi.id != editState.poiId) {
+      if (poi.id != editState.eventId) {
         poiInfo.push({
           id: poi.id,
           location: poi.location
@@ -70,7 +70,7 @@ export function Scene(
     setPoiReactElements(
       poiInfo.map((info, index) => {
         return (
-          <ShowRegion poiId={null} lat={info.location.lat} long={info.location.long} globePos={globeInfo.pos} />
+          <ShowRegion eventId={null} lat={info.location.lat} long={info.location.long} globePos={globeInfo.pos} />
         )
       })
     )

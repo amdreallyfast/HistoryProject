@@ -6,12 +6,12 @@ import { meshNames } from "./constValues"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import _ from "lodash"
 
-export function PinMesh({ pinType, poiId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (!pinType) {
     throw new Error(`'${Object.keys({ pinType })}' must be defined`)
   }
-  if (!poiId) {
-    throw new Error(`'${Object.keys({ poiId })}' must be defined`)
+  if (!eventId) {
+    throw new Error(`'${Object.keys({ eventId })}' must be defined`)
   }
   if (!(spherePoint?.id)) {
     throw new Error(`'${Object.keys({ spherePoint })}.id' must be defined`)
@@ -121,7 +121,7 @@ export function PinMesh({ pinType, poiId, spherePoint, globeInfo, colorHex, leng
 
     preMovePos.current = meshRef.current.position.clone()
 
-    boxMeshRef.current.userData.poiId = poiId
+    boxMeshRef.current.userData.eventId = eventId
     boxMeshRef.current.userData.locationId = spherePoint.id
   }, [meshRef.current, boxMeshRef.current])
 

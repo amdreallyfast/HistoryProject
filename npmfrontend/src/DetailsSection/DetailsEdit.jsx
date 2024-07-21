@@ -89,7 +89,7 @@ export function DetailsEdit() {
     console.log("onSubmitClick")
     // reduxDispatch(editStateActions.endEditMode())
     let data = {
-      poiId: editState.poiId,
+      eventId: editState.eventId,
       imageDataUrl: editState.imageDataUrl
     }
     axios.post("https://localhost:7121/api/HistoricalEvent/Create2", data)

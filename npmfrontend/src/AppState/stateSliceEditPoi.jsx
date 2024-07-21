@@ -5,7 +5,7 @@ const initialState = {
   // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
   editModeOn: true,
 
-  poiId: 99,
+  eventId: 99,
 
   imageDataUrl: null,
 
@@ -43,7 +43,7 @@ const initialState = {
   //      name: <name>,
   //      uuid: <guid>,
   //      userData: {
-  //        poiId: <poiId>,
+  //        eventId: <eventId>,
   //        locationId: <spherePoint.Id>
   //      }
   //    },
@@ -79,7 +79,7 @@ export const stateSliceEditPoi = createSlice({
     startEditMode: (state, action) => {
       // console.log("stateSliceEditPoi_startEditMode")
 
-      // let poiId = action.payload.poiId
+      // let eventId = action.payload.eventId
       return {
         ...initialState,
         editModeOn: true

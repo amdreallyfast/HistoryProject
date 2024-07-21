@@ -71,7 +71,7 @@ export function EditableRegion({ globeInfo }) {
         <PinMesh
           key={uuid()}
           pinType={meshNames.PrimaryPin}
-          poiId={editState.poiId}
+          eventId={editState.eventId}
           spherePoint={editState.primaryPin}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.primaryPinColor}
@@ -116,7 +116,7 @@ export function EditableRegion({ globeInfo }) {
         <PinMesh
           key={uuid()}
           pinType={meshNames.RegionBoundaryPin}
-          poiId={editState.poiId}
+          eventId={editState.eventId}
           spherePoint={spherePoint}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.regionPinColor}

@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { createSpherePointFromLatLong } from "../createSpherePoint"
 
 
-export function DisplayOnlyRegion({ poiId, lat, long, globeInfo }) {
+export function DisplayOnlyRegion({ eventId, lat, long, globeInfo }) {
   // TODO:
   //  once I have an array of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
 
