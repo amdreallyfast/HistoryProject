@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
@@ -16,6 +16,11 @@ export function DetailsEdit() {
   const [latLongReactElements, setLatLongReactElements] = useState()
   const latLongHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const latLongHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
+
+  const tagsInputRef = useRef()
+  // const [tagInProgress, setTagInProgress] = useState()
+  const [tagReactElements, setTagReactElements] = useState()
+
 
   const [selectImageModelVisible, setSelectImageModelVisible] = useState(false)
   const [imageData, setImageDate] = useState()
@@ -85,23 +90,8 @@ export function DetailsEdit() {
     }
   }, [selectedLatLong, prevSelectedLatLong])
 
-  const onSubmitClick = (e) => {
-    console.log("onSubmitClick")
-    // reduxDispatch(editStateActions.endEditMode())
-    let data = {
-      eventId: editState.eventId,
-      imageDataUrl: editState.imageDataUrl
-    }
-    axios.post("https://localhost:7121/api/HistoricalEvent/Create2", data)
-      .then((response) => {
-        console.log({ response })
-      })
-      .catch((error) => {
-        console.error({ msg: "oh no!", error })
-      })
-      .finally(() => {
-        console.log("finally")
-      })
+  const titleChanged = (e) => {
+    console.log({ "title": e.target.value })
   }
 
   const imageUpload = (e) => {
@@ -125,12 +115,97 @@ export function DetailsEdit() {
     reader.readAsDataURL(file)
   }
 
+  // Tab complete for tags
+  const tagTextCapture = (e) => {
+    // console.log({ "tagTextCapture": e })
+
+    let tagValue = tagsInputRef?.current.value
+    if (e.code == "Tab" && tagValue) {
+      let tags = []
+      for (let i = 0; i < editState.tags?.length; i++) {
+        tags.push(editState.tags[i])
+      }
+      tags.push(tagValue)
+      // tags.sort()
+
+      let thing = [...new Set(tags)]
+      thing.sort()
+
+      // let thing = tagReactElements ? tagReactElements.map((t) => t.props.children) : []
+      // thing.push(tagValue)
+      // thing.sort()
+      reduxDispatch(
+        editStateActions.setTags(thing)
+      )
+
+      // let tagDict = {}
+      // for (let i = 0; i < tagReactElements?.length; i++) {
+      //   let reactElement = tagReactElements[i]
+      //   let paragraphValue = reactElement.props.children
+      //   tagDict[paragraphValue] = reactElement
+      // }
+      // tagDict[tagValue] = (
+      //   <p className="m-1 border-2 border-gray-600" key={tagValue}>{tagValue}</p>
+      // )
+
+      // let sortedTags = Object.keys(tagDict).sort()
+      // reduxDispatch(
+      //   editStateActions.setTags(sortedTags)
+      // )
+
+      // let newTagReactElements = []
+      // for (let i = 0; i < sortedTags.length; i++) {
+      //   newTagReactElements.push(tagDict[sortedTags[i]])
+      // }
+
+      // setTagReactElements(newTagReactElements)
+      // tagsInputRef.current.value = null
+
+      // // Don't tab away from the input if the user just entered a valid tag. Often, a single tag is not alone and the user wants to enter multiple in a row (??avoid this non-standard behavior??)
+      // e.preventDefault()
+
+      e.target.value = null
+    }
+  }
+
+  useEffect(() => {
+    console.log({ "new tag react elements": editState.tags })
+
+    let newTagReactElements = editState.tags?.map((t) => (
+      <p className="m-1 border-2 border-gray-600" key={t}>{t}</p>
+    ))
+    setTagReactElements(newTagReactElements)
+  }, [editState.tags])
+
+
+  const onSubmitClick = (e) => {
+    console.log("onSubmitClick")
+    // reduxDispatch(editStateActions.endEditMode())
+    let data = {
+      eventId: editState.eventId,
+      imageDataUrl: editState.imageDataUrl
+    }
+    axios.post("https://localhost:7121/api/HistoricalEvent/Create2", data)
+      .then((response) => {
+        console.log({ response })
+      })
+      .catch((error) => {
+        console.error({ msg: "oh no!", error })
+      })
+      .finally(() => {
+        console.log("finally")
+      })
+  }
+
   return (
     <div className="flex flex-col h-full">
-      <span className="border-2 border-gray-600 bg-gray-400 m-1">
-        Titleahdlfhlaskh
-      </span>
+      {/* Title */}
+      <input className="m-2 text-black text-left" type="text" maxLength={128} onChange={(e) => titleChanged(e)} placeholder="Title" />
 
+      {/* Revision author fixed by whoever is logged in */}
+      <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
+
+      {/* Image */}
       <div>
         {editState.imageDataUrl ?
           <img style={{ "maxWidth": "100%", "maxHeight": "200px", display: "block", margin: "auto" }} src={editState.imageDataUrl} alt="ERROR: Bad dataUrl." />
@@ -143,6 +218,13 @@ export function DetailsEdit() {
         </div>
       </div>
 
+      {/* Tags */}
+      <div className="flex flex-row items-start border-2 border-gray-600 m-1 overflow-auto flex-wrap">
+        {tagReactElements}
+        <input ref={tagsInputRef} id="tagsInput" className="m-2 text-black text-left" type="text" placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
+      </div>
+
+      {/* Lat-Long react elements */}
       <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">
         {latLongReactElements}
       </div>

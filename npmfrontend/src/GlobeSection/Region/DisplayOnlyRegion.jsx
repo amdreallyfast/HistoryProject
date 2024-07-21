@@ -18,6 +18,10 @@ export function DisplayOnlyRegion({ eventId, lat, long, globeInfo }) {
 
   return (
     <>
+      <span className="border-2 border-gray-600 bg-gray-400 m-1">
+        Titleahdlfhlaskh
+      </span>
+
       <PinMesh
         pinType={meshNames.PoiPrimaryLocationPin}
         spherePoint={location}

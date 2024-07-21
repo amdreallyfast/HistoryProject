@@ -27,14 +27,14 @@ namespace WebAPI.Models
         [Required, MaxLength(64)]
         public string RevisionAuthor { get; set; } = default!;
 
-        [Required]
-        public List<Tag> Tags { get; set; } = default!;
-
         [Required, MaxLength(128)]
         public string Title { get; set; } = default!;
 
         [Required]
         public EventImage? EventImage { get; set; }
+
+        [Required]
+        public List<Tag> Tags { get; set; } = default!;
 
         [Required, MaxLength(2048)]
         public string Summary { get; set; } = default!;

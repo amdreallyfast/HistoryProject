@@ -6,8 +6,10 @@ const initialState = {
   editModeOn: true,
 
   eventId: 99,
-
+  revisionAuthor: "TestingAuthor",
+  title: null,
   imageDataUrl: null,
+  tags: [],
 
   // Format for location and region boundaries:
   //  {
@@ -32,7 +34,7 @@ const initialState = {
   updatedRegionMeshesInScene: 0,
 
   // For use during clicking and dragging a single point or the entire region.
-  // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the fireld "Id" as an 
+  // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the field "Id" as an 
   // integer for some kind of counting, and it uses "uuid" for the global ID. I don't know why.
   // Format:
   //  {
@@ -48,10 +50,10 @@ const initialState = {
   //      }
   //    },
   //
-  //    // Fixed for duration of click-and-drag.
+  //    // Fixed for duration of click-and-drag. Prevents click-and-drag from snapping the mesh's 
+  //    // origin to the cursor the moment the cursor moves a single pixel.
   //    // Note: Covers difference betwwen the 3D point where the raycast intersected a mesh and 
-  //    // where the rayast intersected the globe underneath. Used to prevent click-and-drag from 
-  //    // snapping the mesh's origin to the cursor the moment the cursor moves a single pixel.
+  //    // where the rayast intersected the globe underneath. 
   //    initialOffsetQuaternion: { w, x, y, z },
   //
   //    // Continuously updated. Represents the movement of a mesh from its starting position to 
@@ -69,7 +71,7 @@ export const stateSliceEditPoi = createSlice({
   initialState,
   reducers: {
     setThing: (state, action) => {
-      console.log("stateSliceEditPoi_setThing")
+      console.log("stateSliceEditPoi: setThing")
       return {
         ...state,
         thing: action.payload
@@ -77,7 +79,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     startEditMode: (state, action) => {
-      // console.log("stateSliceEditPoi_startEditMode")
+      // console.log("stateSliceEditPoi: startEditMode")
 
       // let eventId = action.payload.eventId
       return {
@@ -87,12 +89,30 @@ export const stateSliceEditPoi = createSlice({
     },
 
     endEditMode: (state, action) => {
-      // console.log("stateSliceEditPoi_endEditMode")
+      // console.log("stateSliceEditPoi: endEditMode")
       return initialState
     },
 
+    setRevisionAuthor: (state, action) => {
+      console.log({ "stateSliceEditPoi: setRevisionAuthor": action.payload })
+
+      return {
+        ...state,
+        revisionAuthor: action.payload.revisionAuthor
+      }
+    },
+
+    setTitle: (state, action) => {
+      console.log({ "stateSliceEditPoi: setTitle": action.payload })
+
+      return {
+        ...state,
+        title: action.payload
+      }
+    },
+
     setImageDataUrl: (state, action) => {
-      console.log({ "stateSliceEditPoi_setImageDataUrl": action.payload })
+      console.log({ "stateSliceEditPoi: setImageDataUrl": action.payload })
 
       let filename = action.payload.filename
       let dataUrl = action.payload.dataUrl
@@ -102,8 +122,17 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
+    setTags: (state, action) => {
+      console.log({ "stateSliceEditPoi: setTags": action.payload })
+
+      return {
+        ...state,
+        tags: action.payload
+      }
+    },
+
     setPrimaryPin: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setPrimaryPin", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: setPrimaryPin", payload: action.payload })
 
       let spherePoint = action.payload
       return {
@@ -120,7 +149,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setUpdatedPrimaryPinMeshInScene: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setUpdatedPrimaryPinMeshInScene", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: setUpdatedPrimaryPinMeshInScene", payload: action.payload })
 
       return {
         ...state,
@@ -129,7 +158,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setRegionBoundaries: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setRegionBoundaries", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: setRegionBoundaries", payload: action.payload })
 
       return {
         ...state,
@@ -138,7 +167,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setUpdatedRegionMeshesInScene: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_updatedRegionMeshesInScene", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: updatedRegionMeshesInScene", payload: action.payload })
 
       return {
         ...state,
@@ -147,7 +176,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     updateRegionBoundaryPin: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_updateRegionBoundaryPin", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: updateRegionBoundaryPin", payload: action.payload })
 
       // Expected format: See comment block on field.
       let updatedLocation = action.payload
@@ -168,7 +197,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_startClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: startClickAndDrag", payload: action.payload })
 
       // Expected format: See comment block on field.
       return {
@@ -183,7 +212,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     updateClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_updateClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: updateClickAndDrag", payload: action.payload })
 
       return {
         ...state,
@@ -195,7 +224,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     disableClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_disableClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: disableClickAndDrag", payload: action.payload })
 
       return {
         ...state,
@@ -204,7 +233,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setSelectedPin: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi_setSelectedPin", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi: setSelectedPin", payload: action.payload })
 
       let pin = action.payload
       if (pin == null) {
