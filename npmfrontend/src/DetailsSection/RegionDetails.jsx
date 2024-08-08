@@ -1,14 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { roundFloat } from "../RoundFloat";
-import axios from "axios";
-import { EditHeader } from "./EditHeader"
-import { EditImage } from "./EditImage";
 
-
-//TODO: change to "RegionDetailsEditMode" + "RegionDetails"
-
-export function ShowRegion() {
+export function RegionDetails() {
   const selectedPoiState = useSelector((state) => state.selectedPoiReducer)
 
   const [latLongReactElements, setLatLongReactElements] = useState()

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { SearchSectionMain } from './SearchSection/SearchSectionMain'
 import { GlobeSectionMain } from "./GlobeSection/GlobeSectionMain"
-import { DetailsSectionMain } from './DetailsSection/DetailsSectionMain'
+import { Details } from './DetailsSection/Details'
 import './App.css'
 
 // TODO: consider using Flowbit instead of plain Tailwind
@@ -48,7 +48,7 @@ function App() {
           <GlobeSectionMain />
         </div>
         <div className='row-span-4 col-span-2 border-2 border-emerald-500 text-white'>
-          <DetailsSectionMain currSelectedItemJson={selectedItemJson} />
+          <Details />
         </div>
         <div className='row-span-1 col-span-12 border-2 border-fuchsia-500 text-white'>
           Timeline

@@ -1,15 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
-import axios from "axios";
-import { EditHeader } from "./EditHeader"
-import { EditImage } from "./EditImage";
 
-
-//TODO: change to "RegionDetailsEditMode" + "RegionDetails"
-
-export function EditRegion() {
+export function RegionDetailsEditMode() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 
