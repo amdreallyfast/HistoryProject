@@ -43,24 +43,37 @@ export const MouseHandler = () => {
         intersection.point.z
       ).normalize()
 
-      let selectedMeshName = intersection.mesh.name
-      if (selectedMeshName == meshNames.PoiPrimaryLocationPin) {
-        if (editState.editModeOn) {
-          console.log(`start moving '${selectedMeshName}'`)
-        }
-        else {
-          // Ignore mouse down on the POI PoiPrimaryLocationPin when not in edit mode.
-          // Note: The mouse _up_ might incur mouse "click" handling though.
-        }
+      if (intersection.mesh.name == meshNames.PinBoundingBox) {
+        console.log({ clickedBoundingBox: intersection })
+        reduxDispatch(
+          editStateActions.setSelectedPinId(intersection.mesh.userData.locationId)
+        )
       }
-      else if (selectedMeshName == meshNames.RegionBoundaryPin) {
-        if (editState.editModeOn) {
-          console.log(`start moving '${selectedMeshName}'`)
-        }
-        else {
-          throw new Error("Should not be able to start moving a RegionBoundaryPin outside of edit mode")
-        }
+      else {
+        reduxDispatch(
+          editStateActions.setSelectedPinId(null)
+        )
       }
+
+
+      // let selectedMeshName = intersection.mesh.name
+      // if (selectedMeshName == meshNames.PoiPrimaryLocationPin) {
+      //   if (editState.editModeOn) {
+      //     console.log(`start moving '${selectedMeshName}'`)
+      //   }
+      //   else {
+      //     // Ignore mouse down on the POI PoiPrimaryLocationPin when not in edit mode.
+      //     // Note: The mouse _up_ might incur mouse "click" handling though.
+      //   }
+      // }
+      // else if (selectedMeshName == meshNames.RegionBoundaryPin) {
+      //   if (editState.editModeOn) {
+      //     console.log(`start moving '${selectedMeshName}'`)
+      //   }
+      //   else {
+      //     throw new Error("Should not be able to start moving a RegionBoundaryPin outside of edit mode")
+      //   }
+      // }
     }
   }, [mouseState.leftMouseDown])
 
@@ -93,18 +106,6 @@ export const MouseHandler = () => {
       let clickedBlankPartOfGlobe = globeIntersection && !nonGlobeIntersection
       if (editState.editModeOn && noRegionSelected && clickedBlankPartOfGlobe) {
         createNewRegion(globeIntersection.point, globeInfo)
-      }
-
-      if (nonGlobeIntersection?.mesh.name == meshNames.PinBoundingBox) {
-        console.log({ clickedBoundingBox: nonGlobeIntersection })
-        reduxDispatch(
-          editStateActions.setSelectedPinId(nonGlobeIntersection.mesh.userData.locationId)
-        )
-      }
-      else {
-        reduxDispatch(
-          editStateActions.setSelectedPinId(null)
-        )
       }
     }
 
