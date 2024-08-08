@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
 import axios from "axios";
+import { EditHeader } from "./EditHeader"
+import { ShowHeader } from "./ShowHeader";
 
 // TODO: move the latlong display into its own object
 // TODO: move the image handling + display into its own object
@@ -172,7 +174,8 @@ export function DetailsEdit() {
   return (
     <div className="flex flex-col h-full">
       {/* Title */}
-      <input className="m-2 text-black text-left" type="text" maxLength={128} onChange={(e) => titleChanged(e)} placeholder="Title" />
+      {/* <input className="m-2 text-black text-left" type="text" maxLength={128} onChange={(e) => titleChanged(e)} placeholder="Title" /> */}
+      <EditHeader />
 
       {/* Revision author fixed by whoever is logged in */}
       <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
@@ -191,10 +194,10 @@ export function DetailsEdit() {
       </div>
 
       {/* Tags */}
-      <div className="flex flex-row items-start border-2 border-gray-600 m-1 overflow-auto flex-wrap">
+      {/* <div className="flex flex-row items-start border-2 border-gray-600 m-1 overflow-auto flex-wrap">
         {tagReactElements}
         <input ref={tagsInputRef} id="tagsInput" className="m-2 text-black text-left" type="text" placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
-      </div>
+      </div> */}
 
       {/* Lat-Long react elements */}
       <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">
