@@ -169,7 +169,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
 
     if (pinType == meshNames.PrimaryPin) {
       reduxDispatch(
-        editStateActions.setPrimaryPin(pinLocation)
+        editStateActions.setPrimaryLoc(pinLocation)
       )
     }
     else if (pinType == meshNames.RegionBoundaryPin) {

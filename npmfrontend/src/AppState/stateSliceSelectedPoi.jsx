@@ -6,7 +6,7 @@ const initialState = {
   title: "the things",
   imageDataUrl: null,
   tags: ["tag1", "tag2"],
-  primaryPin: null,
+  primaryLoc: null,
   regionBoundaries: [],
 }
 
@@ -23,7 +23,7 @@ export const stateSliceSelectedPoi = createSlice({
       newState.title = action.payload.title
       newState.imageDataUrl = action.payload.imageDataUrl
       newState.tags = action.payload.tags
-      newState.primaryPin = action.payload.primaryPin
+      newState.primaryLoc = action.payload.primaryLoc
       newState.regionBoundaries = action.payload.regionBoundaries
       return newState
     },

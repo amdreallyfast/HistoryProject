@@ -21,7 +21,7 @@ export const MouseHandler = () => {
     let z = globePos.z
     let spherePoint = createSpherePointFromXYZ(x, y, z, globeInfo.radius)
     reduxDispatch(
-      editStateActions.setPrimaryPin(spherePoint)
+      editStateActions.setPrimaryLoc(spherePoint)
     )
   }
 
@@ -87,7 +87,7 @@ export const MouseHandler = () => {
     let yDiff = Math.abs(leftMouseUp.pos.y - leftMouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
-      let noRegionSelected = !editState.primaryPin
+      let noRegionSelected = !editState.primaryLoc
       let globeIntersection = mouseState.cursorRaycastIntersections.globe
       let nonGlobeIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
       let clickedBlankPartOfGlobe = globeIntersection && !nonGlobeIntersection

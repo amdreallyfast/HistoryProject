@@ -52,15 +52,15 @@ export function EditableRegion({ globeInfo }) {
 
   // Create PrimaryPOI pin mesh + (maybe) region pins + region mesh
   useEffect(() => {
-    // console.log({ msg: "EditableRegion()/useEffect()/editState.primaryPin", primaryPin: editState.primaryPin })
+    console.log({ "EditableRegion useEffect: editState.primaryLoc": editState.primaryLoc })
     if (!editState.editModeOn) {
       return
     }
 
-    if (editState.primaryPin) {
+    if (editState.primaryLoc) {
       let regionBoundaries = editState.regionBoundaries
       if (regionBoundaries.length == 0) {
-        regionBoundaries = createDefaultRegionBoundaries(editState.primaryPin, globeInfo)
+        regionBoundaries = createDefaultRegionBoundaries(editState.primaryLoc, globeInfo)
       }
 
       reduxDispatch(
@@ -72,7 +72,7 @@ export function EditableRegion({ globeInfo }) {
           key={uuid()}
           pinType={meshNames.PrimaryPin}
           eventId={editState.eventId}
-          spherePoint={editState.primaryPin}
+          spherePoint={editState.primaryLoc}
           globeInfo={globeInfo}
           colorHex={pinMeshInfo.primaryPinColor}
           length={pinMeshInfo.length}
@@ -86,7 +86,7 @@ export function EditableRegion({ globeInfo }) {
     else {
       setPrimaryLocationPinReactElement(null)
     }
-  }, [editState.primaryPin?.id])
+  }, [editState.primaryLoc?.id])
 
   // Set flag to alert that the primary POI pin's meshes are present in ThreeJs' scene and need 
   // to be added to the list of things for the raycaster to check against.

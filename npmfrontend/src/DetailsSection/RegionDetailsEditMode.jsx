@@ -8,15 +8,17 @@ export function RegionDetailsEditMode() {
   const reduxDispatch = useDispatch()
 
   const [latLongReactElements, setLatLongReactElements] = useState()
-  const htmlClassPrimaryPin = "w-full text-red-400 text-left border-2 border-gray-400 rounded-md mb-1"
-  const htmlClassPrimaryPinHighlighted = "w-full text-red-500 text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
-  const htmlClassBoundaryPin = "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1"
-  const htmlClassBoundaryPinHighlighted = "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
+  const htmlClass = {
+    PrimaryLoc: "w-full text-red-400 text-left border-2 border-gray-400 rounded-md mb-1",
+    PrimaryLocHighlighted: "w-full text-red-500 text-left border-2 border-gray-400 rounded-md mb-1 font-bold",
+    RegionBoundary: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1",
+    RegionBoundaryHighlighted: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
+  }
 
   // Display pin locations.
   useEffect(() => {
-    // console.log({ msg: "EditRegion()/useEffect()/pin position changed", primaryPin: editState.primaryPin, regionBoundaries: editState.regionBoundaries })
-    if (!editState.primaryPin || !editState.regionBoundaries) {
+    console.log({ "RegionDetailsEditMode useEffect: positions changed": { primaryLoc: editState.primaryLoc, regionBoundaries: editState.regionBoundaries } })
+    if (!editState.primaryLoc || !editState.regionBoundaries) {
       // Wait for both to load (or just do nothing if they were set to null/empty)
       return
     }
@@ -34,32 +36,29 @@ export function RegionDetailsEditMode() {
       }
     }
 
-    // TODO: rename pinArr -> locArr
-    // TODO: rename primaryPin -> primaryLoc
-
     // Gather all pin locations together
-    let pinArr = []
-    pinArr.push(editState.primaryPin)
+    let locArr = []
+    locArr.push(editState.primaryLoc)
     for (let i = 0; i < editState.regionBoundaries.length; i++) {
-      pinArr.push(editState.regionBoundaries[i])
+      locArr.push(editState.regionBoundaries[i])
     }
 
     // And make HTML elements out of them
-    let htmlElements = pinArr.map((pin) => {
-      let roundedLat = roundFloat(pin.lat, 4)
-      let roundedLong = roundFloat(pin.long, 4)
+    let htmlElements = locArr.map((location) => {
+      let roundedLat = roundFloat(location.lat, 4)
+      let roundedLong = roundFloat(location.long, 4)
       // console.log({ lat: roundedLat, long: roundedLong })
 
-      if (pin.id == editState.primaryPin.id) {
+      if (location.id == editState.primaryLoc.id) {
         return (
-          <p id={pin.id} key={pin.id} className={htmlClassPrimaryPin} onClick={(e) => onPinLocationClicked(e, pin)}>
+          <p id={location.id} key={location.id} className={htmlClass.PrimaryLoc} onClick={(e) => onPinLocationClicked(e, location)}>
             {`${roundedLat}, ${roundedLong}`}
           </p>
         )
       }
       else {
         return (
-          <p id={pin.id} key={pin.id} className={htmlClassBoundaryPin} onClick={(e) => onPinLocationClicked(e, pin)}>
+          <p id={location.id} key={location.id} className={htmlClass.RegionBoundary} onClick={(e) => onPinLocationClicked(e, location)}>
             {`${roundedLat}, ${roundedLong}`}
           </p>
         )
@@ -68,7 +67,7 @@ export function RegionDetailsEditMode() {
 
     // Notify this component to re-render with the new values.
     setLatLongReactElements(htmlElements)
-  }, [editState.primaryPin, editState.regionBoundaries])
+  }, [editState.primaryLoc, editState.regionBoundaries])
 
   // If selected pin changes, change highlighted latlong text block.
   useEffect(() => {
@@ -78,11 +77,11 @@ export function RegionDetailsEditMode() {
 
     if (editState.selectedPinId) {
       let htmlElement = document.getElementById(editState.selectedPinId)
-      if (editState.selectedPinId == editState.primaryPin.id) {
-        htmlElement.className = htmlClassPrimaryPinHighlighted
+      if (editState.selectedPinId == editState.primaryLoc.id) {
+        htmlElement.className = htmlClass.PrimaryLocHighlighted
       }
       else {
-        htmlElement.className = htmlClassBoundaryPinHighlighted
+        htmlElement.className = htmlClass.RegionBoundaryHighlighted
       }
     }
 
@@ -91,11 +90,11 @@ export function RegionDetailsEditMode() {
     }
     else if (editState.prevSelectedPinId) {
       let htmlElement = document.getElementById(editState.prevSelectedPinId)
-      if (editState.prevSelectedPinId == editState.primaryPin.id) {
-        htmlElement.className = htmlClassPrimaryPin
+      if (editState.prevSelectedPinId == editState.primaryLoc.id) {
+        htmlElement.className = htmlClass.PrimaryLoc
       }
       else {
-        htmlElement.className = htmlClassBoundaryPin
+        htmlElement.className = htmlClass.RegionBoundaryHighlighted
       }
     }
   }, [editState.selectedPinId])

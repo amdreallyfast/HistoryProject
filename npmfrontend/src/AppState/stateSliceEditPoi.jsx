@@ -20,10 +20,10 @@ const initialState = {
   //    y,
   //    z
   //  }
-  primaryPin: null,
+  primaryLoc: null,
 
   // Format:
-  //  Same as primaryPin.
+  //  Same as primaryLoc.
   // Note: _Must_ be an array. Order is important for the "ear clipping" algorithm.
   regionBoundaries: [],
 
@@ -131,13 +131,13 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setPrimaryPin: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi: setPrimaryPin", payload: action.payload })
+    setPrimaryLoc: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi: setPrimaryLoc", payload: action.payload })
 
       let spherePoint = action.payload
       return {
         ...state,
-        primaryPin: {
+        primaryLoc: {
           id: spherePoint.id,
           lat: spherePoint.lat,
           long: spherePoint.long,
