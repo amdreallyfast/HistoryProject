@@ -59,7 +59,7 @@ export function EditHeader() {
   }, [editState.tags])
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Title */}
       <input ref={titleInputRef} className="m-2 text-black text-2xl text-left" type="text" maxLength={128} placeholder="Title" onKeyDown={(e) => titleTextCapture(e)} />
 

@@ -4,7 +4,7 @@ import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { roundFloat } from "../RoundFloat";
 import axios from "axios";
 import { EditHeader } from "./EditHeader"
-import { ShowHeader } from "./ShowHeader";
+import { EditImage } from "./EditImage";
 
 // TODO: move the latlong display into its own object
 // TODO: move the image handling + display into its own object
@@ -177,38 +177,24 @@ export function DetailsEdit() {
       {/* <input className="m-2 text-black text-left" type="text" maxLength={128} onChange={(e) => titleChanged(e)} placeholder="Title" /> */}
       <EditHeader />
 
-      {/* Revision author fixed by whoever is logged in */}
-      <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
-
       {/* Image */}
-      <div>
-        {editState.imageDataUrl ?
-          <img style={{ "maxWidth": "100%", "maxHeight": "200px", display: "block", margin: "auto" }} src={editState.imageDataUrl} alt="ERROR: Bad dataUrl." />
-          :
-          <span>No image</span>
-        }
-        <div className="items-start flex mt-auto">
-          {/* To load multiple, add the "multiple" field. */}
-          <input className="m-2" type="file" onInput={(e) => imageUpload(e)} accept="image/png, image/jpeg" />
-        </div>
-      </div>
-
-      {/* Tags */}
-      {/* <div className="flex flex-row items-start border-2 border-gray-600 m-1 overflow-auto flex-wrap">
-        {tagReactElements}
-        <input ref={tagsInputRef} id="tagsInput" className="m-2 text-black text-left" type="text" placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
-      </div> */}
+      <EditImage />
 
       {/* Lat-Long react elements */}
       <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">
         {latLongReactElements}
       </div>
 
+      {/* Revision author fixed by whoever is logged in */}
+      <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
+
+
+
       {/* Use "mt-auto" to auto grow the top margin until it fills the space. 
         Source:
           https://stackoverflow.com/questions/31000885/align-an-element-to-bottom-with-flexbox
       */}
-      <div className="items-start flex mt-auto ">
+      <div className="items-end flex mt-auto h-full">
         <button
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded "
           onClick={(e) => onSubmitClick(e)}
@@ -216,6 +202,15 @@ export function DetailsEdit() {
           Submit
         </button>
       </div>
+
+
+
+      {/* Tags */}
+      {/* <div className="flex flex-row items-start border-2 border-gray-600 m-1 overflow-auto flex-wrap">
+        {tagReactElements}
+        <input ref={tagsInputRef} id="tagsInput" className="m-2 text-black text-left" type="text" placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
+      </div> */}
+
 
     </div>
   )
