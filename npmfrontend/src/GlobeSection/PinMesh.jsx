@@ -106,6 +106,8 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     // one end is barely touching.
     boxMeshRef.current.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0, -(0.5 * length * scale)))
 
+    // boxMeshRef.current.material.color = new THREE.Color(0x00f0f0)
+
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
   }
 
@@ -128,7 +130,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
 
   // Update click-and-drag
   useEffect(() => {
-    // Don't move the pin (ex: PrimaryPOI pin) unless we're in edit mode.
+    // Don't move the pin unless we're in edit mode.
     if (!editState.editModeOn) {
       return
     }
@@ -197,6 +199,21 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     }
 
   }, [mouseState.leftMouseUp])
+
+  // Update coloration if pin is selected
+  useEffect(() => {
+    if (editState.selectedPinId == spherePoint.id) {
+      boxMeshRef.current.material.color = new THREE.Color(0x00f0f0)
+      boxMeshRef.current.material.opacity = 0.5
+      // meshRef.current.material.color = new THREE.Color(colorHex * 2)
+    }
+    else if (editState.prevSelectedPinId == spherePoint.id) {
+      boxMeshRef.current.material.color = new THREE.Color(0xffffff)
+      boxMeshRef.current.material.opacity = 0.2
+      // meshRef.current.material.color = new THREE.Color(colorHex)
+    }
+
+  }, [editState.selectedPinId, editState.prevSelectedPinId])
 
   return (
     <>

@@ -87,15 +87,24 @@ export const MouseHandler = () => {
     let yDiff = Math.abs(leftMouseUp.pos.y - leftMouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
-      let selectedMeshName = mouseState.cursorRaycastIntersections.firstNonGlobe?.mesh.name
-      let cursorGlobePos = mouseState.cursorRaycastIntersections.globe?.point
-      if (editState.editModeOn && !editState.primaryPin && !selectedMeshName && cursorGlobePos) {
-        // Edit mode: No region selected and clicked a blank part of the globe.
-        console.log("clicked: create new region")
-        createNewRegion(cursorGlobePos, globeInfo)
+      let noRegionSelected = !editState.primaryPin
+      let globeIntersection = mouseState.cursorRaycastIntersections.globe
+      let nonGlobeIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
+      let clickedBlankPartOfGlobe = globeIntersection && !nonGlobeIntersection
+      if (editState.editModeOn && noRegionSelected && clickedBlankPartOfGlobe) {
+        createNewRegion(globeIntersection.point, globeInfo)
       }
-      else if (selectedMeshName) {
-        console.log(`clicked on mesh: '${selectedMeshName}'`)
+
+      if (nonGlobeIntersection?.mesh.name == meshNames.PinBoundingBox) {
+        console.log({ clickedBoundingBox: nonGlobeIntersection })
+        reduxDispatch(
+          editStateActions.setSelectedPinId(nonGlobeIntersection.mesh.userData.locationId)
+        )
+      }
+      else {
+        reduxDispatch(
+          editStateActions.setSelectedPinId(null)
+        )
       }
     }
 

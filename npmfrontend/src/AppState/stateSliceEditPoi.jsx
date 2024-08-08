@@ -63,7 +63,7 @@ const initialState = {
   clickAndDrag: null,
 
   selectedPinId: null,
-  prevSelectPinId: null,
+  prevSelectedPinId: null,
 }
 
 export const stateSliceEditPoi = createSlice({
@@ -232,18 +232,18 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setSelectedPin: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi: setSelectedPin", payload: action.payload })
+    setSelectedPinId: (state, action) => {
+      // console.log({ msg: "stateSliceEditPoi: setSelectedPinId", payload: action.payload })
 
-      let pin = action.payload
-      if (pin == null) {
+      let pinId = action.payload
+      if (pinId == null) {
         // Ok. It means "deselect current item".
       }
 
       return {
         ...state,
-        selectedPinId: pin.id,
-        prevSelectPinId: state.selectedPinId,
+        selectedPinId: pinId,
+        prevSelectedPinId: state.selectedPinId,
       }
     }
   }
