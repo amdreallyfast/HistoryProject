@@ -10,76 +10,52 @@ export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
-  const maxClickTimeMs = 400
+  const maxClickTimeMs = 200
   const maxClickCursorMovementPx = 1
 
-  const mouseLeftButtonDownWorldPosNormalizedRef = useRef()
-
-  const createNewRegion = (globePos, globeInfo) => {
-    let x = globePos.x
-    let y = globePos.y
-    let z = globePos.z
+  const createNewRegion = (posOnGlobe, globeInfo) => {
+    let x = posOnGlobe.x
+    let y = posOnGlobe.y
+    let z = posOnGlobe.z
     let spherePoint = createSpherePointFromXYZ(x, y, z, globeInfo.radius)
     reduxDispatch(
       editStateActions.setPrimaryLoc(spherePoint)
     )
   }
 
-  // Mouse down
-  useEffect(() => {
-    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.leftMouseDown", value: mouseState.leftMouseDown })
+  // Fast local flags to avoid race conditions.
+  // Problem: A race condition was encountered (8/9/2024) in which the "mouse up" and "mouse move"
+  // handlers were called on the same frame, and the former tries to turn click-and-drag off, but
+  // the latter tries to update it or turn it on. State values are not updated until the next
+  // frame.
+  // Solution: Use a local reference. It can be updated immediately and can be used int he scope 
+  // of both handlers.
+  const clickAndDragEnabledRef = useRef(false)
+  const leftMouseDownRef = useRef(false)
 
-    if (!mouseState.leftMouseDown) {
+  // Left mouse down
+  useEffect(() => {
+    // console.log({ "MouseHandler useEffect mouseState.leftMouseDown": mouseState.leftMouseDown })
+
+    if (!mouseState.leftMouseDown?.intersection) {
       return
     }
-    // console.log({ intersection: mouseState.cursorRaycastIntersections.firstNonGlobe, globe: mouseState.cursorRaycastIntersections.globe })
 
-    // Record mouse down position and any intersections that have already been detected in the scene.
-    if (mouseState.cursorRaycastIntersections.firstNonGlobe) {
-      let intersection = mouseState.cursorRaycastIntersections.firstNonGlobe
-      mouseLeftButtonDownWorldPosNormalizedRef.current = new THREE.Vector3(
-        intersection.point.x,
-        intersection.point.y,
-        intersection.point.z
-      ).normalize()
-
-      if (intersection.mesh.name == meshNames.PinBoundingBox) {
-        console.log({ clickedBoundingBox: intersection })
-        reduxDispatch(
-          editStateActions.setSelectedPinId(intersection.mesh.userData.locationId)
-        )
+    let intersection = mouseState.leftMouseDown.intersection
+    if (intersection.mesh.name == meshNames.PinBoundingBox) {
+      if (mouseState.leftMouseDown.intersection) {
+        reduxDispatch(editStateActions.setSelectedPinId(intersection.mesh.userData.locationId))
       }
       else {
-        reduxDispatch(
-          editStateActions.setSelectedPinId(null)
-        )
+        reduxDispatch(editStateActions.setSelectedPinId(null))
       }
-
-
-      // let selectedMeshName = intersection.mesh.name
-      // if (selectedMeshName == meshNames.PoiPrimaryLocationPin) {
-      //   if (editState.editModeOn) {
-      //     console.log(`start moving '${selectedMeshName}'`)
-      //   }
-      //   else {
-      //     // Ignore mouse down on the POI PoiPrimaryLocationPin when not in edit mode.
-      //     // Note: The mouse _up_ might incur mouse "click" handling though.
-      //   }
-      // }
-      // else if (selectedMeshName == meshNames.RegionBoundaryPin) {
-      //   if (editState.editModeOn) {
-      //     console.log(`start moving '${selectedMeshName}'`)
-      //   }
-      //   else {
-      //     throw new Error("Should not be able to start moving a RegionBoundaryPin outside of edit mode")
-      //   }
-      // }
     }
+    leftMouseDownRef.current = true
   }, [mouseState.leftMouseDown])
 
   // Mouse up
   useEffect(() => {
-    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.leftMouseUp", value: mouseState.leftMouseUp })
+    // console.log({ "MouseHandler useEffect mouseState.leftMouseUp": mouseState.leftMouseUp })
 
     if (!mouseState.leftMouseUp || !mouseState.leftMouseDown) {
       // Watch for mouse up without a mouse down.
@@ -90,8 +66,6 @@ export const MouseHandler = () => {
       return
     }
 
-    mouseLeftButtonDownWorldPosNormalizedRef.current = null
-
     // Determine if "mouse up" is short enough to be considered a "click" (and what to do if it is).
     let leftMouseUp = mouseState.leftMouseUp
     let leftMouseDown = mouseState.leftMouseDown
@@ -100,119 +74,151 @@ export const MouseHandler = () => {
     let yDiff = Math.abs(leftMouseUp.pos.y - leftMouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
-      let noRegionSelected = !editState.primaryLoc
-      let globeIntersection = mouseState.cursorRaycastIntersections.globe
-      let nonGlobeIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
-      let clickedBlankPartOfGlobe = globeIntersection && !nonGlobeIntersection
-      if (editState.editModeOn && noRegionSelected && clickedBlankPartOfGlobe) {
-        createNewRegion(globeIntersection.point, globeInfo)
+      let clickedGlobe = (mouseState.cursorRaycastIntersections2.globeIndex == 0)
+      let noRegionCreated = !editState.primaryLoc
+      if (editState.editModeOn && clickedGlobe && noRegionCreated) {
+        let globeIntersection = mouseState.cursorRaycastIntersections2.intersections[0]
+        let relativeToGlobe = {
+          x: globeIntersection.absolute.x - globeInfo.pos.x,
+          y: globeIntersection.absolute.y - globeInfo.pos.y,
+          z: globeIntersection.absolute.z - globeInfo.pos.z,
+        }
+        createNewRegion(relativeToGlobe, globeInfo)
       }
     }
 
     // Turn off click-and-drag
     if (editState.clickAndDrag) {
-      reduxDispatch(
-        editStateActions.disableClickAndDrag()
-      )
+      reduxDispatch(editStateActions.disableClickAndDrag())
+      clickAndDragEnabledRef.current = false
     }
 
     // Reset mouse click.
-    reduxDispatch(
-      mouseStateActions.resetLeftMouseUpDown()
-    )
+    reduxDispatch(mouseStateActions.resetLeftMouse())
+    leftMouseDownRef.current = false
   }, [mouseState.leftMouseUp])
 
-  // Mouse move
+  // Mouse move (click-and-drag)
   useEffect(() => {
-    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.currPos", value: mouseState.currPos })
+    // console.log({ "MouseHandler useEffect mouseState.currPos": mouseState.currPos })
 
-    let currTimeMs = (new Date()).getTime()
-    let clickAndDrag = editState.editModeOn &&         // edit mode
-      mouseLeftButtonDownWorldPosNormalizedRef.current &&        // implicitly clicked on a mesh
-      mouseState.cursorRaycastIntersections.globe &&   // mouse is over the globe
-      currTimeMs > maxClickTimeMs  // clicked long enough to not be mistaken for a regular click
-    if (clickAndDrag) {
-      let vFrom = mouseLeftButtonDownWorldPosNormalizedRef.current
-      let currWorldPos = mouseState.cursorRaycastIntersections.globe.point
-      let vTo = new THREE.Vector3(
-        currWorldPos.x,
-        currWorldPos.y,
-        currWorldPos.z,
-      ).normalize()
-      let q = (new THREE.Quaternion()).setFromUnitVectors(vFrom, vTo)
+    if (!editState.editModeOn) {
+      // Do not allow click-and-drag.
+      return
+    }
+    else if (!mouseState.leftMouseDown?.intersection) {
+      // Nothing selected
+      return
+    }
+    else if (!leftMouseDownRef.current) {
+      // Race condition. See variable description for details.
+      console.log("how did we get here?")
+      return
+    }
+    else if (mouseState.cursorRaycastIntersections2.globeIndex < 0) {
+      // Cursor is not over the globe, so we can't click-and-drag the mesh to a new location.
+      return
+    }
 
-      if (editState.clickAndDrag) {
-        // Update selected mesh position
-        let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
-        let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
+    let clickTimeMs = (new Date()).getTime() - mouseState.leftMouseDown.timeMs
+    if (clickTimeMs < maxClickTimeMs) {
+      // Too soon.
+      return
+    }
 
-        let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
-        reduxDispatch(
-          editStateActions.updateClickAndDrag({
-            rotorQuaternion: {
-              w: rotor.w,
-              x: rotor.x,
-              y: rotor.y,
-              z: rotor.z,
-            }
-          })
-        )
+    // TODO: only "calculate mouse down relative to globe normalized" only once
+    //  ??maybe? is the overhead of designing this worth the benefit of avoiding a single normalization every frame?
+    let mouseDown = mouseState.leftMouseDown.intersection
+    let mouseRelative = mouseDown.relativeToGlobe
+    let mouseDownNormalized = new THREE.Vector3(mouseRelative.x, mouseRelative.y, mouseRelative.z).normalize()
 
-        // console.log("-------------------------")
-      }
-      else {
-        // Enable
+    let globeIndex = mouseState.cursorRaycastIntersections2.globeIndex
+    let cursorGlobe = mouseState.cursorRaycastIntersections2.intersections[globeIndex].relativeToGlobe
+    let cursorGlobeNormalized = new THREE.Vector3(cursorGlobe.x, cursorGlobe.y, cursorGlobe.z).normalize()
 
-        // Create rotation quaternion between mouse down pos and curr mouse pos.
-        // Note: There is some distance between the raycerster's intersection of the mesh on top 
-        // of the globe and the globe itself. To avoid snapping the mesh to the cursor's 
-        // position, account for the offset between the two points.
-        let globePos = mouseState.cursorRaycastIntersections.globe.point
-        let globePosNormalized = (new THREE.Vector3(globePos.x, globePos.y, globePos.z)).normalize()
+    // Rotation on the globe from where the left mouse was pressed to where it is now.
+    let q = (new THREE.Quaternion()).setFromUnitVectors(mouseDownNormalized, cursorGlobeNormalized)
 
-        let meshIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe;
-        let cursorPos = meshIntersection.point
-        let cursorPosNormalized = (new THREE.Vector3(cursorPos.x, cursorPos.y, cursorPos.z)).normalize()
+    if (clickAndDragEnabledRef.current) {
+      // console.log({ enabled: clickAndDragEnabledRef.current })
+      // if (!clickAndDragEnabledRef.current) {
+      //   console.log("doom")
+      // }
 
-        let qOffset = (new THREE.Quaternion).setFromUnitVectors(globePosNormalized, cursorPosNormalized)
-        let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+      // Update selected mesh position
+      let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
+      let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
-        reduxDispatch(
-          editStateActions.enableClickAndDrag({
-            mesh: meshIntersection.mesh,
-            initialOffsetQuaternion: {
-              w: qOffset.w,
-              x: qOffset.x,
-              y: qOffset.y,
-              z: qOffset.z,
-            },
-            rotorQuaternion: {
-              w: rotor.w,
-              x: rotor.x,
-              y: rotor.y,
-              z: rotor.z,
-            }
-          })
-        )
-      }
+      let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+      reduxDispatch(
+        editStateActions.updateClickAndDrag({
+          rotorQuaternion: {
+            w: rotor.w,
+            x: rotor.x,
+            y: rotor.y,
+            z: rotor.z,
+          }
+        })
+      )
+    }
+    else {
+      // Enable
+
+      // Create rotation quaternion between mouse down pos and curr mouse pos.
+      // Note: There is some distance between the raycerster's intersection of the mesh on top 
+      // of the globe and the globe itself. To avoid snapping the mesh to the cursor's 
+      // position, account for the offset between the two points.
+
+      // let globePos = mouseState.cursorRaycastIntersections.globe.point
+      // let globePosNormalized = (new THREE.Vector3(globePos.x, globePos.y, globePos.z)).normalize()
+
+      let meshIntersection = mouseState.cursorRaycastIntersections2.intersections[0]
+      let relative = meshIntersection.relativeToGlobe
+      let meshIntersectionNormalized = new THREE.Vector3(relative.x, relative.y, relative.z).normalize()
+
+      // let cursorPos = meshIntersection.point
+      // let cursorPosNormalized = (new THREE.Vector3(cursorPos.x, cursorPos.y, cursorPos.z)).normalize()
+
+      let qOffset = (new THREE.Quaternion).setFromUnitVectors(cursorGlobeNormalized, meshIntersectionNormalized)
+      let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
+
+      reduxDispatch(
+        editStateActions.enableClickAndDrag({
+          mesh: mouseDown.mesh,
+          initialOffsetQuaternion: {
+            w: qOffset.w,
+            x: qOffset.x,
+            y: qOffset.y,
+            z: qOffset.z,
+          },
+          rotorQuaternion: {
+            w: rotor.w,
+            x: rotor.x,
+            y: rotor.y,
+            z: rotor.z,
+          }
+        })
+      )
+
+      clickAndDragEnabledRef.current = true
     }
   }, [mouseState.currPos])
 
-  useEffect(() => {
-    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorRaycastIntersections.firstNonGlobe", value: mouseState.cursorRaycastIntersections.firstNonGlobe })
-    let firstIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
+  // useEffect(() => {
+  //   // console.log({ "MouseHandler useEffect mouseState.cursorRaycastIntersections.firstNonGlobe", value: mouseState.cursorRaycastIntersections.firstNonGlobe })
+  //   let firstIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
 
-    // TODO: display info on hover
+  //   // TODO: display info on hover
 
-  }, [mouseState.cursorRaycastIntersections.firstNonGlobe])
+  // }, [mouseState.cursorRaycastIntersections.firstNonGlobe])
 
-  useEffect(() => {
-    // console.log({ msg: "MouseHandler()/useEffect()/mouseState.cursorRaycastIntersections.globe", value: mouseState.cursorRaycastIntersections.globe })
-    let globeIntersection = mouseState.cursorRaycastIntersections.globe
+  // useEffect(() => {
+  //   // console.log({ "MouseHandler useEffect mouseState.cursorRaycastIntersections.globe": mouseState.cursorRaycastIntersections.globe })
+  //   let globeIntersection = mouseState.cursorRaycastIntersections.globe
 
-    // TODO: display info on hover
+  //   // TODO: display info on hover
 
-  }, [mouseState.cursorRaycastIntersections.globe])
+  // }, [mouseState.cursorRaycastIntersections.globe])
 
   return (
     <>

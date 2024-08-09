@@ -113,7 +113,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
 
   // Create meshes
   useEffect(() => {
-    // console.log({ msg: "PinMesh()/useEffect()/meshRef" })
+    // console.log({ "PinMesh useEffect meshRef": meshRef.current })
     if (!meshRef.current || !boxMeshRef.current) {
       return
     }
@@ -131,14 +131,26 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
   // Update click-and-drag
   useEffect(() => {
     // Don't move the pin unless we're in edit mode.
-    if (!editState.editModeOn) {
+    if (!editState.editModeOn || !editState.clickAndDrag) {
       return
     }
+
+    // if (editState.clickAndDrag) {
+    //   if (editState.clickAndDrag.mesh) {
+    //     // console.log("have mesh")
+    //   }
+    //   else {
+    //     console.log("nope")
+    //   }
+    // }
+
+    // console.log({ mesh: editState.clickAndDrag?.mesh.name })
 
     let moveThisPinOnly = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
     let moveAllPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
     let newPos = preMovePos.current
     if (moveThisPinOnly || moveAllPins) {
+      // console.log("moving")
       let qValues = editState.clickAndDrag.rotorQuaternion
       let qRotor = new THREE.Quaternion(qValues.x, qValues.y, qValues.z, qValues.w)
 
@@ -146,6 +158,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     }
     else {
       // No change
+      // console.log("not me")
       return
     }
 
@@ -200,7 +213,15 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
 
   }, [mouseState.leftMouseUp])
 
-  // Update coloration if pin is selected
+  // Update color on mouse hover 
+  useEffect(() => {
+    let meshIntersection = mouseState.cursorRaycastIntersections2.intersections[0]
+    if (meshIntersection?.userData?.locationId == spherePoint.id) {
+      console.log("hovering over me")
+    }
+  }, [mouseState.cursorRaycastIntersections2.intersections])
+
+  // Update color when location or pin is selected
   useEffect(() => {
     if (editState.selectedPinId == spherePoint.id) {
       boxMeshRef.current.material.color = new THREE.Color(0x00f0f0)

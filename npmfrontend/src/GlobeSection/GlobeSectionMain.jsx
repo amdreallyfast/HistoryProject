@@ -48,7 +48,7 @@ export function GlobeSectionMain() {
   }
 
   function onCanvasMouseMove(e) {
-    // console.log(e)
+    // console.log({ "onCanvasMouseMove": e })
 
     if (canvasContainerDivRef.current == null || poiInfoPopupElementRef.current == null) {
       return
@@ -79,7 +79,8 @@ export function GlobeSectionMain() {
       pos: {
         x: normalized.x,
         y: normalized.y
-      }
+      },
+      intersection: mouseState.cursorRaycastIntersections2.intersections[0]
     }
 
     if (e.button == 0) {
@@ -96,6 +97,7 @@ export function GlobeSectionMain() {
     }
     else {
       // ignore other buttons
+      console.log("ignore")
     }
   }
 

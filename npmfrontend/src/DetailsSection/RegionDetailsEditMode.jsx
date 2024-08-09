@@ -17,7 +17,7 @@ export function RegionDetailsEditMode() {
 
   // Display pin locations.
   useEffect(() => {
-    console.log({ "RegionDetailsEditMode useEffect: positions changed": { primaryLoc: editState.primaryLoc, regionBoundaries: editState.regionBoundaries } })
+    // console.log({ "RegionDetailsEditMode useEffect: positions changed": { primaryLoc: editState.primaryLoc, regionBoundaries: editState.regionBoundaries } })
     if (!editState.primaryLoc || !editState.regionBoundaries) {
       // Wait for both to load (or just do nothing if they were set to null/empty)
       return

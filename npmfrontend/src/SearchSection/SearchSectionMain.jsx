@@ -117,7 +117,7 @@ export function SearchSectionMain() {
 
   // react to search
   useEffect(() => {
-    // console.log({ msg: "SearchSection()/useEffect()/getSearchResultsQuery.status", value: getSearchResultsQuery.status })
+    // console.log({ "SearchSection useEffect getSearchResultsQuery.status": getSearchResultsQuery.status })
 
     if (!searchUri) {
       // Ignore
@@ -221,7 +221,7 @@ export function SearchSectionMain() {
 
   // selectedPoi changes => highlight
   useEffect(() => {
-    // console.log({ msg: "SearchSection()/useEffect()/selectedPoi", value: selectedPoi })
+    // console.log({ "SearchSection useEffect selectedPoi": selectedPoi })
 
     if (selectedPoi) {
       let selectedHtmlElement = document.getElementById(selectedPoi.myUniqueId)

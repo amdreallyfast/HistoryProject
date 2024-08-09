@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit"
+import { meshNames } from "../GlobeSection/constValues"
 
 const initialState = {
   currPos: {
@@ -17,11 +18,56 @@ const initialState = {
   //      y: 0
   //    },
   //    timeMs: null
+  //    intersection: <format of cursor raycast intersection>
   //  }
-  rightMouseUp: null,
   leftMouseUp: null,
-  rightMouseDown: null,
   leftMouseDown: null,
+  // leftMouseDownIntersection: null,
+  rightMouseUp: null,
+  rightMouseDown: null,
+
+
+  // // Format: {
+  // //   up: {
+  // //     canvasPos: {
+  // //       x: 0,
+  // //       y: 0
+  // //     },
+  // //     timeMs: {}
+  // //   },
+  // //   down: {
+  // //     canvasPos: {
+  // //       x: 0,
+  // //       y: 0
+  // //     },
+  // //     timeMs: null,
+  // //     intersection: {
+  // //       mesh: {
+  // //         name: <guid>,
+  // //         uuid: <guid>,
+  // //         userData: {
+  // //           eventId: <guid>,
+  // //           locationId: <guid>
+  // //         }
+  // //       },
+  // //       raycastIntersectionPoint: {
+  // //         x: 0,
+  // //         y: 0,
+  // //         z: 0
+  // //       }
+  // //     }
+  // //   }
+  // // },
+  // leftMouse: {
+  //   up: null,
+  //   down: null
+  // },
+  // rightMouse: {
+  //   up: null,
+  //   down: null
+  // },
+
+
 
   // via ThreeJs raycasting
   // Note: An object with functions cannot be stored as state. Need to extract the values manually
@@ -29,21 +75,31 @@ const initialState = {
   // Expected:
   // Note: Using mesh.uuid instead of mesh.Id, the latter of which is an integer used by ThreeJs 
   //  for something.
-  //  {
-  //    point: null,         // Raycast intersection point (x, y, z)
-  //    mesh: {
-  //      name: <name>,
-  //      uuid: <guid>,
-  //      userData: {            // Only applies to region pins and primary POI pins
-  //        eventId: <eventId>,
-  //        locationId: <spherePoint.Id>
-  //      }
-  //    }
-  //  },
-  cursorRaycastIntersections: {
-    firstNonGlobe: null,
-    globe: null
-  }
+
+  // Format: {
+  //   absolute: {x, y, z},
+  //   relativeToGlobe: {x,y,z},
+  //   mesh: {
+  //     name: <string>,
+  //     uuid: <guid>>,
+  //
+  //     // Only applies to region pins and primary POI pins
+  //     userData: {
+  //       eventId: <guid>
+  //       locationId: <guid>
+  //     }
+  //   }
+  // }
+
+  // cursorRaycastIntersections: {
+  //   firstNonGlobe: null,
+  //   globe: null
+  // },
+
+  cursorRaycastIntersections2: {
+    globeIndex: -1,
+    intersections: []
+  },
 }
 
 export const stateSliceMouseInfo = createSlice({
@@ -51,7 +107,7 @@ export const stateSliceMouseInfo = createSlice({
   initialState,
   reducers: {
     setMousePos: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setMousePos", value: action.payload })
+      // console.log({ "mouseStateActions.setMousePos": action.payload })
 
       let normalizedScreenSpaceXY = action.payload
       return {
@@ -67,20 +123,69 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    setLeftMouseIsDown: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setLeftMouseIsDown", value: action.payload })
+    setCursorRaycastIntersections2: (state, action) => {
+      // console.log({ "mouseStateActions.setCursorRaycastIntersections2": action.payload })
 
       return {
         ...state,
-        leftMouseDown: {
-          timeMs: action.payload.timeMs,
-          pos: action.payload.pos
+        cursorRaycastIntersections2: {
+          globeIndex: action.payload.findIndex((intersection) => intersection.mesh.name == meshNames.Globe),
+          intersections: action.payload
         }
       }
     },
 
+    // setLeftMouseDown: (state, action) => {
+    //   console.log({ "mouseStateActions.setLeftMouseDownScreen": action.payload })
+
+    //   let meshIntersection = null
+    //   if (state.cursorRaycastIntersections2.length > 0){
+    //     meshIntersection = state.cursorRaycastIntersections2[0]
+    //   }
+
+    //   return {
+    //     ...state,
+    //     leftMouse: {
+    //       down: {
+    //         canvasPos: {
+    //           x: action.payload.pos.x,
+    //           y: action.payload.pos.y
+    //         },
+    //         timeMs: action.payload.timeMs,
+    //         intersection: meshIntersection
+    //       }
+    //     }
+    //   }
+    // },
+
+    // setLeftMouseDownIntersection: (state, action) => {
+    //   console.log({ "mouseStateActions.setLeftMouseDownIntersection": action.payload })
+
+    //   return {
+    //     ...state,
+    //     leftMouseDownIntersection: action.payload
+    //   }
+    // },
+
+    setLeftMouseIsDown: (state, action) => {
+      // console.log({ "mouseStateActions.setLeftMouseIsDown": action.payload })
+
+      return {
+        ...state,
+        leftMouseDown: {
+          pos: action.payload.pos,
+          timeMs: action.payload.timeMs,
+
+          // Cursor intersections are calculated whenever the mouse moves. By the time a button is 
+          // clicked, the intersections have already been calculated.
+          // Note: If there are none, then array[0] is "undefined".
+          intersection: action.payload.intersection
+        },
+      }
+    },
+
     setLeftMouseIsUp: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setLeftMouseIsUp", value: action.payload })
+      // console.log({ "mouseStateActions.setLeftMouseIsUp": action.payload })
 
       return {
         ...state,
@@ -92,7 +197,7 @@ export const stateSliceMouseInfo = createSlice({
     },
 
     setRightMouseIsDown: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setRightMouseIsDown", value: action.payload })
+      // console.log({ "mouseStateActions.setRightMouseIsDown": action.payload })
 
       return {
         ...state,
@@ -104,7 +209,7 @@ export const stateSliceMouseInfo = createSlice({
     },
 
     setRightMouseIsUp: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setRightMouseIsUp", value: action.payload })
+      // console.log({ "mouseStateActions.setRightMouseIsUp": action.payload })
 
       return {
         ...state,
@@ -115,18 +220,21 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    resetLeftMouseUpDown: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_resetLeftMouseUpDown", value: action.payload })
+    resetLeftMouse: (state, action) => {
+      // console.log({ "mouseStateActions.resetLeftMouse": action.payload })
 
       return {
         ...state,
-        mouseDown: initialState.mouseDown,
-        mouseUp: initialState.mouseUp
+        rightMouseUp: initialState.rightMouseUp,
+        leftMouseUp: initialState.leftMouseUp,
+        rightMouseDown: initialState.rightMouseDown,
+        leftMouseDown: initialState.leftMouseDown,
+        // leftMouseDownIntersection: initialState.intersection,
       }
     },
 
     setCursorRaycastIntersections: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_setCursorRaycastIntersections", value: action.payload })
+      // console.log({ "mouseStateActions.setCursorRaycastIntersections": action.payload })
 
       return {
         ...state,
@@ -138,7 +246,7 @@ export const stateSliceMouseInfo = createSlice({
     },
 
     resetCursorRaycastIntersections: (state, action) => {
-      // console.log({ msg: "stateSliceMouseInfo_resetCursorRaycastIntersection", value: action.payload })
+      // console.log({ "mouseStateActions.resetCursorRaycastIntersection": action.payload })
 
       return {
         ...state,

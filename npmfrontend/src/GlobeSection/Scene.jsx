@@ -8,22 +8,30 @@ import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { MouseHandler } from "./MouseHandler"
 import { EditableRegion } from "./Region/EditableRegion"
 import { DisplayOnlyRegion } from "./Region/DisplayOnlyRegion"
+import * as THREE from "three"
 
 // Extract only what is needed for the state machine.
 // Note: An object with functions cannot be stored as state. Need to extract the values 
 // manually and construct a new JSON object with this info.
-const parseIntersectionForState = (intersection) => {
+const parseIntersectionForState = (intersection, globePos) => {
+  let relativeToGlobe = new THREE.Vector3().subVectors(intersection.point, globePos)
+
   return {
-    point: {
+    absolute: {
       x: intersection.point.x,
       y: intersection.point.y,
       z: intersection.point.z,
+    },
+    relativeToGlobe: {
+      x: relativeToGlobe.x,
+      y: relativeToGlobe.y,
+      z: relativeToGlobe.z,
     },
     mesh: {
       name: intersection.object.name,
       uuid: intersection.object.uuid,
       userData: {
-        poi: intersection.object.userData?.eventId,
+        eventId: intersection.object.userData?.eventId,
         locationId: intersection.object.userData?.locationId,
       }
     }
@@ -54,7 +62,7 @@ export function Scene(
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/poiState.allPois", value: poiState.allPois })
+    // console.log({ "Scene useEffect poiState.allPois": poiState.allPois })
 
     let poiInfo = []
     poiState.allPois?.forEach((poi) => {
@@ -78,7 +86,7 @@ export function Scene(
 
   // IfEdit mode determines whether we use "DisplayOnlyRegion" or "EditableRegion".
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/editState.editModeOn", value: editState.editModeOn })
+    // console.log({ "Scene useEffect editState.editModeOn": editState.editModeOn })
 
     if (editState.editModeOn) {
       // TODO: set edit state info to current POI info
@@ -98,7 +106,7 @@ export function Scene(
   // doing it every frame just before the raycaster runs. Doing so incurs some annoying searching 
   // and notification, but it's better for performance in the long run (I think).
   useEffect(() => {
-    console.log("Scene useEffect: meshes changed")
+    // console.log("Scene useEffect: meshes changed")
 
     const meshesArr = []
 
@@ -128,7 +136,7 @@ export function Scene(
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
   // follow-up poiReactElements are created, so they should all be there.
   useEffect(() => {
-    // console.log({ msg: "Scene()/useEffect()/poiState.selectedPoi", value: poiState.selectedPoi })
+    // console.log({ "Scene useEffect poiState.selectedPoi": poiState.selectedPoi })
 
     if (poiState.selectedPoi) {
       // Should have exactly 1 matching element.
@@ -205,79 +213,95 @@ export function Scene(
     //   region: intersections.find((intersection) => intersection.object.name == meshNames.Region)
     // })
 
-    if (intersections.length > 0) {
-      // let things = {}
-      // intersections.forEach((inter, index) => {
-      //   things[index] = {
-      //     name: inter.object.name,
-      //     inter: inter
-      //   }
-      // })
-      // console.log(things)
 
-
-      let things = intersections.map((inter) => { return inter.object.name })
-      if (things.length > 10) {
-        console.log(things)
+    // If there are intersections, always update.
+    // Else if the mouse state still has intersections, update so that there are none.
+    // Else skip.
+    if (intersections.length > 0 || mouseState.cursorRaycastIntersections2.intersections.length > 0) {
+      let parsedIntersectionsForState = []
+      for (let i = 0; i < intersections.length; i++) {
+        parsedIntersectionsForState.push(parseIntersectionForState(intersections[i], globeInfo.pos))
       }
 
-
-
-
-
-      let firstIntersection = intersections[0]
-      let globeIntersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
-
-      if (firstIntersection.object.name == meshNames.Globe) {
-        // console.log("globe only")
-        reduxDispatch(
-          mouseStateActions.setCursorRaycastIntersections({
-            firstNonGlobe: null,
-            globe: parseIntersectionForState(firstIntersection)
-          })
-        )
-      }
-      else if (globeIntersection) {
-
-
-        // //??why isn't the region mesh intersection calculation moving? it moves on the first click, 
-        // // and if I move a boundary pin so that the mesh is stretched over the original area, I can click on that and move
-        // // it again, but I can't click and move it once the mesh is outside of the original area; what gives??
-        // if (firstIntersection.object.name == meshNames.Region) {
-        //   console.log(firstIntersection.object.geometry.attributes.position.array[0])
-        // }
-
-
-
-        // console.log(`globe + '${firstIntersection.object.name}' at '${JSON.stringify(firstIntersection.point)}'`)
-        reduxDispatch(
-          mouseStateActions.setCursorRaycastIntersections({
-            firstNonGlobe: parseIntersectionForState(firstIntersection),
-            globe: parseIntersectionForState(globeIntersection)
-          })
-        )
-      }
-      else {
-        // Mesh intersection, but not with globe. The mouse must be hovering over open space 
-        // (maybe a mesh on the edge of the hemisphere?)
-        // console.log(`'${firstIntersection.object.name}' only at '${JSON.stringify(firstIntersection.point)}'`)
-        reduxDispatch(
-          mouseStateActions.setCursorRaycastIntersections({
-            firstNonGlobe: parseIntersectionForState(firstIntersection),
-            globe: null
-          })
-        )
-      }
+      reduxDispatch(
+        mouseStateActions.setCursorRaycastIntersections2(parsedIntersectionsForState)
+      )
     }
-    else {
-      // De-activate the cursor intersections, but only if they are on. Don't incur excess events.
-      // console.log("no intersection")
-      if (mouseState.cursorRaycastIntersections.first || mouseState.cursorRaycastIntersections.globe) {
-        reduxDispatch(
-          mouseStateActions.resetCursorRaycastIntersections()
-        )
-      }
-    }
+
+
+    // if (intersections.length > 0) {
+    //   // let things = {}
+    //   // intersections.forEach((inter, index) => {
+    //   //   things[index] = {
+    //   //     name: inter.object.name,
+    //   //     inter: inter
+    //   //   }
+    //   // })
+    //   // console.log(things)
+
+
+    //   let things = intersections.map((inter) => { return inter.object.name })
+    //   if (things.length > 10) {
+    //     console.log(things)
+    //   }
+
+
+
+
+
+    //   let firstIntersection = intersections[0]
+    //   let globeIntersection = intersections.find((intersection) => intersection.object.name == meshNames.Globe)
+
+    //   if (firstIntersection.object.name == meshNames.Globe) {
+    //     // console.log("globe only")
+    //     reduxDispatch(
+    //       mouseStateActions.setCursorRaycastIntersections({
+    //         firstNonGlobe: null,
+    //         globe: parseIntersectionForState(firstIntersection)
+    //       })
+    //     )
+    //   }
+    //   else if (globeIntersection) {
+
+
+    //     // //??why isn't the region mesh intersection calculation moving? it moves on the first click, 
+    //     // // and if I move a boundary pin so that the mesh is stretched over the original area, I can click on that and move
+    //     // // it again, but I can't click and move it once the mesh is outside of the original area; what gives??
+    //     // if (firstIntersection.object.name == meshNames.Region) {
+    //     //   console.log(firstIntersection.object.geometry.attributes.position.array[0])
+    //     // }
+
+
+
+    //     // console.log(`globe + '${firstIntersection.object.name}' at '${JSON.stringify(firstIntersection.point)}'`)
+    //     reduxDispatch(
+    //       mouseStateActions.setCursorRaycastIntersections({
+    //         firstNonGlobe: parseIntersectionForState(firstIntersection),
+    //         globe: parseIntersectionForState(globeIntersection)
+    //       })
+    //     )
+    //   }
+    //   else {
+    //     // Mesh intersection, but not with globe. The mouse must be hovering over open space 
+    //     // (maybe a mesh on the edge of the hemisphere?)
+    //     // console.log(`'${firstIntersection.object.name}' only at '${JSON.stringify(firstIntersection.point)}'`)
+    //     reduxDispatch(
+    //       mouseStateActions.setCursorRaycastIntersections({
+    //         firstNonGlobe: parseIntersectionForState(firstIntersection),
+    //         globe: null
+    //       })
+    //     )
+    //   }
+    // }
+    // else {
+    //   // De-activate the cursor intersections, but only if they are on. Don't incur excess events.
+    //   // console.log("no intersection")
+    //   if (mouseState.cursorRaycastIntersections.first || mouseState.cursorRaycastIntersections.globe) {
+    //     reduxDispatch(
+    //       mouseStateActions.resetCursorRaycastIntersections()
+    //     )
+    //   }
+    // }
 
     // Occurs when the mouse drifts from the world (or space) to a POI.
     let newPoiHover =
