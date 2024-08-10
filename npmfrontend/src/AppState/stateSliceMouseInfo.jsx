@@ -21,6 +21,7 @@ const initialState = {
   // },
   leftMouseUp: null,
   leftMouseDown: null,
+  leftMouseClicked: null,
   rightMouseUp: null,
   rightMouseDown: null,
 
@@ -86,18 +87,15 @@ export const stateSliceMouseInfo = createSlice({
     setLeftMouseIsDown: (state, action) => {
       // console.log({ "mouseStateActions.setLeftMouseIsDown": action.payload })
 
+      // Note: Cannot access intersections from the "state" argument. For some reason, if you try 
+      // to access any object other than a base type, the resulting type is a special object 
+      // internal to the redux package. Rather than de-reference every primitive individually, 
+      // just pass it in as an argument.
       return {
         ...state,
         leftMouseDown: {
           pos: action.payload.pos,
           timeMs: action.payload.timeMs,
-
-          // Cursor intersections are calculated whenever the mouse moves. By the time a button is 
-          // clicked, the intersections have already been calculated.
-          // Note: If there are none, then array[0] is "undefined".
-          // Also Note: Cannot access this from the "state" argument. For some reason, if you try to
-          // access any object other than a base type, the handling type is a special object. Rather 
-          // than de-reference every primitive individually, just pass it in as an argument.
           intersection: action.payload.intersection
         },
       }
@@ -112,6 +110,34 @@ export const stateSliceMouseInfo = createSlice({
           timeMs: action.payload.timeMs,
           pos: action.payload.pos
         }
+      }
+    },
+
+    setLeftMouseClicked: (state, action) => {
+      // console.log({ "mouseStateActions.setLeftMouseClicked": action.payload })
+
+      // Note: Cannot access intersections from the "state" argument. For some reason, if you try 
+      // to access any object other than a base type, the resulting type is a special object 
+      // internal to the redux package. Rather than de-reference every primitive individually, 
+      // just pass it in as an argument.
+      return {
+        ...state,
+        leftMouseClicked: {
+          pos: action.payload.pos,
+          timeMs: action.payload.timeMs,
+          intersection: action.payload.intersection
+        },
+      }
+    },
+
+    resetLeftMouse: (state, action) => {
+      // console.log({ "mouseStateActions.resetLeftMouse": action.payload })
+
+      return {
+        ...state,
+        leftMouseUp: initialState.leftMouseUp,
+        leftMouseDown: initialState.leftMouseDown,
+        leftMouseClicked: initialState.leftMouseClicked
       }
     },
 
@@ -136,18 +162,6 @@ export const stateSliceMouseInfo = createSlice({
           timeMs: action.payload.timeMs,
           pos: action.payload.pos
         }
-      }
-    },
-
-    resetLeftMouse: (state, action) => {
-      // console.log({ "mouseStateActions.resetLeftMouse": action.payload })
-
-      return {
-        ...state,
-        rightMouseUp: initialState.rightMouseUp,
-        leftMouseUp: initialState.leftMouseUp,
-        rightMouseDown: initialState.rightMouseDown,
-        leftMouseDown: initialState.leftMouseDown,
       }
     },
 

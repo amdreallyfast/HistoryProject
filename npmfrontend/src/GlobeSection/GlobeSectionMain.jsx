@@ -84,22 +84,13 @@ export function GlobeSectionMain() {
       intersection: meshIntersection
     }
 
-    let locId = null
-    if (meshIntersection) {
-      if (meshIntersection.mesh.name == meshNames.PinBoundingBox) {
-        locId = meshIntersection.mesh.userData.locationId
-      }
-    }
-
     if (e.button == 0) {
       // Left mouse button
       reduxDispatch(mouseStateActions.setLeftMouseIsDown(clickData))
-      reduxDispatch(mouseStateActions.setSelectedLocId(locId))
     }
     else if (e.button == 1) {
       // Right mouse button
       reduxDispatch(mouseStateActions.setRightMouseIsDown(clickData))
-      //??anything with the locationId??
     }
     else {
       // ignore other buttons
