@@ -59,14 +59,6 @@ export function Globe({ globeRadius }) {
     groupRef.current.rotation.y = -Math.PI / 2
   }, [groupRef.current])
 
-  const reduxDispatch = useDispatch()
-  // useEffect(() => {
-  //   reduxDispatch(
-  //     intersectableMeshesStateActions.add(sphereRef.current)
-  //   )
-  //   console.log({ msg: "Globe", value: sphereRef.current })
-  // }, [sphereRef.current])
-
   return (
     <group name={groupNames.GlobeGroup} ref={groupRef}>
       {/* Planet */}

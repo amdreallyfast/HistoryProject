@@ -18,9 +18,7 @@ export const MouseHandler = () => {
     let y = posOnGlobe.y
     let z = posOnGlobe.z
     let spherePoint = createSpherePointFromXYZ(x, y, z, globeInfo.radius)
-    reduxDispatch(
-      editStateActions.setPrimaryLoc(spherePoint)
-    )
+    reduxDispatch(editStateActions.setPrimaryLoc(spherePoint))
   }
 
   // Fast local flags to avoid race conditions.
@@ -140,26 +138,20 @@ export const MouseHandler = () => {
     let q = (new THREE.Quaternion()).setFromUnitVectors(mouseDownNormalized, cursorGlobeNormalized)
 
     if (clickAndDragEnabledRef.current) {
-      // console.log({ enabled: clickAndDragEnabledRef.current })
-      // if (!clickAndDragEnabledRef.current) {
-      //   console.log("doom")
-      // }
-
       // Update selected mesh position
       let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
       let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
       let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
-      reduxDispatch(
-        editStateActions.updateClickAndDrag({
-          rotorQuaternion: {
-            w: rotor.w,
-            x: rotor.x,
-            y: rotor.y,
-            z: rotor.z,
-          }
-        })
-      )
+      let clickAndDragData = {
+        rotorQuaternion: {
+          w: rotor.w,
+          x: rotor.x,
+          y: rotor.y,
+          z: rotor.z,
+        }
+      }
+      reduxDispatch(editStateActions.updateClickAndDrag(clickAndDragData))
     }
     else {
       // Enable
@@ -169,57 +161,34 @@ export const MouseHandler = () => {
       // of the globe and the globe itself. To avoid snapping the mesh to the cursor's 
       // position, account for the offset between the two points.
 
-      // let globePos = mouseState.cursorRaycastIntersections.globe.point
-      // let globePosNormalized = (new THREE.Vector3(globePos.x, globePos.y, globePos.z)).normalize()
-
       let meshIntersection = mouseState.cursorRaycastIntersections2.intersections[0]
       let relative = meshIntersection.relativeToGlobe
       let meshIntersectionNormalized = new THREE.Vector3(relative.x, relative.y, relative.z).normalize()
 
-      // let cursorPos = meshIntersection.point
-      // let cursorPosNormalized = (new THREE.Vector3(cursorPos.x, cursorPos.y, cursorPos.z)).normalize()
-
       let qOffset = (new THREE.Quaternion).setFromUnitVectors(cursorGlobeNormalized, meshIntersectionNormalized)
       let rotor = (new THREE.Quaternion()).multiplyQuaternions(q, qOffset)
-
-      reduxDispatch(
-        editStateActions.enableClickAndDrag({
-          mesh: mouseDown.mesh,
-          initialOffsetQuaternion: {
-            w: qOffset.w,
-            x: qOffset.x,
-            y: qOffset.y,
-            z: qOffset.z,
-          },
-          rotorQuaternion: {
-            w: rotor.w,
-            x: rotor.x,
-            y: rotor.y,
-            z: rotor.z,
-          }
-        })
-      )
+      let clickAndDragData = {
+        mesh: mouseDown.mesh,
+        initialOffsetQuaternion: {
+          w: qOffset.w,
+          x: qOffset.x,
+          y: qOffset.y,
+          z: qOffset.z,
+        },
+        rotorQuaternion: {
+          w: rotor.w,
+          x: rotor.x,
+          y: rotor.y,
+          z: rotor.z,
+        }
+      }
+      reduxDispatch(editStateActions.enableClickAndDrag(clickAndDragData))
 
       clickAndDragEnabledRef.current = true
     }
   }, [mouseState.currPos])
 
-  // useEffect(() => {
-  //   // console.log({ "MouseHandler useEffect mouseState.cursorRaycastIntersections.firstNonGlobe", value: mouseState.cursorRaycastIntersections.firstNonGlobe })
-  //   let firstIntersection = mouseState.cursorRaycastIntersections.firstNonGlobe
-
-  //   // TODO: display info on hover
-
-  // }, [mouseState.cursorRaycastIntersections.firstNonGlobe])
-
-  // useEffect(() => {
-  //   // console.log({ "MouseHandler useEffect mouseState.cursorRaycastIntersections.globe": mouseState.cursorRaycastIntersections.globe })
-  //   let globeIntersection = mouseState.cursorRaycastIntersections.globe
-
-  //   // TODO: display info on hover
-
-  // }, [mouseState.cursorRaycastIntersections.globe])
-
+  // Need to return some HTML so simply that this can be a component.
   return (
     <>
     </>

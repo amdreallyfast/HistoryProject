@@ -55,12 +55,11 @@ export function GlobeSectionMain() {
     }
 
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
-    reduxDispatch(
-      mouseStateActions.setMousePos({
-        x: normalized.x,
-        y: normalized.y
-      })
-    )
+    let mousePos = {
+      x: normalized.x,
+      y: normalized.y
+    }
+    reduxDispatch(mouseStateActions.setMousePos(mousePos))
 
     // Note: The POI info pop's position, unlike the mouse, seems to be able to follow the 
     // unfiltered client (that is, the canvas)...*shrug*.
@@ -85,15 +84,11 @@ export function GlobeSectionMain() {
 
     if (e.button == 0) {
       // Left mouse button
-      reduxDispatch(
-        mouseStateActions.setLeftMouseIsDown(metadata)
-      )
+      reduxDispatch(mouseStateActions.setLeftMouseIsDown(metadata))
     }
     else if (e.button == 1) {
       // Right mouse button
-      reduxDispatch(
-        mouseStateActions.setRightMouseIsDown(metadata)
-      )
+      reduxDispatch(mouseStateActions.setRightMouseIsDown(metadata))
     }
     else {
       // ignore other buttons
@@ -115,15 +110,11 @@ export function GlobeSectionMain() {
 
     if (e.button == 0) {
       // Left mouse button
-      reduxDispatch(
-        mouseStateActions.setLeftMouseIsUp(metadata)
-      )
+      reduxDispatch(mouseStateActions.setLeftMouseIsUp(metadata))
     }
     else if (e.button == 1) {
       // Right mouse button
-      reduxDispatch(
-        mouseStateActions.setRightMouseIsUp(metadata)
-      )
+      reduxDispatch(mouseStateActions.setRightMouseIsUp(metadata))
     }
     else {
       // ignore other buttons

@@ -11,71 +11,23 @@ const initialState = {
     y: 0
   },
 
-  // Expected:
-  //  {
-  //    pos: {
-  //      x: 0,
-  //      y: 0
-  //    },
-  //    timeMs: null
-  //    intersection: <format of cursor raycast intersection>
-  //  }
+  // Format: {
+  //   pos: {
+  //     x: 0,
+  //     y: 0
+  //   },
+  //   timeMs: null,
+  //   intersection: null // or cursor raycast intersection (see below)
+  // },
   leftMouseUp: null,
   leftMouseDown: null,
-  // leftMouseDownIntersection: null,
   rightMouseUp: null,
   rightMouseDown: null,
 
-
-  // // Format: {
-  // //   up: {
-  // //     canvasPos: {
-  // //       x: 0,
-  // //       y: 0
-  // //     },
-  // //     timeMs: {}
-  // //   },
-  // //   down: {
-  // //     canvasPos: {
-  // //       x: 0,
-  // //       y: 0
-  // //     },
-  // //     timeMs: null,
-  // //     intersection: {
-  // //       mesh: {
-  // //         name: <guid>,
-  // //         uuid: <guid>,
-  // //         userData: {
-  // //           eventId: <guid>,
-  // //           locationId: <guid>
-  // //         }
-  // //       },
-  // //       raycastIntersectionPoint: {
-  // //         x: 0,
-  // //         y: 0,
-  // //         z: 0
-  // //       }
-  // //     }
-  // //   }
-  // // },
-  // leftMouse: {
-  //   up: null,
-  //   down: null
-  // },
-  // rightMouse: {
-  //   up: null,
-  //   down: null
-  // },
-
-
-
-  // via ThreeJs raycasting
-  // Note: An object with functions cannot be stored as state. Need to extract the values manually
-  // and construct a JSON object before storing this info.
-  // Expected:
+  // Extracted minimum values from ThreeJs raycasting because objects with functions cannot be 
+  // stored as state.
   // Note: Using mesh.uuid instead of mesh.Id, the latter of which is an integer used by ThreeJs 
-  //  for something.
-
+  //  for something or other.
   // Format: {
   //   absolute: {x, y, z},
   //   relativeToGlobe: {x,y,z},
@@ -90,12 +42,6 @@ const initialState = {
   //     }
   //   }
   // }
-
-  // cursorRaycastIntersections: {
-  //   firstNonGlobe: null,
-  //   globe: null
-  // },
-
   cursorRaycastIntersections2: {
     globeIndex: -1,
     intersections: []
@@ -134,38 +80,6 @@ export const stateSliceMouseInfo = createSlice({
         }
       }
     },
-
-    // setLeftMouseDown: (state, action) => {
-    //   console.log({ "mouseStateActions.setLeftMouseDownScreen": action.payload })
-
-    //   let meshIntersection = null
-    //   if (state.cursorRaycastIntersections2.length > 0){
-    //     meshIntersection = state.cursorRaycastIntersections2[0]
-    //   }
-
-    //   return {
-    //     ...state,
-    //     leftMouse: {
-    //       down: {
-    //         canvasPos: {
-    //           x: action.payload.pos.x,
-    //           y: action.payload.pos.y
-    //         },
-    //         timeMs: action.payload.timeMs,
-    //         intersection: meshIntersection
-    //       }
-    //     }
-    //   }
-    // },
-
-    // setLeftMouseDownIntersection: (state, action) => {
-    //   console.log({ "mouseStateActions.setLeftMouseDownIntersection": action.payload })
-
-    //   return {
-    //     ...state,
-    //     leftMouseDownIntersection: action.payload
-    //   }
-    // },
 
     setLeftMouseIsDown: (state, action) => {
       // console.log({ "mouseStateActions.setLeftMouseIsDown": action.payload })
@@ -229,7 +143,6 @@ export const stateSliceMouseInfo = createSlice({
         leftMouseUp: initialState.leftMouseUp,
         rightMouseDown: initialState.rightMouseDown,
         leftMouseDown: initialState.leftMouseDown,
-        // leftMouseDownIntersection: initialState.intersection,
       }
     },
 

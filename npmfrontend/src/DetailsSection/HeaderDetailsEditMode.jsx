@@ -17,9 +17,7 @@ export function HeaderDetailsEditMode() {
       console.log({ title: titleValue })
     }
 
-    reduxDispatch(
-      editStateActions.setTitle(titleValue)
-    )
+    reduxDispatch(editStateActions.setTitle(titleValue))
   }
 
   // Tab complete for tags
@@ -37,9 +35,7 @@ export function HeaderDetailsEditMode() {
       tags.push(tagValue)
       tags = [...new Set(tags)]
       tags.sort()
-      reduxDispatch(
-        editStateActions.setTags(tags)
-      )
+      reduxDispatch(editStateActions.setTags(tags))
 
       // // Don't tab away from the input if the user just entered a valid tag. Often, a single tag is not alone and the user wants to enter multiple in a row (??avoid this non-standard behavior??)
       // e.preventDefault()

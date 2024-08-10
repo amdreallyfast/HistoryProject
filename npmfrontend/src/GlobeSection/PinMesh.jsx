@@ -181,16 +181,12 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     pinLocation.id = spherePoint.id
 
     if (pinType == meshNames.PrimaryPin) {
-      reduxDispatch(
-        editStateActions.setPrimaryLoc(pinLocation)
-      )
+      reduxDispatch(editStateActions.setPrimaryLoc(pinLocation))
     }
     else if (pinType == meshNames.RegionBoundaryPin) {
       // Re-create region mesh whenever a boundary pin moves
       // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
-      reduxDispatch(
-        editStateActions.updateRegionBoundaryPin(pinLocation)
-      )
+      reduxDispatch(editStateActions.updateRegionBoundaryPin(pinLocation))
     }
     else {
       throw new Error(`Unrecognized pin type '${pinType}'`)

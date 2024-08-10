@@ -62,10 +62,7 @@ export function EditableRegion({ globeInfo }) {
       if (regionBoundaries.length == 0) {
         regionBoundaries = createDefaultRegionBoundaries(editState.primaryLoc, globeInfo)
       }
-
-      reduxDispatch(
-        editStateActions.setRegionBoundaries(regionBoundaries)
-      )
+      reduxDispatch(editStateActions.setRegionBoundaries(regionBoundaries))
 
       setPrimaryLocationPinReactElement(
         <PinMesh
@@ -93,18 +90,14 @@ export function EditableRegion({ globeInfo }) {
   useEffect(() => {
     // console.log({ "EditableRegion useEffect primaryLocationPinReactElement": primaryLocationPinReactElement })
 
-    reduxDispatch(
-      editStateActions.setUpdatedPrimaryPinMeshInScene()
-    )
+    reduxDispatch(editStateActions.setUpdatedPrimaryPinMeshInScene())
   }, [primaryLocationPinReactElement])
 
   // Same for region meshes (there are several of them (pins, etc.)).
   useEffect(() => {
     // console.log({ "EditableRegion useEffect regionMeshesUpdated": regionPinReactElements, mesh: regionMeshReactElements })
 
-    reduxDispatch(
-      editStateActions.setUpdatedRegionMeshesInScene()
-    )
+    reduxDispatch(editStateActions.setUpdatedRegionMeshesInScene())
   }, [regionPinReactElements, regionMeshReactElements])
 
   // Create region pins when the number of region boundary points change.

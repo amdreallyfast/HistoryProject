@@ -18,9 +18,7 @@ export function ImageDetailsEditMode() {
         filename: file.name,
         dataUrl: reader.result
       }
-      reduxDispatch(
-        editStateActions.setImageDataUrl(payload)
-      )
+      reduxDispatch(editStateActions.setImageDataUrl(payload))
     }
 
     reader.readAsDataURL(file)
