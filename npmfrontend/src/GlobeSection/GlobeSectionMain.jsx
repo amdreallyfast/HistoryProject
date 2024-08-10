@@ -74,7 +74,7 @@ export function GlobeSectionMain() {
     // console.log({ "onCanvasMouseDown": e })
 
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
-    let meshIntersection = mouseState.cursorRaycastIntersections.intersections[0]
+    let meshIntersection = mouseState.cursorRaycasting.intersections[0]
     let clickData = {
       timeMs: (new Date()).getTime(),
       pos: {
@@ -85,8 +85,10 @@ export function GlobeSectionMain() {
     }
 
     let locId = null
-    if (meshIntersection.mesh.name == meshNames.PinBoundingBox) {
-      locId = meshIntersection.mesh.userData.locationId
+    if (meshIntersection) {
+      if (meshIntersection.mesh.name == meshNames.PinBoundingBox) {
+        locId = meshIntersection.mesh.userData.locationId
+      }
     }
 
     if (e.button == 0) {

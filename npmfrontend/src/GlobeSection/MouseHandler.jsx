@@ -82,10 +82,10 @@ export const MouseHandler = () => {
     let yDiff = Math.abs(leftMouseUp.pos.y - leftMouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
-      let clickedGlobe = (mouseState.cursorRaycastIntersections.globeIndex == 0)
+      let clickedGlobe = (mouseState.cursorRaycasting.globeIndex == 0)
       let noRegionCreated = !editState.primaryLoc
       if (editState.editModeOn && clickedGlobe && noRegionCreated) {
-        let globeIntersection = mouseState.cursorRaycastIntersections.intersections[0]
+        let globeIntersection = mouseState.cursorRaycasting.intersections[0]
         let relativeToGlobe = {
           x: globeIntersection.absolute.x - globeInfo.pos.x,
           y: globeIntersection.absolute.y - globeInfo.pos.y,
@@ -123,7 +123,7 @@ export const MouseHandler = () => {
       console.log("how did we get here?")
       return
     }
-    else if (mouseState.cursorRaycastIntersections.globeIndex < 0) {
+    else if (mouseState.cursorRaycasting.globeIndex < 0) {
       // Cursor is not over the globe, so we can't click-and-drag the mesh to a new location.
       return
     }
@@ -140,8 +140,8 @@ export const MouseHandler = () => {
     let mouseRelative = mouseDown.relativeToGlobe
     let mouseDownNormalized = new THREE.Vector3(mouseRelative.x, mouseRelative.y, mouseRelative.z).normalize()
 
-    let globeIndex = mouseState.cursorRaycastIntersections.globeIndex
-    let cursorGlobe = mouseState.cursorRaycastIntersections.intersections[globeIndex].relativeToGlobe
+    let globeIndex = mouseState.cursorRaycasting.globeIndex
+    let cursorGlobe = mouseState.cursorRaycasting.intersections[globeIndex].relativeToGlobe
     let cursorGlobeNormalized = new THREE.Vector3(cursorGlobe.x, cursorGlobe.y, cursorGlobe.z).normalize()
 
     // Rotation on the globe from where the left mouse was pressed to where it is now.
@@ -170,7 +170,7 @@ export const MouseHandler = () => {
       // Note: There is some distance between the raycaster's intersection of the mesh on top 
       // of the globe and the globe itself. To avoid snapping the mesh to the cursor's 
       // position, account for the offset between the two points.
-      let meshIntersection = mouseState.cursorRaycastIntersections.intersections[0]
+      let meshIntersection = mouseState.cursorRaycasting.intersections[0]
       let relative = meshIntersection.relativeToGlobe
       let meshIntersectionNormalized = new THREE.Vector3(relative.x, relative.y, relative.z).normalize()
 

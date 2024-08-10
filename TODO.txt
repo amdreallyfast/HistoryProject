@@ -14,3 +14,12 @@ Standardize function console log messages:
 	8/10/2024
 	console.log({ "class.function": argumentValue })
 	console.log({ "class.useEffect[condition]": conditionValue })
+
+Fix ear clipping that blows up when you drag an edge too far out of the circle:
+	8/10/2024
+	Maybe switch direction of evaluation when it's about to do that?
+	Somehow stop movement of a pin such that it inverts the triangle?
+
+Update mouse hover to allow for things other than pin bounding boxes
+	8/10/2024
+	??How to identify though? A region doesn't have a locationId, so what to do??

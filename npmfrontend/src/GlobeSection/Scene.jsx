@@ -191,18 +191,23 @@ export function Scene(
     // If there are intersections, always update.
     // Else if the mouse state still has intersections, update so that there are none.
     // Else skip.
-    if (intersections.length > 0 || mouseState.cursorRaycastIntersections.intersections.length > 0) {
+    if (intersections.length > 0) {
       let parsedIntersectionsForState = []
       for (let i = 0; i < intersections.length; i++) {
         parsedIntersectionsForState.push(parseIntersectionForState(intersections[i], globeInfo.pos))
       }
-      reduxDispatch(mouseStateActions.setCursorRaycastIntersections(parsedIntersectionsForState))
+      reduxDispatch(mouseStateActions.setCursorRaycasting(parsedIntersectionsForState))
 
       let first = parsedIntersectionsForState[0]
       if (first.mesh.name == meshNames.PinBoundingBox) {
         let locId = first.mesh.userData.locationId
         reduxDispatch(mouseStateActions.setHoverLocId(locId))
       }
+    }
+    else if (mouseState.cursorRaycasting.intersections.length > 0) {
+      // Clear it out
+      reduxDispatch(mouseStateActions.setCursorRaycasting(null))
+      reduxDispatch(mouseStateActions.setHoverLocId(null))
     }
 
     // Occurs when the mouse drifts from the world (or space) to a POI.

@@ -28,25 +28,34 @@ const initialState = {
   // stored as state.
   // Note: Using mesh.uuid instead of mesh.Id, the latter of which is an integer used by ThreeJs 
   //  for something or other.
-  // Format: {
-  //   absolute: {x, y, z},
-  //   relativeToGlobe: {x,y,z},
-  //   mesh: {
-  //     name: <string>,
-  //     uuid: <guid>>,
-  //
-  //     // Only applies to region pins and primary POI pins
-  //     userData: {
-  //       eventId: <guid>
-  //       locationId: <guid>
+  // Also Note: Ensure not null. Personal philosphy that a single object can be null except for
+  //  an array object. In this case, the state variable contains an array, which should not be 
+  //  null, and therefore the state variable containing it should also not be null.
+  // Format: null or {
+  //   globeIndex: -1, // 0+ if the globe is in the mix (which it isn't in very shallow angles)
+  //   intersections: [
+  //     {
+  //       absolute: { x, y, z },
+  //       relativeToGlobe: { x, y, z },
+  //       mesh: {
+  //         name: string,
+  //         uuid: guid,
+
+  //         // Only applies to region pins and primary POI pins
+  //         userData: {
+  //           eventId: guid,
+  //           locationId: guid
+  //         }
+  //       }
   //     }
-  //   }
-  // }
-  cursorRaycastIntersections: {
+  //   ]
+  // },
+  cursorRaycasting: {
     globeIndex: -1,
     intersections: []
   },
 
+  // Used to communicate selection to and from components outside the Globe section (ex: Details).
   selectedLocId: null,
   prevSelectedLocId: null,
   hoverLocId: null,
@@ -142,14 +151,23 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    setCursorRaycastIntersections: (state, action) => {
-      // console.log({ "mouseStateActions.setCursorRaycastIntersections": action.payload })
+    setCursorRaycasting: (state, action) => {
+      // console.log({ "mouseStateActions.setCursorRaycasting": action.payload })
+      let intersections = action.payload
 
-      return {
-        ...state,
-        cursorRaycastIntersections: {
-          globeIndex: action.payload.findIndex((intersection) => intersection.mesh.name == meshNames.Globe),
-          intersections: action.payload
+      if (intersections) {
+        return {
+          ...state,
+          cursorRaycasting: {
+            globeIndex: intersections.findIndex((intersection) => intersection.mesh.name == meshNames.Globe),
+            intersections: intersections
+          }
+        }
+      }
+      else {
+        return {
+          ...state,
+          cursorRaycasting: initialState.cursorRaycasting
         }
       }
     },

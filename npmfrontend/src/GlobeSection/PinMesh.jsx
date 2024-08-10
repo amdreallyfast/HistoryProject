@@ -211,11 +211,11 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
 
   // Update color on mouse hover 
   useEffect(() => {
-    let meshIntersection = mouseState.cursorRaycastIntersections.intersections[0]
+    let meshIntersection = mouseState.cursorRaycasting.intersections[0]
     if (meshIntersection?.userData?.locationId == spherePoint.id) {
       console.log("hovering over me")
     }
-  }, [mouseState.cursorRaycastIntersections.intersections])
+  }, [mouseState.cursorRaycasting.intersections])
 
   // Update color when location or pin is selected
   useEffect(() => {
