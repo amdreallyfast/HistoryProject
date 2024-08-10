@@ -173,7 +173,7 @@ export const stateSliceMouseInfo = createSlice({
     },
 
     setHoverLocId: (state, action) => {
-      console.log({ "mouseStateActions.setHoverLocId": action.payload })
+      // console.log({ "mouseStateActions.setHoverLocId": action.payload })
 
       return {
         ...state,
@@ -183,7 +183,7 @@ export const stateSliceMouseInfo = createSlice({
     },
 
     setSelectedLocId: (state, action) => {
-      console.log({ "mouseStateActions.setSelectedLocId": action.payload })
+      // console.log({ "mouseStateActions.setSelectedLocId": action.payload })
 
       return {
         ...state,

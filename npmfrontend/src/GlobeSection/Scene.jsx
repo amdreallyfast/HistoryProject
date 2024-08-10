@@ -203,9 +203,13 @@ export function Scene(
         let locId = first.mesh.userData.locationId
         reduxDispatch(mouseStateActions.setHoverLocId(locId))
       }
+      else if (mouseState.hoverLocId) {
+        // Last hover no longer valid.
+        reduxDispatch(mouseStateActions.setHoverLocId(null))
+      }
     }
     else if (mouseState.cursorRaycasting.intersections.length > 0) {
-      // Clear it out
+      // No intersections. Clear it out.
       reduxDispatch(mouseStateActions.setCursorRaycasting(null))
       reduxDispatch(mouseStateActions.setHoverLocId(null))
     }
