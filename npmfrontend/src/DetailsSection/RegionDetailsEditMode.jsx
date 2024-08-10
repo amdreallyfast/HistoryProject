@@ -78,8 +78,6 @@ export function RegionDetailsEditMode() {
   useEffect(() => {
     // console.log({ "EditRegion useEffect selectedLocId changes": edit })
 
-    // ??how to scroll to the selected item??
-
     // Highlight selected.
     if (mouseState.selectedLocId) {
       let htmlElement = document.getElementById(mouseState.selectedLocId)
@@ -89,6 +87,9 @@ export function RegionDetailsEditMode() {
       else {
         htmlElement.className = htmlClass.RegionBoundaryHighlighted
       }
+
+      // Scroll to selected
+      htmlElement.scrollIntoView({ behavior: "smooth", block: "center" })
     }
 
     // De-highlight previous.
