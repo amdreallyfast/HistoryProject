@@ -219,18 +219,18 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
 
   // Update color when location or pin is selected
   useEffect(() => {
-    if (editState.selectedPinId == spherePoint.id) {
+    if (mouseState.selectedLocId == spherePoint.id) {
       boxMeshRef.current.material.color = new THREE.Color(0x00f0f0)
       boxMeshRef.current.material.opacity = 0.5
       // meshRef.current.material.color = new THREE.Color(colorHex * 2)
     }
-    else if (editState.prevSelectedPinId == spherePoint.id) {
+    else if (mouseState.prevSelectedLocId == spherePoint.id) {
       boxMeshRef.current.material.color = new THREE.Color(0xffffff)
       boxMeshRef.current.material.opacity = 0.2
       // meshRef.current.material.color = new THREE.Color(colorHex)
     }
 
-  }, [editState.selectedPinId, editState.prevSelectedPinId])
+  }, [mouseState.selectedLocId, mouseState.prevSelectedLocId])
 
   return (
     <>

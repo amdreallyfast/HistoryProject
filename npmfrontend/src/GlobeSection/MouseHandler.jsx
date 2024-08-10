@@ -21,6 +21,16 @@ export const MouseHandler = () => {
     reduxDispatch(editStateActions.setPrimaryLoc(spherePoint))
   }
 
+  const updateClickAndDrag = () => {
+
+  }
+
+  const enableClickAndDrag = () => {
+
+  }
+
+
+
   // Fast local flags to avoid race conditions.
   // Problem: A race condition was encountered (8/9/2024) in which the "mouse up" and "mouse move"
   // handlers were called on the same frame, and the former tries to turn click-and-drag off, but
@@ -35,19 +45,19 @@ export const MouseHandler = () => {
   useEffect(() => {
     // console.log({ "MouseHandler useEffect mouseState.leftMouseDown": mouseState.leftMouseDown })
 
-    if (!mouseState.leftMouseDown?.intersection) {
-      return
-    }
+    // if (!mouseState.leftMouseDown?.intersection) {
+    //   return
+    // }
 
-    let intersection = mouseState.leftMouseDown.intersection
-    if (intersection.mesh.name == meshNames.PinBoundingBox) {
-      if (mouseState.leftMouseDown.intersection) {
-        reduxDispatch(editStateActions.setSelectedPinId(intersection.mesh.userData.locationId))
-      }
-      else {
-        reduxDispatch(editStateActions.setSelectedPinId(null))
-      }
-    }
+    // let intersection = mouseState.leftMouseDown.intersection
+    // if (intersection.mesh.name == meshNames.PinBoundingBox) {
+    //   if (mouseState.leftMouseDown.intersection) {
+    //     reduxDispatch(editStateActions.setSelectedPinId(intersection.mesh.userData.locationId))
+    //   }
+    //   else {
+    //     reduxDispatch(editStateActions.setSelectedPinId(null))
+    //   }
+    // }
     leftMouseDownRef.current = true
   }, [mouseState.leftMouseDown])
 
@@ -137,8 +147,8 @@ export const MouseHandler = () => {
     // Rotation on the globe from where the left mouse was pressed to where it is now.
     let q = (new THREE.Quaternion()).setFromUnitVectors(mouseDownNormalized, cursorGlobeNormalized)
 
+    // If click-and-drag active, update.
     if (clickAndDragEnabledRef.current) {
-      // Update selected mesh position
       let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
       let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
@@ -154,13 +164,12 @@ export const MouseHandler = () => {
       reduxDispatch(editStateActions.updateClickAndDrag(clickAndDragData))
     }
     else {
-      // Enable
+      // Enable.
 
       // Create rotation quaternion between mouse down pos and curr mouse pos.
-      // Note: There is some distance between the raycerster's intersection of the mesh on top 
+      // Note: There is some distance between the raycaster's intersection of the mesh on top 
       // of the globe and the globe itself. To avoid snapping the mesh to the cursor's 
       // position, account for the offset between the two points.
-
       let meshIntersection = mouseState.cursorRaycastIntersections.intersections[0]
       let relative = meshIntersection.relativeToGlobe
       let meshIntersectionNormalized = new THREE.Vector3(relative.x, relative.y, relative.z).normalize()

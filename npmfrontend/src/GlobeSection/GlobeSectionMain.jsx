@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
+import { meshNames } from "./constValues"
 
 export function GlobeSectionMain() {
   // Toggle with CTRL key.
@@ -73,22 +74,30 @@ export function GlobeSectionMain() {
     // console.log({ "onCanvasMouseDown": e })
 
     let normalized = convertClientXYToScreenSpaceXY(e.clientX, e.clientY)
-    let metadata = {
+    let meshIntersection = mouseState.cursorRaycastIntersections.intersections[0]
+    let clickData = {
       timeMs: (new Date()).getTime(),
       pos: {
         x: normalized.x,
         y: normalized.y
       },
-      intersection: mouseState.cursorRaycastIntersections.intersections[0]
+      intersection: meshIntersection
+    }
+
+    let locId = null
+    if (meshIntersection.mesh.name == meshNames.PinBoundingBox) {
+      locId = meshIntersection.mesh.userData.locationId
     }
 
     if (e.button == 0) {
       // Left mouse button
-      reduxDispatch(mouseStateActions.setLeftMouseIsDown(metadata))
+      reduxDispatch(mouseStateActions.setLeftMouseIsDown(clickData))
+      reduxDispatch(mouseStateActions.setSelectedLocId(locId))
     }
     else if (e.button == 1) {
       // Right mouse button
-      reduxDispatch(mouseStateActions.setRightMouseIsDown(metadata))
+      reduxDispatch(mouseStateActions.setRightMouseIsDown(clickData))
+      //??anything with the locationId??
     }
     else {
       // ignore other buttons

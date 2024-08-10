@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editStateActions } from "../AppState/stateSliceEditPoi";
+import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { roundFloat } from "../RoundFloat";
 
 export function RegionDetailsEditMode() {
   const editState = useSelector((state) => state.editPoiReducer)
+  const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
 
   const [latLongReactElements, setLatLongReactElements] = useState()
@@ -24,17 +26,20 @@ export function RegionDetailsEditMode() {
     }
 
     // Callback
-    const onPinLocationClicked = (e, pin) => {
+    const onLocationTextClicked = (e, loc) => {
       // If already selected, de-select.
       // Note: Using bold text as a proxy for "is selected".
-      //??how to do with pin.id vs editState.selectedPinId??
       if (e.target.className.includes("font-bold")) {
-        reduxDispatch(editStateActions.setSelectedPinId(null))
+        // de-select
+        reduxDispatch(mouseStateActions.setSelectedLocId(null))
       }
       else {
-        reduxDispatch(editStateActions.setSelectedPinId(pin.id))
+        // select
+        reduxDispatch(mouseStateActions.setSelectedLocId(loc.Id))
       }
     }
+
+    //??onhover??
 
     // Gather all pin locations together
     let locArr = []
@@ -51,14 +56,14 @@ export function RegionDetailsEditMode() {
 
       if (location.id == editState.primaryLoc.id) {
         return (
-          <p id={location.id} key={location.id} className={htmlClass.PrimaryLoc} onClick={(e) => onPinLocationClicked(e, location)}>
+          <p id={location.id} key={location.id} className={htmlClass.PrimaryLoc} onClick={(e) => onLocationTextClicked(e, location)}>
             {`${roundedLat}, ${roundedLong}`}
           </p>
         )
       }
       else {
         return (
-          <p id={location.id} key={location.id} className={htmlClass.RegionBoundary} onClick={(e) => onPinLocationClicked(e, location)}>
+          <p id={location.id} key={location.id} className={htmlClass.RegionBoundary} onClick={(e) => onLocationTextClicked(e, location)}>
             {`${roundedLat}, ${roundedLong}`}
           </p>
         )
@@ -71,13 +76,14 @@ export function RegionDetailsEditMode() {
 
   // If selected pin changes, change highlighted latlong text block.
   useEffect(() => {
-    // console.log({ "EditRegion useEffect selectedPinId changes": edit })
+    // console.log({ "EditRegion useEffect selectedLocId changes": edit })
 
     // ??how to scroll to the selected item??
 
-    if (editState.selectedPinId) {
-      let htmlElement = document.getElementById(editState.selectedPinId)
-      if (editState.selectedPinId == editState.primaryLoc.id) {
+    // Highlight selected.
+    if (mouseState.selectedLocId) {
+      let htmlElement = document.getElementById(mouseState.selectedLocId)
+      if (mouseState.selectedLocId == editState.primaryLoc.id) {
         htmlElement.className = htmlClass.PrimaryLocHighlighted
       }
       else {
@@ -85,19 +91,22 @@ export function RegionDetailsEditMode() {
       }
     }
 
-    if (editState.selectedPinId == editState.prevSelectedPinId) {
-      // Skip "previous pin" processing. The same pin was selected again.
-    }
-    else if (editState.prevSelectedPinId) {
-      let htmlElement = document.getElementById(editState.prevSelectedPinId)
-      if (editState.prevSelectedPinId == editState.primaryLoc.id) {
-        htmlElement.className = htmlClass.PrimaryLoc
+    // De-highlight previous.
+    if (mouseState.prevSelectedLocId) {
+      if (mouseState.selectedLocId == mouseState.prevSelectedLocId) {
+        // Same pin selected again. Leave highlighted.
       }
       else {
-        htmlElement.className = htmlClass.RegionBoundaryHighlighted
+        let htmlElement = document.getElementById(mouseState.prevSelectedLocId)
+        if (mouseState.prevSelectedLocId == editState.primaryLoc.id) {
+          htmlElement.className = htmlClass.PrimaryLoc
+        }
+        else {
+          htmlElement.className = htmlClass.RegionBoundaryHighlighted
+        }
       }
     }
-  }, [editState.selectedPinId])
+  }, [mouseState.selectedLocId])
 
   return (
     <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">

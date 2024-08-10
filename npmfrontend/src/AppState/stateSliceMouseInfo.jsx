@@ -46,6 +46,11 @@ const initialState = {
     globeIndex: -1,
     intersections: []
   },
+
+  selectedLocId: null,
+  prevSelectedLocId: null,
+  hoverLocId: null,
+  prevHoverLocId: null,
 }
 
 export const stateSliceMouseInfo = createSlice({
@@ -81,6 +86,9 @@ export const stateSliceMouseInfo = createSlice({
           // Cursor intersections are calculated whenever the mouse moves. By the time a button is 
           // clicked, the intersections have already been calculated.
           // Note: If there are none, then array[0] is "undefined".
+          // Also Note: Cannot access this from the "state" argument. For some reason, if you try to
+          // access any object other than a base type, the handling type is a special object. Rather 
+          // than de-reference every primitive individually, just pass it in as an argument.
           intersection: action.payload.intersection
         },
       }
@@ -144,7 +152,27 @@ export const stateSliceMouseInfo = createSlice({
           intersections: action.payload
         }
       }
-    }
+    },
+
+    setHoverLocId: (state, action) => {
+      console.log({ "mouseStateActions.setHoverLocId": action.payload })
+
+      return {
+        ...state,
+        hoverLocId: action.payload,
+        prevHoverLocId: state.hoverLocId
+      }
+    },
+
+    setSelectedLocId: (state, action) => {
+      console.log({ "mouseStateActions.setSelectedLocId": action.payload })
+
+      return {
+        ...state,
+        selectedLocId: action.payload,
+        prevSelectedLocId: state.selectedLocId
+      }
+    },
   }
 })
 

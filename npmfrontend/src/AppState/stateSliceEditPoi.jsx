@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { v4 as uuid } from "uuid";
 
 const initialState = {
   // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
@@ -59,9 +58,6 @@ const initialState = {
   //    rotorQuaternion: { w, x, y, z }
   //  },
   clickAndDrag: null,
-
-  selectedPinId: null,
-  prevSelectedPinId: null,
 }
 
 export const stateSliceEditPoi = createSlice({
@@ -195,7 +191,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi.startClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi.startClickAndDrag", payload: action.payload })
 
       // Expected format: See comment block on field.
       return {
@@ -221,26 +217,11 @@ export const stateSliceEditPoi = createSlice({
     },
 
     disableClickAndDrag: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi.disableClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi.disableClickAndDrag", payload: action.payload })
 
       return {
         ...state,
         clickAndDrag: null
-      }
-    },
-
-    setSelectedPinId: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.setSelectedPinId", payload: action.payload })
-
-      let pinId = action.payload
-      if (pinId == null) {
-        // Ok. It means "deselect current item".
-      }
-
-      return {
-        ...state,
-        selectedPinId: pinId,
-        prevSelectedPinId: state.selectedPinId,
       }
     }
   }

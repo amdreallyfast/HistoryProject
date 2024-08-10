@@ -196,8 +196,13 @@ export function Scene(
       for (let i = 0; i < intersections.length; i++) {
         parsedIntersectionsForState.push(parseIntersectionForState(intersections[i], globeInfo.pos))
       }
-
       reduxDispatch(mouseStateActions.setCursorRaycastIntersections(parsedIntersectionsForState))
+
+      let first = parsedIntersectionsForState[0]
+      if (first.mesh.name == meshNames.PinBoundingBox) {
+        let locId = first.mesh.userData.locationId
+        reduxDispatch(mouseStateActions.setHoverLocId(locId))
+      }
     }
 
     // Occurs when the mouse drifts from the world (or space) to a POI.
