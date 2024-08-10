@@ -21,7 +21,6 @@ const initialState = {
   // },
   leftMouseUp: null,
   leftMouseDown: null,
-  leftMouseClicked: null,
   rightMouseUp: null,
   rightMouseDown: null,
 
@@ -113,23 +112,6 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    setLeftMouseClicked: (state, action) => {
-      // console.log({ "mouseStateActions.setLeftMouseClicked": action.payload })
-
-      // Note: Cannot access intersections from the "state" argument. For some reason, if you try 
-      // to access any object other than a base type, the resulting type is a special object 
-      // internal to the redux package. Rather than de-reference every primitive individually, 
-      // just pass it in as an argument.
-      return {
-        ...state,
-        leftMouseClicked: {
-          pos: action.payload.pos,
-          timeMs: action.payload.timeMs,
-          intersection: action.payload.intersection
-        },
-      }
-    },
-
     resetLeftMouse: (state, action) => {
       // console.log({ "mouseStateActions.resetLeftMouse": action.payload })
 
@@ -137,7 +119,6 @@ export const stateSliceMouseInfo = createSlice({
         ...state,
         leftMouseUp: initialState.leftMouseUp,
         leftMouseDown: initialState.leftMouseDown,
-        leftMouseClicked: initialState.leftMouseClicked
       }
     },
 

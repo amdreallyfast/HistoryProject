@@ -168,46 +168,18 @@ export const MouseHandler = () => {
     let yDiff = Math.abs(leftMouseUp.pos.y - leftMouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
-      // let clickData = {
-      //   timeMs: timeDiffMs,
-      //   pos: {
-      //     x: leftMouseUp.pos.x,
-      //     y: leftMouseUp.pos.y
-      //   },
-      //   intersection: leftMouseDown.intersection
-      // }
-      // reduxDispatch(mouseStateActions.setLeftMouseClicked(clickData))
-
       // On globe click, (potentially) create new region
       let clickedGlobe = (mouseState.cursorRaycasting.globeIndex == 0)
       let noRegionCreated = !editState.primaryLoc
       if (editState.editModeOn && clickedGlobe && noRegionCreated) {
-        // let globeIntersection = mouseState.cursorRaycasting.intersections[0]
-        // let relativeToGlobe = {
-        //   x: globeIntersection.absolute.x - globeInfo.pos.x,
-        //   y: globeIntersection.absolute.y - globeInfo.pos.y,
-        //   z: globeIntersection.absolute.z - globeInfo.pos.z,
-        // }
-        // createNewRegion(relativeToGlobe, globeInfo)
         createNewRegion(globeInfo)
       }
-
-      // // On pin click, select that location. Elsewhere, de-select.
-      // let clickedPin = leftMouseDown.intersection?.mesh.name == meshNames.PinBoundingBox
-      // if (clickedPin) {
-      //   let locId = leftMouseDown.intersection.mesh.userData.locationId
-      //   reduxDispatch(mouseStateActions.setSelectedLocId(locId))
-      // }
-      // else {
-      //   reduxDispatch(mouseStateActions.setSelectedLocId(null))
-      // }
 
       // If you didn't click a location pin, de-select.
       let clickedPin = leftMouseDown.intersection?.mesh.name == meshNames.PinBoundingBox
       if (!clickedPin) {
         reduxDispatch(mouseStateActions.setSelectedLocId(null))
       }
-
     }
 
     // Turn off click-and-drag
@@ -221,43 +193,6 @@ export const MouseHandler = () => {
 
     leftMouseDownRef.current = false
   }, [mouseState.leftMouseUp])
-
-  // // Mouse clicked
-  // useEffect(() => {
-  //   // console.log({ "MouseHandler useEffect mouseState.leftMouseUp": mouseState.leftMouseUp })
-
-  //   if (!mouseState.leftMouseClicked) {
-  //     return
-  //   }
-
-
-  //   // (potentially) create new region
-  //   let clickedGlobe = (mouseState.cursorRaycasting.globeIndex == 0)
-  //   let noRegionCreated = !editState.primaryLoc
-  //   if (editState.editModeOn && clickedGlobe && noRegionCreated) {
-  //     // let globeIntersection = mouseState.cursorRaycasting.intersections[0]
-  //     // let relativeToGlobe = {
-  //     //   x: globeIntersection.absolute.x - globeInfo.pos.x,
-  //     //   y: globeIntersection.absolute.y - globeInfo.pos.y,
-  //     //   z: globeIntersection.absolute.z - globeInfo.pos.z,
-  //     // }
-  //     // createNewRegion(relativeToGlobe, globeInfo)
-  //     createNewRegion(globeInfo)
-  //   }
-
-  //   // On pin click, select that location. On globe click, de-select any selected locations.
-  //   let clickedPin = mouseState.leftMouseClicked.intersection?.mesh.name == meshNames.PinBoundingBox
-  //   if (clickedPin) {
-  //     let locId = mouseState.leftMouseClicked.mesh.userData.locationId
-  //     reduxDispatch(mouseStateActions.setSelectedLocId(locId))
-  //   }
-  //   else if (clickedGlobe) {
-  //     reduxDispatch(mouseStateActions.setSelectedLocId(null))
-  //   }
-
-  //   // Reset mouse click.
-  //   reduxDispatch(mouseStateActions.resetLeftMouse())
-  // }, [mouseState.leftMouseClicked])
 
   // Mouse move (click-and-drag)
   useEffect(() => {
@@ -273,7 +208,6 @@ export const MouseHandler = () => {
     }
     else if (!leftMouseDownRef.current) {
       // Race condition. See variable description for details.
-      console.log("how did we get here?")
       return
     }
     else if (mouseState.cursorRaycasting.globeIndex < 0) {
@@ -298,8 +232,6 @@ export const MouseHandler = () => {
         enableClickAndDrag()
         clickAndDragEnabledRef.current = true
       }
-
-      // If starting to move a pin aside from the last selected pin, move selection.
     }
   }, [mouseState.currPos])
 

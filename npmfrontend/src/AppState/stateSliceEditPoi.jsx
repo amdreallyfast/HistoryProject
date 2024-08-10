@@ -191,7 +191,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi.startClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi.startClickAndDrag", payload: action.payload })
 
       // Expected format: See comment block on field.
       return {
@@ -205,7 +205,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     updateClickAndDrag: (state, action) => {
-      console.log({ msg: "stateSliceEditPoi.updateClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditPoi.updateClickAndDrag", payload: action.payload })
 
       return {
         ...state,
