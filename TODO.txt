@@ -1,0 +1,16 @@
+hoverLocationId:
+	8/10/2024
+	Add to mouse state. 
+	Derived from cursorRayCastIntersections if the first item is a pin bounding box.
+	Highlight on hover (??how to differentiate between hover and selected??)
+
+When pin is selected:
+	8/10/2024
+	1. Move "selected location Id" from the "edit state" into the mouse state because this will be used outside of editing too.
+	2. Scroll the list of location Ids in the Details view (if shown)
+
+Standardize function console log messages:
+	??jan 2024??
+	8/10/2024
+	console.log({ "class.function": argumentValue })
+	console.log({ "class.useEffect[condition]": conditionValue })

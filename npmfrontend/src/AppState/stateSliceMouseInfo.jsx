@@ -42,7 +42,7 @@ const initialState = {
   //     }
   //   }
   // }
-  cursorRaycastIntersections2: {
+  cursorRaycastIntersections: {
     globeIndex: -1,
     intersections: []
   },
@@ -66,18 +66,6 @@ export const stateSliceMouseInfo = createSlice({
           x: state.currPos.x,
           y: state.currPos.y
         },
-      }
-    },
-
-    setCursorRaycastIntersections2: (state, action) => {
-      // console.log({ "mouseStateActions.setCursorRaycastIntersections2": action.payload })
-
-      return {
-        ...state,
-        cursorRaycastIntersections2: {
-          globeIndex: action.payload.findIndex((intersection) => intersection.mesh.name == meshNames.Globe),
-          intersections: action.payload
-        }
       }
     },
 
@@ -152,20 +140,11 @@ export const stateSliceMouseInfo = createSlice({
       return {
         ...state,
         cursorRaycastIntersections: {
-          firstNonGlobe: action.payload.firstNonGlobe,
-          globe: action.payload.globe
+          globeIndex: action.payload.findIndex((intersection) => intersection.mesh.name == meshNames.Globe),
+          intersections: action.payload
         }
       }
-    },
-
-    resetCursorRaycastIntersections: (state, action) => {
-      // console.log({ "mouseStateActions.resetCursorRaycastIntersection": action.payload })
-
-      return {
-        ...state,
-        cursorRaycastIntersection: initialState.cursorRaycastIntersections
-      }
-    },
+    }
   }
 })
 

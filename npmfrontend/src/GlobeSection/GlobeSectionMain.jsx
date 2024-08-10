@@ -79,7 +79,7 @@ export function GlobeSectionMain() {
         x: normalized.x,
         y: normalized.y
       },
-      intersection: mouseState.cursorRaycastIntersections2.intersections[0]
+      intersection: mouseState.cursorRaycastIntersections.intersections[0]
     }
 
     if (e.button == 0) {

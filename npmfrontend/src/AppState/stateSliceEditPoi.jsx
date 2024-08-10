@@ -36,10 +36,8 @@ const initialState = {
   // For use during clicking and dragging a single point or the entire region.
   // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the field "Id" as an 
   // integer for some kind of counting, and it uses "uuid" for the global ID. I don't know why.
-  // Format:
+  // Format: null or
   //  {
-  //    enabled: false,
-  //
   //    // Fixed for duration of click-and-drag.
   //    mesh: {
   //      name: <name>,
@@ -53,7 +51,7 @@ const initialState = {
   //    // Fixed for duration of click-and-drag. Prevents click-and-drag from snapping the mesh's 
   //    // origin to the cursor the moment the cursor moves a single pixel.
   //    // Note: Covers difference betwwen the 3D point where the raycast intersected a mesh and 
-  //    // where the rayast intersected the globe underneath. 
+  //    // where the rayasr intersected the globe underneath. 
   //    initialOffsetQuaternion: { w, x, y, z },
   //
   //    // Continuously updated. Represents the movement of a mesh from its starting position to 
@@ -203,7 +201,6 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         clickAndDrag: {
-          enabled: true,
           mesh: action.payload.mesh,
           initialOffsetQuaternion: action.payload.initialOffsetQuaternion,
           rotorQuaternion: action.payload.rotorQuaternion
