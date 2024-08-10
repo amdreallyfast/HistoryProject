@@ -26,7 +26,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
   // For use during click-and-drag. Update once click-and-drag ends.
   const originalPosRef = useRef()
 
-  const colorsHex = {
+  const colors = {
     normal: 0xffffff,
     highlight: 0x00f0f0,
   }
@@ -204,7 +204,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     let isSelected = mouseState.hoverLocId == mouseState.selectedLocId
     if (cursorHovering && !isSelected) {
       // console.log({"highlight hover": mouseState.hoverLocId})
-      boxMeshRef.current.material.color = new THREE.Color(colorHex.highlight)
+      boxMeshRef.current.material.color = new THREE.Color(colors.highlight)
       boxMeshRef.current.material.opacity = 0.5
     }
 
@@ -212,7 +212,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     let isStillSelected = mouseState.prevHoverLocId == mouseState.selectedLocId
     if (prevCursorHovering && !isStillSelected) {
       // console.log({"depose hover": mouseState.hoverLocId})
-      boxMeshRef.current.material.color = new THREE.Color(colorHex.normal)
+      boxMeshRef.current.material.color = new THREE.Color(colors.normal)
       boxMeshRef.current.material.opacity = 0.2
     }
   }, [mouseState.hoverLocId])
@@ -220,12 +220,12 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
   // Selected: Update color (but differently than hover).
   useEffect(() => {
     if (mouseState.selectedLocId == spherePoint.id) {
-      boxMeshRef.current.material.color = new THREE.Color(colorHex.highlight)
+      boxMeshRef.current.material.color = new THREE.Color(colors.highlight)
       boxMeshRef.current.material.opacity = 0.7
     }
 
     if (mouseState.prevSelectedLocId == spherePoint.id) {
-      boxMeshRef.current.material.color = new THREE.Color(colorHex.normal)
+      boxMeshRef.current.material.color = new THREE.Color(colors.normal)
       boxMeshRef.current.material.opacity = 0.2
     }
 

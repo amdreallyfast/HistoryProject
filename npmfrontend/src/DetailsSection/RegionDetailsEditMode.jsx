@@ -35,7 +35,7 @@ export function RegionDetailsEditMode() {
       }
       else {
         // select
-        reduxDispatch(mouseStateActions.setSelectedLocId(loc.Id))
+        reduxDispatch(mouseStateActions.setSelectedLocId(loc.id))
       }
     }
 
@@ -102,7 +102,7 @@ export function RegionDetailsEditMode() {
           htmlElement.className = htmlClass.PrimaryLoc
         }
         else {
-          htmlElement.className = htmlClass.RegionBoundaryHighlighted
+          htmlElement.className = htmlClass.RegionBoundary
         }
       }
     }
