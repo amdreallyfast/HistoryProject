@@ -7,8 +7,23 @@ const initialState = {
   eventId: 99,
   revisionAuthor: "TestingAuthor",
   title: null,
-  imageDataUrl: null,
   tags: [],
+  imageDataUrl: null,
+  summary: null,
+
+  // Format: {
+  //  isbn: null, // allow null; not all writings are publically registered
+  //  title: null,
+  //  detailedLocation: null, // allow null; ex: "Chapter 3, paragraph 28"
+  //  authors: [],  // strings 
+  //  publicationLowerBoundYear: null,  // required
+  //  publicationLowerBoundMonth: null, // allow null
+  //  publicationLowerBoundDay: null,   // allow null
+  //  publicationUpperBoundYear: null,  // required
+  //  publicationUpperBoundMonth: null, // allow null
+  //  publicationUpperBoundDay: null,   // allow null
+  // }
+  sources: [],
 
   // Format for location and region boundaries:
   //  {
@@ -105,6 +120,15 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
+    setTags: (state, action) => {
+      console.log({ "stateSliceEditPoi.setTags": action.payload })
+
+      return {
+        ...state,
+        tags: action.payload
+      }
+    },
+
     setImageDataUrl: (state, action) => {
       console.log({ "stateSliceEditPoi.setImageDataUrl": action.payload })
 
@@ -116,12 +140,21 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setTags: (state, action) => {
-      console.log({ "stateSliceEditPoi.setTags": action.payload })
+    setSummary: (state, action) => {
+      console.log({ "stateSliceEditPoi.setSummary": action.payload })
 
       return {
         ...state,
-        tags: action.payload
+        summary: action.payload
+      }
+    },
+
+    setSources: (state, action) => {
+      console.log({ "stateSliceEditPoi.setSources": action.payload })
+
+      return {
+        ...state,
+        sources: action.payload
       }
     },
 

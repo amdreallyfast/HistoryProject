@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
+import { detailRestrictions } from "../GlobeSection/constValues"
 
 export function HeaderDetailsEditMode() {
   const editState = useSelector((state) => state.editPoiReducer)
@@ -56,12 +57,12 @@ export function HeaderDetailsEditMode() {
   return (
     <div className="flex flex-col">
       {/* Title */}
-      <input ref={titleInputRef} className="m-2 text-black text-2xl text-left" type="text" maxLength={128} placeholder="Title" onKeyDown={(e) => titleTextCapture(e)} />
+      <input ref={titleInputRef} className="m-2 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onKeyDown={(e) => titleTextCapture(e)} />
 
       {/* Tags */}
       <div className="flex flex-row items-start border-2 border-gray-600 m-1 overflow-auto flex-wrap">
         {tagReactElements}
-        <input ref={tagsInputRef} id="tagsInput" className="m-2 text-black text-left" type="text" placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
+        <input ref={tagsInputRef} id="tagsInput" className="m-2 text-black text-left" type="text" maxLength={detailRestrictions.maxTagLength} placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
       </div>
     </div>
   )

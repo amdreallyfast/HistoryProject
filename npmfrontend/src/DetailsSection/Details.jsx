@@ -94,6 +94,9 @@ import { RegionDetailsEditMode } from "./RegionDetailsEditMode";
 import { HeaderDetails } from "./HeaderDetails";
 import { ImageDetails } from "./ImageDetails";
 import { RegionDetails } from "./RegionDetails";
+import { SummaryDetailsEditMode } from "./SummaryDetailsEditMode";
+import { SummaryDetails } from "./SummaryDetails";
+import { SourceDetailsEditMode } from "./SourceDetailsEditMode";
 
 
 export function Details({ }) {
@@ -129,8 +132,10 @@ export function Details({ }) {
         (
           <div className="flex flex-col h-full">
             <HeaderDetailsEditMode />
-            <ImageDetailsEditMode />
-            <RegionDetailsEditMode />
+            {/* <ImageDetailsEditMode /> */}
+            {/* <RegionDetailsEditMode /> */}
+            {/* <SummaryDetailsEditMode /> */}
+            <SourceDetailsEditMode />
 
             {/* Revision author fixed by whoever is logged in */}
             <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
@@ -152,6 +157,7 @@ export function Details({ }) {
             <HeaderDetails />
             <ImageDetails />
             <RegionDetails />
+            <SummaryDetails />
 
             {/* Revision author fixed by whoever is logged in */}
             <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
