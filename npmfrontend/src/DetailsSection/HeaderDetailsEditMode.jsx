@@ -11,6 +11,7 @@ export function HeaderDetailsEditMode() {
   const tagsInputRef = useRef()
   const [tagReactElements, setTagReactElements] = useState()
 
+  //??necessary function? just use 'on changed'??
   const titleTextCapture = (e) => {
     let titleValue = titleInputRef?.current.value
     console.log({ key: e.key, code: e.code })

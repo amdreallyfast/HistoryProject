@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { detailRestrictions } from "../GlobeSection/constValues"
 import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMonthDay } from "./convertTimeRangeToString"
+import { SingleAuthorEditMode } from "./SingleAuthorEditMode"
 
 export function SingleSourceDetailsEditMode({
   startingTitle,
@@ -31,31 +32,31 @@ export function SingleSourceDetailsEditMode({
 
 
   const onPublicationLowerBoundYearChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onPublicationLowerBoundYearChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onPublicationLowerBoundYearChanged": e })
   }
 
   const onPublicationLowerBoundMonthChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onPublicationLowerBoundMonthChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onPublicationLowerBoundMonthChanged": e })
   }
 
   const onPublicationLowerBoundDayChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onPublicationLowerBoundDayChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onPublicationLowerBoundDayChanged": e })
   }
 
   const onPublicationUpperBoundYearChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onPublicationUpperBoundYearChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onPublicationUpperBoundYearChanged": e })
   }
 
   const onPublicationUpperBoundMonthChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onPublicationUpperBoundMonthChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onPublicationUpperBoundMonthChanged": e })
   }
 
   const onPublicationUpperBoundDayChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onPublicationUpperBoundDayChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onPublicationUpperBoundDayChanged": e })
   }
 
   const onSubmitSourceClick = (e) => {
-    console.log({ "SourceDetailsEditMode.onSubmitSourceClick": e })
+    console.log({ "SingleSourceDetailsEditMode.onSubmitSourceClick": e })
     submitCallback({
       things: "and such"
     })
@@ -65,13 +66,13 @@ export function SingleSourceDetailsEditMode({
   const [title, setTitle] = useState(startingTitle)
   const titleCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "SourceDetailsEditMode.useEffect.title": title })
+    console.log({ "SingleSourceDetailsEditMode.useEffect.title": title })
     if (!titleCharCountLabelRef.current) return
     titleCharCountLabelRef.current.innerHTML = `${title?.length}/${detailRestrictions.maxSourceTitleLength}`
   }, [title, titleCharCountLabelRef.current])
 
   const onTitleChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onTitleChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onTitleChanged": e })
     setTitle(e.target.value)
   }
 
@@ -79,12 +80,12 @@ export function SingleSourceDetailsEditMode({
   const [isbn, setIsbn] = useState(startingIsbn)
   const isbnCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "SourceDetailsEditMode.useEffect.isbn": isbn })
+    console.log({ "SingleSourceDetailsEditMode.useEffect.isbn": isbn })
     isbnCharCountLabelRef.current.innerHTML = `${isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
   }, [isbn, isbnCharCountLabelRef.current])
 
   const onISBNChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onISBNChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onISBNChanged": e })
     setIsbn(e.target.value)
   }
 
@@ -92,36 +93,39 @@ export function SingleSourceDetailsEditMode({
   const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
   const detailedLocationCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "SourceDetailsEditMode.useEffect.detailedLocation": detailedLocation })
+    console.log({ "SingleSourceDetailsEditMode.useEffect.detailedLocation": detailedLocation })
     if (!detailedLocationCharCountLabelRef.current) return
     detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
   }, [detailedLocation, detailedLocationCharCountLabelRef.current])
 
   const onDetailedLocationChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onDetailedLocationChanged": e })
+    console.log({ "SingleSourceDetailsEditMode.onDetailedLocationChanged": e })
     setDetailedLocation(e.target.value)
   }
 
-  const authorInputRef = useRef()
-  // TODO: drop-down auto-complete for existing author names
-  const onAuthorTextChanged = (e) => {
-    console.log({ "SourceDetailsEditMode.onDetailedLocationChanged": e })
-  }
+  // Author(s)
+  const [authors, setAuthors] = useState(startingAuthors)
+  const [authorsReactElements, setAuthorsReactElements] = useState()
+  useEffect(() => {
+    console.log({ "SingleSourceDetailsEditMode.useEffect.authors": authors })
 
-  // onKeyDown
-  const authorTextCapture = (e) => {
-    console.log({ "SourceDetailsEditMode.authorTextCapture": e })
+    let reactElements = authors?.map((a) => (
+      <SingleAuthorEditMode startingText={a} key={a} />
+    ))
+    setAuthorsReactElements(reactElements)
+  }, [authors])
 
-    let authorText = authorInputRef?.current.value
-    //??code for "Enter"??
-    if (authorText && e.code == "Tab") {
-      // Take unique combination.
-      // Note: Make a copy before workng with the existing state.
-      let authors = sourceDetailsRef.current.authors
-      authors.push(authorText),
-        sourceDetailsRef.current.authors = [...new Set(authors)]
+  const onAddAuthorClicked = (e) => {
+    console.log({ "SingleSourceDetailsEditMode.onAddAuthorClicked": e })
+    let newAuthorSet = []
+    if (authors) {
+      newAuthorSet = [...authors]
     }
+    newAuthorSet.push("")
+    newAuthorSet = [...new Set(newAuthorSet)]
+    setAuthors(newAuthorSet)
   }
+
 
   /*
         <div className="m-1 border-2 border-grey-600" key={s.title + s.details}>
@@ -171,9 +175,17 @@ export function SingleSourceDetailsEditMode({
         <label ref={detailedLocationCharCountLabelRef} className="text-right"></label>
       </div>
 
-
-
       {/* Authors */}
+      <div className="flex flex-col m-1">
+        <label className="text-lg text-left">Author(s)</label>
+        {authorsReactElements}
+        <div className="flex flex-row-reverse mt-auto h-full">
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded " onClick={(e) => onAddAuthorClicked(e)}>
+            New author
+          </button>
+        </div>
+      </div>
+
 
 
 
