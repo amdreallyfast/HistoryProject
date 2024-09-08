@@ -4,6 +4,7 @@ import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { detailRestrictions } from "../GlobeSection/constValues"
 import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMonthDay } from "./convertTimeRangeToString"
 import { SingleAuthorEditMode } from "./SingleAuthorEditMode"
+import { v4 as uuid } from "uuid"
 
 export function SingleSourceDetailsEditMode({
   startingTitle,
@@ -104,27 +105,61 @@ export function SingleSourceDetailsEditMode({
   }
 
   // Author(s)
+  /*
+    {
+      "id": <guid>,
+      "name": "text"
+    }
+  */
   const [authors, setAuthors] = useState(startingAuthors)
   const [authorsReactElements, setAuthorsReactElements] = useState()
+  const authorEditedCallback = (author) => {
+    console.log(`author edited: '${author}'`)
+
+    // TODO: name uniqueness check
+    //  ??but how to provide feedback? to the input??
+    //  ??create state slice for source being edited??
+
+    let updatedAuthors = []
+    for (let i = 0; i < authors.length; i++) {
+      let a = authors[i]
+      if (a.id == author.id) {
+        a = {
+          ...author,
+          name: author.name
+        }
+      }
+      updatedAuthors.push(a)
+    }
+    setAuthors(updatedAuthors)
+  }
+
+  const authorDeletedCallback = (author) => {
+    console.log(`delete author: '${author}'`)
+
+    let updatedAuthors = authors.filter((a) => a.id != author.id)
+    setAuthors(updatedAuthors)
+  }
+
+  const onAddAuthorClicked = (e) => {
+    console.log({ "SingleSourceDetailsEditMode.onAddAuthorClicked": e })
+
+    let newAuthors = authors ? [...authors] : []
+    newAuthors.push({
+      id: uuid(),
+      name: "badfafdhl"
+    })
+    setAuthors(newAuthors)
+  }
+
   useEffect(() => {
     console.log({ "SingleSourceDetailsEditMode.useEffect.authors": authors })
 
     let reactElements = authors?.map((a) => (
-      <SingleAuthorEditMode startingText={a} key={a} />
+      <SingleAuthorEditMode key={a.id} author={a} authorEditedCallback={authorEditedCallback} authorDeletedCallback={authorDeletedCallback} />
     ))
     setAuthorsReactElements(reactElements)
   }, [authors])
-
-  const onAddAuthorClicked = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onAddAuthorClicked": e })
-    let newAuthorSet = []
-    if (authors) {
-      newAuthorSet = [...authors]
-    }
-    newAuthorSet.push("")
-    newAuthorSet = [...new Set(newAuthorSet)]
-    setAuthors(newAuthorSet)
-  }
 
 
   /*
