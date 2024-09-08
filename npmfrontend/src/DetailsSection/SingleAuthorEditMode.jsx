@@ -35,53 +35,76 @@ export function SingleAuthorEditMode({ author, authorEditedCallback, authorDelet
   //   authorCharCountLabelRef.current.innerHTML = `${authorName?.length}/${detailRestrictions.maxSourceAuthorLength}`
   // }, [authorInputRef])
 
+  // useEffect(() => {
+  //   if (!authorInputRef.current) return
+  //   if (!authorCharCountLabelRef.current) return
+
+  //   authorInputRef.current.value = authorName
+  //   authorCharCountLabelRef.current.innerHTML = `${authorName?.length}/${detailRestrictions.maxSourceAuthorLength}`
+  // }, [authorName])
+
+  // useEffect(() => {
+  //   console.log({ "authorInputRef": authorInputRef.current })
+  //   if (authorInputRef.current) {
+  //     console.log("defined")
+  //   }
+  // }, [authorInputRef.current])
+
+  // useEffect(() => {
+  //   console.log({ "authorCharCountLabelRef": authorCharCountLabelRef.current })
+  //   if (authorCharCountLabelRef.current) {
+  //     console.log("defined")
+  //   }
+  // }, [authorCharCountLabelRef.current])
+
+  // TODO: drop-down auto-complete for existing author names
+  const onAuthorTextChanged = (e) => {
+    console.log({ "SingleAuthorEditMode.onAuthorTextChanged": e })
+    // console.log(e.target.value)
+
+    let value = e.target.value
+    setAuthorName(value)
+    // if (!authorInputRef.current) return
+    // authorInputRef.current.value = e.target.value
+    // authorCharCountLabelRef.current.innerHTML = `${value?.length}/${detailRestrictions.maxSourceAuthorLength}`
+  }
+
+  // onKeyDown
+  const authorTextCapture = (e) => {
+    console.log({ "SingleAuthorEditMode.authorTextCapture": e.key, code: e.code })
+
+    let authorText = authorInputRef?.current.value
+    if (!authorText) {
+      // nothing to submit
+      return
+    }
+
+    if (e.key == "Tab" || e.key == "Enter") {
+      author.name = authorText
+      authorEditedCallback(author)
+      setEditing(false)   //??why do I even need to do this??
+      e.preventDefault()
+    }
+    else if (e.key == "Escape") {
+      setEditing(false)
+      e.preventDefault()
+    }
+  }
+
+
   // Toggle display and input text based on edit flag
   useEffect(() => {
     console.log({ "SingleAuthorEditMode.useEffect.editing": editing })
 
     let reactElement = null
     if (editing) {
-      // TODO: drop-down auto-complete for existing author names
-      const onAuthorTextChanged = (e) => {
-        console.log({ "SingleAuthorEditMode.onAuthorTextChanged": e })
-        console.log(e.target.value)
-
-        let value = e.target.value
-        setAuthorName(value)
-        // if (!authorInputRef.current) return
-        // authorInputRef.current.value = e.target.value
-        authorCharCountLabelRef.current.innerHTML = `${value?.length}/${detailRestrictions.maxSourceAuthorLength}`
-      }
-
-      // onKeyDown
-      const authorTextCapture = (e) => {
-        console.log({ "SingleAuthorEditMode.authorTextCapture": e.key, code: e.code })
-
-        let authorText = authorInputRef?.current.value
-        if (!authorText) {
-          // nothing to submit
-          return
-        }
-
-        if (e.key == "Tab" || e.key == "Enter") {
-          author.name = authorText
-          authorEditedCallback(author)
-          setEditing(false)   //??why do I even need to do this??
-          e.preventDefault()
-        }
-        else if (e.key == "Escape") {
-          setEditing(false)
-          e.preventDefault()
-        }
-      }
-
       reactElement = (
         <div className="flex flex-col">
           {/* Input */}
           <input ref={authorInputRef}
             className="m-1 text-black text-left"
             type="text"
-            defaultValue={authorName}
+            value={authorName}
             maxLength={detailRestrictions.maxSourceAuthorLength}
             placeholder={`Author (tab to complete; max ${detailRestrictions.maxSourceAuthorLength}`}
             onKeyDown={(e) => authorTextCapture(e)}
@@ -130,7 +153,7 @@ export function SingleAuthorEditMode({ author, authorEditedCallback, authorDelet
     }
 
     setReactElements(reactElement)
-  }, [editing])
+  }, [editing, authorName])
 
   return (
     <div className="m-1 border-2 border-gray-600">
