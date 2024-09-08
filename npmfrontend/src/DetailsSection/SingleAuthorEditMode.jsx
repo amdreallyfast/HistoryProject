@@ -9,18 +9,22 @@ import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMont
 //   "name": "text"
 // }
 export function SingleAuthorEditMode({ author, authorEditedCallback, authorDeletedCallback }) {
+  if (!author) {
+    throw new Error("'author' required")
+  }
+  else if (!authorEditedCallback) {
+    throw new Error("'authorEditedCallback' required")
+  }
+  else if (!authorDeletedCallback) {
+    throw new Error("'authorDeletedCallback' required")
+  }
+
   const [editing, setEditing] = useState(author.name ? false : true)
   const [authorName, setAuthorName] = useState(author.name)
   const [reactElement, setReactElements] = useState()
 
   const authorInputRef = useRef()
   const authorCharCountLabelRef = useRef()
-
-  // TODO: drop-down auto-complete for existing author names
-  const onAuthorTextChanged = (e) => {
-    console.log({ "SingleAuthorEditMode.onAuthorTextChanged": e })
-    setAuthorName(e.target.value)
-  }
 
   // onKeyDown
   const authorTextCapture = (e) => {
@@ -35,15 +39,28 @@ export function SingleAuthorEditMode({ author, authorEditedCallback, authorDelet
     if (e.key == "Tab" || e.key == "Enter") {
       author.name = authorText
       authorEditedCallback(author)
-      setEditing(false)   //??why do I even need to do this??
+      setEditing(false)   //??why do I even need to do this? why doesn't the callback creating a new component cause the "editing" state to be stuck on "true"??
       e.preventDefault()
     }
     else if (e.key == "Escape") {
-      setEditing(false)
+      cancelEdit()
       e.preventDefault()
     }
   }
 
+  // TODO: drop-down auto-complete for existing author names
+  const onAuthorTextChanged = (e) => {
+    console.log({ "SingleAuthorEditMode.onAuthorTextChanged": e })
+    setAuthorName(e.target.value)
+  }
+
+  // Cancel
+  const cancelEdit = () => {
+    console.log({ "SingleAuthorEditMode.cancelEdit": null })
+
+    setAuthorName(author.name)
+    setEditing(false)
+  }
 
   // Toggle display and input text based on edit flag
   useEffect(() => {
@@ -66,7 +83,7 @@ export function SingleAuthorEditMode({ author, authorEditedCallback, authorDelet
 
           {/* Cancel button and char count*/}
           <div className="flex flex-row-reverse">
-            <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-2 mx-1 rounded " onClick={(e) => setEditing(false)}>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-2 mx-1 rounded " onClick={() => cancelEdit()}>
               Cancel
             </button>
             <label ref={authorCharCountLabelRef} className="text-right">{`${authorName?.length}/${detailRestrictions.maxSourceAuthorLength}`}</label>
