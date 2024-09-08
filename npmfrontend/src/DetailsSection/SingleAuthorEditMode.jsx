@@ -9,64 +9,17 @@ import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMont
 //   "name": "text"
 // }
 export function SingleAuthorEditMode({ author, authorEditedCallback, authorDeletedCallback }) {
-  // if (!deleteMeCallback) {
-  //   throw new Error("'deleteMeCallback' required")
-  // }
-
-  // console.log({ "edit mode?": author.name ? false : true })
-  // let thing = author.name ? false : true
-
   const [editing, setEditing] = useState(author.name ? false : true)
-
-  // console.log({ "editing?": editing })
   const [authorName, setAuthorName] = useState(author.name)
   const [reactElement, setReactElements] = useState()
 
   const authorInputRef = useRef()
   const authorCharCountLabelRef = useRef()
 
-  // // Set default text input when the input reference becomes available because 
-  // // <input value="..."/> locks up the input. It isn't supposed to; according to all the HTML documentation that I've found, "value" is supposed to be the default, and yet everything that I've experienced says that it locks up the input.
-  // useEffect(() => {
-  //   console.log({ "SingleAuthorEditMode.useEffect.authorInputRef": authorInputRef })
-
-  //   if (!authorInputRef.current) return
-  //   authorInputRef.current.value = authorName
-  //   authorCharCountLabelRef.current.innerHTML = `${authorName?.length}/${detailRestrictions.maxSourceAuthorLength}`
-  // }, [authorInputRef])
-
-  // useEffect(() => {
-  //   if (!authorInputRef.current) return
-  //   if (!authorCharCountLabelRef.current) return
-
-  //   authorInputRef.current.value = authorName
-  //   authorCharCountLabelRef.current.innerHTML = `${authorName?.length}/${detailRestrictions.maxSourceAuthorLength}`
-  // }, [authorName])
-
-  // useEffect(() => {
-  //   console.log({ "authorInputRef": authorInputRef.current })
-  //   if (authorInputRef.current) {
-  //     console.log("defined")
-  //   }
-  // }, [authorInputRef.current])
-
-  // useEffect(() => {
-  //   console.log({ "authorCharCountLabelRef": authorCharCountLabelRef.current })
-  //   if (authorCharCountLabelRef.current) {
-  //     console.log("defined")
-  //   }
-  // }, [authorCharCountLabelRef.current])
-
   // TODO: drop-down auto-complete for existing author names
   const onAuthorTextChanged = (e) => {
     console.log({ "SingleAuthorEditMode.onAuthorTextChanged": e })
-    // console.log(e.target.value)
-
-    let value = e.target.value
-    setAuthorName(value)
-    // if (!authorInputRef.current) return
-    // authorInputRef.current.value = e.target.value
-    // authorCharCountLabelRef.current.innerHTML = `${value?.length}/${detailRestrictions.maxSourceAuthorLength}`
+    setAuthorName(e.target.value)
   }
 
   // onKeyDown
