@@ -11,14 +11,7 @@ export function ShowRegionDetails() {
     RegionBoundary: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1",
   }
 
-  // Display pin locations.
-  useEffect(() => {
-    console.log({ "ShowRegionDetails.useEffect.region": { primaryLoc: selectedPoiState.primaryLoc, regionBoundaries: selectedPoiState.regionBoundaries } })
-    if (!selectedPoiState.primaryLoc || !selectedPoiState.regionBoundaries) {
-      // Wait for both to load (or just do nothing if they were set to null/empty)
-      return
-    }
-
+  const createLatLongReactElements = () => {
     // Gather all pin locations together
     let locArr = []
     if (selectedPoiState.primaryLoc) {
@@ -52,7 +45,19 @@ export function ShowRegionDetails() {
 
     // Notify this component to re-render with the new values.
     setLatLongReactElements(htmlElements)
-  }, [selectedPoiState.primaryLoc, selectedPoiState.regionBoundaries])
+  }
+
+  // Re-create HTML to list locations
+  useEffect(() => {
+    console.log({ "ShowRegionDetails.useEffect.selectedPoiState.primaryLoc": selectedPoiState.primaryLoc })
+    createLatLongReactElements()
+  }, [selectedPoiState.primaryLoc])
+
+  // Re-create HTML to list locations
+  useEffect(() => {
+    console.log({ "ShowRegionDetails.useEffect.selectedPoiState.regionBoundaries": selectedPoiState.regionBoundaries })
+    createLatLongReactElements()
+  }, [selectedPoiState.regionBoundaries])
 
   return (
     <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">
