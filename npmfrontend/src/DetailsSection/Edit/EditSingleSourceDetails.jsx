@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { detailRestrictions } from "../GlobeSection/constValues"
-import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMonthDay } from "./convertTimeRangeToString"
 import { EditSingleAuthor } from "./EditSingleAuthor"
 import { v4 as uuid } from "uuid"
+import { detailRestrictions } from "./detailRestrictions"
 
 export function EditSingleSourceDetails({
   startingTitle,

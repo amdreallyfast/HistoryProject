@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { detailRestrictions } from "../GlobeSection/constValues"
-import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMonthDay } from "./convertTimeRangeToString"
+import { detailRestrictions } from "./detailRestrictions"
 
 // author: {
 //   "id": <guid>,

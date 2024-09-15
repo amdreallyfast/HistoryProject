@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { roundFloat } from "../RoundFloat";
+import { roundFloat } from "../RoundFloat"
 
 export function ShowRegionDetails() {
   const selectedPoiState = useSelector((state) => state.selectedPoiReducer)

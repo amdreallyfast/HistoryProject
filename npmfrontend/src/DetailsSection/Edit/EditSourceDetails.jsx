@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { detailRestrictions } from "../GlobeSection/constValues"
-import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMonthDay } from "./convertTimeRangeToString"
-import { SingleSourceDetailsEditMode } from "./SingleSourceDetailsEditMode"
+import { convertTimeRangeToGregorianYearMonthDay } from "../convertTimeRangeToString"
+import { EditSingleSourceDetails } from "./EditSingleSourceDetails"
 
 export function EditSourceDetails() {
   const editState = useSelector((state) => state.editPoiReducer)
@@ -41,13 +39,13 @@ export function EditSourceDetails() {
 
   // TODO: ??how to add an "edit session"??
   /*
-  // Note: 'id' should be a guid. New sources should be passed id = null. The SingleSourceDetailsEditMode will submit to the state machine with this id.
+  // Note: 'id' should be a guid. New sources should be passed id = null. The EditSingleSourceDetails will submit to the state machine with this id.
   */
   const onAddSourceClicked = (e) => {
     console.log({ "EditSourceDetails.onAddSourceClicked": e })
     setSingleSourceEdit(
       (
-        <SingleSourceDetailsEditMode
+        <EditSingleSourceDetails
           startingId={null}
           startingTitle={"starting title"}
           startingIsbn={"74837hsdfkh2"}

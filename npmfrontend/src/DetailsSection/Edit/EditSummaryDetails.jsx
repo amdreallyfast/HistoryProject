@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
-import { detailRestrictions } from "../GlobeSection/constValues"
+import { editStateActions } from "../../AppState/stateSliceEditPoi"
+import { detailRestrictions } from "./detailRestrictions"
 
 export function EditSummaryDetails() {
   const editState = useSelector((state) => state.editPoiReducer)

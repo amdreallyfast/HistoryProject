@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { editStateActions } from "../AppState/stateSliceEditPoi";
-import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
+import { mouseStateActions } from "../../AppState/stateSliceMouseInfo"
 import { roundFloat } from "../RoundFloat";
 
 export function EditRegionDetails() {

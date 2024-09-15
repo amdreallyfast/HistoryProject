@@ -7,7 +7,7 @@ import { EditSummaryDetails } from "./EditSummaryDetails";
 import { EditSourceDetails } from "./EditSourceDetails";
 
 
-export function Details({ }) {
+export function EditDetails({ }) {
   const editModeOn = useSelector((state) => state.editPoiReducer.editModeOn)
 
   const onSubmitClick = (e) => {
