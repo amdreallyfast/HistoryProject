@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 
-export function ImageDetails() {
+export function ShowImageDetails() {
   const selectedPoiState = useSelector((state) => state.selectedPoiReducer)
 
   return (

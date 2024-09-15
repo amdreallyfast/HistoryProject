@@ -4,7 +4,7 @@ import { editStateActions } from "../AppState/stateSliceEditPoi";
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { roundFloat } from "../RoundFloat";
 
-export function RegionDetailsEditMode() {
+export function EditRegionDetails() {
   const editState = useSelector((state) => state.editPoiReducer)
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
@@ -19,7 +19,7 @@ export function RegionDetailsEditMode() {
 
   // Display pin locations.
   useEffect(() => {
-    // console.log({ "RegionDetailsEditMode useEffect: positions changed": { primaryLoc: editState.primaryLoc, regionBoundaries: editState.regionBoundaries } })
+    // console.log({ "EditRegionDetails useEffect: positions changed": { primaryLoc: editState.primaryLoc, regionBoundaries: editState.regionBoundaries } })
     if (!editState.primaryLoc || !editState.regionBoundaries) {
       // Wait for both to load (or just do nothing if they were set to null/empty)
       return

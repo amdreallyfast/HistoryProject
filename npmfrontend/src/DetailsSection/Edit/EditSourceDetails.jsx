@@ -5,7 +5,7 @@ import { detailRestrictions } from "../GlobeSection/constValues"
 import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMonthDay } from "./convertTimeRangeToString"
 import { SingleSourceDetailsEditMode } from "./SingleSourceDetailsEditMode"
 
-export function SourceDetailsEditMode() {
+export function EditSourceDetails() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 
@@ -20,7 +20,7 @@ export function SourceDetailsEditMode() {
 
   // On load
   useEffect(() => {
-    console.log({ "SourceDetailsEditMode.useEffect.editState.sources": editState.sources })
+    console.log({ "EditSourceDetails.useEffect.editState.sources": editState.sources })
     let reactElements = editState.sources?.map((s) => (
       <div className="m-1 border-2 border-grey-600" key={s.title + s.details}>
         <p>{s.title}</p>
@@ -44,7 +44,7 @@ export function SourceDetailsEditMode() {
   // Note: 'id' should be a guid. New sources should be passed id = null. The SingleSourceDetailsEditMode will submit to the state machine with this id.
   */
   const onAddSourceClicked = (e) => {
-    console.log({ "SourceDetailsEditMode.onAddSourceClicked": e })
+    console.log({ "EditSourceDetails.onAddSourceClicked": e })
     setSingleSourceEdit(
       (
         <SingleSourceDetailsEditMode
@@ -59,7 +59,7 @@ export function SourceDetailsEditMode() {
 
 
   // useEffect(() => {
-  //   console.log({ "SourceDetailsEditMode.useEffect.singleSourceEdit": singleSourceEdit })
+  //   console.log({ "EditSourceDetails.useEffect.singleSourceEdit": singleSourceEdit })
   //   if (!singleSourceEdit)
   //   setSourcesReactElements(reactElements)
   // }, [singleSourceEdit])

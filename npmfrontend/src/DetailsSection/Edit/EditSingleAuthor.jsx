@@ -8,7 +8,7 @@ import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMont
 //   "id": <guid>,
 //   "name": "text"
 // }
-export function SingleAuthorEditMode({ author, authorEditedCallback, authorDeletedCallback }) {
+export function EditSingleAuthor({ author, authorEditedCallback, authorDeletedCallback }) {
   if (!author) {
     throw new Error("'author' required")
   }
@@ -28,7 +28,7 @@ export function SingleAuthorEditMode({ author, authorEditedCallback, authorDelet
 
   // onKeyDown
   const authorTextCapture = (e) => {
-    console.log({ "SingleAuthorEditMode.authorTextCapture": e.key, code: e.code })
+    console.log({ "EditSingleAuthor.authorTextCapture": e.key, code: e.code })
 
     let authorText = authorInputRef?.current.value
     if (!authorText) {
@@ -50,13 +50,13 @@ export function SingleAuthorEditMode({ author, authorEditedCallback, authorDelet
 
   // TODO: drop-down auto-complete for existing author names
   const onAuthorTextChanged = (e) => {
-    console.log({ "SingleAuthorEditMode.onAuthorTextChanged": e })
+    console.log({ "EditSingleAuthor.onAuthorTextChanged": e })
     setAuthorName(e.target.value)
   }
 
   // Cancel
   const cancelEdit = () => {
-    console.log({ "SingleAuthorEditMode.cancelEdit": null })
+    console.log({ "EditSingleAuthor.cancelEdit": null })
 
     setAuthorName(author.name)
     setEditing(false)
@@ -64,7 +64,7 @@ export function SingleAuthorEditMode({ author, authorEditedCallback, authorDelet
 
   // Toggle display and input text based on edit flag
   useEffect(() => {
-    console.log({ "SingleAuthorEditMode.useEffect.editing": editing })
+    console.log({ "EditSingleAuthor.useEffect.editing": editing })
 
     let reactElement = null
     if (editing) {

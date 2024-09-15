@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 
-export function HeaderDetails() {
+export function ShowHeaderDetails() {
   const selectedPoiState = useSelector((state) => state.selectedPoiReducer)
   const [tagReactElements, setTagReactElements] = useState()
 

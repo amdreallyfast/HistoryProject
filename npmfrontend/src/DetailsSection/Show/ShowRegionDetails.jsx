@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { roundFloat } from "../RoundFloat";
 
-export function RegionDetails() {
+export function ShowRegionDetails() {
   const selectedPoiState = useSelector((state) => state.selectedPoiReducer)
 
   const [latLongReactElements, setLatLongReactElements] = useState()
@@ -13,7 +13,7 @@ export function RegionDetails() {
 
   // Display pin locations.
   useEffect(() => {
-    console.log({ "RegionDetails useEffect: positions changed": { primaryLoc: selectedPoiState.primaryLoc, regionBoundaries: selectedPoiState.regionBoundaries } })
+    console.log({ "ShowRegionDetails.useEffect.region": { primaryLoc: selectedPoiState.primaryLoc, regionBoundaries: selectedPoiState.regionBoundaries } })
     if (!selectedPoiState.primaryLoc || !selectedPoiState.regionBoundaries) {
       // Wait for both to load (or just do nothing if they were set to null/empty)
       return

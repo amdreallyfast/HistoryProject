@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { detailRestrictions } from "../GlobeSection/constValues"
 
-export function SummaryDetails() {
+export function ShowSummaryDetails() {
   const selectedPoiState = useSelector((state) => state.selectedPoiReducer)
 
   return (

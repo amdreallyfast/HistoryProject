@@ -1,14 +1,10 @@
 import { useSelector } from "react-redux"
 import axios from "axios";
-import { HeaderDetailsEditMode } from "./HeaderDetailsEditMode";
-import { ImageDetailsEditMode } from "./ImageDetailsEditMode";
-import { RegionDetailsEditMode } from "./RegionDetailsEditMode";
-import { HeaderDetails } from "./HeaderDetails";
-import { ImageDetails } from "./ImageDetails";
-import { RegionDetails } from "./RegionDetails";
-import { SummaryDetailsEditMode } from "./SummaryDetailsEditMode";
-import { SummaryDetails } from "./SummaryDetails";
-import { SourceDetailsEditMode } from "./SourceDetailsEditMode";
+import { EditHeaderDetails } from "./EditHeaderDetails";
+import { EditImageDetails } from "./EditImageDetails";
+import { EditRegionDetails } from "./EditRegionDetails";
+import { EditSummaryDetails } from "./EditSummaryDetails";
+import { EditSourceDetails } from "./EditSourceDetails";
 
 
 export function Details({ }) {
@@ -40,11 +36,11 @@ export function Details({ }) {
 
   return (
     <div className="flex flex-col h-full">
-      <HeaderDetailsEditMode />
-      {/* <ImageDetailsEditMode /> */}
-      {/* <RegionDetailsEditMode /> */}
-      {/* <SummaryDetailsEditMode /> */}
-      <SourceDetailsEditMode />
+      <EditHeaderDetails />
+      {/* <EditImageDetails /> */}
+      {/* <EditRegionDetails /> */}
+      {/* <EditSummaryDetails /> */}
+      <EditSourceDetails />
 
       {/* Revision author fixed by whoever is logged in */}
       <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />

@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../AppState/stateSliceEditPoi"
 import { detailRestrictions } from "../GlobeSection/constValues"
 import { convertTimeRangeToGregorianYearMonthDay, convertTimeToGregorianYearMonthDay } from "./convertTimeRangeToString"
-import { SingleAuthorEditMode } from "./SingleAuthorEditMode"
+import { EditSingleAuthor } from "./EditSingleAuthor"
 import { v4 as uuid } from "uuid"
 
-export function SingleSourceDetailsEditMode({
+export function EditSingleSourceDetails({
   startingTitle,
   startingIsbn,
   startingDetailedLocation,
@@ -33,31 +33,31 @@ export function SingleSourceDetailsEditMode({
 
 
   const onPublicationLowerBoundYearChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onPublicationLowerBoundYearChanged": e })
+    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundYearChanged": e })
   }
 
   const onPublicationLowerBoundMonthChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onPublicationLowerBoundMonthChanged": e })
+    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundMonthChanged": e })
   }
 
   const onPublicationLowerBoundDayChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onPublicationLowerBoundDayChanged": e })
+    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundDayChanged": e })
   }
 
   const onPublicationUpperBoundYearChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onPublicationUpperBoundYearChanged": e })
+    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundYearChanged": e })
   }
 
   const onPublicationUpperBoundMonthChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onPublicationUpperBoundMonthChanged": e })
+    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundMonthChanged": e })
   }
 
   const onPublicationUpperBoundDayChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onPublicationUpperBoundDayChanged": e })
+    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundDayChanged": e })
   }
 
   const onSubmitSourceClick = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onSubmitSourceClick": e })
+    console.log({ "EditSingleSourceDetails.onSubmitSourceClick": e })
     submitCallback({
       things: "and such"
     })
@@ -67,13 +67,13 @@ export function SingleSourceDetailsEditMode({
   const [title, setTitle] = useState(startingTitle)
   const titleCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "SingleSourceDetailsEditMode.useEffect.title": title })
+    console.log({ "EditSingleSourceDetails.useEffect.title": title })
     if (!titleCharCountLabelRef.current) return
     titleCharCountLabelRef.current.innerHTML = `${title?.length}/${detailRestrictions.maxSourceTitleLength}`
   }, [title, titleCharCountLabelRef.current])
 
   const onTitleChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onTitleChanged": e })
+    console.log({ "EditSingleSourceDetails.onTitleChanged": e })
     setTitle(e.target.value)
   }
 
@@ -81,12 +81,12 @@ export function SingleSourceDetailsEditMode({
   const [isbn, setIsbn] = useState(startingIsbn)
   const isbnCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "SingleSourceDetailsEditMode.useEffect.isbn": isbn })
+    console.log({ "EditSingleSourceDetails.useEffect.isbn": isbn })
     isbnCharCountLabelRef.current.innerHTML = `${isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
   }, [isbn, isbnCharCountLabelRef.current])
 
   const onISBNChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onISBNChanged": e })
+    console.log({ "EditSingleSourceDetails.onISBNChanged": e })
     setIsbn(e.target.value)
   }
 
@@ -94,13 +94,13 @@ export function SingleSourceDetailsEditMode({
   const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
   const detailedLocationCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "SingleSourceDetailsEditMode.useEffect.detailedLocation": detailedLocation })
+    console.log({ "EditSingleSourceDetails.useEffect.detailedLocation": detailedLocation })
     if (!detailedLocationCharCountLabelRef.current) return
     detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
   }, [detailedLocation, detailedLocationCharCountLabelRef.current])
 
   const onDetailedLocationChanged = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onDetailedLocationChanged": e })
+    console.log({ "EditSingleSourceDetails.onDetailedLocationChanged": e })
     setDetailedLocation(e.target.value)
   }
 
@@ -142,7 +142,7 @@ export function SingleSourceDetailsEditMode({
   }
 
   const onAddAuthorClicked = (e) => {
-    console.log({ "SingleSourceDetailsEditMode.onAddAuthorClicked": e })
+    console.log({ "EditSingleSourceDetails.onAddAuthorClicked": e })
 
     let newAuthors = authors ? [...authors] : []
     newAuthors.push({
@@ -153,10 +153,10 @@ export function SingleSourceDetailsEditMode({
   }
 
   useEffect(() => {
-    console.log({ "SingleSourceDetailsEditMode.useEffect.authors": authors })
+    console.log({ "EditSingleSourceDetails.useEffect.authors": authors })
 
     let reactElements = authors?.map((a) => (
-      <SingleAuthorEditMode key={a.id} author={a} authorEditedCallback={authorEditedCallback} authorDeletedCallback={authorDeletedCallback} />
+      <EditSingleAuthor key={a.id} author={a} authorEditedCallback={authorEditedCallback} authorDeletedCallback={authorDeletedCallback} />
     ))
     setAuthorsReactElements(reactElements)
   }, [authors])
