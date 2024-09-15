@@ -116,7 +116,7 @@ export const MouseHandler = () => {
 
   // Left mouse down
   useEffect(() => {
-    // console.log({ "MouseHandler useEffect mouseState.leftMouseDown": mouseState.leftMouseDown })
+    // console.log({ "MouseHandler.useEffect[mouseState.leftMouseDown]": mouseState.leftMouseDown })
 
     if (!mouseState.leftMouseDown) {
       return
@@ -149,7 +149,7 @@ export const MouseHandler = () => {
 
   // Mouse up
   useEffect(() => {
-    // console.log({ "MouseHandler useEffect mouseState.leftMouseUp": mouseState.leftMouseUp })
+    // console.log({ "MouseHandler.useEffect[mouseState.leftMouseUp]": mouseState.leftMouseUp })
 
     if (!mouseState.leftMouseUp || !mouseState.leftMouseDown) {
       // Watch for mouse up without a mouse down.
@@ -196,7 +196,7 @@ export const MouseHandler = () => {
 
   // Mouse move (click-and-drag)
   useEffect(() => {
-    // console.log({ "MouseHandler useEffect mouseState.currPos": mouseState.currPos })
+    // console.log({ "MouseHandler.useEffect[mouseState.currPos]": mouseState.currPos })
 
     if (!editState.editModeOn) {
       // Do not allow click-and-drag.

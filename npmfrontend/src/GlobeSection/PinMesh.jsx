@@ -32,13 +32,13 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
   }
 
   function makePin() {
-    // Make an equilateral triangle pyramid with the point facing center of the globe.
-    // Note: Values from the unit circle, 120deg apart.
-    let sqrt3Over2 = Math.sqrt(3.0) / 2.0
-    let oneHalf = 0.5
+    const sqrt3Over2 = Math.sqrt(3.0) / 2.0
+    const oneHalf = 0.5
 
-    // Note: ThreeJs's "lookat(...)" function orients the object's local Z axis at the specified
-    // world space point.
+    // Make an equilateral triangle pyramid with the point facing the center of the globe.
+    // Note: Values from the unit circle, 120deg apart.
+    // Also Note: ThreeJs's "lookat(...)" function considers the object's local Z axis to be the 
+    // "pointing" axis.
     let baseVertex1 = new THREE.Vector3(0, 1, 0)
     let baseVertex2 = new THREE.Vector3(-sqrt3Over2, -oneHalf, 0)
     let baseVertex3 = new THREE.Vector3(+sqrt3Over2, -oneHalf, 0)
@@ -84,7 +84,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
   }
 
   function makeBoundingBox() {
-    let sqrt3Over2 = Math.sqrt(3.0) / 2.0
+    const sqrt3Over2 = Math.sqrt(3.0) / 2.0
     let pinMaxWidth = sqrt3Over2 * 2
     let boundingBoxWidth = pinMaxWidth * 2
     let boundingBoxHeight = length * 1.1
@@ -115,18 +115,27 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
   }
 
-  // Create meshes
+  // Create pin mesh when mesh reference is available.
   useEffect(() => {
-    // console.log({ "PinMesh useEffect meshRef": meshRef.current })
-    if (!meshRef.current || !boxMeshRef.current) {
+    // console.log({ "PinMesh.useEffect[meshRef.current]": meshRef.current })
+    if (!meshRef.current) {
       return
     }
 
     makePin()
+    originalPosRef.current = meshRef.current.position.clone()
+  }, [meshRef.current])
+
+  // Create box mesh when mesh reference is available.
+  useEffect(() => {
+    // console.log({ "PinMesh.useEffect[boxMeshRef.current]": meshRef.current })
+    if (!boxMeshRef.current) {
+      return
+    }
+
     makeBoundingBox()
 
-    originalPosRef.current = meshRef.current.position.clone()
-
+    // Assign metadata so that cursor interactions can figure out what event corresponds to this.
     boxMeshRef.current.userData.eventId = eventId
     boxMeshRef.current.userData.locationId = spherePoint.id
   }, [meshRef.current, boxMeshRef.current])

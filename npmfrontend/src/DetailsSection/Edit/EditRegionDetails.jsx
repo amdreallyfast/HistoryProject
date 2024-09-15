@@ -17,14 +17,7 @@ export function EditRegionDetails() {
     RegionBoundaryHighlighted: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
   }
 
-  // Display pin locations.
-  useEffect(() => {
-    // console.log({ "EditRegionDetails useEffect: positions changed": { primaryLoc: editState.primaryLoc, regionBoundaries: editState.regionBoundaries } })
-    if (!editState.primaryLoc || !editState.regionBoundaries) {
-      // Wait for both to load (or just do nothing if they were set to null/empty)
-      return
-    }
-
+  const createLatLongReactElements = () => {
     // Callback
     const onLocationTextClicked = (e, loc) => {
       // If already selected, de-select.
@@ -40,6 +33,7 @@ export function EditRegionDetails() {
     }
 
     //??onhover??
+
 
     // Gather all pin locations together
     let locArr = []
@@ -72,11 +66,36 @@ export function EditRegionDetails() {
 
     // Notify this component to re-render with the new values.
     setLatLongReactElements(htmlElements)
-  }, [editState.primaryLoc, editState.regionBoundaries])
+  }
+
+  // Update HTML elements if the primary location changes.
+  useEffect(() => {
+    console.log({ "EditRegionDetails.useEffect[editState.primaryLoc]": editState.primaryLoc })
+
+    if (!latLongReactElements && !editState.primaryLoc) {
+      // null on first load; skip
+    }
+
+    createLatLongReactElements()
+  }, [editState.primaryLoc])
+
+  // Update HTML elements if the region boundaries change.
+  // Note: This array object should be changed as a whole (as opposed to updating individual 
+  // objects within it) whenever a single region boundary pin changes, so this should be able to react to any changes to any of them.
+  useEffect(() => {
+    console.log({ "EditRegionDetails.useEffect[editState.regionBoundaries]": editState.regionBoundaries })
+    if (!latLongReactElements && !editState.regionBoundaries) {
+      // null on first load; skip
+    }
+
+    createLatLongReactElements()
+  }, [editState.regionBoundaries])
+
+
 
   // If selected pin changes, change highlighted latlong text block.
   useEffect(() => {
-    // console.log({ "EditRegion useEffect selectedLocId changes": edit })
+    // console.log({ "EditRegionDetails.useEffect[mouseState.selectedLocId]": edit })
 
     // Highlight selected.
     if (mouseState.selectedLocId) {

@@ -13,7 +13,7 @@ export const EditRegionMesh = ({ sphereRadius }) => {
 
   // Region changed => regenerate mesh
   useEffect(() => {
-    // console.log({ "RegionMeshRegionMesh useEffect editState.regionBoundaries": editState.regionBoundaries })
+    // console.log({ "RegionMeshRegionMesh.useEffect[editState.regionBoundaries]": editState.regionBoundaries })
     if (regionMeshRef.current == null) {
       return
     }

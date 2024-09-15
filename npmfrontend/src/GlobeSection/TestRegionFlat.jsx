@@ -6,7 +6,7 @@ function FlatRegion() {
   const regionMeshRef = useRef()
   const pointsMeshRef = useRef()
   useEffect(() => {
-    console.log("MyPolygon -> useEffect -> regionMeshRef")
+    console.log({ "FlatRegion.useEffect[regionMeshRef.current]": regionMeshRef.current })
     let values = [
       { name: "one", lat: 0, long: +1, alt: 0 },
       { name: "two", lat: -1.5, long: +0.2, alt: 0 },

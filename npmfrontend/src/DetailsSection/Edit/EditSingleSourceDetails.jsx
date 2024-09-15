@@ -67,7 +67,7 @@ export function EditSingleSourceDetails({
   const [title, setTitle] = useState(startingTitle)
   const titleCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect.title": title })
+    console.log({ "EditSingleSourceDetails.useEffect[title]": title })
     if (!titleCharCountLabelRef.current) return
     titleCharCountLabelRef.current.innerHTML = `${title?.length}/${detailRestrictions.maxSourceTitleLength}`
   }, [title, titleCharCountLabelRef.current])
@@ -81,7 +81,7 @@ export function EditSingleSourceDetails({
   const [isbn, setIsbn] = useState(startingIsbn)
   const isbnCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect.isbn": isbn })
+    console.log({ "EditSingleSourceDetails.useEffect[isbn]": isbn })
     isbnCharCountLabelRef.current.innerHTML = `${isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
   }, [isbn, isbnCharCountLabelRef.current])
 
@@ -94,7 +94,7 @@ export function EditSingleSourceDetails({
   const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
   const detailedLocationCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect.detailedLocation": detailedLocation })
+    console.log({ "EditSingleSourceDetails.useEffect[detailedLocation]": detailedLocation })
     if (!detailedLocationCharCountLabelRef.current) return
     detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
   }, [detailedLocation, detailedLocationCharCountLabelRef.current])
@@ -153,7 +153,7 @@ export function EditSingleSourceDetails({
   }
 
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect.authors": authors })
+    console.log({ "EditSingleSourceDetails.useEffect[authors]": authors })
 
     let reactElements = authors?.map((a) => (
       <EditSingleAuthor key={a.id} author={a} authorEditedCallback={authorEditedCallback} authorDeletedCallback={authorDeletedCallback} />

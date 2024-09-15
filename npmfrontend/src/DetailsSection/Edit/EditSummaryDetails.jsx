@@ -12,7 +12,7 @@ export function EditSummaryDetails() {
 
   // On start, load values from state
   useEffect(() => {
-    console.log({ "EditSummaryDetails.useEffect.editState.Summary": editState.summary })
+    console.log({ "EditSummaryDetails.useEffect[editState.Summary]": editState.summary })
 
     if (!summaryInputRef.current || !charCountLabelRef.current) {
       return

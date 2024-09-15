@@ -62,7 +62,7 @@ export function Scene(
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    // console.log({ "Scene useEffect poiState.allPois": poiState.allPois })
+    // console.log({ "Scene.useEffect[poiState.allPois]": poiState.allPois })
 
     let poiInfo = []
     poiState.allPois?.forEach((poi) => {
@@ -86,7 +86,7 @@ export function Scene(
 
   // IfEdit mode determines whether we use "DisplayOnlyRegion" or "EditableRegion".
   useEffect(() => {
-    // console.log({ "Scene useEffect editState.editModeOn": editState.editModeOn })
+    // console.log({ "Scene.useEffect[editState.editModeOn]": editState.editModeOn })
 
     if (editState.editModeOn) {
       // TODO: set edit state info to current POI info
@@ -106,7 +106,7 @@ export function Scene(
   // doing it every frame just before the raycaster runs. Doing so incurs some annoying searching 
   // and notification, but it's better for performance in the long run (I think).
   useEffect(() => {
-    // console.log("Scene useEffect: meshes changed")
+    // console.log("Scene.useEffect[meshes changed]")
 
     const meshesArr = []
 
@@ -136,7 +136,7 @@ export function Scene(
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
   // follow-up poiReactElements are created, so they should all be there.
   useEffect(() => {
-    // console.log({ "Scene useEffect poiState.selectedPoi": poiState.selectedPoi })
+    // console.log({ "Scene.useEffect[poiState.selectedPoi]": poiState.selectedPoi })
 
     if (poiState.selectedPoi) {
       // Should have exactly 1 matching element.

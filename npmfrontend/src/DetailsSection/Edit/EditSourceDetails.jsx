@@ -20,7 +20,7 @@ export function EditSourceDetails() {
 
   // On load
   useEffect(() => {
-    console.log({ "EditSourceDetails.useEffect.editState.sources": editState.sources })
+    console.log({ "EditSourceDetails.useEffect[editState.sources]": editState.sources })
     let reactElements = editState.sources?.map((s) => (
       <div className="m-1 border-2 border-grey-600" key={s.title + s.details}>
         <p>{s.title}</p>
@@ -59,7 +59,7 @@ export function EditSourceDetails() {
 
 
   // useEffect(() => {
-  //   console.log({ "EditSourceDetails.useEffect.singleSourceEdit": singleSourceEdit })
+  //   console.log({ "EditSourceDetails.useEffect[singleSourceEdit]": singleSourceEdit })
   //   if (!singleSourceEdit)
   //   setSourcesReactElements(reactElements)
   // }, [singleSourceEdit])

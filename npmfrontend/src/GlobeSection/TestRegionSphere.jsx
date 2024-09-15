@@ -6,7 +6,7 @@ export function Region() {
   const sphereMeshRef = useRef()
   const pointsMeshRef = useRef()
   useEffect(() => {
-    console.log("MyPolygon -> useEffect -> sphereMeshRef")
+    console.log({ "Region.useEffect[sphereMeshRef.current]": sphereMeshRef.current })
 
     // see if this thing works with a sphere
     let radius = 6

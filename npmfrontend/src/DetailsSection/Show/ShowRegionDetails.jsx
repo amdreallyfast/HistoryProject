@@ -14,11 +14,9 @@ export function ShowRegionDetails() {
   const createLatLongReactElements = () => {
     // Gather all pin locations together
     let locArr = []
-    if (selectedPoiState.primaryLoc) {
-      locArr.push(selectedPoiState.primaryLoc)
-      for (let i = 0; i < selectedPoiState.regionBoundaries.length; i++) {
-        locArr.push(selectedPoiState.regionBoundaries[i])
-      }
+    locArr.push(selectedPoiState.primaryLoc)
+    for (let i = 0; i < selectedPoiState.regionBoundaries.length; i++) {
+      locArr.push(selectedPoiState.regionBoundaries[i])
     }
 
     // And make HTML elements out of them
@@ -49,13 +47,13 @@ export function ShowRegionDetails() {
 
   // Re-create HTML to list locations
   useEffect(() => {
-    console.log({ "ShowRegionDetails.useEffect.selectedPoiState.primaryLoc": selectedPoiState.primaryLoc })
+    console.log({ "ShowRegionDetails.useEffect[selectedPoiState.primaryLoc]": selectedPoiState.primaryLoc })
     createLatLongReactElements()
   }, [selectedPoiState.primaryLoc])
 
   // Re-create HTML to list locations
   useEffect(() => {
-    console.log({ "ShowRegionDetails.useEffect.selectedPoiState.regionBoundaries": selectedPoiState.regionBoundaries })
+    console.log({ "ShowRegionDetails.useEffect[selectedPoiState.regionBoundaries]": selectedPoiState.regionBoundaries })
     createLatLongReactElements()
   }, [selectedPoiState.regionBoundaries])
 
