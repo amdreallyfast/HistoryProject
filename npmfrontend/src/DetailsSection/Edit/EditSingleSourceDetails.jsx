@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { EditSingleAuthor } from "./EditSingleAuthor"
 import { v4 as uuid } from "uuid"
 import { detailRestrictions } from "./detailRestrictions"
+import { EditTimeRange } from "./EditTimeRange"
 
 export function EditSingleSourceDetails({
   startingTitle,
@@ -226,7 +227,7 @@ export function EditSingleSourceDetails({
       {/* Publication time range
       TODO: move to it's own "when" component so that I can re-use it for the event itself
        */}
-      <div className="flex flex-col items-start m-1 border-2 border-grey-600">
+      {/* <div className="flex flex-col items-start m-1 border-2 border-grey-600">
         <label className="text-lg">Publication time range</label>
 
         <div className="flex flex-col items-start">
@@ -247,6 +248,10 @@ export function EditSingleSourceDetails({
           </div>
         </div>
 
+      </div> */}
+      <div>
+        <label className="text-lg">Publication time range</label>
+        <EditTimeRange />
       </div>
 
       {/* Submit source */}
