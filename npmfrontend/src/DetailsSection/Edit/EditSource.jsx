@@ -209,6 +209,12 @@ export function EditSource({
         <label ref={detailedLocationCharCountLabelRef} className="text-right"></label>
       </div>
 
+      {/* Publication */}
+      <div>
+        <label className="text-lg">Publication time range</label>
+        <EditSourcePublicationTimeRange />
+      </div>
+
       {/* Authors */}
       <div className="flex flex-col m-1">
         <label className="text-lg text-left">Author(s)</label>
@@ -218,40 +224,6 @@ export function EditSource({
             New author
           </button>
         </div>
-      </div>
-
-
-
-
-
-      {/* Publication time range
-      TODO: move to it's own "when" component so that I can re-use it for the event itself
-       */}
-      {/* <div className="flex flex-col items-start m-1 border-2 border-grey-600">
-        <label className="text-lg">Publication time range</label>
-
-        <div className="flex flex-col items-start">
-          <label ref={publicationLowerBoundDateLabelRef}>Lower Bound (----/--/--)</label>
-          <div className="flex flex-row items-start">
-            <input className="m-1 text-black w-1/4" type="number" placeholder="Year" onChange={onPublicationLowerBoundYearChanged}></input>
-            <input className="m-1 text-black w-1/4" type="number" placeholder="Month" onChange={onPublicationLowerBoundMonthChanged}></input>
-            <input className="m-1 text-black w-1/4" type="number" placeholder="Day" onChange={onPublicationLowerBoundDayChanged}></input>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-start">
-          <label ref={publicationLowerBoundDateLabelRef}>Upper Bound (----/--/--)</label>
-          <div className="flex flex-row items-start">
-            <input className="m-1 text-black w-1/4" type="number" placeholder="Year" onChange={onPublicationUpperBoundYearChanged}></input>
-            <input className="m-1 text-black w-1/4" type="number" placeholder="Month" onChange={onPublicationUpperBoundMonthChanged}></input>
-            <input className="m-1 text-black w-1/4" type="number" placeholder="Day" onChange={onPublicationUpperBoundDayChanged}></input>
-          </div>
-        </div>
-
-      </div> */}
-      <div>
-        <label className="text-lg">Publication time range</label>
-        <EditSourcePublicationTimeRange />
       </div>
 
       {/* Submit source */}

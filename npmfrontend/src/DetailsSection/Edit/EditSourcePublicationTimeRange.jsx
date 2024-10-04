@@ -1,6 +1,50 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
+
+/*
+TODO: (??maybe just duplicate the form and customize it? how much do you want to avoid duplication? are you willing to sacrifice the readability of the code??
+  
+  split further
+  EditTimeRange takes:
+    lowerBoundYearStartingDate,
+    lowerBoundYearChangedCallback,
+    
+    lowerBoundMonthStartingDate,
+    lowerBoundMonthChangedCallback,
+    
+    lowerBoundDayStartingDate,
+    lowerBoundDayChangedCallback,
+    
+    upperBoundYearStartingDate,
+    upperBoundYearChangedCallback,
+    
+    upperBoundMonthStartingDate,
+    upperBoundMonthChangedCallback,
+    
+    upperBoundDayStartingDate,
+    upperBoundDayChangedCallback,
+  
+    EditSourcePublicationTimeRange takes:
+      Id: guid,   // used to speak with the state machine
+      
+      uses:
+        EditTimeRange
+        Provides callbacks
+        When callbacks are called, will dispatch to the state machine
+    
+    EditSourceAuthorLifetimeTimeRange taks:
+      Id: guid,   // used to speak with the state machine
+      
+      uses:
+        EditTimeRange
+        Provides callbacks
+        When callbacks are called, will dispatch to the state machine
+   
+*/
+
+
+
 export function EditSourcePublicationTimeRange({
   startingDateLowerBoundYear,
   startingDateLowerBoundMonth,

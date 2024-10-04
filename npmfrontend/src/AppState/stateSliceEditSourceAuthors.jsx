@@ -10,62 +10,26 @@ const initialState = {
 }
 
 const authorInitialState = {
-  // Format:
-  //  {
-  //    id: guid,        // unique version of the source
-  //    sourceId: guid,  // persistent version of this source
-  //    revision: int,   // establishes order in which versions are made
-  //    title: string,   // required string
-  //    ISBN: string,    // optional string
-  //    publicationTimeRange: {
-  //      lowerBoundYear: int,  // required
-  //      lowerBoundMonth: int, // optional
-  //      lowerBoundDay: int,   // optional
-  //      upperBoundYear: int,  // required
-  //      upperBoundMonth: int, // optional
-  //      upperBoundDay: int,   // optional
-  //    },
-  //    authors: [
-  //      {
-  //        id: guid,        // unique version of this author
-  //        authorId: guid,  // persistent version of this author
-  //        revision: int,   // establishes order in which versions are made
-  //        name: null,      // required string
-  //        lifetimeTimeRange: {
-  //          lowerBoundYear: int,  // required
-  //          lowerBoundMonth: int, // optional
-  //          lowerBoundDay: int,   // optional
-  //          upperBoundYear: int,  // required
-  //          upperBoundMonth: int, // optional
-  //          upperBoundDay: int,   // optional
-  //        }
-  //      }
-  //    ]
-  //  }
-  id: null,
-  sourceId: null,
-  revision: 0,
-  title: null,
-  ISBN: null,
-  publicationTimeRange: {
-    lowerBoundYear: null,
-    lowerBoundMonth: null,
-    lowerBoundDay: null,
+  id: null,                 // unique version of this author
+  authorID: null,           // persistent version of this author
+  revision: 0,              // establishes order in which versions are made
+  name: null,               // required string
+  lifetimeTimeRange: {
+    lowerBoundYear: null,   // required
+    lowerBoundMonth: null,  // optional
+    lowerBoundDay: null,    // optional
 
-    upperBoundYear: null,
-    upperBoundMonth: null,
-    upperBoundDay: null,
-  },
-  authors: [],
-
-
-  // detailedLocation:  // this should be separate from the source itself
+    upperBoundYear: null,   // required
+    upperBoundMonth: null,  // optional
+    upperBoundDay: null,    // optional
+  }
 }
 
 export const stateSliceEditSourceAuthors = createSlice({
   name: "stateSliceEditSourceAuthors",
   initialState,
   reducers: {
+    // template
     setThing: (state, action) => {
       console.log("stateSliceEditSourceAuthors.setThing")
       return {

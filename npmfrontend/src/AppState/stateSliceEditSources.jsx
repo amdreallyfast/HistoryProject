@@ -1,74 +1,63 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { v4 as uuid } from "uuid"
 
-// Format:
-//  sources: [
-//    // tempId only for front end
-//    guid: {
-//        whereInSource: string,
-//        source: <see below>
-//      }
-//  ]
 const initialState = {
-  sources: []
+  // Format:
+  //  sources: {
+  //    // tempId only for front end
+  //    guid: {
+  //        whereInSource: string,
+  //        source: <see below>
+  //      }
+  //  }
+  sources: {}
+
+
+    ?? maybe just take an int and use an ordered array instead??
+
+
 }
 
+// Source
 const singleSourceInitialState = {
-  // Format:
-  //  {
-  //    id: guid,        // unique version of the source
-  //    sourceId: guid,  // persistent version of this source
-  //    revision: int,   // establishes order in which versions are made
-  //    title: string,   // required string
-  //    ISBN: string,    // optional string
-  //    publicationTimeRange: {
-  //      lowerBoundYear: int,  // required
-  //      lowerBoundMonth: int, // optional
-  //      lowerBoundDay: int,   // optional
-  //      upperBoundYear: int,  // required
-  //      upperBoundMonth: int, // optional
-  //      upperBoundDay: int,   // optional
-  //    },
-  //    authors: [
-  //      {
-  //        id: guid,        // unique version of this author
-  //        authorId: guid,  // persistent version of this author
-  //        revision: int,   // establishes order in which versions are made
-  //        name: null,      // required string
-  //        lifetimeTimeRange: {
-  //          lowerBoundYear: int,  // required
-  //          lowerBoundMonth: int, // optional
-  //          lowerBoundDay: int,   // optional
-  //          upperBoundYear: int,  // required
-  //          upperBoundMonth: int, // optional
-  //          upperBoundDay: int,   // optional
-  //        }
-  //      }
-  //    ]
-  //  }
-  id: null,
-  sourceId: null,
-  revision: 0,
-  title: null,
-  ISBN: null,
+  id: null,                 // unique version of the source
+  sourceId: null,           // persistent version of this source
+  revision: 0,              // establishes order in which versions are made
+  title: null,              // required string
+  ISBN: null,               // optional string
   publicationTimeRange: {
-    lowerBoundYear: null,
-    lowerBoundMonth: null,
-    lowerBoundDay: null,
-
-    upperBoundYear: null,
-    upperBoundMonth: null,
-    upperBoundDay: null,
+    lowerBoundYear: null,   // required
+    lowerBoundMonth: null,  // optional
+    lowerBoundDay: null,    // optional
+    upperBoundYear: null,   // required
+    upperBoundMonth: null,  // optional
+    upperBoundDay: null,    // optional
   },
-  authors: [],
+  authors: []
+}
 
+// Author
+const authorInitialState = {
+  id: null,                 // unique version of this author
+  authorID: null,           // persistent version of this author
+  revision: 0,              // establishes order in which versions are made
+  name: null,               // required string
+  lifetimeTimeRange: {
+    lowerBoundYear: null,   // required
+    lowerBoundMonth: null,  // optional
+    lowerBoundDay: null,    // optional
 
-  // detailedLocation:  // this should be separate from the source itself
+    upperBoundYear: null,   // required
+    upperBoundMonth: null,  // optional
+    upperBoundDay: null,    // optional
+  }
 }
 
 export const stateSliceEditSource = createSlice({
   name: "stateSliceEditSource",
   initialState,
   reducers: {
+    // template
     setThing: (state, action) => {
       console.log("stateSliceEditSource.setThing")
       return {
@@ -76,6 +65,42 @@ export const stateSliceEditSource = createSlice({
         thing: action.payload
       }
     },
+
+    import: (state, action) => {
+      console.log("stateSliceEditSource.import")
+
+      let importObject = action.payload
+      let tempId = uuid()
+      return {
+        // TODO: import everything
+      }
+    }
+
+    /*
+    importSource                      // takes an array of source objects + their "where to find"
+    newSource                         // takes a new key that will be used to retrieve it
+    deleteSource                      // takes a key
+    updateSourceTitle                 // takes a key and a string
+    updateSourceISBN                  // takes a key and a string
+    updatePublicationLowerBoundYear   // takes a key and an integer or null
+    updatePublicationLowerBoundMonth  // takes a key and an integer or null
+    updatePublicationLowerBoundDay    // takes a key and an integer or null
+    updatePublicationUpperBoundYear   // takes a key and an integer or null
+    updatePublicationUpperBoundMonth  // takes a key and an integer or null
+    updatePublicationUpperBoundDay    // takes a key and an integer or null
+
+    newAuthor                           // takes a new key that will be used to retrieve it
+    deleteAuthor                        // takes a key
+    updateAuthorTitle                   // takes a key and a string
+    updateAuthorISBN                    // takes a key and a string
+    updateAuthorLifetimeLowerBoundYear  // takes a key and an integer or null
+    updateAuthorLifetimeLowerBoundMonth // takes a key and an integer or null
+    updateAuthorLifetimeLowerBoundDay   // takes a key and an integer or null
+    updateAuthorLifetimeUpperBoundYear  // takes a key and an integer or null
+    updateAuthorLifetimeUpperBoundMonth // takes a key and an integer or null
+    updateAuthorLifetimeUpperBoundDay   // takes a key and an integer or null
+    */
+
   }
 })
 
