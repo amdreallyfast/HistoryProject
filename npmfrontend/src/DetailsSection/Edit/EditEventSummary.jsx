@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { detailRestrictions } from "./detailRestrictions"
 
-export function EditSummaryDetails() {
+export function EditEventSummary() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 
@@ -12,7 +12,7 @@ export function EditSummaryDetails() {
 
   // On start, load values from state
   useEffect(() => {
-    console.log({ "EditSummaryDetails.useEffect[editState.Summary]": editState.summary })
+    console.log({ "EditEventSummary.useEffect[editState.Summary]": editState.summary })
 
     if (!summaryInputRef.current || !charCountLabelRef.current) {
       return

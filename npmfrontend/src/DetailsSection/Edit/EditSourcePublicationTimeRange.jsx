@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
-export function EditPuTimeRange({
+export function EditSourcePublicationTimeRange({
   startingDateLowerBoundYear,
   startingDateLowerBoundMonth,
   startingDateLowerBoundDay,
@@ -24,31 +24,31 @@ export function EditPuTimeRange({
 
 
   const onPublicationLowerBoundYearChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundYearChanged": e })
+    console.log({ "EditSourcePublicationTimeRange.onPublicationLowerBoundYearChanged": e })
   }
 
   const onPublicationLowerBoundMonthChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundMonthChanged": e })
+    console.log({ "EditSourcePublicationTimeRange.onPublicationLowerBoundMonthChanged": e })
   }
 
   const onPublicationLowerBoundDayChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundDayChanged": e })
+    console.log({ "EditSourcePublicationTimeRange.onPublicationLowerBoundDayChanged": e })
   }
 
   const onPublicationUpperBoundYearChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundYearChanged": e })
+    console.log({ "EditSourcePublicationTimeRange.onPublicationUpperBoundYearChanged": e })
   }
 
   const onPublicationUpperBoundMonthChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundMonthChanged": e })
+    console.log({ "EditSourcePublicationTimeRange.onPublicationUpperBoundMonthChanged": e })
   }
 
   const onPublicationUpperBoundDayChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundDayChanged": e })
+    console.log({ "EditSourcePublicationTimeRange.onPublicationUpperBoundDayChanged": e })
   }
 
   const onSubmitSourceClick = (e) => {
-    console.log({ "EditSingleSourceDetails.onSubmitSourceClick": e })
+    console.log({ "EditSourcePublicationTimeRange.onSubmitSourceClick": e })
     submitCallback({
       things: "and such"
     })

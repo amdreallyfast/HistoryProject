@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
 import { detailRestrictions } from "./detailRestrictions"
 
-export function EditHeaderDetails() {
+export function EditEventHeader() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 

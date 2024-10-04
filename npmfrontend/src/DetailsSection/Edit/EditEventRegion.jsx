@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { mouseStateActions } from "../../AppState/stateSliceMouseInfo"
 import { roundFloat } from "../RoundFloat";
 
-export function EditRegionDetails() {
+export function EditEventRegion() {
   const editState = useSelector((state) => state.editPoiReducer)
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
@@ -31,7 +31,7 @@ export function EditRegionDetails() {
       }
     }
 
-    //??onhover??
+    // TODO: ??onhover??
 
 
     // Gather all pin locations together
@@ -69,7 +69,7 @@ export function EditRegionDetails() {
 
   // Update HTML elements if the primary location changes.
   useEffect(() => {
-    console.log({ "EditRegionDetails.useEffect[editState.primaryLoc]": editState.primaryLoc })
+    console.log({ "EditEventRegion.useEffect[editState.primaryLoc]": editState.primaryLoc })
 
     if (!latLongReactElements && !editState.primaryLoc) {
       // null on first load; skip
@@ -82,7 +82,7 @@ export function EditRegionDetails() {
   // Note: This array object should be changed as a whole (as opposed to updating individual 
   // objects within it) whenever a single region boundary pin changes, so this should be able to react to any changes to any of them.
   useEffect(() => {
-    console.log({ "EditRegionDetails.useEffect[editState.regionBoundaries]": editState.regionBoundaries })
+    console.log({ "EditEventRegion.useEffect[editState.regionBoundaries]": editState.regionBoundaries })
     if (!latLongReactElements && !editState.regionBoundaries) {
       // null on first load; skip
     }
@@ -94,7 +94,7 @@ export function EditRegionDetails() {
 
   // If selected pin changes, change highlighted latlong text block.
   useEffect(() => {
-    // console.log({ "EditRegionDetails.useEffect[mouseState.selectedLocId]": edit })
+    // console.log({ "EditEventRegion.useEffect[mouseState.selectedLocId]": edit })
 
     // Highlight selected.
     if (mouseState.selectedLocId) {

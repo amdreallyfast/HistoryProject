@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { convertTimeRangeToGregorianYearMonthDay } from "../convertTimeRangeToString"
-import { EditSingleSourceDetails } from "./EditSingleSourceDetails"
+import { EditSource } from "./EditSource"
 
-export function EditSourceDetails() {
+export function EditEventSources() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 
@@ -18,7 +18,7 @@ export function EditSourceDetails() {
 
   // On load
   useEffect(() => {
-    console.log({ "EditSourceDetails.useEffect[editState.sources]": editState.sources })
+    console.log({ "EditEventSources.useEffect[editState.sources]": editState.sources })
     let reactElements = editState.sources?.map((s) => (
       <div className="m-1 border-2 border-grey-600" key={s.title + s.details}>
         <p>{s.title}</p>
@@ -39,13 +39,13 @@ export function EditSourceDetails() {
 
   // TODO: ??how to add an "edit session"??
   /*
-  // Note: 'id' should be a guid. New sources should be passed id = null. The EditSingleSourceDetails will submit to the state machine with this id.
+  // Note: 'id' should be a guid. New sources should be passed id = null. The EditSource will submit to the state machine with this id.
   */
   const onAddSourceClicked = (e) => {
-    console.log({ "EditSourceDetails.onAddSourceClicked": e })
+    console.log({ "EditEventSources.onAddSourceClicked": e })
     setSingleSourceEdit(
       (
-        <EditSingleSourceDetails
+        <EditSource
           startingId={null}
           startingTitle={"starting title"}
           startingIsbn={"74837hsdfkh2"}
@@ -57,7 +57,7 @@ export function EditSourceDetails() {
 
 
   // useEffect(() => {
-  //   console.log({ "EditSourceDetails.useEffect[singleSourceEdit]": singleSourceEdit })
+  //   console.log({ "EditEventSources.useEffect[singleSourceEdit]": singleSourceEdit })
   //   if (!singleSourceEdit)
   //   setSourcesReactElements(reactElements)
   // }, [singleSourceEdit])

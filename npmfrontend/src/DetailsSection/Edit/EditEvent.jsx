@@ -1,13 +1,13 @@
 import { useSelector } from "react-redux"
 import axios from "axios";
-import { EditHeaderDetails } from "./EditHeaderDetails";
-import { EditImageDetails } from "./EditImageDetails";
-import { EditRegionDetails } from "./EditRegionDetails";
-import { EditSummaryDetails } from "./EditSummaryDetails";
-import { EditSourceDetails } from "./EditSourceDetails";
+import { EditEventHeader } from "./EditEventHeader";
+import { EditEventImage } from "./EditEventImage";
+import { EditEventRegion } from "./EditEventRegion";
+import { EditEventSummary } from "./EditEventSummary";
+import { EditEventSources } from "./EditEventSources";
 
 
-export function EditDetails({ }) {
+export function EditEvent({ }) {
   const editModeOn = useSelector((state) => state.editPoiReducer.editModeOn)
 
   const onSubmitClick = (e) => {
@@ -36,11 +36,11 @@ export function EditDetails({ }) {
 
   return (
     <div className="flex flex-col h-full">
-      <EditHeaderDetails />
-      {/* <EditImageDetails /> */}
-      {/* <EditRegionDetails /> */}
-      {/* <EditSummaryDetails /> */}
-      <EditSourceDetails />
+      <EditEventHeader />
+      {/* <EditEventImage /> */}
+      {/* <EditEventRegion /> */}
+      {/* <EditEventSummary /> */}
+      <EditEventSources />
 
       {/* Revision author fixed by whoever is logged in */}
       <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />

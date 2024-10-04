@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { EditSingleAuthor } from "./EditSingleAuthor"
+import { EditSourceAuthor } from "./EditSourceAuthor"
 import { v4 as uuid } from "uuid"
 import { detailRestrictions } from "./detailRestrictions"
-import { EditTimeRange } from "./EditTimeRange"
+import { EditSourcePublicationTimeRange } from "./EditSourcePublicationTimeRange"
 
-export function EditSingleSourceDetails({
+export function EditSource({
   startingTitle,
   startingIsbn,
   startingDetailedLocation,
@@ -32,31 +32,31 @@ export function EditSingleSourceDetails({
 
 
   const onPublicationLowerBoundYearChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundYearChanged": e })
+    console.log({ "EditSource.onPublicationLowerBoundYearChanged": e })
   }
 
   const onPublicationLowerBoundMonthChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundMonthChanged": e })
+    console.log({ "EditSource.onPublicationLowerBoundMonthChanged": e })
   }
 
   const onPublicationLowerBoundDayChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationLowerBoundDayChanged": e })
+    console.log({ "EditSource.onPublicationLowerBoundDayChanged": e })
   }
 
   const onPublicationUpperBoundYearChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundYearChanged": e })
+    console.log({ "EditSource.onPublicationUpperBoundYearChanged": e })
   }
 
   const onPublicationUpperBoundMonthChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundMonthChanged": e })
+    console.log({ "EditSource.onPublicationUpperBoundMonthChanged": e })
   }
 
   const onPublicationUpperBoundDayChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onPublicationUpperBoundDayChanged": e })
+    console.log({ "EditSource.onPublicationUpperBoundDayChanged": e })
   }
 
   const onSubmitSourceClick = (e) => {
-    console.log({ "EditSingleSourceDetails.onSubmitSourceClick": e })
+    console.log({ "EditSource.onSubmitSourceClick": e })
     submitCallback({
       things: "and such"
     })
@@ -66,13 +66,13 @@ export function EditSingleSourceDetails({
   const [title, setTitle] = useState(startingTitle)
   const titleCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect[title]": title })
+    console.log({ "EditSource.useEffect[title]": title })
     if (!titleCharCountLabelRef.current) return
     titleCharCountLabelRef.current.innerHTML = `${title?.length}/${detailRestrictions.maxSourceTitleLength}`
   }, [title, titleCharCountLabelRef.current])
 
   const onTitleChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onTitleChanged": e })
+    console.log({ "EditSource.onTitleChanged": e })
     setTitle(e.target.value)
   }
 
@@ -80,12 +80,12 @@ export function EditSingleSourceDetails({
   const [isbn, setIsbn] = useState(startingIsbn)
   const isbnCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect[isbn]": isbn })
+    console.log({ "EditSource.useEffect[isbn]": isbn })
     isbnCharCountLabelRef.current.innerHTML = `${isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
   }, [isbn, isbnCharCountLabelRef.current])
 
   const onISBNChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onISBNChanged": e })
+    console.log({ "EditSource.onISBNChanged": e })
     setIsbn(e.target.value)
   }
 
@@ -93,13 +93,13 @@ export function EditSingleSourceDetails({
   const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
   const detailedLocationCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect[detailedLocation]": detailedLocation })
+    console.log({ "EditSource.useEffect[detailedLocation]": detailedLocation })
     if (!detailedLocationCharCountLabelRef.current) return
     detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
   }, [detailedLocation, detailedLocationCharCountLabelRef.current])
 
   const onDetailedLocationChanged = (e) => {
-    console.log({ "EditSingleSourceDetails.onDetailedLocationChanged": e })
+    console.log({ "EditSource.onDetailedLocationChanged": e })
     setDetailedLocation(e.target.value)
   }
 
@@ -141,7 +141,7 @@ export function EditSingleSourceDetails({
   }
 
   const onAddAuthorClicked = (e) => {
-    console.log({ "EditSingleSourceDetails.onAddAuthorClicked": e })
+    console.log({ "EditSource.onAddAuthorClicked": e })
 
     let newAuthors = authors ? [...authors] : []
     newAuthors.push({
@@ -152,10 +152,10 @@ export function EditSingleSourceDetails({
   }
 
   useEffect(() => {
-    console.log({ "EditSingleSourceDetails.useEffect[authors]": authors })
+    console.log({ "EditSource.useEffect[authors]": authors })
 
     let reactElements = authors?.map((a) => (
-      <EditSingleAuthor key={a.id} author={a} authorEditedCallback={authorEditedCallback} authorDeletedCallback={authorDeletedCallback} />
+      <EditSourceAuthor key={a.id} author={a} authorEditedCallback={authorEditedCallback} authorDeletedCallback={authorDeletedCallback} />
     ))
     setAuthorsReactElements(reactElements)
   }, [authors])
@@ -251,7 +251,7 @@ export function EditSingleSourceDetails({
       </div> */}
       <div>
         <label className="text-lg">Publication time range</label>
-        <EditTimeRange />
+        <EditSourcePublicationTimeRange />
       </div>
 
       {/* Submit source */}

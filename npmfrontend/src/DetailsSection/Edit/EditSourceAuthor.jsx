@@ -5,7 +5,7 @@ import { detailRestrictions } from "./detailRestrictions"
 //   "id": <guid>,
 //   "name": "text"
 // }
-export function EditSingleAuthor({ author, authorEditedCallback, authorDeletedCallback }) {
+export function EditSourceAuthor({ author, authorEditedCallback, authorDeletedCallback }) {
   if (!author) {
     throw new Error("'author' required")
   }
@@ -25,7 +25,7 @@ export function EditSingleAuthor({ author, authorEditedCallback, authorDeletedCa
 
   // onKeyDown
   const authorTextCapture = (e) => {
-    console.log({ "EditSingleAuthor.authorTextCapture": e.key, code: e.code })
+    console.log({ "EditSourceAuthor.authorTextCapture": e.key, code: e.code })
 
     let authorText = authorInputRef?.current.value
     if (!authorText) {
@@ -47,13 +47,13 @@ export function EditSingleAuthor({ author, authorEditedCallback, authorDeletedCa
 
   // TODO: drop-down auto-complete for existing author names
   const onAuthorTextChanged = (e) => {
-    console.log({ "EditSingleAuthor.onAuthorTextChanged": e })
+    console.log({ "EditSourceAuthor.onAuthorTextChanged": e })
     setAuthorName(e.target.value)
   }
 
   // Cancel
   const cancelEdit = () => {
-    console.log({ "EditSingleAuthor.cancelEdit": null })
+    console.log({ "EditSourceAuthor.cancelEdit": null })
 
     setAuthorName(author.name)
     setEditing(false)
@@ -117,7 +117,7 @@ export function EditSingleAuthor({ author, authorEditedCallback, authorDeletedCa
 
   // Toggle display and input text based on edit flag
   useEffect(() => {
-    console.log({ "EditSingleAuthor.useEffect[editing]": editing })
+    console.log({ "EditSourceAuthor.useEffect[editing]": editing })
 
     let reactElement = editing ? createEditReactElement() : createReadReactElement()
     setReactElements(reactElement)

@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { editStateActions } from "../../AppState/stateSliceEditPoi";
 
-export function EditImageDetails() {
+export function EditEventImage() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 

@@ -87,7 +87,7 @@
 // }
 
 import { useSelector } from "react-redux"
-import { EditDetails } from "./Edit/EditDetails";
+import { EditEvent } from "./Edit/EditEvent";
 import { ShowDetails } from "./Show/ShowDetails";
 
 export function Details({ }) {
@@ -95,7 +95,7 @@ export function Details({ }) {
 
   return (
     <>
-      {editModeOn ? (<EditDetails />) : (<ShowDetails />)}
+      {editModeOn ? (<EditEvent />) : (<ShowDetails />)}
     </>
   )
 }
