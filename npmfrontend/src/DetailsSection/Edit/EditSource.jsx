@@ -182,7 +182,7 @@ export function EditSource({
 
 
   return (
-    <div className="border-2 border-grey-600">
+    <div>
       {/* Title */}
       <div className="flex flex-col m-1">
         <label className="text-lg text-left">Title</label>
@@ -255,8 +255,8 @@ export function EditSource({
       </div>
 
       {/* Submit source */}
-      <div className="flex flex-row-reverse mt-auto h-full">
-        <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded " onClick={(e) => onSubmitSourceClick(e)}>
+      <div className="flex flex-row-reverse m-2">
+        <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={(e) => onSubmitSourceClick(e)}>
           Submit source
         </button>
       </div>

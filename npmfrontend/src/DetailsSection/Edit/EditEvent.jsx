@@ -40,7 +40,9 @@ export function EditEvent({ }) {
       {/* <EditEventImage /> */}
       {/* <EditEventRegion /> */}
       {/* <EditEventSummary /> */}
-      <EditEventSources />
+      <div className="m-1">
+        <EditEventSources />
+      </div>
 
       {/* Revision author fixed by whoever is logged in */}
       <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
@@ -49,7 +51,7 @@ export function EditEvent({ }) {
     Source:
       https://stackoverflow.com/questions/31000885/align-an-element-to-bottom-with-flexbox
   */}
-      <div className="items-end flex mt-auto h-full">
+      <div className="items-end flex m-2 h-full">
         <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded " onClick={(e) => onSubmitClick(e)}>
           Submit
         </button>

@@ -8,7 +8,7 @@ export function EditEventSources() {
   const reduxDispatch = useDispatch()
 
 
-  const [sourcesReactElements, setSourcesReactElements] = useState([])
+  const [sourcesReactElements, setSourcesReactElements] = useState()
   const [singleSourceEdit, setSingleSourceEdit] = useState()
 
   const callback = (newSource) => {
@@ -45,12 +45,15 @@ export function EditEventSources() {
     console.log({ "EditEventSources.onAddSourceClicked": e })
     setSingleSourceEdit(
       (
-        <EditSource
-          startingId={null}
-          startingTitle={"starting title"}
-          startingIsbn={"74837hsdfkh2"}
-          startingDetailedLocation={"chatper 7, paragraph 3"}
-          submitCallback={callback} />
+        <details>
+          <summary>Things and such</summary>
+          <EditSource
+            startingId={null}
+            startingTitle={"starting title"}
+            startingIsbn={"74837hsdfkh2"}
+            startingDetailedLocation={"chatper 7, paragraph 3"}
+            submitCallback={callback} />
+        </details>
       )
     )
   }
@@ -68,14 +71,25 @@ export function EditEventSources() {
 
   // Sources stacked vertically, including the fields being edited
   return (
-    <div className="flex flex-col border-2 border-grey-600">
+    <div className="border-2 border-gray-600 overflow-auto">
       <label className="text-xl">Sources</label>
 
-      {sourcesReactElements}
+      {/* Existing sources */}
+      {sourcesReactElements ? null :
+        <div className="flex flex-col m-1 border-2 border-gray-600">
+          {sourcesReactElements}
+        </div>
+      }
 
-      {singleSourceEdit}
+      {/* TODO: have more than one source under edit at one time, but use a state machine to edit each one */}
 
-      {/* Add */}
+
+      {/* Source being edited */}
+      <div className="flex flex-col m-1 border-2 border-gray-600">
+        {singleSourceEdit}
+      </div>
+
+      {/* Add, but only one at a time*/}
       {singleSourceEdit ? null :
         <div className="flex flex-row-reverse mt-auto h-full">
           <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded " onClick={(e) => onAddSourceClicked(e)}>
