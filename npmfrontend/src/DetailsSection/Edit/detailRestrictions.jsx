@@ -4,6 +4,6 @@ export const detailRestrictions = {
   maxSummaryLength: 2048,
   maxSourceTitleLength: 128,
   maxSourceIsbnLength: 13,
-  maxSourceDetailedLocatonLength: 64,
+  maxWhereInSourceLength: 64,
   maxSourceAuthorLength: 128
 }

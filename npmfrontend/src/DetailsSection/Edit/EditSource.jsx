@@ -6,21 +6,17 @@ import { detailRestrictions } from "./detailRestrictions"
 import { EditSourcePublicationTimeRange } from "./EditSourcePublicationTimeRange"
 
 export function EditSource({
-  startingTitle,
-  startingIsbn,
-  startingDetailedLocation,
-  startingAuthors,
-  startingPubDateLowerBoundYear,
-  startingPubDateLowerBoundMonth,
-  startingPubDateLowerBoundDay,
-  startingPubDateUpperBoundYear,
-  startingPubDateUpperBoundMonth,
-  startingPubDateUpperBoundDay,
-  submitCallback
+  editSourceId
 }) {
-  if (!submitCallback) {
-    throw new Error("must provide 'submitCallback'")
+  // if (!submitCallback) {
+  //   throw new Error("must provide 'submitCallback'")
+  // }
+
+  if (!editSourceId) {
+    throw new Error("calling function must provide the guid to identify this source in the stateSliceEditSources.sources hash table")
   }
+
+  const editSources = useSelector((state) => state.editSources)
 
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
@@ -63,45 +59,36 @@ export function EditSource({
   }
 
   // Title
-  const [title, setTitle] = useState(startingTitle)
+  const [title, setTitle] = useState(editSources.sources[editSourceId].title)
   const titleCharCountLabelRef = useRef()
-  useEffect(() => {
-    console.log({ "EditSource.useEffect[title]": title })
-    if (!titleCharCountLabelRef.current) return
-    titleCharCountLabelRef.current.innerHTML = `${title?.length}/${detailRestrictions.maxSourceTitleLength}`
-  }, [title, titleCharCountLabelRef.current])
 
   const onTitleChanged = (e) => {
     console.log({ "EditSource.onTitleChanged": e })
     setTitle(e.target.value)
   }
 
-  // ISBN
-  const [isbn, setIsbn] = useState(startingIsbn)
-  const isbnCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSource.useEffect[isbn]": isbn })
-    isbnCharCountLabelRef.current.innerHTML = `${isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
-  }, [isbn, isbnCharCountLabelRef.current])
+    console.log({ "EditSource.useEffect[title]": title })
+    if (!titleCharCountLabelRef.current) return
+    titleCharCountLabelRef.current.innerHTML = `${title?.length}/${detailRestrictions.maxSourceTitleLength}`
+  }, [title, titleCharCountLabelRef.current])
+
+  // ISBN
+  const [isbn, setIsbn] = useState(editSources.sources[editSourceId].isbn)
+  const isbnCharCountLabelRef = useRef()
 
   const onISBNChanged = (e) => {
     console.log({ "EditSource.onISBNChanged": e })
     setIsbn(e.target.value)
   }
 
-  // Detailed location (optional; ex: "Chap 3, p. 87")
-  const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
-  const detailedLocationCharCountLabelRef = useRef()
   useEffect(() => {
-    console.log({ "EditSource.useEffect[detailedLocation]": detailedLocation })
-    if (!detailedLocationCharCountLabelRef.current) return
-    detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
-  }, [detailedLocation, detailedLocationCharCountLabelRef.current])
+    console.log({ "EditSource.useEffect[isbn]": isbn })
+    if (!isbnCharCountLabelRef.current) return
+    isbnCharCountLabelRef.current.innerHTML = `${isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
+  }, [isbn, isbnCharCountLabelRef.current])
 
-  const onDetailedLocationChanged = (e) => {
-    console.log({ "EditSource.onDetailedLocationChanged": e })
-    setDetailedLocation(e.target.value)
-  }
+
 
   // Author(s)
   /*
@@ -110,7 +97,7 @@ export function EditSource({
       "name": "text"
     }
   */
-  const [authors, setAuthors] = useState(startingAuthors)
+  const [authors, setAuthors] = useState(editSources.sources[editSourceId].authors)
   const [authorsReactElements, setAuthorsReactElements] = useState()
   const authorEditedCallback = (author) => {
     console.log(`author edited: '${author}'`)
@@ -183,56 +170,36 @@ export function EditSource({
 
   return (
     <div>
-      {/* Title */}
-      <div className="flex flex-col m-1">
-        <label className="text-lg text-left">Title</label>
-        <textarea
-          className="m-1 text-black"
-          rows={2}
-          maxLength={detailRestrictions.maxSourceTitleLength}
-          placeholder={`Title (max ${detailRestrictions.maxSourceTitleLength})`}
-          onChange={onTitleChanged} />
-        <label ref={titleCharCountLabelRef} className="text-right"></label>
-      </div>
+      <details className="w-full" open>
+        <summary>{title}</summary>
 
-      {/* ISBN */}
-      <div className="flex flex-col m-1">
-        <label className="text-lg text-left">ISBN (optional)</label>
-        <input className="m-1 text-black" type="text" maxLength={detailRestrictions.maxSourceIsbnLength} placeholder={`ISBN (max ${detailRestrictions.maxSourceIsbnLength})`} onChange={onISBNChanged}></input>
-        <label ref={isbnCharCountLabelRef} className="text-right"></label>
-      </div>
-
-      {/* Detailed location */}
-      <div className="flex flex-col m-1">
-        <label className="text-lg text-left">Detailed location (optional)</label>
-        <input className="m-1 text-black w-" type="text" maxLength={detailRestrictions.maxSourceDetailedLocatonLength} placeholder={`Detailed location (max ${detailRestrictions.maxSourceDetailedLocatonLength})`} onChange={onDetailedLocationChanged}></input>
-        <label ref={detailedLocationCharCountLabelRef} className="text-right"></label>
-      </div>
-
-      {/* Publication */}
-      <div>
-        <label className="text-lg">Publication time range</label>
-        <EditSourcePublicationTimeRange />
-      </div>
-
-      {/* Authors */}
-      <div className="flex flex-col m-1">
-        <label className="text-lg text-left">Author(s)</label>
-        {authorsReactElements}
-        <div className="flex flex-row-reverse mt-auto h-full">
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded " onClick={(e) => onAddAuthorClicked(e)}>
-            New author
+        {/* Header */}
+        <div className="flex flex-row-reverse">
+          {/* Delete */}
+          <button type="button" className="inline-flex items-center rounded-md bg-gray-600 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700" onClick={(e) => authorDeletedCallback(author)}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <span className="sr-only">Icon description</span>
           </button>
         </div>
-      </div>
 
-      {/* Submit source */}
-      <div className="flex flex-row-reverse m-2">
-        <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={(e) => onSubmitSourceClick(e)}>
-          Submit source
-        </button>
-      </div>
-
+        {/* Items */}
+        <div>
+          {/* Title */}
+          <div className="flex flex-col m-1">
+            <label className="text-lg text-left">Title</label>
+            <textarea
+              className="m-1 text-black"
+              rows={2}
+              maxLength={detailRestrictions.maxSourceTitleLength}
+              placeholder={`Title (max ${detailRestrictions.maxSourceTitleLength})`}
+              onChange={onTitleChanged} />
+            <label ref={titleCharCountLabelRef} className="text-right"></label>
+          </div>
+        </div>
+      </details>
     </div>
   )
 }

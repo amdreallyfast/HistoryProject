@@ -2,12 +2,17 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { convertTimeRangeToGregorianYearMonthDay } from "../convertTimeRangeToString"
 import { EditSource } from "./EditSource"
+import { generateUUID } from "three/src/math/MathUtils.js"
+import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
+import { detailRestrictions } from "./detailRestrictions"
 
 export function EditEventSources() {
   const editState = useSelector((state) => state.editPoiReducer)
+  const editSources = useSelector((state) => state.editSources)
+
   const reduxDispatch = useDispatch()
 
-
+  const [sources, setSources] = useState([])
   const [sourcesReactElements, setSourcesReactElements] = useState()
   const [singleSourceEdit, setSingleSourceEdit] = useState()
 
@@ -43,19 +48,74 @@ export function EditEventSources() {
   */
   const onAddSourceClicked = (e) => {
     console.log({ "EditEventSources.onAddSourceClicked": e })
-    setSingleSourceEdit(
-      (
-        <details>
-          <summary>Things and such</summary>
-          <EditSource
-            startingId={null}
-            startingTitle={"starting title"}
-            startingIsbn={"74837hsdfkh2"}
-            startingDetailedLocation={"chatper 7, paragraph 3"}
-            submitCallback={callback} />
-        </details>
-      )
+    // setSingleSourceEdit(
+    //   (
+    //     <details open>
+    //       <summary>Things and such</summary>
+    //       <EditSource
+    //         startingId={null}
+    //         startingTitle={"starting title"}
+    //         startingIsbn={"74837hsdfkh2"}
+    //         startingDetailedLocation={"chatper 7, paragraph 3"}
+    //         submitCallback={callback} />
+    //     </details>
+    //   )
+    // )
+
+    let newId = generateUUID()
+    reduxDispatch(editSourcesStateActions.newSource({
+      id: newId,
+      title: `title for '${newId}'`
+    }))
+
+    addSource(newId)
+  }
+
+  const addSource = (editId) => {
+    // console.log({ "addSource": eidtId })
+
+    const onWhereInSourceChanged = (e) => {
+      console.log({ onWhereInSourceChanged: e.target.value, editId: editId })
+    }
+
+    let newElement = (
+      <div key={editId} className="flex flex-col items-start border-1 border-red-600">
+        {/* Source details */}
+        <EditSource editSourceId={editId} />
+
+        {/* Where in source */}
+        <label className="w-full">Where in source?</label>
+        <input className="m-2 text-black text-left" type="text" maxLength={detailRestrictions.maxWhereInSourceLength} placeholder="Ex: Chapter 3, paragraph 27" onChange={(e) => onWhereInSourceChanged(e)} />
+      </div>
     )
+
+    /*
+      // Detailed location (optional; ex: "Chap 3, p. 87")
+      const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
+      const detailedLocationCharCountLabelRef = useRef()
+    
+      const onDetailedLocationChanged = (e) => {
+        console.log({ "EditSource.onDetailedLocationChanged": e })
+        setDetailedLocation(e.target.value)
+      }
+    
+      useEffect(() => {
+        console.log({ "EditSource.useEffect[detailedLocation]": detailedLocation })
+        if (!detailedLocationCharCountLabelRef.current) return
+        detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
+      }, [detailedLocation, detailedLocationCharCountLabelRef.current])
+    */
+
+
+    // Edit the front-end copy of the state, then "set" it so that it triggers a re-render.
+    let newSources = [
+      ...sources,
+      newElement
+    ]
+    setSources(newSources)
+
+    console.log("done adding sources clicked")
+
   }
 
 
@@ -71,32 +131,22 @@ export function EditEventSources() {
 
   // Sources stacked vertically, including the fields being edited
   return (
-    <div className="border-2 border-gray-600 overflow-auto">
+    <div className="flex flex-col border-2 border-gray-600 overflow-auto">
       <label className="text-xl">Sources</label>
 
-      {/* Existing sources */}
-      {sourcesReactElements ? null :
-        <div className="flex flex-col m-1 border-2 border-gray-600">
-          {sourcesReactElements}
-        </div>
-      }
 
-      {/* TODO: have more than one source under edit at one time, but use a state machine to edit each one */}
+      {sources}
+      {/* <div className="flex flex-col items-start border-1 border-red-600">
+        <div>one</div>
+        <div>two</div>
+        <div>three</div>
+      </div> */}
 
-
-      {/* Source being edited */}
-      <div className="flex flex-col m-1 border-2 border-gray-600">
-        {singleSourceEdit}
+      <div className="flex flex-row-reverse mt-auto h-full">
+        <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold m-1 py-2 px-4 rounded " onClick={(e) => onAddSourceClicked(e)}>
+          +
+        </button>
       </div>
-
-      {/* Add, but only one at a time*/}
-      {singleSourceEdit ? null :
-        <div className="flex flex-row-reverse mt-auto h-full">
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded " onClick={(e) => onAddSourceClicked(e)}>
-            New source
-          </button>
-        </div>
-      }
 
     </div>
   )

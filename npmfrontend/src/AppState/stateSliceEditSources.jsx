@@ -1,5 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { generateUUID } from "three/src/math/MathUtils.js";
 import { v4 as uuid } from "uuid"
+
+
+
+
+
+
+
+// ??is this necessary? when it is time to submit the event changes, won't it be awkward to try to re-assemble everything??
+
+
+
+
+
+
+
+
 
 const initialState = {
   // Format:
@@ -12,19 +29,31 @@ const initialState = {
   //  }
   sources: {}
 
-
-    ?? maybe just take an int and use an ordered array instead??
+  /*
+    new source:
+      state actions cannot return anything to caller,
+        so have the creating component create a guid
+        call the "new source" or "new author" state function with the guid
+        create a new EditSource or EditSourceAuthor object using that new guid
+  
+      ...or use an ordered array, 
+        take the size of the current array
+        call the "new source" or "new author" state function
+        create a new EditSource or EditSourceAuthor object using the previous array size + 1
+      
+      either approach should work, but I think that the array should be easier to be orderly about.
+  */
 
 
 }
 
 // Source
-const singleSourceInitialState = {
+const sourceInitialState = {
   id: null,                 // unique version of the source
   sourceId: null,           // persistent version of this source
   revision: 0,              // establishes order in which versions are made
   title: null,              // required string
-  ISBN: null,               // optional string
+  isbn: null,               // optional string
   publicationTimeRange: {
     lowerBoundYear: null,   // required
     lowerBoundMonth: null,  // optional
@@ -53,25 +82,65 @@ const authorInitialState = {
   }
 }
 
-export const stateSliceEditSource = createSlice({
-  name: "stateSliceEditSource",
+export const stateSliceEditSources = createSlice({
+  name: "stateSliceEditSources",
   initialState,
   reducers: {
     // template
     setThing: (state, action) => {
-      console.log("stateSliceEditSource.setThing")
+      console.log("stateSliceEditSources.setThing")
       return {
         ...state,
         thing: action.payload
       }
     },
 
-    import: (state, action) => {
-      console.log("stateSliceEditSource.import")
+    importSource: (state, action) => {
+      console.log("stateSliceEditSources.importSource")
+
+      let importObject = action.payload
+      let tempId = uuid()
+      let tempId2 = generateUUID()
+      return {
+        ...state
+        // TODO: import everything
+      }
+    },
+
+    newSource: (state, action) => {
+      console.log("stateSliceEditSources.newSource")
+
+      // let tempId = action.payload
+
+
+      // let things = [singleSourceInitialState]
+      // things = [...things, singleSourceInitialState]
+      // things[0].id = generateUUID()
+
+      console.log({ "existing sources:": state.sources })
+
+      let newId = action.payload.id
+      let mySources = { ...state.sources }
+      mySources[newId] = {
+        ...sourceInitialState,
+        id: "this is my sourceId",
+        title: action.payload.title
+      }
+
+      console.log("things")
+      return {
+        ...state,
+        sources: mySources
+      }
+    },
+
+    deleteSource: (state, action) => {
+      console.log("stateSliceEditSources.deleteSource")
 
       let importObject = action.payload
       let tempId = uuid()
       return {
+        ...state
         // TODO: import everything
       }
     }
@@ -104,4 +173,4 @@ export const stateSliceEditSource = createSlice({
   }
 })
 
-export const editSourceStateActions = stateSliceEditSource.actions
+export const editSourcesStateActions = stateSliceEditSources.actions
