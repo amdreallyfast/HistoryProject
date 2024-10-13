@@ -13,34 +13,50 @@ export function EditEventSources() {
   const reduxDispatch = useDispatch()
 
   const [sources, setSources] = useState([])
-  const [sourcesReactElements, setSourcesReactElements] = useState()
-  const [singleSourceEdit, setSingleSourceEdit] = useState()
+  // const [sourcesReactElements, setSourcesReactElements] = useState()
+  // const [singleSourceEdit, setSingleSourceEdit] = useState()
 
-  const callback = (newSource) => {
-    console.log("callback for new source")
-    setSingleSourceEdit(null)
-  }
+  // const callback = (newSource) => {
+  //   console.log("callback for new source")
+  //   setSingleSourceEdit(null)
+  // }
 
   // On load
   useEffect(() => {
     console.log({ "EditEventSources.useEffect[editState.sources]": editState.sources })
-    let reactElements = editState.sources?.map((s) => (
-      <div className="m-1 border-2 border-grey-600" key={s.title + s.details}>
-        <p>{s.title}</p>
-        {s.details ? <p>{s.details}</p> : null}
-        {s.authors.join(", ")}
-        {convertTimeRangeToGregorianYearMonthDay(
-          s.publicationLowerBoundYear,
-          s.publicationLowerBoundMonth,
-          s.publicationLowerBoundDay,
-          s.publicationUpperBoundYear,
-          s.publicationUpperBoundMonth,
-          s.publicationUpperBoundDay)
-        }
+    editState.sources?.forEach(sourceinfo => {
+      reduxDispatch(editSourcesStateActions.importSource(sourceinfo))
+    })
+  }, [editState.sources])
+
+  // On sources changed
+  useEffect(() => {
+    console.log({ "EditEventSources.useEffect[editSources.sources]": editSources.sources })
+    let editIds = Object.keys(editSources.sources)
+    let reactElements = editIds.map(editId => (
+      <div key={editId} className="flex flex-col">
+        <EditSource editId={editId} />
       </div>
     ))
-    setSourcesReactElements(reactElements)
-  }, [editState.sources])
+    // let newElement =
+
+    //   let reactElements = editSources.sources?.map((s) => (
+    //     <div className="m-1 border-2 border-grey-600" key={s.title + s.details}>
+    //       <p>{s.title}</p>
+    //       {s.details ? <p>{s.details}</p> : null}
+    //       {s.authors.join(", ")}
+    //       {convertTimeRangeToGregorianYearMonthDay(
+    //         s.publicationLowerBoundYear,
+    //         s.publicationLowerBoundMonth,
+    //         s.publicationLowerBoundDay,
+    //         s.publicationUpperBoundYear,
+    //         s.publicationUpperBoundMonth,
+    //         s.publicationUpperBoundDay)
+    //       }
+    //     </div>
+    //   ))
+    setSources(reactElements)
+  }, [editSources.sources])
 
   // TODO: ??how to add an "edit session"??
   /*
@@ -71,52 +87,47 @@ export function EditEventSources() {
     addSource(newId)
   }
 
-  const addSource = (editId) => {
-    // console.log({ "addSource": eidtId })
+  // const addSource = (editId) => {
+  //   // console.log({ "addSource": eidtId })
 
-    const onWhereInSourceChanged = (e) => {
-      console.log({ onWhereInSourceChanged: e.target.value, editId: editId })
-    }
+  //   const onWhereInSourceChanged = (e) => {
+  //     console.log({ onWhereInSourceChanged: e.target.value, editId: editId })
+  //   }
 
-    let newElement = (
-      <div key={editId} className="flex flex-col items-start border-1 border-red-600">
-        {/* Source details */}
-        <EditSource editSourceId={editId} />
+  //   let newElement = (
+  //     <div key={editId} className="flex flex-col">
+  //       <EditSource editId={editId} />
+  //     </div>
+  //   )
 
-        {/* Where in source */}
-        <label className="w-full">Where in source?</label>
-        <input className="m-2 text-black text-left" type="text" maxLength={detailRestrictions.maxWhereInSourceLength} placeholder="Ex: Chapter 3, paragraph 27" onChange={(e) => onWhereInSourceChanged(e)} />
-      </div>
-    )
+  //   /*
+  //     // Detailed location (optional; ex: "Chap 3, p. 87")
+  //   const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
+  //   const detailedLocationCharCountLabelRef = useRef()
 
-    /*
-      // Detailed location (optional; ex: "Chap 3, p. 87")
-      const [detailedLocation, setDetailedLocation] = useState(startingDetailedLocation)
-      const detailedLocationCharCountLabelRef = useRef()
-    
-      const onDetailedLocationChanged = (e) => {
-        console.log({ "EditSource.onDetailedLocationChanged": e })
-        setDetailedLocation(e.target.value)
-      }
-    
-      useEffect(() => {
-        console.log({ "EditSource.useEffect[detailedLocation]": detailedLocation })
-        if (!detailedLocationCharCountLabelRef.current) return
-        detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
-      }, [detailedLocation, detailedLocationCharCountLabelRef.current])
-    */
+  //   const onDetailedLocationChanged = (e) => {
+  //     console.log({ "EditSource.onDetailedLocationChanged": e })
+  //     setDetailedLocation(e.target.value)
+  //   }
+
+  //   useEffect(() => {
+  //     console.log({ "EditSource.useEffect[detailedLocation]": detailedLocation })
+  //     if (!detailedLocationCharCountLabelRef.current) return
+  //     detailedLocationCharCountLabelRef.current.innerHTML = `${detailedLocation?.length}/${detailRestrictions.maxSourceDetailedLocatonLength}`
+  //   }, [detailedLocation, detailedLocationCharCountLabelRef.current])
+  //     */
 
 
-    // Edit the front-end copy of the state, then "set" it so that it triggers a re-render.
-    let newSources = [
-      ...sources,
-      newElement
-    ]
-    setSources(newSources)
+  //   // Edit the front-end copy of the state, then "set" it so that it triggers a re-render.
+  //   let newSources = [
+  //     ...sources,
+  //     newElement
+  //   ]
+  //   setSources(newSources)
 
-    console.log("done adding sources clicked")
+  //   console.log("done adding sources clicked")
 
-  }
+  // }
 
 
   // useEffect(() => {

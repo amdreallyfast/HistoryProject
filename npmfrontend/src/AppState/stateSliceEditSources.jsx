@@ -49,9 +49,9 @@ const initialState = {
 
 // Source
 const sourceInitialState = {
-  id: null,                 // unique version of the source
-  sourceId: null,           // persistent version of this source
-  revision: 0,              // establishes order in which versions are made
+  id: null,                 // unique version of this source revision
+  sourceId: null,           // constant version across all revisions
+  revision: 0,              // establishes order in which versions are made (set on back end)
   title: null,              // required string
   isbn: null,               // optional string
   publicationTimeRange: {
@@ -62,13 +62,15 @@ const sourceInitialState = {
     upperBoundMonth: null,  // optional
     upperBoundDay: null,    // optional
   },
-  authors: []
+  authors: [],
+  whereInSource: null,
+  complete: false
 }
 
 // Author
 const authorInitialState = {
-  id: null,                 // unique version of this author
-  authorID: null,           // persistent version of this author
+  id: null,                 // unique version of this author revision
+  authorId: null,           // constant version across all revisions
   revision: 0,              // establishes order in which versions are made
   name: null,               // required string
   lifetimeTimeRange: {
@@ -80,6 +82,17 @@ const authorInitialState = {
     upperBoundMonth: null,  // optional
     upperBoundDay: null,    // optional
   }
+}
+
+const sourceIsComplete = (sourceInfo) => {
+  let complete = true
+  complete &= sourceInfo.id != null
+  complete &= sourceInfo.sourceId != null
+  complete &= sourceInfo.title?.trim().length > 0
+  complete &= Number.isInteger(sourceInfo.publicationTimeRange.lowerBoundYear)
+  complete &= Number.isInteger(sourceInfo.publicationTimeRange.upperBoundYear)
+  complete &= sourceInfo.authors.length > 0
+  // TODO: author in-depth compare
 }
 
 export const stateSliceEditSources = createSlice({
@@ -120,14 +133,17 @@ export const stateSliceEditSources = createSlice({
       console.log({ "existing sources:": state.sources })
 
       let newId = action.payload.id
-      let mySources = { ...state.sources }
-      mySources[newId] = {
+      let newSource = {
         ...sourceInitialState,
         id: "this is my sourceId",
         title: action.payload.title
       }
+      newSource.complete = sourceIsComplete(newSource)
 
-      console.log("things")
+      let mySources = { ...state.sources }
+      mySources[newId] = newSource
+
+      // console.log("things")
       return {
         ...state,
         sources: mySources
@@ -137,11 +153,13 @@ export const stateSliceEditSources = createSlice({
     deleteSource: (state, action) => {
       console.log("stateSliceEditSources.deleteSource")
 
-      let importObject = action.payload
-      let tempId = uuid()
+      let editId = action.payload
+      let mySources = { ...state.sources }
+      delete mySources[editId]
+
       return {
-        ...state
-        // TODO: import everything
+        ...state,
+        sources: mySources
       }
     }
 
