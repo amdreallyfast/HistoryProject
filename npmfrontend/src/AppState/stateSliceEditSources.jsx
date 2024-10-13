@@ -27,6 +27,10 @@ const initialState = {
   //        source: <see below>
   //      }
   //  }
+  // sources: []
+
+  // Note: _Must_ be an object. The state objects are some kind of "proxy" object, which makes identifying them in an array a real pain. However, if I use an object iwth the editId as a key, then it is easy to delete them.
+  // Also Note: I haven't tried editing individual fields yet. Only editing and deleting. We'll see if this works.
   sources: {}
 
   /*
@@ -49,9 +53,16 @@ const initialState = {
 
 // Source
 const sourceInitialState = {
+  // editId: null,
+  complete: false,
+  // flaggedForDeletion: false, //??will this even work??
+
+  // Set on back end
   id: null,                 // unique version of this source revision
   sourceId: null,           // constant version across all revisions
-  revision: 0,              // establishes order in which versions are made (set on back end)
+  revision: 0,              // establishes order in which versions are made
+
+  // Set in form
   title: null,              // required string
   isbn: null,               // optional string
   publicationTimeRange: {
@@ -63,8 +74,7 @@ const sourceInitialState = {
     upperBoundDay: null,    // optional
   },
   authors: [],
-  whereInSource: null,
-  complete: false
+  whereInSource: null
 }
 
 // Author
@@ -86,13 +96,14 @@ const authorInitialState = {
 
 const sourceIsComplete = (sourceInfo) => {
   let complete = true
-  complete &= sourceInfo.id != null
-  complete &= sourceInfo.sourceId != null
   complete &= sourceInfo.title?.trim().length > 0
   complete &= Number.isInteger(sourceInfo.publicationTimeRange.lowerBoundYear)
   complete &= Number.isInteger(sourceInfo.publicationTimeRange.upperBoundYear)
   complete &= sourceInfo.authors.length > 0
+  complete &= sourceInfo.whereInSource?.trim().length > 0
   // TODO: author in-depth compare
+
+  return complete
 }
 
 export const stateSliceEditSources = createSlice({
@@ -135,10 +146,15 @@ export const stateSliceEditSources = createSlice({
       let newId = action.payload.id
       let newSource = {
         ...sourceInitialState,
-        id: "this is my sourceId",
+        // editId: newId,
+        id: "this is my source revisionId",
+        sourceId: "this is my persistant sourceId",
         title: action.payload.title
       }
       newSource.complete = sourceIsComplete(newSource)
+
+      // let mySources = [...state.sources]
+      // mySources.push(newSource)
 
       let mySources = { ...state.sources }
       mySources[newId] = newSource
@@ -154,6 +170,10 @@ export const stateSliceEditSources = createSlice({
       console.log("stateSliceEditSources.deleteSource")
 
       let editId = action.payload
+      // let mySources = [...state.sources]
+      // let thing = { ...state.sources }
+      // mySources.filter((source) => source.editId != editId)
+
       let mySources = { ...state.sources }
       delete mySources[editId]
 

@@ -7,30 +7,35 @@ import { EditSourcePublicationTimeRange } from "./EditSourcePublicationTimeRange
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
 
 export function EditSource({
-  editId
+  editId,
+  deleteCallback
 }) {
   // if (!submitCallback) {
   //   throw new Error("must provide 'submitCallback'")
   // }
 
   if (!editId) {
-    throw new Error("calling function must provide the guid to identify this source in the stateSliceEditSources.sources hash table")
+    throw new Error("editId not provided; calling function must provide the guid to identify this source in the stateSliceEditSources.sources hash table")
+  }
+  else if (!deleteCallback) {
+    throw new Error("deleteCallback function not provided")
   }
 
-  const editSources = useSelector((state) => state.editSources)
-  if (!editSources.sources[editId]) {
-    // Race condition following removal. Just return and let the EditEventSources re-render and update the list of existing components.
-    return
-  }
-  const editSource = editSources.sources[editId]
-  // const editSource = useSelector((state) => state.editSources.sources[editId])
+  // const editSources = useSelector((state) => state.editSources)
+  // if (!editSources.sources[editId]) {
+  //   // Race condition following removal. Just return and let the EditEventSources re-render and update the list of existing components.
+  //   return
+  // }
+  // const editSource = editSources.sources[editId]
+  // const editSource = editSources.sources.find(source => source.editId == editId)
+  const editSource = useSelector((state) => state.editSources.sources[editId])
 
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 
   // Delete button
   const onDeleteClicked = (e) => {
-    reduxDispatch(editSourcesStateActions.deleteSource(editId))
+    deleteCallback(editId)
   }
 
   // Complete

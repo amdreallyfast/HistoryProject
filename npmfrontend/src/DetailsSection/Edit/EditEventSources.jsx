@@ -25,19 +25,77 @@ export function EditEventSources() {
   useEffect(() => {
     console.log({ "EditEventSources.useEffect[editState.sources]": editState.sources })
     editState.sources?.forEach(sourceinfo => {
+      throw new Error("no implemented")
       reduxDispatch(editSourcesStateActions.importSource(sourceinfo))
     })
   }, [editState.sources])
 
+
+  // useEffect(() => {
+  //   console.log({ "EditEventSources.useEffect[sources]": sources })
+  //   console.log({ path: "useEffect[sources]", sources: sources })
+  // }, [sources])
+
+
   // On sources changed
   useEffect(() => {
-    console.log({ "EditEventSources.useEffect[editSources.sources]": editSources.sources })
+    console.log({ "EditEventSources.useEffect[editSources.sources]": editSources.sources, "sources": sources })
+
+    const deleteCallback = (editId) => {
+      // Re-render without that item so that it is deleted from the DOM before the next frame begins to render.
+      // Note: Deleting from the state machine but not the DOM results in the object trying to re-
+      // render after the change in state (that is, the delete), but then there is no info for the
+      // component and it gets all weird.
+
+      // let filteredEditIds = editIds.filter(value => value != editId)
+      // console.log({ path: "delete", sources: sources })
+      // let reactElements = filteredEditIds.map(editId => (
+      //   <div key={editId} className="flex flex-col">
+      //     <EditSource editId={editId} />
+      //   </div>
+      // ))
+      // setSources(reactElements)
+
+      // let editIds = Object.key(editSources.sources).filter(key => key != editId)
+      // let reactElements = filteredEditIds.map(editId => (
+      //   <div key={editId} className="flex flex-col">
+      //     <EditSource editId={editId} />
+      //   </div>
+      // ))
+      // setSources(reactElements)
+
+      // ok so the callback function makes a copy of any local variables at the time that it's made, which means that I can't run off to the local "sources" state machine
+      // Remove from the DOM on next frame
+      // ...ok so this is janky. The javascript function makes a copy of any local variables that 
+      // it uses at the time that the function is created (in this case, the sources). If I 
+      // attempt to remove the latest entry, then the entry is not in the sources array because it
+      // hadn't been added at the time that its "deleteCallback" function had been created. But 
+      // if I attempt to remove an older entry, then that _is_ in the sources array and is 
+      // removed. Both result in the desired outcome, though the former by unintentional 
+      // side effect.
+      let otherSources = sources.filter(container => container.key != editId)
+      setSources(otherSources)
+
+      // Remove from the state machine
+      reduxDispatch(editSourcesStateActions.deleteSource(editId))
+    }
+
     let editIds = Object.keys(editSources.sources)
-    let reactElements = editIds.map(editId => (
+    let reactElements = editIds.map((editId) => (
       <div key={editId} className="flex flex-col">
-        <EditSource editId={editId} />
+        <EditSource editId={editId} deleteCallback={deleteCallback} />
       </div>
     ))
+    // let reactElements = editSources.sources.map(source => (
+    //   <div key={source.editId} className="flex flex-col">
+    //     <EditSource editId={source.editId} deleteCallback={deleteCallback} />
+    //   </div>
+    // ))
+    setSources(reactElements)
+    console.log({ path: "create", sources: reactElements })
+
+
+
     // let newElement =
 
     //   let reactElements = editSources.sources?.map((s) => (
@@ -55,7 +113,6 @@ export function EditEventSources() {
     //       }
     //     </div>
     //   ))
-    setSources(reactElements)
   }, [editSources.sources])
 
   // TODO: ??how to add an "edit session"??
@@ -84,7 +141,7 @@ export function EditEventSources() {
       title: `title for '${newId}'`
     }))
 
-    addSource(newId)
+    // addSource(newId)
   }
 
   // const addSource = (editId) => {
