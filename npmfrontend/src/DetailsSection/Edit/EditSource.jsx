@@ -34,8 +34,8 @@ export function EditSource({
     return
   }
 
-  //??do we need a "submit button"? probably to make it more performant so that it isn't re-rendering all sources the moment a single field in one of the sources changes, but how much can we really avoid this??
-  const reduxDispatch = useDispatch()
+  // //??do we need a "submit button"? probably to make it more performant so that it isn't re-rendering all sources the moment a single field in one of the sources changes, but how much can we really avoid this??
+  // const reduxDispatch = useDispatch()
 
   // Delete button
   const onDeleteClicked = (e) => {
@@ -53,91 +53,91 @@ export function EditSource({
     setBorder(editSource.complete ? "border-2 border-black" : "border-2 border-red-600")
   }, [editSource.complete])
 
-  // Title
-  const [title, setTitle] = useState(editSource.title)
-  const titleCharCountLabelRef = useRef()
+  // // Title
+  // const [title, setTitle] = useState(editSource.title)
+  // const titleCharCountLabelRef = useRef()
 
-  const onTitleChanged = (e) => {
-    console.log({ "EditSource.onTitleChanged": e })
-    setTitle(e.target.value)
-  }
+  // const onTitleChanged = (e) => {
+  //   console.log({ "EditSource.onTitleChanged": e })
+  //   setTitle(e.target.value)
+  // }
 
-  useEffect(() => {
-    console.log({ "EditSource.useEffect[editSource.title]": editSource.title })
-    if (!titleCharCountLabelRef.current) return
-    titleCharCountLabelRef.current.innerHTML = `${editSource.title?.length}/${detailRestrictions.maxSourceTitleLength}`
-  }, [editSource.title, titleCharCountLabelRef.current])
+  // useEffect(() => {
+  //   console.log({ "EditSource.useEffect[editSource.title]": editSource.title })
+  //   if (!titleCharCountLabelRef.current) return
+  //   titleCharCountLabelRef.current.innerHTML = `${editSource.title?.length}/${detailRestrictions.maxSourceTitleLength}`
+  // }, [editSource.title, titleCharCountLabelRef.current])
 
-  // ISBN
-  const [isbn, setIsbn] = useState(editSource.isbn)
-  const isbnCharCountLabelRef = useRef()
+  // // ISBN
+  // const [isbn, setIsbn] = useState(editSource.isbn)
+  // const isbnCharCountLabelRef = useRef()
 
-  const onISBNChanged = (e) => {
-    console.log({ "EditSource.onISBNChanged": e })
-    setIsbn(e.target.value)
-  }
+  // const onISBNChanged = (e) => {
+  //   console.log({ "EditSource.onISBNChanged": e })
+  //   setIsbn(e.target.value)
+  // }
 
-  useEffect(() => {
-    console.log({ "EditSource.useEffect[editSource.isbn]": editSource.isbn })
-    if (!isbnCharCountLabelRef.current) return
-    isbnCharCountLabelRef.current.innerHTML = `${editSource.isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
-  }, [editSource.isbn, isbnCharCountLabelRef.current])
+  // useEffect(() => {
+  //   console.log({ "EditSource.useEffect[editSource.isbn]": editSource.isbn })
+  //   if (!isbnCharCountLabelRef.current) return
+  //   isbnCharCountLabelRef.current.innerHTML = `${editSource.isbn?.length}/${detailRestrictions.maxSourceIsbnLength}`
+  // }, [editSource.isbn, isbnCharCountLabelRef.current])
 
-  // Where in source?
-  const [whereInSource, setWhereInSource] = useState(editSource.whereInSource)
-  const whereInSourceCharCountLabelRef = useRef()
+  // // Where in source?
+  // const [whereInSource, setWhereInSource] = useState(editSource.whereInSource)
+  // const whereInSourceCharCountLabelRef = useRef()
 
-  const onWhereInSourceChanged = (e) => {
-    console.log({ "EditSource.onWhereInSourceChanged": e })
-    setWhereInSource(e.target.value)
-  }
+  // const onWhereInSourceChanged = (e) => {
+  //   console.log({ "EditSource.onWhereInSourceChanged": e })
+  //   setWhereInSource(e.target.value)
+  // }
 
-  useEffect(() => {
-    console.log({ "EditSource.useEffect[editSource.whereInSource]": editSource.whereInSource })
-    if (!whereInSourceCharCountLabelRef.current) return
-    whereInSourceCharCountLabelRef.current.innerHTML = `${editSource.whereInSource?.length}/${detailRestrictions.maxWhereInSourceLength}`
-  }, [editSource.whereInSource, whereInSourceCharCountLabelRef.current])
-
-
+  // useEffect(() => {
+  //   console.log({ "EditSource.useEffect[editSource.whereInSource]": editSource.whereInSource })
+  //   if (!whereInSourceCharCountLabelRef.current) return
+  //   whereInSourceCharCountLabelRef.current.innerHTML = `${editSource.whereInSource?.length}/${detailRestrictions.maxWhereInSourceLength}`
+  // }, [editSource.whereInSource, whereInSourceCharCountLabelRef.current])
 
 
 
 
-  const publicationLowerBoundDateLabelRef = useRef()
-  const publicationUpperBoundDateLabelRef = useRef()
+
+
+  // const publicationLowerBoundDateLabelRef = useRef()
+  // const publicationUpperBoundDateLabelRef = useRef()
 
 
 
-  const onPublicationLowerBoundYearChanged = (e) => {
-    console.log({ "EditSource.onPublicationLowerBoundYearChanged": e })
-  }
+  // const onPublicationLowerBoundYearChanged = (e) => {
+  //   console.log({ "EditSource.onPublicationLowerBoundYearChanged": e })
+  // }
 
-  const onPublicationLowerBoundMonthChanged = (e) => {
-    console.log({ "EditSource.onPublicationLowerBoundMonthChanged": e })
-  }
+  // const onPublicationLowerBoundMonthChanged = (e) => {
+  //   console.log({ "EditSource.onPublicationLowerBoundMonthChanged": e })
+  // }
 
-  const onPublicationLowerBoundDayChanged = (e) => {
-    console.log({ "EditSource.onPublicationLowerBoundDayChanged": e })
-  }
+  // const onPublicationLowerBoundDayChanged = (e) => {
+  //   console.log({ "EditSource.onPublicationLowerBoundDayChanged": e })
+  // }
 
-  const onPublicationUpperBoundYearChanged = (e) => {
-    console.log({ "EditSource.onPublicationUpperBoundYearChanged": e })
-  }
+  // const onPublicationUpperBoundYearChanged = (e) => {
+  //   console.log({ "EditSource.onPublicationUpperBoundYearChanged": e })
+  // }
 
-  const onPublicationUpperBoundMonthChanged = (e) => {
-    console.log({ "EditSource.onPublicationUpperBoundMonthChanged": e })
-  }
+  // const onPublicationUpperBoundMonthChanged = (e) => {
+  //   console.log({ "EditSource.onPublicationUpperBoundMonthChanged": e })
+  // }
 
-  const onPublicationUpperBoundDayChanged = (e) => {
-    console.log({ "EditSource.onPublicationUpperBoundDayChanged": e })
-  }
+  // const onPublicationUpperBoundDayChanged = (e) => {
+  //   console.log({ "EditSource.onPublicationUpperBoundDayChanged": e })
+  // }
 
-  const onSubmitSourceClick = (e) => {
-    console.log({ "EditSource.onSubmitSourceClick": e })
-    submitCallback({
-      things: "and such"
-    })
-  }
+  // const onSubmitSourceClick = (e) => {
+  //   console.log({ "EditSource.onSubmitSourceClick": e })
+  //   submitCallback({
+  //     things: "and such"
+  //   })
+  // }
 
 
 
@@ -163,7 +163,7 @@ export function EditSource({
 
   return (
     <div>
-      <div key={editId} className={`flex flex-col m-1 ${border}`}>
+      <div key={editId} className={`flex flex-col m-1 `}>
         {/* Header */}
         <div className="flex flex-row-reverse">
           {/* Delete */}
@@ -176,31 +176,7 @@ export function EditSource({
           </button>
         </div>
 
-        <details className="w-full" open>
-          <summary className="text-left">
-            {title}
-          </summary>
-          <div>
-            {/* Title */}
-            <div className="flex flex-col m-1">
-              <label className="text-left text-lg">Title</label>
-              <textarea
-                className="ml-1 text-black"
-                rows={2}
-                maxLength={detailRestrictions.maxSourceTitleLength}
-                placeholder={`Title (max ${detailRestrictions.maxSourceTitleLength})`}
-                onChange={onTitleChanged} />
-              <label ref={titleCharCountLabelRef} className="text-right"></label>
-            </div>
-          </div>
 
-          {/* Where in source */}
-          <div className="flex flex-col m-1">
-            <label className="text-left">Where in source?</label>
-            <input className="text-left ml-1 text-black" type="text" maxLength={detailRestrictions.maxWhereInSourceLength} placeholder="Ex: Chapter 3, paragraph 27" onChange={(e) => onWhereInSourceChanged(e)} />
-            <label ref={whereInSourceCharCountLabelRef} className="text-right"></label>
-          </div>
-        </details>
 
       </div>
     </div>

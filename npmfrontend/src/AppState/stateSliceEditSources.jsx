@@ -158,6 +158,19 @@ export const stateSliceEditSources = createSlice({
     //   }
     // },
 
+    // deleteSource: (state, action) => {
+    //   console.log("stateSliceEditSources.deleteSource")
+
+    //   let editId = action.payload
+    //   let mySources = { ...state.sources }
+    //   delete mySources[editId]
+
+    //   return {
+    //     ...state,
+    //     sources: mySources
+    //   }
+    // },
+
     newSource: (state, action) => {
       console.log("stateSliceEditSources.newSource")
 
@@ -189,23 +202,6 @@ export const stateSliceEditSources = createSlice({
         // testingNewSource: newSource
       }
     },
-
-    // deleteSource: (state, action) => {
-    //   console.log("stateSliceEditSources.deleteSource")
-
-    //   let editId = action.payload
-    //   // let mySources = [...state.sources]
-    //   // let thing = { ...state.sources }
-    //   // mySources.filter((source) => source.editId != editId)
-
-    //   let mySources = { ...state.sources }
-    //   delete mySources[editId]
-
-    //   return {
-    //     ...state,
-    //     sources: mySources
-    //   }
-    // },
 
     deleteSource: (state, action) => {
       console.log("stateSliceEditSources.deleteSource")
