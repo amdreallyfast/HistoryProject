@@ -68,6 +68,21 @@ export function convertToTimeSinceFoundingOfRome(y, m, d) {
   }
 }
 
+//   let reactElements = editSources.sources?.map((s) => (
+//     <div className="m-1 border-2 border-grey-600" key={s.title + s.details}>
+//       <p>{s.title}</p>
+//       {s.details ? <p>{s.details}</p> : null}
+//       {s.authors.join(", ")}
+//       {convertTimeRangeToGregorianYearMonthDay(
+//         s.publicationLowerBoundYear,
+//         s.publicationLowerBoundMonth,
+//         s.publicationLowerBoundDay,
+//         s.publicationUpperBoundYear,
+//         s.publicationUpperBoundMonth,
+//         s.publicationUpperBoundDay)
+//       }
+//     </div>
+//   ))
 export function convertTimeRangeToGregorianYearMonthDay(lbYear, lbMonth, lbDay, ubYear, ubMonth, ubDay) {
   if (lbYear == ubYear && lbMonth == ubMonth && lbDay == ubDay) {
     // Exact date. Upper bound == lower bound. Only need one.

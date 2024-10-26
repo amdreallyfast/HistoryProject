@@ -143,10 +143,9 @@ export const stateSliceEditSources = createSlice({
 
       console.log({ "existing sources:": state.sources })
 
-      let newId = action.payload.id
+      let editId = action.payload.id
       let newSource = {
         ...sourceInitialState,
-        // editId: newId,
         id: "this is my source revisionId",
         sourceId: "this is my persistant sourceId",
         title: action.payload.title
@@ -157,12 +156,13 @@ export const stateSliceEditSources = createSlice({
       // mySources.push(newSource)
 
       let mySources = { ...state.sources }
-      mySources[newId] = newSource
+      mySources[editId] = newSource
 
       // console.log("things")
       return {
         ...state,
-        sources: mySources
+        sources: mySources,
+        sources2: mySources2
       }
     },
 

@@ -16,9 +16,6 @@ export function EditSource({
   editId,
   deleteCallback
 }) {
-  // if (!submitCallback) {
-  //   throw new Error("must provide 'submitCallback'")
-  // }
 
   if (!editId) {
     throw new Error("editId not provided; calling function must provide the guid to identify this source in the stateSliceEditSources.sources hash table")
@@ -27,20 +24,16 @@ export function EditSource({
     throw new Error("deleteCallback function not provided")
   }
 
-  // const editSources = useSelector((state) => state.editSources)
-  // if (!editSources.sources[editId]) {
-  //   // Race condition following removal. Just return and let the EditEventSources re-render and update the list of existing components.
-  //   return
-  // }
-  // const editSource = editSources.sources[editId]
-  // const editSource = editSources.sources.find(source => source.editId == editId)
   const editSource = useSelector((state) => state.editSources.sources[editId])
   if (!editSource) {
-    console.log("ok then nevermind")
+    // Race condition following removal. Abort.
+    // Note: This element was deleted from the state machine on the last frame, but it still 
+    // exists for this frame in the DOM and is being re-rendered. There is no data for it, so
+    // just abort.
     return
   }
 
-  const editState = useSelector((state) => state.editPoiReducer)
+  //??do we need a "submit button"? probably to make it more performant so that it isn't re-rendering all sources the moment a single field in one of the sources changes, but how much can we really avoid this??
   const reduxDispatch = useDispatch()
 
   // Delete button
@@ -75,7 +68,6 @@ export function EditSource({
   }, [editSource.title, titleCharCountLabelRef.current])
 
   // ISBN
-
   const [isbn, setIsbn] = useState(editSource.isbn)
   const isbnCharCountLabelRef = useRef()
 
