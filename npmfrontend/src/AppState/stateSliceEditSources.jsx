@@ -31,7 +31,7 @@ const initialState = {
 
   // Note: _Must_ be an object. The state objects are some kind of "proxy" object, which makes identifying them in an array a real pain. However, if I use an object iwth the editId as a key, then it is easy to delete them.
   // Also Note: I haven't tried editing individual fields yet. Only editing and deleting. We'll see if this works.
-  sources: {}
+  // sources: {}
 
   /*
     new source:
@@ -176,13 +176,14 @@ export const stateSliceEditSources = createSlice({
       // Note: Need to jump through some syntactical hoops because I'm not sure that the state machine was designed to hold an arbitrary set of key-value pairs
       // ...does this code make me a bad person?
       let newState = { ...state }
-      let keys = Object.keys(state)
-      keys.forEach(key => {
-        newState[key] = { ...state[`${key}`] }
-      });
+      // let keys = Object.keys(state)
+      // keys.forEach(key => {
+      //   newState[key] = { ...state[`${key}`] }
+      // });
 
       // Assign new state
-      newState[`${editId}`] = newSource
+      // newState[`${editId}`] = newSource
+      newState[editId] = newSource
       // let mySources = { ...state }
       // let keys2 = Object.keys(mySources)
       // mySources[editId] = newSource
@@ -207,14 +208,41 @@ export const stateSliceEditSources = createSlice({
       //    newState[key] = { ...state[`${key}`] }
       //  }
       //});
-      let thing1 = newState[editId]
-      let thing2 = state[editId]
+      // let thing1 = newState[editId]
+      // let thing2 = state[editId]
 
       delete newState[editId]
       // let newKeys = Object.keys(state)
 
       return {
         ...newState
+      }
+    },
+
+
+    updateSourceTitle: (state, action) => {
+      console.log("stateSliceEditSources.updateSourceTitle")
+
+      let editId = action.payload.editId
+      let newTitle = action.payload.title
+
+      // Copy existing state
+      // Note: Can't just use { ...state }. Doing that and then modifying it produces an error:
+      //  Uncaught Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.
+      let newState = {}
+      let keys = Object.keys(state)
+      keys.forEach(key => {
+        newState[key] = { ...state[key] }
+      });
+
+      // Assign new state
+      newState[editId].title = newTitle
+      // let mySources = { ...state }
+      // let keys2 = Object.keys(mySources)
+      // mySources[editId] = newSource
+      return {
+        ...newState,
+        // testingNewSource: newSource
       }
     },
 

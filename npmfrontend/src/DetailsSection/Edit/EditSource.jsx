@@ -38,7 +38,7 @@ export function EditSource({
   // }
 
   // //??do we need a "submit button"? probably to make it more performant so that it isn't re-rendering all sources the moment a single field in one of the sources changes, but how much can we really avoid this??
-  // const reduxDispatch = useDispatch()
+  const reduxDispatch = useDispatch()
 
   // const complete = useState(false)
 
@@ -50,17 +50,38 @@ export function EditSource({
   // Title
   const [title, setTitle] = useState(editSource?.title)
   const titleCharCountLabelRef = useRef()
-
+  const titleTextBoxRef = useRef()
+  const titleDetailsSummaryRef = useRef()
   const onTitleChanged = (e) => {
     console.log({ "EditSource.onTitleChanged": e })
-    setTitle(e.target.value)
+    // setTitle(e.target.value)
+    let args = {
+      editId: editId,
+      title: e.target.value
+    }
+    reduxDispatch(editSourcesStateActions.updateSourceTitle(args))
   }
+  useEffect(() => {
+    console.log({ "EditSource.useEffect[editSource.title]": editSource?.title })
+    if (!titleCharCountLabelRef.current) return // not ready yet
+    if (!titleTextBoxRef.current) return // not ready yet
+    if (!titleDetailsSummaryRef.current) return // not ready yet
+    if (!editSource) return // deleted last frame from state machine
 
-  // useEffect(() => {
-  //   console.log({ "EditSource.useEffect[editSource.title]": editSource.title })
-  //   if (!titleCharCountLabelRef.current) return
-  //   titleCharCountLabelRef.current.innerHTML = `${editSource.title?.length}/${detailRestrictions.maxSourceTitleLength}`
-  // }, [editSource.title, titleCharCountLabelRef.current])
+    // Set the collapsible label
+    titleDetailsSummaryRef.current.innerHTML = editSource.title ? editSource.title : `title for '${editId}'`
+
+    let thing = titleTextBoxRef.current.innerHTML.length
+
+    let titleLength = editSource.title ? editSource.title.length : 0
+    let charCountText = `${titleLength}/${detailRestrictions.maxSourceTitleLength}`
+    titleCharCountLabelRef.current.innerHTML = charCountText
+  }, [
+    editSource?.title,
+    titleCharCountLabelRef.current,
+    titleTextBoxRef.current,
+    titleDetailsSummaryRef.current,
+  ])
 
   // // ISBN
   // const [isbn, setIsbn] = useState(editSource.isbn)
@@ -199,14 +220,14 @@ export function EditSource({
         </div>
 
         <details className="w-full" open>
-          <summary className="text-left">
-            {title}
+          <summary className="text-left" ref={titleDetailsSummaryRef}>
           </summary>
           <div>
             {/* Title */}
             <div className="flex flex-col m-1">
               <label className="text-left text-lg">Title</label>
               <textarea
+                ref={titleTextBoxRef}
                 className="ml-1 text-black"
                 rows={2}
                 maxLength={detailRestrictions.maxSourceTitleLength}

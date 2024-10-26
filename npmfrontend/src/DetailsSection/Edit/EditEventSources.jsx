@@ -95,7 +95,7 @@ export function EditEventSources() {
     let newId = generateUUID()
     reduxDispatch(editSourcesStateActions.newSource({
       id: newId,
-      title: `title for '${newId}'`
+      // title: `title for '${newId}'`
     }))
 
     // addSource(newId)
