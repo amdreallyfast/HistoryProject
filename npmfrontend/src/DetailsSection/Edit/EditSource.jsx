@@ -26,41 +26,35 @@ export function EditSource({
 
   // const editSource = useSelector((state) => state.editSources.sources[editId])
   const editSource = useSelector((state) => state.editSources[editId])
-  if (!editSource) {
-    // Race condition following removal. Abort.
-    // Note: This element was deleted from the state machine on the last frame, but it still 
-    // exists for this frame in the DOM and is being re-rendered. There is no data for it, so
-    // just abort.
-    return
-  }
+
+  //??what to do if this is undefined? I can't return early, so how do we handle this??
+
+  // if (!editSource) {
+  //   // Race condition following removal. Abort.
+  //   // Note: This element was deleted from the state machine on the last frame, but it still 
+  //   // exists for this frame in the DOM and is being re-rendered. There is no data for it, so
+  //   // just abort.
+  //   return
+  // }
 
   // //??do we need a "submit button"? probably to make it more performant so that it isn't re-rendering all sources the moment a single field in one of the sources changes, but how much can we really avoid this??
   // const reduxDispatch = useDispatch()
+
+  // const complete = useState(false)
 
   // Delete button
   const onDeleteClicked = (e) => {
     deleteCallback(editId)
   }
 
-  // Complete
-  const [border, setBorder] = useState()
-  useEffect(() => {
-    console.log({ "editSource.complete": editSource.complete })
+  // Title
+  const [title, setTitle] = useState(editSource?.title)
+  const titleCharCountLabelRef = useRef()
 
-    // Show red border if fields are incomplete, else show an invisible border (because the 
-    // border will occupy space and I don't want it to resize when the red border 
-    // appears/disappears)
-    setBorder(editSource.complete ? "border-2 border-black" : "border-2 border-red-600")
-  }, [editSource.complete])
-
-  // // Title
-  // const [title, setTitle] = useState(editSource.title)
-  // const titleCharCountLabelRef = useRef()
-
-  // const onTitleChanged = (e) => {
-  //   console.log({ "EditSource.onTitleChanged": e })
-  //   setTitle(e.target.value)
-  // }
+  const onTitleChanged = (e) => {
+    console.log({ "EditSource.onTitleChanged": e })
+    setTitle(e.target.value)
+  }
 
   // useEffect(() => {
   //   console.log({ "EditSource.useEffect[editSource.title]": editSource.title })
@@ -98,6 +92,34 @@ export function EditSource({
   //   whereInSourceCharCountLabelRef.current.innerHTML = `${editSource.whereInSource?.length}/${detailRestrictions.maxWhereInSourceLength}`
   // }, [editSource.whereInSource, whereInSourceCharCountLabelRef.current])
 
+
+
+
+  // Complete
+  const [border, setBorder] = useState()
+  useEffect(() => {
+    console.log({ "editSource.complete": { title: editSource?.title } })
+
+    let complete = true
+    if (!editSource) {
+      complete = false
+    }
+    else {
+      complete &= editSource.title?.trim().length > 0
+      complete &= Number.isInteger(editSource.publicationTimeRange.lowerBoundYear)
+      complete &= Number.isInteger(editSource.publicationTimeRange.upperBoundYear)
+      complete &= editSource.authors.length > 0
+      complete &= editSource.whereInSource?.trim().length > 0
+    }
+    // setstate
+
+    // TODO: author in-depth compare
+
+    // Show red border if fields are incomplete, else show an invisible border (because the 
+    // border will occupy space and I don't want it to resize when the red border 
+    // appears/disappears)
+    setBorder(complete ? "border-2 border-black" : "border-2 border-red-600")
+  }, [editSource?.title])
 
 
 
@@ -176,6 +198,25 @@ export function EditSource({
           </button>
         </div>
 
+        <details className="w-full" open>
+          <summary className="text-left">
+            {title}
+          </summary>
+          <div>
+            {/* Title */}
+            <div className="flex flex-col m-1">
+              <label className="text-left text-lg">Title</label>
+              <textarea
+                className="ml-1 text-black"
+                rows={2}
+                maxLength={detailRestrictions.maxSourceTitleLength}
+                placeholder={`Title (max ${detailRestrictions.maxSourceTitleLength})`}
+                onChange={onTitleChanged} />
+              <label ref={titleCharCountLabelRef} className="text-right"></label>
+            </div>
+          </div>
+
+        </details>
 
 
       </div>

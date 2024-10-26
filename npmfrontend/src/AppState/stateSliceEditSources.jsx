@@ -54,7 +54,7 @@ const initialState = {
 // Source
 const sourceInitialState = {
   // editId: null,
-  complete: false,
+  // complete: false,
   // flaggedForDeletion: false, //??will this even work??
 
   // Set on back end
@@ -94,18 +94,7 @@ const authorInitialState = {
   }
 }
 
-// TODO: move logic to EditEventSources
-const sourceIsComplete = (sourceInfo) => {
-  let complete = true
-  complete &= sourceInfo.title?.trim().length > 0
-  complete &= Number.isInteger(sourceInfo.publicationTimeRange.lowerBoundYear)
-  complete &= Number.isInteger(sourceInfo.publicationTimeRange.upperBoundYear)
-  complete &= sourceInfo.authors.length > 0
-  complete &= sourceInfo.whereInSource?.trim().length > 0
-  // TODO: author in-depth compare
 
-  return complete
-}
 
 export const stateSliceEditSources = createSlice({
   name: "stateSliceEditSources",
@@ -181,7 +170,7 @@ export const stateSliceEditSources = createSlice({
         sourceId: "this is my persistant sourceId",
         title: action.payload.title
       }
-      newSource.complete = sourceIsComplete(newSource)
+      // newSource.complete = sourceIsComplete(newSource)
 
       // Duplicate existing state
       // Note: Need to jump through some syntactical hoops because I'm not sure that the state machine was designed to hold an arbitrary set of key-value pairs
