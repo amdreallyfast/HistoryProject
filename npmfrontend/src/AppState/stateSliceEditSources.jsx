@@ -94,6 +94,7 @@ const authorInitialState = {
   }
 }
 
+// TODO: move logic to EditEventSources
 const sourceIsComplete = (sourceInfo) => {
   let complete = true
   complete &= sourceInfo.title?.trim().length > 0
@@ -131,17 +132,34 @@ export const stateSliceEditSources = createSlice({
       }
     },
 
+    // newSource: (state, action) => {
+    //   console.log("stateSliceEditSources.newSource")
+
+    //   // let things = [singleSourceInitialState]
+    //   // things = [...things, singleSourceInitialState]
+    //   // things[0].id = generateUUID()
+
+    //   console.log({ "existing sources:": state.sources })
+
+    //   let editId = action.payload.id
+    //   let newSource = {
+    //     ...sourceInitialState,
+    //     id: "this is my source revisionId",
+    //     sourceId: "this is my persistant sourceId",
+    //     title: action.payload.title
+    //   }
+    //   newSource.complete = sourceIsComplete(newSource)
+
+    //   let mySources = { ...state.sources }
+    //   mySources[editId] = newSource
+    //   return {
+    //     ...state,
+    //     sources: mySources
+    //   }
+    // },
+
     newSource: (state, action) => {
       console.log("stateSliceEditSources.newSource")
-
-      // let tempId = action.payload
-
-
-      // let things = [singleSourceInitialState]
-      // things = [...things, singleSourceInitialState]
-      // things[0].id = generateUUID()
-
-      console.log({ "existing sources:": state.sources })
 
       let editId = action.payload.id
       let newSource = {
@@ -152,19 +170,42 @@ export const stateSliceEditSources = createSlice({
       }
       newSource.complete = sourceIsComplete(newSource)
 
-      // let mySources = [...state.sources]
-      // mySources.push(newSource)
+      // Duplicate existing state
+      // Note: Need to jump through some syntactical hoops because I'm not sure that the state machine was designed to hold an arbitrary set of key-value pairs
+      // ...does this code make me a bad person?
+      let newState = { ...state }
+      let keys = Object.keys(state)
+      keys.forEach(key => {
+        newState[key] = { ...state[`${key}`] }
+      });
 
-      let mySources = { ...state.sources }
-      mySources[editId] = newSource
-
-      // console.log("things")
+      // Assign new state
+      newState[`${editId}`] = newSource
+      // let mySources = { ...state }
+      // let keys2 = Object.keys(mySources)
+      // mySources[editId] = newSource
       return {
-        ...state,
-        sources: mySources,
-        sources2: mySources2
+        ...newState,
+        // testingNewSource: newSource
       }
     },
+
+    // deleteSource: (state, action) => {
+    //   console.log("stateSliceEditSources.deleteSource")
+
+    //   let editId = action.payload
+    //   // let mySources = [...state.sources]
+    //   // let thing = { ...state.sources }
+    //   // mySources.filter((source) => source.editId != editId)
+
+    //   let mySources = { ...state.sources }
+    //   delete mySources[editId]
+
+    //   return {
+    //     ...state,
+    //     sources: mySources
+    //   }
+    // },
 
     deleteSource: (state, action) => {
       console.log("stateSliceEditSources.deleteSource")
@@ -174,14 +215,23 @@ export const stateSliceEditSources = createSlice({
       // let thing = { ...state.sources }
       // mySources.filter((source) => source.editId != editId)
 
-      let mySources = { ...state.sources }
-      delete mySources[editId]
+      let newState = { ...state }
+      //let keys = Object.keys(state)
+      //keys.forEach(key => {
+      //  if (key != editId) {
+      //    newState[key] = { ...state[`${key}`] }
+      //  }
+      //});
+      let thing1 = newState[editId]
+      let thing2 = state[editId]
+
+      delete newState[editId]
+      // let newKeys = Object.keys(state)
 
       return {
-        ...state,
-        sources: mySources
+        ...newState
       }
-    }
+    },
 
     /*
     importSource                      // takes an array of source objects + their "where to find"

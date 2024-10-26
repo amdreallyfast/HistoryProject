@@ -23,9 +23,32 @@ export function EditEventSources() {
     })
   }, [editState.sources])
 
+
+  // // On sources changed
+  // useEffect(() => {
+  //   console.log({ "EditEventSources.useEffect[editSources.sources]": editSources.sources, "sources": sources })
+
+  //   const deleteCallback = (editId) => {
+  //     // Remove from the state machine
+  //     // Note: This will trigger a change in editState.sources, which will trigger a re-render in
+  //     // all EditSource objects. That re-rendering happens before this useEffect(...) is 
+  //     // triggered, so need to handle possible null there.
+  //     reduxDispatch(editSourcesStateActions.deleteSource(editId))
+  //   }
+
+  //   let editIds = Object.keys(editSources.sources)
+  //   let reactElements = editIds.map((editId) => (
+  //     <div key={editId} className="flex flex-col">
+  //       <EditSource editId={editId} deleteCallback={deleteCallback} />
+  //     </div>
+  //   ))
+  //   setSources(reactElements)
+  //   console.log({ path: "create", sources: reactElements })
+  // }, [editSources.sources])
+
   // On sources changed
   useEffect(() => {
-    console.log({ "EditEventSources.useEffect[editSources.sources]": editSources.sources, "sources": sources })
+    console.log({ "EditEventSources.useEffect[editSources]": editSources })
 
     const deleteCallback = (editId) => {
       // Remove from the state machine
@@ -35,7 +58,7 @@ export function EditEventSources() {
       reduxDispatch(editSourcesStateActions.deleteSource(editId))
     }
 
-    let editIds = Object.keys(editSources.sources)
+    let editIds = Object.keys(editSources).filter(editId => editId != "sources")
     let reactElements = editIds.map((editId) => (
       <div key={editId} className="flex flex-col">
         <EditSource editId={editId} deleteCallback={deleteCallback} />
@@ -43,7 +66,11 @@ export function EditEventSources() {
     ))
     setSources(reactElements)
     console.log({ path: "create", sources: reactElements })
-  }, [editSources.sources])
+  }, [editSources])
+
+
+
+
 
   // TODO: ??how to add an "edit session"??
   /*

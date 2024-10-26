@@ -24,7 +24,8 @@ export function EditSource({
     throw new Error("deleteCallback function not provided")
   }
 
-  const editSource = useSelector((state) => state.editSources.sources[editId])
+  // const editSource = useSelector((state) => state.editSources.sources[editId])
+  const editSource = useSelector((state) => state.editSources[editId])
   if (!editSource) {
     // Race condition following removal. Abort.
     // Note: This element was deleted from the state machine on the last frame, but it still 
