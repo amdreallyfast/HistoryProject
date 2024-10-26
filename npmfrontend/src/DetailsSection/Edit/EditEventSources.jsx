@@ -65,16 +65,35 @@ export function EditEventSources() {
       // setSources(reactElements)
 
       // ok so the callback function makes a copy of any local variables at the time that it's made, which means that I can't run off to the local "sources" state machine
-      // Remove from the DOM on next frame
+
+      // Remove from the local state machine
+      /*
+        Note: Okay so there's a cascade of design consequences. The state machine's "sources" array must be an object. If it is an array [], then the state machine turns it into some kind of proxy object and it is not the array that you started with. But if it is an object [], then the state machine keeps it as such and I can easily identify the contents, but as a consequence (for some reason)
+
+        Ok so this is janky, but it's part of the side effect of JavaScript lambda functions adopting the values of local variables. There are two scenarios:
+        1. Delete latest entry
+          When the delete callback is formed, the sources array had all the entries that came before, but not the most recent one because the array won't change until the next frame. Attempting to filter out the latest entry from this lambda function's local copy of the sources array variable results in the exact same array (latest entry wasn't there), and therefore setting this as the new state machine object results in no change 
+      */
+
+      //
       // ...ok so this is janky. The javascript function makes a copy of any local variables that 
-      // it uses at the time that the function is created (in this case, the sources). If I 
-      // attempt to remove the latest entry, then the entry is not in the sources array because it
-      // hadn't been added at the time that its "deleteCallback" function had been created. But 
-      // if I attempt to remove an older entry, then that _is_ in the sources array and is 
-      // removed. Both result in the desired outcome, though the former by unintentional 
-      // side effect.
-      let otherSources = sources.filter(container => container.key != editId)
-      setSources(otherSources)
+      // it uses at the time that the function is created (in this case, the sources). Two
+      // scenarios:
+      /*
+        1. Delete latest entry:
+
+      */
+
+
+
+      // // attempt to remove the latest entry, then the entry is not in the sources array because it
+      // // hadn't been added at the time that its "deleteCallback" function had been created, and so
+      // // when I filter the sources array for that entry, it isn't there, and setting that as the 
+      // // new sources array results in the latest entry disappearing. But if I attempt to remove an
+      // // older entry, then that _is_ in the sources array and is removed. Both result in the 
+      // // desired outcome, though the former by unintentional side effect.
+      // let otherSources = sources.filter(container => container.key != editId)
+      // setSources(otherSources)
 
       // Remove from the state machine
       reduxDispatch(editSourcesStateActions.deleteSource(editId))
@@ -93,8 +112,6 @@ export function EditEventSources() {
     // ))
     setSources(reactElements)
     console.log({ path: "create", sources: reactElements })
-
-
 
     // let newElement =
 

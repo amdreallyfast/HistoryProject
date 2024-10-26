@@ -6,6 +6,12 @@ import { detailRestrictions } from "./detailRestrictions"
 import { EditSourcePublicationTimeRange } from "./EditSourcePublicationTimeRange"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
 
+
+// TODO: edit title field (set value, fix the watermark defining the number of characters)
+// TODO: ??why is the component getting re-rendered multiple times on startup??
+// TODO: ??pack textbox fields into a single class with header lable, input text box, char count label, internal state, etc? how do I handle the linkage with the state machine??
+
+
 export function EditSource({
   editId,
   deleteCallback
@@ -29,6 +35,10 @@ export function EditSource({
   // const editSource = editSources.sources[editId]
   // const editSource = editSources.sources.find(source => source.editId == editId)
   const editSource = useSelector((state) => state.editSources.sources[editId])
+  if (!editSource) {
+    console.log("ok then nevermind")
+    return
+  }
 
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
@@ -65,7 +75,7 @@ export function EditSource({
   }, [editSource.title, titleCharCountLabelRef.current])
 
   // ISBN
-  // ?? can I pack this into a single class with text box, label, state, etc? how do I handle the linkage with the state machine??
+
   const [isbn, setIsbn] = useState(editSource.isbn)
   const isbnCharCountLabelRef = useRef()
 
@@ -175,7 +185,7 @@ export function EditSource({
 
         <details className="w-full" open>
           <summary className="text-left">
-            {editSource.title}
+            {title}
           </summary>
           <div>
             {/* Title */}
