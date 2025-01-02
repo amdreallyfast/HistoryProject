@@ -49,12 +49,15 @@ export function EditSource({
 
   // Title
   const [title, setTitle] = useState(editSource?.title)
+  const [titleComplete, setTitleComplete] = useState()
+  const titleContainerRef = useRef()
   const titleCharCountLabelRef = useRef()
   const titleTextBoxRef = useRef()
   const titleDetailsSummaryRef = useRef()
   const onTitleChanged = (e) => {
     console.log({ "EditSource.onTitleChanged": e })
-    // setTitle(e.target.value)
+
+    setTitleComplete(Boolean(e.target.value))
     let args = {
       editId: editId,
       title: e.target.value
@@ -71,8 +74,6 @@ export function EditSource({
     // Set the collapsible label
     titleDetailsSummaryRef.current.innerHTML = editSource.title ? editSource.title : `title for '${editId}'`
 
-    let thing = titleTextBoxRef.current.innerHTML.length
-
     let titleLength = editSource.title ? editSource.title.length : 0
     let charCountText = `${titleLength}/${detailRestrictions.maxSourceTitleLength}`
     titleCharCountLabelRef.current.innerHTML = charCountText
@@ -82,6 +83,92 @@ export function EditSource({
     titleTextBoxRef.current,
     titleDetailsSummaryRef.current,
   ])
+
+  // // Publication date (lower bound)
+  // const pubDateLowerBoundContainerRef = useRef()
+  // const pubDateLowerBoundYearRef = useRef()
+  // const pubDateLowerBoundMonthRef = useRef()
+  // const pubDateLowerBoundDayRef = useRef()
+  // const [publicationDateLowerBoundComplete, setPublicationDateLowerBoundComplete] = useState()
+
+  // const updatePubDateLowerBoundStyle = (value) => {
+  //   pubDateLowerBoundContainerRef.current.style.border = e.target.value ? "2px solid transparent" : "2px solid red"
+  //   pubDateLowerBoundContainerRef.current.title = e.target.value ? "" : "Missing required value: 'Year'"
+  //   setPublicationDateLowerBoundComplete(Boolean(e.target.value))
+  // }
+
+  // const onPubDateLowerBoundYearChanged = (e) => {
+  //   console.log({ "EditSource.onPubDateLowerBoundYearChanged": e })
+
+  //   updatePubDateLowerBoundStyle(e.target.value)
+  //   let args = {
+  //     editId: editId,
+  //     value: e.target.value
+  //   }
+  //   reduxDispatch(editSourcesStateActions.updateSourcePubDateLowerBoundYear(args))
+  // }
+
+  // const onPubDateLowerBoundMonthChanged = (e) => {
+  //   console.log({ "EditSource.onPubDateLowerBoundMonthChanged": e })
+
+  //   let args = {
+  //     editId: editId,
+  //     value: e.target.value
+  //   }
+  //   reduxDispatch(editSourcesStateActions.updateSourcePubDateLowerBoundYear(args))
+  // }
+
+  // const onPubDateLowerBoundDayChanged = (e) => {
+  //   console.log({ "EditSource.onPubDateLowerBoundDayChanged": e })
+
+  //   let args = {
+  //     editId: editId,
+  //     value: e.target.value
+  //   }
+  //   reduxDispatch(editSourcesStateActions.updateSourcePubDateLowerBoundYear(args))
+  // }
+
+  // useEffect(() => {
+  //   console.log({ "EditSource.useEffect[editSource.publicationTimeRange.lowerBoundYear]": editSource?.publicationTimeRange.lowerBoundYear })
+  //   if (!pubDateLowerBoundYearRef.current) return
+  //   if (!pubDateLowerBoundMonthRef.current) return
+  //   if (!pubDateLowerBoundDayRef.current) return
+  //   if (!editSource) return // deleted last frame from state machine
+
+  //   // on load
+  //   let year = editSource.publicationTimeRange.lowerBoundYear
+  //   pubDateLowerBoundYearRef.current.valueAsNumber = year ? year : NaN
+  //   updatePubDateLowerBoundStyle(year)
+
+  //   let month = editSource.publicationTimeRange.lowerBoundMonth
+  //   pubDateLowerBoundMonthRef.current.valueAsNumber = month ? month : NaN
+
+  //   let day = editSource.publicationTimeRange.lowerBoundDay
+  //   pubDateLowerBoundDayRef.current.valueAsNumber = day ? day : NaN
+  // }, [
+  //   pubDateLowerBoundYearRef.current,
+  //   pubDateLowerBoundMonthRef.current,
+  //   pubDateLowerBoundDayRef.current
+  // ])
+
+
+
+  // const pubDateUpperBoundYearRef = useRef()
+  // const pubDateUpperBoundMonthRef = useRef()
+  // const pubDateUpperBoundDayRef = useRef()
+  // const onPubDateUpperBoundYearChanged = (e) => {
+  //   console.log({ "EditSource.onPubDateUpperBoundYearChanged": e })
+  // }
+
+  // const onPubDateUpperBoundMonthChanged = (e) => {
+  //   console.log({ "EditSource.onPubDateUpperBoundMonthChanged": e })
+  // }
+
+  // const onPubDateUpperBoundDayChanged = (e) => {
+  //   console.log({ "EditSource.onPubDateUpperBoundDayChanged": e })
+  // }
+
+
 
   // // ISBN
   // const [isbn, setIsbn] = useState(editSource.isbn)
@@ -121,6 +208,11 @@ export function EditSource({
   useEffect(() => {
     console.log({ "editSource.complete": { title: editSource?.title } })
 
+
+    //??react to a "complete" variable in the state machine??
+    titleComplete
+    // publicationDateLowerBoundComplete
+
     let complete = true
     if (!editSource) {
       complete = false
@@ -151,29 +243,7 @@ export function EditSource({
 
 
 
-  // const onPublicationLowerBoundYearChanged = (e) => {
-  //   console.log({ "EditSource.onPublicationLowerBoundYearChanged": e })
-  // }
 
-  // const onPublicationLowerBoundMonthChanged = (e) => {
-  //   console.log({ "EditSource.onPublicationLowerBoundMonthChanged": e })
-  // }
-
-  // const onPublicationLowerBoundDayChanged = (e) => {
-  //   console.log({ "EditSource.onPublicationLowerBoundDayChanged": e })
-  // }
-
-  // const onPublicationUpperBoundYearChanged = (e) => {
-  //   console.log({ "EditSource.onPublicationUpperBoundYearChanged": e })
-  // }
-
-  // const onPublicationUpperBoundMonthChanged = (e) => {
-  //   console.log({ "EditSource.onPublicationUpperBoundMonthChanged": e })
-  // }
-
-  // const onPublicationUpperBoundDayChanged = (e) => {
-  //   console.log({ "EditSource.onPublicationUpperBoundDayChanged": e })
-  // }
 
   // const onSubmitSourceClick = (e) => {
   //   console.log({ "EditSource.onSubmitSourceClick": e })
@@ -198,10 +268,12 @@ export function EditSource({
           s.publicationUpperBoundDay)
         }
       </div>
-
+  
   */
 
-
+  const onSubmitThingy = (e) => {
+    console.log("submitted?")
+  }
 
 
   return (
@@ -225,7 +297,10 @@ export function EditSource({
           <div>
             {/* Title */}
             <div className="flex flex-col m-1">
+              {/* header */}
               <label className="text-left text-lg">Title</label>
+
+              {/* content */}
               <textarea
                 ref={titleTextBoxRef}
                 className="ml-1 text-black"
@@ -233,10 +308,14 @@ export function EditSource({
                 maxLength={detailRestrictions.maxSourceTitleLength}
                 placeholder={`Title (max ${detailRestrictions.maxSourceTitleLength})`}
                 onChange={onTitleChanged} />
+
+              {/* char count */}
               <label ref={titleCharCountLabelRef} className="text-right"></label>
             </div>
           </div>
 
+          {/* Publication date */}
+          <EditSourcePublicationTimeRange editId={editId} />
         </details>
 
 

@@ -94,7 +94,23 @@ const authorInitialState = {
   }
 }
 
+const copyState = (state) => {
+  console.log({ "stateSliceEditSources.copyState(state)": state })
 
+  let copy = {}
+  let sourceKeys = Object.keys(state)
+  sourceKeys.forEach(sourceEditId => {
+    let source = { ...state[sourceEditId] }
+    source.publicationTimeRange = { ...state[sourceEditId].publicationTimeRange }
+    copy[sourceEditId] = source
+    // let propertyKeys = Object.keys(newState[sourceEditId])
+    // propertyKeys.forEach(propertyKey => {
+    //   newState[sourceEditId][propertyKey] = state[sourceEditId][propertyKey]
+    // })
+  });
+
+  return copy
+}
 
 export const stateSliceEditSources = createSlice({
   name: "stateSliceEditSources",
@@ -219,21 +235,22 @@ export const stateSliceEditSources = createSlice({
       }
     },
 
-
     updateSourceTitle: (state, action) => {
       console.log("stateSliceEditSources.updateSourceTitle")
 
       let editId = action.payload.editId
       let newTitle = action.payload.title
 
-      // Copy existing state
-      // Note: Can't just use { ...state }. Doing that and then modifying it produces an error:
-      //  Uncaught Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.
-      let newState = {}
-      let keys = Object.keys(state)
-      keys.forEach(key => {
-        newState[key] = { ...state[key] }
-      });
+      // // Copy existing state
+      // // Note: Can't just use { ...state }. Doing that and then modifying it produces an error:
+      // //  Uncaught Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.
+      // let newState = {}
+      // let keys = Object.keys(state)
+      // keys.forEach(key => {
+      //   newState[key] = { ...state[key] }
+      // });
+
+      let newState = copyState(state)
 
       // Assign new state
       newState[editId].title = newTitle
@@ -245,6 +262,110 @@ export const stateSliceEditSources = createSlice({
         // testingNewSource: newSource
       }
     },
+
+    updateSourcePubDateLowerBoundYear: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundYear")
+
+      let editId = action.payload.editId
+      let newYear = action.payload.value
+
+      // // Copy existing state
+      // let newState = {}
+      // let sourceKeys = Object.keys(state)
+      // sourceKeys.forEach(sourceEditId => {
+      //   let source = { ...state[sourceEditId] }
+      //   source.publicationTimeRange = { ...state[sourceEditId].publicationTimeRange }
+      //   newState[sourceEditId] = source
+      //   // let propertyKeys = Object.keys(newState[sourceEditId])
+      //   // propertyKeys.forEach(propertyKey => {
+      //   //   newState[sourceEditId][propertyKey] = state[sourceEditId][propertyKey]
+      //   // })
+      // });
+      let newState = copyState(state)
+
+      // Assign new state
+      newState[editId].publicationTimeRange.lowerBoundYear = newYear
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLowerBoundMonth: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundMonth")
+
+      let newState = copyState(state)
+      let editId = action.payload.editId
+      let month = action.payload.value
+      newState[editId].publicationTimeRange.lowerBoundMonth = month
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLowerBoundDay: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundDay")
+
+      let newState = copyState(state)
+      let editId = action.payload.editId
+      let day = action.payload.value
+      newState[editId].publicationTimeRange.lowerBoundDay = day
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLowerBoundYear: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundYear")
+
+      let editId = action.payload.editId
+      let newYear = action.payload.value
+
+      // // Copy existing state
+      // let newState = {}
+      // let sourceKeys = Object.keys(state)
+      // sourceKeys.forEach(sourceEditId => {
+      //   let source = { ...state[sourceEditId] }
+      //   source.publicationTimeRange = { ...state[sourceEditId].publicationTimeRange }
+      //   newState[sourceEditId] = source
+      //   // let propertyKeys = Object.keys(newState[sourceEditId])
+      //   // propertyKeys.forEach(propertyKey => {
+      //   //   newState[sourceEditId][propertyKey] = state[sourceEditId][propertyKey]
+      //   // })
+      // });
+      let newState = copyState(state)
+
+      // Assign new state
+      newState[editId].publicationTimeRange.lowerBoundYear = newYear
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLowerBoundMonth: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundMonth")
+
+      let newState = copyState(state)
+      let editId = action.payload.editId
+      let month = action.payload.value
+      newState[editId].publicationTimeRange.lowerBoundMonth = month
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLowerBoundDay: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundDay")
+
+      let newState = copyState(state)
+      let editId = action.payload.editId
+      let day = action.payload.value
+      newState[editId].publicationTimeRange.lowerBoundDay = day
+      return {
+        ...newState,
+      }
+    },
+
+
 
     /*
     importSource                      // takes an array of source objects + their "where to find"
