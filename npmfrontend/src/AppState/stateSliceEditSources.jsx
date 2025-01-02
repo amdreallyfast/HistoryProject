@@ -74,7 +74,9 @@ const sourceInitialState = {
     upperBoundDay: null,    // optional
   },
   authors: [],
-  whereInSource: null
+  whereInSource: null,
+  complete: false,
+  // errorMsg: null,
 }
 
 // Author
@@ -110,6 +112,43 @@ const copyState = (state) => {
   });
 
   return copy
+}
+
+const evaluateSourceComplete = (source) => {
+  console.log("stateSliceEditSources.evaluateSourceComplete")
+
+  // if (!source.title) {
+  //   return "Missing title"
+  // }
+
+  // let year = source.publicationTimeRange.lowerBoundYear
+  // if (isNaN(Number(year))) {
+  //   return `Year is not a number: '${year}'`
+  // }
+  // else if (!year) {
+  //   return "Missing required value: 'Year'"
+  // }
+
+  // let month = source.publicationTimeRange.value
+  // if (isNaN(Number(month))) {
+  //   return `Month is not a number: '${month}'`
+  // }
+
+  // let day = source.publicationTimeRange.value
+  // if (isNaN(Number(day))) {
+  //   return `Day is not a number: '${day}'`
+  // }
+
+  // // Ok
+  // return null
+
+  let complete = true
+  complete &= Boolean(source.title)
+  complete &= isNaN(Number(source.publicationTimeRange.lowerBoundYear))
+  complete &= isNaN(Number(source.publicationTimeRange.lowerBoundMonth))
+  complete &= isNaN(Number(source.publicationTimeRange.lowerBoundDay))
+
+  return complete
 }
 
 export const stateSliceEditSources = createSlice({
@@ -241,50 +280,22 @@ export const stateSliceEditSources = createSlice({
       let editId = action.payload.editId
       let newTitle = action.payload.title
 
-      // // Copy existing state
-      // // Note: Can't just use { ...state }. Doing that and then modifying it produces an error:
-      // //  Uncaught Error: [Immer] An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.
-      // let newState = {}
-      // let keys = Object.keys(state)
-      // keys.forEach(key => {
-      //   newState[key] = { ...state[key] }
-      // });
-
       let newState = copyState(state)
-
-      // Assign new state
       newState[editId].title = newTitle
-      // let mySources = { ...state }
-      // let keys2 = Object.keys(mySources)
-      // mySources[editId] = newSource
+      newState[editId].complete = evaluateSourceComplete(newState[editId])
       return {
         ...newState,
-        // testingNewSource: newSource
       }
     },
 
     updateSourcePubDateLowerBoundYear: (state, action) => {
       console.log("stateSliceEditSources.updateSourcePubDateLowerBoundYear")
 
-      let editId = action.payload.editId
-      let newYear = action.payload.value
-
-      // // Copy existing state
-      // let newState = {}
-      // let sourceKeys = Object.keys(state)
-      // sourceKeys.forEach(sourceEditId => {
-      //   let source = { ...state[sourceEditId] }
-      //   source.publicationTimeRange = { ...state[sourceEditId].publicationTimeRange }
-      //   newState[sourceEditId] = source
-      //   // let propertyKeys = Object.keys(newState[sourceEditId])
-      //   // propertyKeys.forEach(propertyKey => {
-      //   //   newState[sourceEditId][propertyKey] = state[sourceEditId][propertyKey]
-      //   // })
-      // });
       let newState = copyState(state)
-
-      // Assign new state
-      newState[editId].publicationTimeRange.lowerBoundYear = newYear
+      let editId = action.payload.editId
+      let year = action.payload.value
+      newState[editId].publicationTimeRange.lowerBoundYear = year
+      newState[editId].complete = evaluateSourceComplete(newState[editId])
       return {
         ...newState,
       }
@@ -297,6 +308,7 @@ export const stateSliceEditSources = createSlice({
       let editId = action.payload.editId
       let month = action.payload.value
       newState[editId].publicationTimeRange.lowerBoundMonth = month
+      newState[editId].complete = evaluateSourceComplete(newState[editId])
       return {
         ...newState,
       }
@@ -309,61 +321,11 @@ export const stateSliceEditSources = createSlice({
       let editId = action.payload.editId
       let day = action.payload.value
       newState[editId].publicationTimeRange.lowerBoundDay = day
+      newState[editId].complete = evaluateSourceComplete(newState[editId])
       return {
         ...newState,
       }
-    },
-
-    updateSourcePubDateLowerBoundYear: (state, action) => {
-      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundYear")
-
-      let editId = action.payload.editId
-      let newYear = action.payload.value
-
-      // // Copy existing state
-      // let newState = {}
-      // let sourceKeys = Object.keys(state)
-      // sourceKeys.forEach(sourceEditId => {
-      //   let source = { ...state[sourceEditId] }
-      //   source.publicationTimeRange = { ...state[sourceEditId].publicationTimeRange }
-      //   newState[sourceEditId] = source
-      //   // let propertyKeys = Object.keys(newState[sourceEditId])
-      //   // propertyKeys.forEach(propertyKey => {
-      //   //   newState[sourceEditId][propertyKey] = state[sourceEditId][propertyKey]
-      //   // })
-      // });
-      let newState = copyState(state)
-
-      // Assign new state
-      newState[editId].publicationTimeRange.lowerBoundYear = newYear
-      return {
-        ...newState,
-      }
-    },
-
-    updateSourcePubDateLowerBoundMonth: (state, action) => {
-      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundMonth")
-
-      let newState = copyState(state)
-      let editId = action.payload.editId
-      let month = action.payload.value
-      newState[editId].publicationTimeRange.lowerBoundMonth = month
-      return {
-        ...newState,
-      }
-    },
-
-    updateSourcePubDateLowerBoundDay: (state, action) => {
-      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundDay")
-
-      let newState = copyState(state)
-      let editId = action.payload.editId
-      let day = action.payload.value
-      newState[editId].publicationTimeRange.lowerBoundDay = day
-      return {
-        ...newState,
-      }
-    },
+    }
 
 
 
@@ -391,7 +353,6 @@ export const stateSliceEditSources = createSlice({
     updateAuthorLifetimeUpperBoundMonth // takes a key and an integer or null
     updateAuthorLifetimeUpperBoundDay   // takes a key and an integer or null
     */
-
   }
 })
 
