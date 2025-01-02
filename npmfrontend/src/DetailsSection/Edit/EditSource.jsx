@@ -48,35 +48,65 @@ export function EditSource({
   }
 
   // Title
-  const [title, setTitle] = useState(editSource?.title)
+  // const [title, setTitle] = useState(editSource?.title)
   const [titleComplete, setTitleComplete] = useState()
   const titleContainerRef = useRef()
+
+
+
+
+
   const titleCharCountLabelRef = useRef()
   const titleTextBoxRef = useRef()
   const titleDetailsSummaryRef = useRef()
+  const [titleError, setTitleError] = useState(editSource?.title)
+
+  const evaluateTitleComplete = () => {
+    // assume bad
+    titleContainerRef.current.style.border = "2px solid red"
+
+    if (!titleTextBoxRef.current.value) {
+      setTitleError("Missing title")
+      return
+    }
+
+    // Ok
+    setTitleError("")
+    titleContainerRef.current.style.border = "2px solid transparent"
+  }
+
   const onTitleChanged = (e) => {
     console.log({ "EditSource.onTitleChanged": e })
 
-    setTitleComplete(Boolean(e.target.value))
+
+    // setTitleComplete(Boolean(e.target.value))
+    evaluateTitleComplete()
     let args = {
       editId: editId,
       title: e.target.value
     }
     reduxDispatch(editSourcesStateActions.updateSourceTitle(args))
   }
+
   useEffect(() => {
     console.log({ "EditSource.useEffect[editSource.title]": editSource?.title })
+    if (!editSource) return // deleted last frame from state machine
     if (!titleCharCountLabelRef.current) return // not ready yet
     if (!titleTextBoxRef.current) return // not ready yet
     if (!titleDetailsSummaryRef.current) return // not ready yet
-    if (!editSource) return // deleted last frame from state machine
 
-    // Set the collapsible label
+    // summary label for collapsible details
     titleDetailsSummaryRef.current.innerHTML = editSource.title ? editSource.title : `title for '${editId}'`
 
+    // text box
+    titleTextBoxRef.current.value = editSource.title
+
+    // char counter
     let titleLength = editSource.title ? editSource.title.length : 0
     let charCountText = `${titleLength}/${detailRestrictions.maxSourceTitleLength}`
     titleCharCountLabelRef.current.innerHTML = charCountText
+
+    evaluateTitleComplete()
   }, [
     editSource?.title,
     titleCharCountLabelRef.current,
@@ -210,7 +240,7 @@ export function EditSource({
 
 
     //??react to a "complete" variable in the state machine??
-    titleComplete
+    // titleComplete
     // publicationDateLowerBoundComplete
 
     let complete = true
@@ -296,7 +326,7 @@ export function EditSource({
           </summary>
           <div>
             {/* Title */}
-            <div className="flex flex-col m-1">
+            <div ref={titleContainerRef} className="flex flex-col m-1">
               {/* header */}
               <label className="text-left text-lg">Title</label>
 

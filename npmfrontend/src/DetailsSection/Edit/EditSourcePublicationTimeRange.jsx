@@ -143,10 +143,10 @@ export function EditSourcePublicationTimeRange({
 
   useEffect(() => {
     console.log({ "EditSource.useEffect[editSource.publicationTimeRange.lowerBoundYear]": editSource?.publicationTimeRange.lowerBoundYear })
+    if (!editSource) return // deleted last frame from state machine
     if (!pubDateLowerBoundYearRef.current) return
     if (!pubDateLowerBoundMonthRef.current) return
     if (!pubDateLowerBoundDayRef.current) return
-    if (!editSource) return // deleted last frame from state machine
 
     // on load
     pubDateLowerBoundYearRef.current.value = editSource.publicationTimeRange.lowerBoundYear

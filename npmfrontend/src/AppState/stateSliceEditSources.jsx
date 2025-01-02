@@ -222,8 +222,7 @@ export const stateSliceEditSources = createSlice({
       let newSource = {
         ...sourceInitialState,
         id: "this is my source revisionId",
-        sourceId: "this is my persistant sourceId",
-        title: action.payload.title
+        sourceId: "this is my persistant sourceId"
       }
       // newSource.complete = sourceIsComplete(newSource)
 
