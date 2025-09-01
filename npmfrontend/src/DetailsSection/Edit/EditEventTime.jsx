@@ -22,25 +22,11 @@ export function EditEventTime() {
   const [earliestError, setEarliestError] = useState(null)
   const [latestError, setLatestError] = useState(null)
 
-  const [firstCall, setFirstCall] = useState(true)
-
   // On start, load values from state
   useEffect(() => {
     console.log({ "EditEventTime.useEffect": editState })
-    if (firstCall) {
-      console.log("first call")
-      setFirstCall(false)
-    }
     let inputNotDefined = !earliestYearInputRef.current && !earliestMonthInputRef.current && !earliestDayInputRef.current && !latestYearInputRef.current && !latestMonthInputRef.current && !latestDayInputRef.current
-    console.log(`earliestYearInputRef: '${earliestYearInputRef.current}'`)
-    console.log(`earliestMonthInputRef: '${earliestMonthInputRef.current}'`)
-    console.log(`earliestDayInputRef: '${earliestDayInputRef.current}'`)
-    console.log(`latestYearInputRef: '${latestYearInputRef.current}'`)
-    console.log(`latestMonthInputRef: '${latestMonthInputRef.current}'`)
-    console.log(`latestDayInputRef: '${latestDayInputRef.current}'`)
-    console.log(`inputNotDefined: '${inputNotDefined}'`)
     if (inputNotDefined) {
-      console.log("someone not defined, returning")
       return
     }
 
@@ -51,7 +37,8 @@ export function EditEventTime() {
     setLatestMonth(editState.eventTimeLatestMonth || "")
     setLatestDay(editState.eventTimeLatestDay || "")
 
-    console.log("initial startup done")
+    isComplete(earliestYear, earliestMonth, earliestDay, setEarliestError)
+    isComplete(latestYear, latestMonth, latestDay, setLatestError)
   }, [
     earliestYearInputRef.current,
     earliestMonthInputRef.current,
@@ -74,14 +61,14 @@ export function EditEventTime() {
       setErrorFunction(`Year is not a number: '${year}'. Use negative for BC and postive for AD.`)
       return
     }
-    else if (!Number.isInteger(year)) {
+    else if (!Number.isInteger(Number(year))) {
       setErrorFunction(`Year must be an integer (no decimal): '${year}'`)
       return
     }
 
     let monthDefined = (month && month?.trim() !== "")
     if (monthDefined) {
-      if (isNaN(month) || !Number.isInteger(month) || month < 1) {
+      if (isNaN(month) || !Number.isInteger(Number(month)) || month < 1) {
         setErrorFunction(`Month (if defined) must be a positive integer (no decimal): '${month}'`)
         return
       }
@@ -89,7 +76,7 @@ export function EditEventTime() {
 
     let dayDefined = (day && day.trim() !== "")
     if (dayDefined) {
-      if (isNaN(day) || !Number.isInteger(day) || day < 1)
+      if (isNaN(day) || !Number.isInteger(Number(day)) || day < 1)
         setErrorFunction(`Day (if defined) must be a positive integer (no decimal): '${day}'`)
       return
     }
@@ -140,30 +127,40 @@ export function EditEventTime() {
     isComplete(latestYear, latestMonth, value, setLatestError)
   }
 
+  // Determine border color based on validation state
+  const getBorderClass = () => {
+    const hasErrors = earliestError || latestError
+    if (hasErrors) {
+      return "border-red-500 border-opacity-80 border-2"
+    } else {
+      return "border-green-600 border-opacity-80 border-2"
+    }
+  }
+
   return (
-    <div className="flex flex-col border-2 m-1 border-gray-600">
+    <div className={`flex flex-col m-1 ${getBorderClass()}`}>
       <h3 className="text-white font-medium">Event time</h3>
 
       {/* Earliest subsection */}
       <div className="m-1">
-        <span className="text-white text-sm text-left">Earliest possiblxe:</span>
+        <span className="text-white text-sm text-left block">Earliest possible:</span>
         <div className="grid grid-cols-3 gap-1">
           <input ref={earliestYearInputRef} className="text-black text-center" type="text" value={earliestYear} onChange={onEarliestYearChanged} placeholder="YYYY (ex: -500)" />
           <input ref={earliestMonthInputRef} className="text-black text-center" type="text" value={earliestMonth} onChange={onEarliestMonthChanged} placeholder="MM (optional)" />
           <input ref={earliestDayInputRef} className="text-black text-center" type="text" value={earliestDay} onChange={onEarliestDayChanged} placeholder="DD (optional)" />
         </div>
-        <label className="text-red-500 text-sm mt-1">{earliestError}</label>
+        <label className="text-red-500 text-sm mt-1 block text-left">{earliestError}</label>
       </div>
 
       {/* Latest subsection */}
       <div className="m-1">
-        <span className="text-white text-sm text-left">Latest possiblxe:</span>
+        <span className="text-white text-sm text-left block">Latest possible:</span>
         <div className="grid grid-cols-3 gap-1">
           <input ref={latestYearInputRef} className="text-black text-center" type="text" value={latestYear} onChange={onLatestYearChanged} placeholder="YYYY (ex: -500)" />
           <input ref={latestMonthInputRef} className="text-black text-center" type="text" value={latestMonth} onChange={onLatestMonthChanged} placeholder="MM (optional)" />
           <input ref={latestDayInputRef} className="text-black text-center" type="text" value={latestDay} onChange={onLatestDayChanged} placeholder="DD (optional)" />
         </div>
-        <label className="text-red-500 text-sm mt-1">{latestError}</label>
+        <label className="text-red-500 text-sm mt-1 block text-left">{latestError}</label>
       </div>
     </div>
   )
