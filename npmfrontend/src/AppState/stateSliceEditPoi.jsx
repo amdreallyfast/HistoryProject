@@ -8,6 +8,7 @@ const initialState = {
   revisionAuthor: "TestingAuthor",
   title: null,
   tags: [],
+  eventType: "EverythingElse",
   imageDataUrl: null,
   summary: null,
 
@@ -126,6 +127,15 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         tags: action.payload
+      }
+    },
+
+    setEventType: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventType": action.payload })
+
+      return {
+        ...state,
+        eventType: action.payload.eventType
       }
     },
 

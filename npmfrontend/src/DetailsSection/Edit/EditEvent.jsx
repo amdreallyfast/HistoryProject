@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux"
 import axios from "axios";
 import { EditEventHeader } from "./EditEventHeader";
+import { EditEventType } from "./EditEventType";
 import { EditEventImage } from "./EditEventImage";
 import { EditEventRegion } from "./EditEventRegion";
 import { EditEventSummary } from "./EditEventSummary";
@@ -37,6 +38,7 @@ export function EditEvent({ }) {
   return (
     <div className="flex flex-col h-full">
       <EditEventHeader />
+      <EditEventType />
       {/* <EditEventImage /> */}
       {/* <EditEventRegion /> */}
       {/* <EditEventSummary /> */}

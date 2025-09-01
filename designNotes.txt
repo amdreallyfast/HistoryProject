@@ -153,3 +153,55 @@ Globe:
 		Progress:
 			??
 
+DetailsSection
+	TODO:
+		Mon, 9/1/2025
+			Create 2x event types:
+				RecordsCreated
+				EverythingElse
+			
+			A "RecordsCreated" event requires no source. It will _be_ the source.
+			An "EverythingElse" event requires at least one "RecordsCreated" event. It is everything other than the creation of the record of it.
+			
+		Progress:
+			C:\GitHub\HistoryProject\npmfrontend\src\AppState\stateSliceEditPoi.jsx
+				Update this file and add field to initialState: "eventType", default value "EverythingElse". Add a function field to createSlice similar to setImageDataUrl, in which "eventType" is extracted from the payload and set in the state.
+
+			C:\GitHub\HistoryProject\npmfrontend\src\AppState\stateSliceEditPoi.jsx
+				Create a new file in this folder called "EditEventType.jsx", similar in appearance and style to EditEventSummary.jsx, but instead a textarea, use a radio button labeled "Event type" with two options: "Records created" and "Everything else". Use the latter as default.
+
+				Add this component to EditEvent, just under the header
+
+	
+	TODO:
+		Mon, 9/1/2025
+			When creating an "EverythingElse" event, "Add Source" will be required so that the source will be linked to the event that recorded it.
+			If the source is not yet recorded, then the "Add Source" interface shall have a "Create source" button.
+			If selected, the "Create source" button will open a new interface "tab" over the "Create event" interface, locked to type "RecordsCreated"
+			When finished creating the source, the interface will return to the "Create event" interface, and the new source will be automatically added.
+		
+		Progress:
+			??
+	
+	TODO:
+		Mon, 9/1/2025
+			C:\GitHub\HistoryProject\npmfrontend\src\AppState\stateSliceEditPoi.jsx
+				setRevisionAuthor(...)
+					Should be set automatically according to the current user
+		
+		Progress:
+			??
+		
+Create a new state file in the current folder called "stateSliceEditEvent.jsx" using similar syntax to "stateSliceEditPoi.jsx". I want it to have an initialState with the following fields:
+"eventId", guid. This will be a constant across all revisions of this event
+"revisionId", guid. This represents a specific instance of an event
+"revisionAuthor", string, and will default to "TestingAuthor" for now
+"title", string, default null
+"eventStartYear", 
+"tags", array of strings, default to empty array
+"imageDataUrl", null string.
+"summary", null string
+
+Add brief comments to each field for expected type and whether or not it is required.
+
+
