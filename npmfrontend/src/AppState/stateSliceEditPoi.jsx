@@ -8,7 +8,7 @@ const initialState = {
   revisionAuthor: "TestingAuthor",
   title: null,
   tags: [],
-  eventType: "EverythingElse",
+  eventIsCreationOfSource: false,
   imageDataUrl: null,
   summary: null,
 
@@ -130,12 +130,12 @@ export const stateSliceEditPoi = createSlice({
       }
     },
 
-    setEventType: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventType": action.payload })
+    setEventIsCreationOfSource: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventIsCreationOfSource": action.payload })
 
       return {
         ...state,
-        eventType: action.payload.eventType
+        eventIsCreationOfSource: action.payload.eventIsCreationOfSource
       }
     },
 

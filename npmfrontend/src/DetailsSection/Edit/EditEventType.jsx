@@ -6,55 +6,34 @@ export function EditEventType() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
 
-  const [selectedEventType, setSelectedEventType] = useState("Everything else")
+  const [isCreationOfSource, setIsCreationOfSource] = useState(false)
 
   // On start, load values from state
   useEffect(() => {
-    console.log({ "EditEventType.useEffect[editState.eventType]": editState.eventType })
+    console.log({ "EditEventType.useEffect[editState.eventIsCreationOfSource]": editState.eventIsCreationOfSource })
 
-    if (editState.eventType === "RecordsCreated") {
-      setSelectedEventType("Records created")
-    } else {
-      setSelectedEventType("Everything else")
-    }
-  }, [editState.eventType])
+    setIsCreationOfSource(editState.eventIsCreationOfSource || false)
+  }, [editState.eventIsCreationOfSource])
 
-  // On selection change, set state
-  const eventTypeChanged = (e) => {
-    const selectedValue = e.target.value
-    setSelectedEventType(selectedValue)
-    
-    const eventTypeValue = selectedValue === "Records created" ? "RecordsCreated" : "EverythingElse"
-    reduxDispatch(editStateActions.setEventType({ eventType: eventTypeValue }))
+  // On checkbox change, set state
+  const checkboxChanged = (e) => {
+    const isChecked = e.target.checked
+    setIsCreationOfSource(isChecked)
+
+    reduxDispatch(editStateActions.setEventIsCreationOfSource({ eventIsCreationOfSource: isChecked }))
   }
 
   return (
     <div className="flex flex-col">
-      <label className="m-2 text-white font-medium">Event type</label>
-      
-      <div className="m-2 flex flex-col space-y-2">
-        <label className="flex items-center">
+      <div className="border-2 border-gray-600 m-1 p-2">
+        <label className="flex items-center justify-between">
+          <span className="text-white">This event is the creation of a record</span>
           <input
-            type="radio"
-            name="eventType"
-            value="Records created"
-            checked={selectedEventType === "Records created"}
-            onChange={eventTypeChanged}
-            className="mr-2"
+            type="checkbox"
+            checked={isCreationOfSource}
+            onChange={checkboxChanged}
+            className="ml-2"
           />
-          <span className="text-white">Records created</span>
-        </label>
-        
-        <label className="flex items-center">
-          <input
-            type="radio"
-            name="eventType"
-            value="Everything else"
-            checked={selectedEventType === "Everything else"}
-            onChange={eventTypeChanged}
-            className="mr-2"
-          />
-          <span className="text-white">Everything else</span>
         </label>
       </div>
     </div>

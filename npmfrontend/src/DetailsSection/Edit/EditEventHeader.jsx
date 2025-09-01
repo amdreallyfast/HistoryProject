@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
@@ -50,20 +51,20 @@ export function EditEventHeader() {
     console.log({ "new tag react elements": editState.tags })
 
     let newTagReactElements = editState.tags?.map((t) => (
-      <p className="m-1 border-2 border-gray-600" key={t}>{t}</p>
+      <p className="mt-1 mr-1 border-2 border-gray-600" key={t}>{t}</p>
     ))
     setTagReactElements(newTagReactElements)
   }, [editState.tags])
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col border-2 m-1 border-gray-600">
       {/* Title */}
-      <input ref={titleInputRef} className="m-2 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onKeyDown={(e) => titleTextCapture(e)} />
+      <input ref={titleInputRef} className="m-1 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onKeyDown={(e) => titleTextCapture(e)} />
 
       {/* Tags */}
-      <div className="flex flex-row items-start border-2 border-gray-600 m-1 overflow-auto flex-wrap">
+      <div className="flex flex-row items-start m-1 overflow-auto flex-wrap">
         {tagReactElements}
-        <input ref={tagsInputRef} id="tagsInput" className="m-2 text-black text-left" type="text" maxLength={detailRestrictions.maxTagLength} placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
+        <input ref={tagsInputRef} id="tagsInput" className="mt-1 mr-1 text-black text-left" type="text" maxLength={detailRestrictions.maxTagLength} placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
       </div>
     </div>
   )

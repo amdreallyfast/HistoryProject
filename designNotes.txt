@@ -164,14 +164,19 @@ DetailsSection
 			An "EverythingElse" event requires at least one "RecordsCreated" event. It is everything other than the creation of the record of it.
 			
 		Progress:
-			C:\GitHub\HistoryProject\npmfrontend\src\AppState\stateSliceEditPoi.jsx
-				Update this file and add field to initialState: "eventType", default value "EverythingElse". Add a function field to createSlice similar to setImageDataUrl, in which "eventType" is extracted from the payload and set in the state.
+			Mon, 9/1/2025
+				C:\GitHub\HistoryProject\npmfrontend\src\AppState\stateSliceEditPoi.jsx
+					Update this file and add field to initialState: "eventType", default value "EverythingElse". Add a function field to createSlice similar to setImageDataUrl, in which "eventType" is extracted from the payload and set in the state.
 
-			C:\GitHub\HistoryProject\npmfrontend\src\AppState\stateSliceEditPoi.jsx
-				Create a new file in this folder called "EditEventType.jsx", similar in appearance and style to EditEventSummary.jsx, but instead a textarea, use a radio button labeled "Event type" with two options: "Records created" and "Everything else". Use the latter as default.
+				C:\GitHub\HistoryProject\npmfrontend\src\AppState\stateSliceEditPoi.jsx
+					Create a new file in this folder called "EditEventType.jsx", similar in appearance and style to EditEventSummary.jsx, but instead a textarea, use a radio button labeled "Event type" with two options: "Records created" and "Everything else". Use the latter as default.
 
-				Add this component to EditEvent, just under the header
-
+					Add this component to EditEvent, just under the header
+					
+					Change EditEventType to use a checkbox instead of a radio button. The checkbox will be labeled "This event is the creation of a record". Put the checkbox on the left and the title on the right Modify the state machine variable to be a boolean called "eventIsCreationOfSource", default false. Modify the state machine setter function accordingly.
+				
+				C:\GitHub\HistoryProject\npmfrontend\src\DetailsSection\Edit\EditEvent.jsx
+					
 	
 	TODO:
 		Mon, 9/1/2025
