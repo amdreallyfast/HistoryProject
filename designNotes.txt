@@ -43,27 +43,113 @@ Click-and-drag:
 			Whole region is generated using spherical math, with every point being calculated and set rather than transformed from an origin. 
 			That is, the geometry is not a constant (like the pins) and so should not be moved by transforms. Transforms are independent of vertices, so if you update the vertices, the transforms are applied to the new vertices, which moves them away from where they were calculated that they should be.
 			Therefore, do not move it per se, but rather rely on the movement of the region boundary pins to update the region boundaries, and then react to that to re-create the mesh.
+
+Globe:
+	TODO: 
+		figure out how to convert 3D points on the surface of a globe to a 2D space, _then_ run the triangulation algorithms
+		
+		Progress:
+			Discard.
 			
-// TODO: figure out how to convert 3D points on the surface of a globe to a 2D space, _then_ run the triangulation algorithms
-// TODO:
-	Region boundary pin subdivide
-		subdivide all
-		subdivide on selected lin between pins 
-			TODO:
-				draw a line that can be hovered over and highlighted
-				when line geometry is clicked, add a new boundary pin between them
-				??have to make a mesh for each line between adjacent bounding pins? probably??
-// TODO: Implement "Command" pattern so that the user can CTRL-Z the last edit
-// TODO: stateSliveEditPoi: delete whereLatLongArr: [],  
-// TODO: Scene: useEffect: editState.editModeOne: set edit state info based on currently selected POI info
-// TODO: Scene: move mouse hover logic from scene to MouseHandler
-	useEffect: mouseState.cursorRaycastIntersections.firstNonGlobe
-	useEffect: mouseState.cursorRaycastIntersections.globe
-// TODO: MouseHandler: useEffect: mouseState.mouseUp: if time is short enough, then consider hovering over the globe or not. If hovering over globe, consider lat/long changes (perhaps the user is clcik-and-drag the screen to rotate the globe). Else just check for screen space positioning
-// TODO: new state: 
-	interactableMeshIds (based on ThreeJS' mesh.id)
-	when a mesh finishes creation, add the meshId to the array
-	when a mesh is deleted, remove the meshId from the array 
-		??what "use" function would I call for this??
-// TODO: simple "star field" effect: Make each star vary brightness, starting with a random delay (so that they don't all vary brightness simultaneously)
-// TODO: bug to reactThreeFiber: "points" does not record "name" when provided
+			I remember trying that, but I still couldn't get past the trouble of the need to wrap around at the poles. I had to use polar coordinates to interact with a globe.
+	
+	TODO:
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		Create "clickable line mesh" object
+		Purpose:
+			Use in boundary line and timeline later
+	
+	TODO:
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		Create "boundary line" and incorporate on top of the mesh the mesh
+		Prerequisite:
+			"clickable line mesh"
+		When selected, can be:
+			moved (technically moves the boundary pins on either side)
+			subdivided:
+				Create new boundary pin
+				Create 2x new "boundary line" objects between the three pins (A <--> B <--> C)
+				Remove current "boundary line" object
+		
+		Progress:
+			??
+	TODO:
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		Create "timeline" object to be rendered on the surface of the globe
+		When clicked, it will select a timeline in the backend
+		
+		Progress:
+			??
+			This will be later
+	
+	TODO: 
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		Implement "Command" pattern so that the user can CTRL-Z the last edit
+
+	TODO: 
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		stateSliceEditPoi: delete whereLatLongArr: [],  
+		
+		Progress:
+			??done when??
+			Done (when checked Mon, 9/1/2025)
+
+	TODO: 
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		Scene: 
+			useEffect: 
+				editState.editModeOn: 
+					set edit state info based on currently selected POI info
+
+	TODO: 
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		Scene: 
+			move mouse hover logic from scene to MouseHandler
+			useEffect: mouseState.cursorRaycastIntersections.firstNonGlobe
+			useEffect: mouseState.cursorRaycastIntersections.globe
+
+	TODO: 
+		Initial idea 2024 sometime
+		Mon, 9/1/2025
+		MouseHandler: 
+			useEffect: 
+				mouseState.mouseUp: 
+					if time is short enough, then consider hovering over the globe or not. If hovering over globe, consider lat/long changes (perhaps the user is trying to click-and-drag the screen to rotate the globe). Else just check for screen space positioning
+		
+		Progress:
+			done ??when??
+
+	TODO: new state: 
+		Initial idea ??when??
+		Mon, 9/1/2025
+
+		interactableMeshIds (based on ThreeJS' mesh.id)
+		when a mesh finishes creation, add the meshId to the array
+		when a mesh is deleted, remove the meshId from the array 
+			??what "use" function would I call for this??
+		
+		Progress:
+			done (2023 sometime)
+			C:\GitHub\HistoryProject\npmfrontend\src\GlobeSection\Scene.jsx, line 63
+	
+	TODO: 
+		Initial idea ??when??
+		Mon, 9/1/2025
+		simple "star field" effect: Make each star vary brightness, starting with a random delay (so that they don't all vary brightness simultaneously)
+		
+		Progress:
+			??
+	
+	TODO: 
+		bug to reactThreeFiber: "points" does not record "name" when provided
+		
+		Progress:
+			??
+
