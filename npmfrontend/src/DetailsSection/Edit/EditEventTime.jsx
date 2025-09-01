@@ -1,10 +1,17 @@
-import { useEffect, useState } from "react"
+import { useEffect, useReducer, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editStateActions } from "../../AppState/stateSliceEditPoi"
 
 export function EditEventTime() {
   const editState = useSelector((state) => state.editPoiReducer)
   const reduxDispatch = useDispatch()
+
+  const earliestYearInputRef = useRef()
+  const earliestMonthInputRef = useRef()
+  const earliestDayInputRef = useRef()
+  const latestYearInputRef = useRef()
+  const latestMonthInputRef = useRef()
+  const latestDayInputRef = useRef()
 
   const [earliestYear, setEarliestYear] = useState("")
   const [earliestMonth, setEarliestMonth] = useState("")
@@ -15,9 +22,27 @@ export function EditEventTime() {
   const [earliestError, setEarliestError] = useState(null)
   const [latestError, setLatestError] = useState(null)
 
+  const [firstCall, setFirstCall] = useState(true)
+
   // On start, load values from state
   useEffect(() => {
     console.log({ "EditEventTime.useEffect": editState })
+    if (firstCall) {
+      console.log("first call")
+      setFirstCall(false)
+    }
+    let inputNotDefined = !earliestYearInputRef.current && !earliestMonthInputRef.current && !earliestDayInputRef.current && !latestYearInputRef.current && !latestMonthInputRef.current && !latestDayInputRef.current
+    console.log(`earliestYearInputRef: '${earliestYearInputRef.current}'`)
+    console.log(`earliestMonthInputRef: '${earliestMonthInputRef.current}'`)
+    console.log(`earliestDayInputRef: '${earliestDayInputRef.current}'`)
+    console.log(`latestYearInputRef: '${latestYearInputRef.current}'`)
+    console.log(`latestMonthInputRef: '${latestMonthInputRef.current}'`)
+    console.log(`latestDayInputRef: '${latestDayInputRef.current}'`)
+    console.log(`inputNotDefined: '${inputNotDefined}'`)
+    if (inputNotDefined) {
+      console.log("someone not defined, returning")
+      return
+    }
 
     setEarliestYear(editState.eventTimeEarliestYear || "")
     setEarliestMonth(editState.eventTimeEarliestMonth || "")
@@ -25,31 +50,50 @@ export function EditEventTime() {
     setLatestYear(editState.eventTimeLatestYear || "")
     setLatestMonth(editState.eventTimeLatestMonth || "")
     setLatestDay(editState.eventTimeLatestDay || "")
-  }, [editState.eventTimeEarliestYear, editState.eventTimeEarliestMonth, editState.eventTimeEarliestDay,
-  editState.eventTimeLatestYear, editState.eventTimeLatestMonth, editState.eventTimeLatestDay])
+
+    console.log("initial startup done")
+  }, [
+    earliestYearInputRef.current,
+    earliestMonthInputRef.current,
+    earliestDayInputRef.current,
+    latestYearInputRef.current,
+    latestMonthInputRef.current,
+    latestDayInputRef.current
+  ])
 
   // Validation function
   const isComplete = (year, month, day, setErrorFunction) => {
-    if (!year || year.trim() === "") {
+    console.log({ "EditEventTime.isComplete": `year: '${year}', month: '${month}', day: '${day}'` })
+
+    let yearDefined = (year && year.trim() !== "")
+    if (!yearDefined) {
       setErrorFunction("Missing required value: 'Year'")
       return
     }
-    
-    if (isNaN(year) || !Number.isInteger(Number(year))) {
-      setErrorFunction(`Year is not a number: '${year}'`)
+    else if (isNaN(year)) {
+      setErrorFunction(`Year is not a number: '${year}'. Use negative for BC and postive for AD.`)
       return
     }
-    
-    if (month && month.trim() !== "" && (isNaN(month) || !Number.isInteger(Number(month)))) {
-      setErrorFunction(`Month is not a number: '${month}'`)
+    else if (!Number.isInteger(year)) {
+      setErrorFunction(`Year must be an integer (no decimal): '${year}'`)
       return
     }
-    
-    if (day && day.trim() !== "" && (isNaN(day) || !Number.isInteger(Number(day)))) {
-      setErrorFunction(`Day is not a number: '${day}'`)
+
+    let monthDefined = (month && month?.trim() !== "")
+    if (monthDefined) {
+      if (isNaN(month) || !Number.isInteger(month) || month < 1) {
+        setErrorFunction(`Month (if defined) must be a positive integer (no decimal): '${month}'`)
+        return
+      }
+    }
+
+    let dayDefined = (day && day.trim() !== "")
+    if (dayDefined) {
+      if (isNaN(day) || !Number.isInteger(day) || day < 1)
+        setErrorFunction(`Day (if defined) must be a positive integer (no decimal): '${day}'`)
       return
     }
-    
+
     setErrorFunction(null)
   }
 
@@ -104,62 +148,22 @@ export function EditEventTime() {
       <div className="m-1">
         <span className="text-white text-sm text-left">Earliest possiblxe:</span>
         <div className="grid grid-cols-3 gap-1">
-          <input
-            type="text"
-            value={earliestYear}
-            onChange={onEarliestYearChanged}
-            placeholder="YYYY"
-            className="text-black text-center"
-          />
-          <input
-            type="text"
-            value={earliestMonth}
-            onChange={onEarliestMonthChanged}
-            placeholder="MM (optional)"
-            className="text-black text-center"
-          />
-          <input
-            type="text"
-            value={earliestDay}
-            onChange={onEarliestDayChanged}
-            placeholder="DD (optional)"
-            className="text-black text-center"
-          />
+          <input ref={earliestYearInputRef} className="text-black text-center" type="text" value={earliestYear} onChange={onEarliestYearChanged} placeholder="YYYY (ex: -500)" />
+          <input ref={earliestMonthInputRef} className="text-black text-center" type="text" value={earliestMonth} onChange={onEarliestMonthChanged} placeholder="MM (optional)" />
+          <input ref={earliestDayInputRef} className="text-black text-center" type="text" value={earliestDay} onChange={onEarliestDayChanged} placeholder="DD (optional)" />
         </div>
-        {earliestError && (
-          <div className="text-red-500 text-sm mt-1">{earliestError}</div>
-        )}
+        <label className="text-red-500 text-sm mt-1">{earliestError}</label>
       </div>
 
       {/* Latest subsection */}
       <div className="m-1">
-        <label className="text-white text-sm text-left">Latest possible:</label>
+        <span className="text-white text-sm text-left">Latest possiblxe:</span>
         <div className="grid grid-cols-3 gap-1">
-          <input
-            type="text"
-            value={latestYear}
-            onChange={onLatestYearChanged}
-            placeholder="YYYY"
-            className="text-black text-center"
-          />
-          <input
-            type="text"
-            value={latestMonth}
-            onChange={onLatestMonthChanged}
-            placeholder="MM (optional)"
-            className="text-black text-center"
-          />
-          <input
-            type="text"
-            value={latestDay}
-            onChange={onLatestDayChanged}
-            placeholder="DD (optional)"
-            className="text-black text-center"
-          />
+          <input ref={latestYearInputRef} className="text-black text-center" type="text" value={latestYear} onChange={onLatestYearChanged} placeholder="YYYY (ex: -500)" />
+          <input ref={latestMonthInputRef} className="text-black text-center" type="text" value={latestMonth} onChange={onLatestMonthChanged} placeholder="MM (optional)" />
+          <input ref={latestDayInputRef} className="text-black text-center" type="text" value={latestDay} onChange={onLatestDayChanged} placeholder="DD (optional)" />
         </div>
-        {latestError && (
-          <div className="text-red-500 text-sm mt-1">{latestError}</div>
-        )}
+        <label className="text-red-500 text-sm mt-1">{latestError}</label>
       </div>
     </div>
   )
