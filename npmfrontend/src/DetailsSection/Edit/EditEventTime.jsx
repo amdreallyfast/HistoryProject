@@ -138,16 +138,16 @@ export function EditEventTime() {
   }
 
   return (
-    <div className={`flex flex-col m-1 ${getBorderClass()}`}>
+    <div className={`flex flex-col m-1 rounded-md ${getBorderClass()}`}>
       <h3 className="text-white font-medium">Event time</h3>
 
       {/* Earliest subsection */}
       <div className="m-1">
         <span className="text-white text-sm text-left block">Earliest possible:</span>
         <div className="grid grid-cols-3 gap-1">
-          <input ref={earliestYearInputRef} className="text-black text-center" type="text" value={earliestYear} onChange={onEarliestYearChanged} placeholder="YYYY (ex: -500)" />
-          <input ref={earliestMonthInputRef} className="text-black text-center" type="text" value={earliestMonth} onChange={onEarliestMonthChanged} placeholder="MM (optional)" />
-          <input ref={earliestDayInputRef} className="text-black text-center" type="text" value={earliestDay} onChange={onEarliestDayChanged} placeholder="DD (optional)" />
+          <input ref={earliestYearInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={earliestYear} onChange={onEarliestYearChanged} placeholder="YYYY (ex: -500)" />
+          <input ref={earliestMonthInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={earliestMonth} onChange={onEarliestMonthChanged} placeholder="MM (optional)" />
+          <input ref={earliestDayInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={earliestDay} onChange={onEarliestDayChanged} placeholder="DD (optional)" />
         </div>
         <label className="text-red-500 text-sm mt-1 block text-left">{earliestError}</label>
       </div>
@@ -156,9 +156,9 @@ export function EditEventTime() {
       <div className="m-1">
         <span className="text-white text-sm text-left block">Latest possible:</span>
         <div className="grid grid-cols-3 gap-1">
-          <input ref={latestYearInputRef} className="text-black text-center" type="text" value={latestYear} onChange={onLatestYearChanged} placeholder="YYYY (ex: -500)" />
-          <input ref={latestMonthInputRef} className="text-black text-center" type="text" value={latestMonth} onChange={onLatestMonthChanged} placeholder="MM (optional)" />
-          <input ref={latestDayInputRef} className="text-black text-center" type="text" value={latestDay} onChange={onLatestDayChanged} placeholder="DD (optional)" />
+          <input ref={latestYearInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestYear} onChange={onLatestYearChanged} placeholder="YYYY (ex: -500)" />
+          <input ref={latestMonthInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestMonth} onChange={onLatestMonthChanged} placeholder="MM (optional)" />
+          <input ref={latestDayInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestDay} onChange={onLatestDayChanged} placeholder="DD (optional)" />
         </div>
         <label className="text-red-500 text-sm mt-1 block text-left">{latestError}</label>
       </div>
