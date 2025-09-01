@@ -12,6 +12,14 @@ const initialState = {
   imageDataUrl: null,
   summary: null,
 
+  // Event time bounds
+  eventTimeEarliestYear: null,   // required
+  eventTimeEarliestMonth: null,  // optional
+  eventTimeEarliestDay: null,    // optional
+  eventTimeLatestYear: null,     // required
+  eventTimeLatestMonth: null,    // optional
+  eventTimeLatestDay: null,      // optional
+
   // Format: {
   //  isbn: null, // allow null; not all writings are publically registered
   //  title: null,
@@ -156,6 +164,60 @@ export const stateSliceEditPoi = createSlice({
       return {
         ...state,
         summary: action.payload
+      }
+    },
+
+    setEventTimeEarliestYear: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventTimeEarliestYear": action.payload })
+
+      return {
+        ...state,
+        eventTimeEarliestYear: action.payload
+      }
+    },
+
+    setEventTimeEarliestMonth: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventTimeEarliestMonth": action.payload })
+
+      return {
+        ...state,
+        eventTimeEarliestMonth: action.payload
+      }
+    },
+
+    setEventTimeEarliestDay: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventTimeEarliestDay": action.payload })
+
+      return {
+        ...state,
+        eventTimeEarliestDay: action.payload
+      }
+    },
+
+    setEventTimeLatestYear: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventTimeLatestYear": action.payload })
+
+      return {
+        ...state,
+        eventTimeLatestYear: action.payload
+      }
+    },
+
+    setEventTimeLatestMonth: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventTimeLatestMonth": action.payload })
+
+      return {
+        ...state,
+        eventTimeLatestMonth: action.payload
+      }
+    },
+
+    setEventTimeLatestDay: (state, action) => {
+      console.log({ "stateSliceEditPoi.setEventTimeLatestDay": action.payload })
+
+      return {
+        ...state,
+        eventTimeLatestDay: action.payload
       }
     },
 

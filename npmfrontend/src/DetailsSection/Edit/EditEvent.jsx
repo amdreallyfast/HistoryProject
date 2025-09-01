@@ -3,6 +3,7 @@ import axios from "axios";
 import { EditEventHeader } from "./EditEventHeader";
 import { EditEventType } from "./EditEventType";
 import { EditEventImage } from "./EditEventImage";
+import { EditEventTime } from "./EditEventTime";
 import { EditEventRegion } from "./EditEventRegion";
 import { EditEventSummary } from "./EditEventSummary";
 import { EditEventSources } from "./EditEventSources";
@@ -40,6 +41,7 @@ export function EditEvent({ }) {
       <EditEventHeader />
       <EditEventType />
       {/* <EditEventImage /> */}
+      <EditEventTime />
       {/* <EditEventRegion /> */}
       {/* <EditEventSummary /> */}
       <div className="m-1">

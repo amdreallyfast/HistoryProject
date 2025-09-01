@@ -176,7 +176,33 @@ DetailsSection
 					Change EditEventType to use a checkbox instead of a radio button. The checkbox will be labeled "This event is the creation of a record". Put the checkbox on the left and the title on the right Modify the state machine variable to be a boolean called "eventIsCreationOfSource", default false. Modify the state machine setter function accordingly.
 				
 				C:\GitHub\HistoryProject\npmfrontend\src\DetailsSection\Edit\EditEvent.jsx
-					
+	
+	TODO:
+		Initial idea ??when??
+		Mon, 9/1/2025
+			Add a new value to the stateSliceEditPoi: Event time. It will be composed of required integer eventTimeEarliestYear, optional integer eventTimeEarliestMonth, optional integer eventTimeEarliestDay, required integer eventTimeLatestYear, optional integer eventTimeLatestMonth, and optional integer eventTimeLatestDay. Their default values will be null. Add brief, horizontally alligned comments off to the right of each of them. Add setter functions for each of them, similar to the setter functions that already exist. 
+			
+			Then add a new component in the folder DetailsSection/Edit called "EditEventTime". This component will display a section called "Event time" with a grey border similar to the EditEventHeader section, and it will have borderless subsections "earliest"  and "latest". The "earliest" subsection will be at the top of the section, below the section title, and under the left-justified label "Earliest possible:". The "latest" subsection will be below that under the label "Latest possible:". For each "earliest" and "latest" subsection, the year, month, and day will be displayed in individual text boxes on a horizontal line, and each one will be the same width. The "year" text box will have the watermark "YYYY", the "month" text box will have the watermark "MM (optional)", and the "day" text box will have the watermark "DD (optional)". 
+			
+				Older:
+					For each "earliest" and "latest" subsection, they will be similar in appearance to EditSourcePublicationTimeRange, in which the year, month, and day are displayed in individual text boxes on a horizontal line, and each one has the same width.
+			
+			Display this new component in EditEvent.jsx, just below the image.
+			
+			In EditEventTime, make the text boxes only occupy the available space (use a grid with gap 1). Make the subsection labels left-justificied. Rename the handler function names to use the pattern "on<Variable>Changed". 
+			
+			In EditEventTime, add an "is complete" function, and then add a red error message below each of the "earliest" and "latest" subsections. The "is complete" function will be called every time a date value changes in any of the earliest year, month, or day text boxes or any of the latest year, month, or day text boxes. If the year is missing, use the error "Missing required value: 'Year'". If the year is not a number, use the error "Year is not a number: '<value of year variable>'". If the month is not a number, use a similar "not a number" error, and repeat for day. Otherwise, set the error to null.
+			
+			
+			
+			
+			Update the component so that both the "earliest" and "latest" subsections react to changes in the inputs. If there is an error, draw an 80% opaque, slightly rounded red border around that subsection, and add 80% opaque red text with an error message. If the year is missing, use the error "Missing required value: 'Year'". If the year is not a number, use the error "Year is not a number: '<value of year variable>'". If the month is not a number, use a similar error, and if the day is not a number, use a similar error. If there is no, change the border to green.
+			
+	TODO:
+		Mon, 9/1/2025
+			Add a const function to the file stateSliceEditPoi.jsx called evaluateComplete. It takes an "event" object with all the fields of initialState.
+			
+			a new component called EditEventTime. 
 	
 	TODO:
 		Mon, 9/1/2025
