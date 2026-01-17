@@ -204,9 +204,12 @@ DetailsSection
 	
 	TODO:
 		Mon, 9/1/2025
-			Add a const function to the file stateSliceEditPoi.jsx called evaluateComplete. It takes an "event" object with all the fields of initialState.
-			
-			a new component called EditEventTime. 
+			In EditEventHeader
+				create an "is complete" function that will ...
+				Title required
+				Must have at least one tag. Ex: Name of the place (city, field, house, etc.), name of a prominent individual.
+				...change the border behavior based on the "is complete" function. If there is an error, set the border to a bright red color, thin to medium thickness, and 80% opacity. If no error, set the border to a dull green color, with the same thickness and opacity.
+				make the border slightly rounded. Change the style of the input text boxes to be smoother with a slight round to the corners.
 	
 	TODO:
 		Mon, 9/1/2025
