@@ -10,6 +10,7 @@
 		Select a framework: React
 		Select a variant: JavaScript
   cd npmfrontend
+    npm install --save @anthropic-ai/claude-code          # For claude assistance
     npm install --save three                              # For rendering the globe
     npm install --save @react-three/fiber                 # For react-based variants of ThreeJs classes
     npm install --save @react-three/drei                  # For OrbitControls, PerspectiveCamera
