@@ -34,11 +34,22 @@ export function EditEventRegion() {
     }
   }
 
+  // Determine height class based on whether there are region items
+  const getHeightClass = () => {
+    const hasRegionItems = latLongReactElements && latLongReactElements.length > 0
+    if (hasRegionItems) {
+      // min-h-48 (12rem/192px) should fit approximately 8 items
+      return "min-h-48"
+    }
+    // min-h-20 (5rem/80px) fits title, note, and error when no items
+    return "min-h-28"
+  }
+
   const htmlClass = {
-    PrimaryLoc: "w-full text-red-400 text-left border-2 border-gray-400 rounded-md mb-1",
-    PrimaryLocHighlighted: "w-full text-red-500 text-left border-2 border-gray-400 rounded-md mb-1 font-bold",
-    RegionBoundary: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1",
-    RegionBoundaryHighlighted: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
+    PrimaryLoc: "w-full text-red-400 text-left border-2 border-gray-400 rounded-md mb-1 pl-2",
+    PrimaryLocHighlighted: "w-full text-red-500 text-left border-2 border-gray-400 rounded-md mb-1 font-bold pl-2",
+    RegionBoundary: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1 pl-2",
+    RegionBoundaryHighlighted: "w-full text-yellow-300 text-left border-2 border-gray-400 rounded-md mb-1 font-bold pl-2"
   }
 
   const createLatLongReactElements = () => {
@@ -55,6 +66,12 @@ export function EditEventRegion() {
         reduxDispatch(mouseStateActions.setSelectedLocId(loc.id))
       }
     }
+
+    // Minimum need the primary location
+    if (!editState.primaryLoc) {
+      return
+    }
+
 
     // TODO: ??onhover??
 
@@ -96,12 +113,13 @@ export function EditEventRegion() {
   useEffect(() => {
     console.log({ "EditEventRegion.useEffect[editState.primaryLoc]": editState.primaryLoc })
 
-    if (!latLongReactElements && !editState.primaryLoc) {
-      // null on first load; skip
-    }
-
     createLatLongReactElements()
     isComplete(editState.primaryLoc)
+    // if (!latLongReactElements && !editState.primaryLoc) {
+    //   // null on first load; skip
+    // }
+    // else {
+    // }
   }, [editState.primaryLoc])
 
   // Update HTML elements if the region boundaries change.
@@ -109,9 +127,9 @@ export function EditEventRegion() {
   // objects within it) whenever a single region boundary pin changes, so this should be able to react to any changes to any of them.
   useEffect(() => {
     console.log({ "EditEventRegion.useEffect[editState.regionBoundaries]": editState.regionBoundaries })
-    if (!latLongReactElements && !editState.regionBoundaries) {
-      // null on first load; skip
-    }
+    // if (!latLongReactElements && !editState.regionBoundaries) {
+    //   // null on first load; skip
+    // }
 
     createLatLongReactElements()
   }, [editState.regionBoundaries])
@@ -154,7 +172,9 @@ export function EditEventRegion() {
   }, [mouseState.selectedLocId])
 
   return (
-    <div className={`flex flex-col items-start m-1 rounded-md h-1/4 overflow-auto ${getBorderClass()}`}>
+    <div className={`flex flex-col items-start m-1 rounded-md overflow-auto ${getHeightClass()} ${getBorderClass()}`}>
+      <h3 className="text-white font-medium w-full text-center">Where</h3>
+      <span className="text-white text-sm text-left block mb-2 pl-1">Lat, long. Red == primary location.</span>
       {latLongReactElements}
       {/* Error display */}
       <label className="text-red-500 text-sm m-1 block text-left">{error}</label>
