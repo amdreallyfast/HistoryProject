@@ -243,3 +243,15 @@ Create a new state file in the current folder called "stateSliceEditEvent.jsx" u
 Add brief comments to each field for expected type and whether or not it is required.
 
 
+
+editeventregion, make region text, and selected item border yellow
+editeventregion, make the middle div have a maximum height with a scrollbar
+
+editeventsources, what is that filter doing? There only needs to be at least one source, but the filter looks like it is saying that there must be at least one source where the key is not equal to the string "sources". What is that doing?
+
+editeventheader, update tags with the same rounded border
+
+create veritcal scroll bar in the eidt section
+make it a modal instead?
+plan out the use of cookies for each edit component? instead of the redux state machine?
+make "Show" versions of each of them (??rename to Display??)

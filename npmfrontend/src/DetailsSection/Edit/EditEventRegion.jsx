@@ -34,17 +34,6 @@ export function EditEventRegion() {
     }
   }
 
-  // Determine height class based on whether there are region items
-  const getHeightClass = () => {
-    const hasRegionItems = latLongReactElements && latLongReactElements.length > 0
-    if (hasRegionItems) {
-      // min-h-48 (12rem/192px) should fit approximately 8 items
-      return "min-h-48"
-    }
-    // min-h-20 (5rem/80px) fits title, note, and error when no items
-    return "min-h-28"
-  }
-
   const htmlClass = {
     PrimaryLoc: "w-full text-red-400 text-left border-2 border-gray-400 rounded-md mb-1 pl-2",
     PrimaryLocHighlighted: "w-full text-red-500 text-left border-2 border-gray-400 rounded-md mb-1 font-bold pl-2",
@@ -172,12 +161,24 @@ export function EditEventRegion() {
   }, [mouseState.selectedLocId])
 
   return (
-    <div className={`flex flex-col items-start m-1 rounded-md overflow-auto ${getHeightClass()} ${getBorderClass()}`}>
-      <h3 className="text-white font-medium w-full text-center">Where</h3>
-      <span className="text-white text-sm text-left block mb-2 pl-1">Lat, long. Red == primary location.</span>
-      {latLongReactElements}
-      {/* Error display */}
-      <label className="text-red-500 text-sm m-1 block text-left">{error}</label>
+    <div className={`flex flex-col m-1 rounded-md ${getBorderClass()}`}>
+      {/* Header: title and note - always visible */}
+      <div className="w-full">
+        <h3 className="text-white font-medium w-full text-center">Where</h3>
+        <span className="text-white text-sm text-left block mb-2 pl-1">Lat, long. Red == primary location.</span>
+      </div>
+
+      {/* Region items - renders only if there are items */}
+      {latLongReactElements && latLongReactElements.length > 0 && (
+        <div className="w-full">
+          {latLongReactElements}
+        </div>
+      )}
+
+      {/* Error display - renders only if there's an error */}
+      {error && (
+        <label className="text-red-500 text-sm m-1 block text-left">{error}</label>
+      )}
     </div>
   )
 }
