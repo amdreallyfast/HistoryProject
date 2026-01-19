@@ -40,10 +40,10 @@ export function EditEvent({ }) {
     <div className="flex flex-col h-full">
       <EditEventHeader />
       <EditEventType />
-      {/* <EditEventImage /> */}
+      <EditEventImage />
       <EditEventTime />
-      {/* <EditEventRegion /> */}
-      {/* <EditEventSummary /> */}
+      <EditEventRegion />
+      <EditEventSummary />
       <div className="m-1">
         <EditEventSources />
       </div>

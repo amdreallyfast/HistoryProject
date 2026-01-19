@@ -13,6 +13,27 @@ export function EditEventSources() {
   const reduxDispatch = useDispatch()
 
   const [sources, setSources] = useState([])
+  const [error, setError] = useState(null)
+
+  // Validation function
+  const isComplete = (editSourcesObj) => {
+    let editIds = Object.keys(editSourcesObj).filter(editId => editId != "sources")
+    if (!editIds || editIds.length === 0) {
+      setError("Must have at least one source")
+      return false
+    }
+    setError(null)
+    return true
+  }
+
+  // Determine border color based on validation state
+  const getBorderClass = () => {
+    if (error) {
+      return "border-red-500 border-opacity-80 border-2"
+    } else {
+      return "border-green-600 border-opacity-80 border-2"
+    }
+  }
 
   // On load
   useEffect(() => {
@@ -66,6 +87,7 @@ export function EditEventSources() {
     ))
     setSources(reactElements)
     console.log({ path: "create", sources: reactElements })
+    isComplete(editSources)
   }, [editSources])
 
 
@@ -102,7 +124,7 @@ export function EditEventSources() {
   }
 
   return (
-    <div className="flex flex-col border-2 border-gray-600 overflow-auto">
+    <div className={`flex flex-col m-1 rounded-md overflow-auto ${getBorderClass()}`}>
       <label className="text-xl">Sources</label>
 
       {sources}
@@ -113,6 +135,8 @@ export function EditEventSources() {
         </button>
       </div>
 
+      {/* Error display */}
+      <label className="text-red-500 text-sm m-1 block text-left">{error}</label>
     </div>
   )
 }

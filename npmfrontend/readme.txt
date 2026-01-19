@@ -69,29 +69,30 @@
       Tailwind CSS IntelliSense
 
 Update:
+	nvm --version     
+	nvm install latest
+	nvm --version     
+		1.1.11
+	nvm list
+		25.3.0
+	  * 20.8.0 (Currently using 64-bit executable)
+		18.16.0
+	nvm use 25.3.0
+	npm -v
+		10.9.0
+	npm install -g npm@latest
+	npm -v
+		11.7.0
 	npm update --save
+
+	If it complains about vulnerabilities:
+		npm audit				// check
+		npm audit				// check
+		npm audit fix --force	// force package update, even if it was labeled as a break change
 	https://stackoverflow.com/questions/71734483/npm-update-is-not-updating-the-version-in-package-json-file
+	(among other links)
 
-
-
-
-nvm --version     
-nvm install latest
-nvm --version     
-	1.1.11
-nvm list
-    25.3.0
-  * 20.8.0 (Currently using 64-bit executable)
-    18.16.0
-nvm use 25.3.0
-npm -v
-	10.9.0
-npm install -g npm@latest
-npm -v
-	11.7.0
-npm update --save
-
-If it complains about vulnerabilities:
-	npm audit				// check
-	npm audit				// check
-	npm audit fix --force	// force package update, even if it was labeled as a break change
+Claude:
+	Powershell (ex: in vscode terminal):
+		claude
+		/termina-setup		# first time

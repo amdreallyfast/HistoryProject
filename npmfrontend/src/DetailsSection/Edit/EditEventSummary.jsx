@@ -9,6 +9,26 @@ export function EditEventSummary() {
 
   const summaryInputRef = useRef()
   const charCountLabelRef = useRef()
+  const [error, setError] = useState(null)
+
+  // Validation function
+  const isComplete = (summary) => {
+    if (!summary || summary.trim() === "") {
+      setError("Missing required value: 'Summary'")
+      return false
+    }
+    setError(null)
+    return true
+  }
+
+  // Determine border color based on validation state
+  const getBorderClass = () => {
+    if (error) {
+      return "border-red-500 border-opacity-80 border-2"
+    } else {
+      return "border-green-600 border-opacity-80 border-2"
+    }
+  }
 
   // On start, load values from state
   useEffect(() => {
@@ -21,8 +41,9 @@ export function EditEventSummary() {
     charCountLabelRef.current.innerHTML = `0/${detailRestrictions.maxSummaryLength}`
     if (editState.summary) {
       summaryInputRef.current.innerHTML = editState.summary
-      charCountLabelRef.current.innerHTML = `${newText.length}/${detailRestrictions.maxSummaryLength}`
+      charCountLabelRef.current.innerHTML = `${editState.summary.length}/${detailRestrictions.maxSummaryLength}`
     }
+    isComplete(editState.summary)
   }, [summaryInputRef.current, charCountLabelRef.current, editState.summary])
 
   // On text change, set state
@@ -30,10 +51,11 @@ export function EditEventSummary() {
     let newText = e.target.value
     reduxDispatch(editStateActions.setSummary(newText))
     charCountLabelRef.current.innerHTML = `${newText.length}/${detailRestrictions.maxSummaryLength}`
+    isComplete(newText)
   }
 
   return (
-    <div className="flex flex-col">
+    <div className={`flex flex-col m-1 rounded-md ${getBorderClass()}`}>
       {/* Summary */}
       <textarea ref={summaryInputRef}
         className="m-2 text-black overflow-auto "
@@ -43,7 +65,10 @@ export function EditEventSummary() {
         onChange={(e) => summaryTextChanged(e)} />
 
       {/* char count */}
-      <label ref={charCountLabelRef} className="text-right"></label>
+      <label ref={charCountLabelRef} className="text-right mr-2"></label>
+
+      {/* Error display */}
+      <label className="text-red-500 text-sm m-1 block text-left">{error}</label>
     </div>
   )
 }

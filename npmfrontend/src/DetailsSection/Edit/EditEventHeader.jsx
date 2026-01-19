@@ -11,6 +11,30 @@ export function EditEventHeader() {
   const titleInputRef = useRef()
   const tagsInputRef = useRef()
   const [tagReactElements, setTagReactElements] = useState()
+  const [error, setError] = useState(null)
+
+  // Validation function
+  const isComplete = (title, tags) => {
+    if (!title || title.trim() === "") {
+      setError("Missing required value: 'Title'")
+      return false
+    }
+    if (!tags || tags.length === 0) {
+      setError("Must have at least one tag")
+      return false
+    }
+    setError(null)
+    return true
+  }
+
+  // Determine border color based on validation state
+  const getBorderClass = () => {
+    if (error) {
+      return "border-red-500 border-opacity-80 border-2"
+    } else {
+      return "border-green-600 border-opacity-80 border-2"
+    }
+  }
 
   //??necessary function? just use 'on changed'??
   const titleTextCapture = (e) => {
@@ -21,6 +45,7 @@ export function EditEventHeader() {
     }
 
     reduxDispatch(editStateActions.setTitle(titleValue))
+    isComplete(titleValue, editState.tags)
   }
 
   // Tab complete for tags
@@ -54,10 +79,11 @@ export function EditEventHeader() {
       <p className="mt-1 mr-1 border-2 border-gray-600" key={t}>{t}</p>
     ))
     setTagReactElements(newTagReactElements)
+    isComplete(titleInputRef?.current?.value, editState.tags)
   }, [editState.tags])
 
   return (
-    <div className="flex flex-col border-2 m-1 border-gray-600">
+    <div className={`flex flex-col m-1 rounded-md ${getBorderClass()}`}>
       {/* Title */}
       <input ref={titleInputRef} className="m-1 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onKeyDown={(e) => titleTextCapture(e)} />
 
@@ -66,6 +92,9 @@ export function EditEventHeader() {
         {tagReactElements}
         <input ref={tagsInputRef} id="tagsInput" className="mt-1 mr-1 text-black text-left" type="text" maxLength={detailRestrictions.maxTagLength} placeholder="Tag (tab to complete)" onKeyDown={(e) => tagTextCapture(e)} />
       </div>
+
+      {/* Error display */}
+      <label className="text-red-500 text-sm m-1 block text-left">{error}</label>
     </div>
   )
 }

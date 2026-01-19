@@ -9,6 +9,31 @@ export function EditEventRegion() {
   const reduxDispatch = useDispatch()
 
   const [latLongReactElements, setLatLongReactElements] = useState()
+  const [error, setError] = useState(null)
+
+  // Validation function
+  const isComplete = (primaryLoc) => {
+    if (!primaryLoc || primaryLoc.lat === undefined || primaryLoc.long === undefined) {
+      setError("Missing required value: 'Primary location'")
+      return false
+    }
+    if (primaryLoc.lat === null || primaryLoc.long === null) {
+      setError("Primary location must have valid latitude and longitude")
+      return false
+    }
+    setError(null)
+    return true
+  }
+
+  // Determine border color based on validation state
+  const getBorderClass = () => {
+    if (error) {
+      return "border-red-500 border-opacity-80 border-2"
+    } else {
+      return "border-green-600 border-opacity-80 border-2"
+    }
+  }
+
   const htmlClass = {
     PrimaryLoc: "w-full text-red-400 text-left border-2 border-gray-400 rounded-md mb-1",
     PrimaryLocHighlighted: "w-full text-red-500 text-left border-2 border-gray-400 rounded-md mb-1 font-bold",
@@ -76,6 +101,7 @@ export function EditEventRegion() {
     }
 
     createLatLongReactElements()
+    isComplete(editState.primaryLoc)
   }, [editState.primaryLoc])
 
   // Update HTML elements if the region boundaries change.
@@ -128,8 +154,10 @@ export function EditEventRegion() {
   }, [mouseState.selectedLocId])
 
   return (
-    <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">
+    <div className={`flex flex-col items-start m-1 rounded-md h-1/4 overflow-auto ${getBorderClass()}`}>
       {latLongReactElements}
+      {/* Error display */}
+      <label className="text-red-500 text-sm m-1 block text-left">{error}</label>
     </div>
   )
 }
