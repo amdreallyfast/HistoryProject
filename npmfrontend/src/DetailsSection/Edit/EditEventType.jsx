@@ -24,8 +24,8 @@ export function EditEventType() {
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="border-2 border-gray-600 m-1 p-2">
+    <div className="flex flex-col m-1 p-2 rounded-md border-2 border-gray-600">
+      <div>
         <label className="flex items-center justify-between">
           <span className="text-white">This event is the creation of a record</span>
           <input

@@ -25,7 +25,7 @@ export function EditEventImage() {
   }
 
   return (
-    <div>
+    <div className="m-1 p-2 rounded-md border-2 border-gray-600">
       {editState.imageDataUrl ?
         <img style={{ "maxWidth": "100%", "maxHeight": "200px", display: "block", margin: "auto" }} src={editState.imageDataUrl} alt="ERROR: Bad dataUrl." />
         :
