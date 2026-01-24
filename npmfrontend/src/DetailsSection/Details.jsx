@@ -94,8 +94,8 @@ export function Details({ }) {
   const editModeOn = useSelector((state) => state.editPoiReducer.editModeOn)
 
   return (
-    <>
+    <div className="h-full overflow-y-auto">
       {editModeOn ? (<EditEvent />) : (<ShowDetails />)}
-    </>
+    </div>
   )
 }

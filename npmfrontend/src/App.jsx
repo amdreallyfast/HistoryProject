@@ -47,7 +47,7 @@ function App() {
           {/* Globe */}
           <GlobeSectionMain />
         </div>
-        <div className='row-span-4 col-span-2 border-2 border-emerald-500 text-white'>
+        <div className='row-span-4 col-span-2 border-2 border-emerald-500 text-white overflow-hidden'>
           <Details />
         </div>
         <div className='row-span-1 col-span-12 border-2 border-fuchsia-500 text-white'>

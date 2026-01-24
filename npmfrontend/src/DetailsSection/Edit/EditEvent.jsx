@@ -44,10 +44,9 @@ export function EditEvent({ }) {
       <EditEventTime />
       <EditEventRegion />
       <EditEventSummary />
-      <div className="m-1">
+      <div>
         <EditEventSources />
       </div>
-
       {/* Revision author fixed by whoever is logged in */}
       <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
 
