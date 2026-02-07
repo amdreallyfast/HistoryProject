@@ -261,15 +261,22 @@ Add these to both `initialState` and the `load` reducer.
 12. **Update variable names** - `selectedPoiState` → `selectedEventState`
 13. **Update ShowDetails.jsx imports** - Reference new component names
 
-### Phase 3: Create New Show Components
-14. **stateSliceSelectedEvent.jsx** - Add missing fields (`eventIsCreationOfSource`, `eventTime`)
-15. **ShowEventType.jsx** - Simplest new component, uses `selectedEventState`
-16. **ShowSourceAuthor.jsx** - Simple leaf component
-17. **ShowSourcePublicationTimeRange.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
-18. **ShowEventTime.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
-19. **ShowEventSource.jsx** - Composes author and time components
-20. **ShowEventSources.jsx** - Container for sources
-21. **ShowDetails.jsx** - Update imports and wire everything together
+### Phase 3: Test Events and Search Rework
+14. **Create `events.json`** - Overwrite `npmfrontend/public/events.json` with 2 test events using post-Phase-1-2 field names (`eventTime`, `publicationTime` with `earliestYear`/`latestYear`)
+15. **Add `loadEvent` reducer** to `stateSliceEditEvent.jsx` - Populates all edit fields from an event JSON object (maps JSON `eventTime.*` fields to flat `eventTime*` state fields pre-Phase-1, or nested `eventTime` post-Phase-1)
+16. **Add `loadSources` reducer** to `stateSliceEditSources.jsx` - Takes array of source objects from JSON, creates keyed entries with UUIDs (maps JSON `publicationTime.*` to `publicationTimeRange.*` pre-Phase-1, or `publicationTime.*` post-Phase-1)
+17. **Rewrite `SearchSectionMain.jsx`** - Replace `restcountries.com` with `events.json` loading. On click: convert lat/long to sphere points, dispatch to edit state (`loadEvent`), sources state (`loadSources`), and selected event state (`load`). Remove lodash, `damp`, country-specific processing, date bound inputs, and `writeSearchResults` query.
+18. **Update `PlanEditToShowConversion.md`** - Renumber phases, insert this Phase 3 section
+
+### Phase 4: Create New Show Components
+19. **stateSliceSelectedEvent.jsx** - Add missing fields (`eventIsCreationOfSource`, `eventTime`)
+20. **ShowEventType.jsx** - Simplest new component, uses `selectedEventState`
+21. **ShowSourceAuthor.jsx** - Simple leaf component
+22. **ShowSourcePublicationTimeRange.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
+23. **ShowEventTime.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
+24. **ShowEventSource.jsx** - Composes author and time components
+25. **ShowEventSources.jsx** - Container for sources
+26. **ShowDetails.jsx** - Update imports and wire everything together
 
 ## Styling Conventions
 
@@ -305,13 +312,28 @@ Add these to both `initialState` and the `load` reducer.
    - ShowEventSummary displays summary
 10. Verify components use `selectedEventState` (not `selectedPoiState`)
 
-### Phase 3 Verification (New Show Components)
-11. Select an event to view in ShowDetails mode
-12. Verify each new component renders correctly:
-   - ShowEventType shows Yes/No
-   - ShowEventTime shows formatted dates or "NA"
-   - ShowEventTime shows "(exact)" when earliest and latest dates match
-   - ShowEventSources shows source list or "NA"
-   - ShowSourcePublicationTimeRange shows "(exact)" when dates match
-13. Test with null/empty data to verify "NA" fallbacks work
-14. Run `npm run lint` to check for errors
+### Phase 3 Verification (Test Events and Search Rework)
+11. Run `npm run dev` from `npmfrontend/`
+12. App loads without errors
+13. Click "Search" button — two test events appear in the search results list ("Test Title Event 1", "Test Title Event 2")
+14. Click "Test Title Event 1":
+    - Edit components populate with event 1 data (title, summary, time, etc.)
+    - The primary location pin appears on the globe (West Africa region, lat 12.65, long -5.62)
+    - The region boundary pins appear on the globe
+    - Sources section shows "Baggery" with "Test Author"
+15. Click "Test Title Event 2":
+    - Edit components populate with event 2 data
+    - Pin moves to East Africa / Madagascar region (lat -20.07, long 38.68)
+    - Sources section shows "This Book Took Too Long"
+16. Run `npm run lint` — no errors
+
+### Phase 4 Verification (New Show Components)
+17. Select an event to view in ShowDetails mode
+18. Verify each new component renders correctly:
+    - ShowEventType shows Yes/No
+    - ShowEventTime shows formatted dates or "NA"
+    - ShowEventTime shows "(exact)" when earliest and latest dates match
+    - ShowEventSources shows source list or "NA"
+    - ShowSourcePublicationTimeRange shows "(exact)" when dates match
+19. Test with null/empty data to verify "NA" fallbacks work
+20. Run `npm run lint` to check for errors
