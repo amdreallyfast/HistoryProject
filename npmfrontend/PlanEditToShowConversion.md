@@ -263,20 +263,19 @@ Add these to both `initialState` and the `load` reducer.
 
 ### Phase 3: Test Events and Search Rework
 14. **Create `events.json`** - Overwrite `npmfrontend/public/events.json` with 2 test events using post-Phase-1-2 field names (`eventTime`, `publicationTime` with `earliestYear`/`latestYear`)
-15. **Add `loadEvent` reducer** to `stateSliceEditEvent.jsx` - Populates all edit fields from an event JSON object (maps JSON `eventTime.*` fields to flat `eventTime*` state fields pre-Phase-1, or nested `eventTime` post-Phase-1)
-16. **Add `loadSources` reducer** to `stateSliceEditSources.jsx` - Takes array of source objects from JSON, creates keyed entries with UUIDs (maps JSON `publicationTime.*` to `publicationTimeRange.*` pre-Phase-1, or `publicationTime.*` post-Phase-1)
+15. **Add `loadEvent` reducer** to `stateSliceEditEvent.jsx` - Populates all edit fields from an event JSON object, mapping JSON `eventTime.*` to the nested `eventTime` state structure
+16. **Add `loadSources` reducer** to `stateSliceEditSources.jsx` - Takes array of source objects from JSON, creates keyed entries with UUIDs, mapping JSON `publicationTime.*` to the `publicationTime` state structure
 17. **Rewrite `SearchSectionMain.jsx`** - Replace `restcountries.com` with `events.json` loading. On click: convert lat/long to sphere points, dispatch to edit state (`loadEvent`), sources state (`loadSources`), and selected event state (`load`). Remove lodash, `damp`, country-specific processing, date bound inputs, and `writeSearchResults` query.
-18. **Update `PlanEditToShowConversion.md`** - Renumber phases, insert this Phase 3 section
 
 ### Phase 4: Create New Show Components
-19. **stateSliceSelectedEvent.jsx** - Add missing fields (`eventIsCreationOfSource`, `eventTime`)
-20. **ShowEventType.jsx** - Simplest new component, uses `selectedEventState`
-21. **ShowSourceAuthor.jsx** - Simple leaf component
-22. **ShowSourcePublicationTimeRange.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
-23. **ShowEventTime.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
-24. **ShowEventSource.jsx** - Composes author and time components
-25. **ShowEventSources.jsx** - Container for sources
-26. **ShowDetails.jsx** - Update imports and wire everything together
+18. **stateSliceSelectedEvent.jsx** - Add missing fields (`eventIsCreationOfSource`, `eventTime`)
+19. **ShowEventType.jsx** - Simplest new component, uses `selectedEventState`
+20. **ShowSourceAuthor.jsx** - Simple leaf component
+21. **ShowSourcePublicationTimeRange.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
+22. **ShowEventTime.jsx** - Uses `convertTimeRangeToGregorianYearMonthDayString`
+23. **ShowEventSource.jsx** - Composes author and time components
+24. **ShowEventSources.jsx** - Container for sources
+25. **ShowDetails.jsx** - Update imports and wire everything together
 
 ## Styling Conventions
 
