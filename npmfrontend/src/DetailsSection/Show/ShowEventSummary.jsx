@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux"
 
-export function ShowSummaryDetails() {
+export function ShowEventSummary() {
 
   const selectedEventState = useSelector((state) => state.selectedEventReducer)
 

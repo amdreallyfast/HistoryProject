@@ -113,6 +113,33 @@ export const stateSliceEditEvent = createSlice({
       return initialState
     },
 
+    loadEvent: (state, action) => {
+      console.log({ "stateSliceEditEvent.loadEvent": action.payload })
+
+      let event = action.payload
+      return {
+        ...initialState,
+        editModeOn: true,
+        eventId: event.eventId,
+        title: event.title,
+        tags: event.tags || [],
+        eventIsCreationOfSource: event.eventIsCreationOfSource || false,
+        imageDataUrl: event.imageDataUrl || null,
+        summary: event.summary || null,
+        eventTime: {
+          earliestYear: event.eventTime?.earliestYear || null,
+          earliestMonth: event.eventTime?.earliestMonth || null,
+          earliestDay: event.eventTime?.earliestDay || null,
+          latestYear: event.eventTime?.latestYear || null,
+          latestMonth: event.eventTime?.latestMonth || null,
+          latestDay: event.eventTime?.latestDay || null,
+        },
+        sources: event.sources || [],
+        primaryLoc: event.primaryLoc || null,
+        regionBoundaries: event.regionBoundaries || [],
+      }
+    },
+
     setRevisionAuthor: (state, action) => {
       console.log({ "stateSliceEditEvent.setRevisionAuthor": action.payload })
 

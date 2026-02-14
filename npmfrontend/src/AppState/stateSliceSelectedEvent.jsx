@@ -4,8 +4,17 @@ const initialState = {
   eventId: -1,
   title: "the things",
   tags: ["tag1", "tag2"],
+  eventIsCreationOfSource: false,
   imageDataUrl: null,
   summary: "oh my goodness things have happened here",
+  eventTime: {
+    earliestYear: null,
+    earliestMonth: null,
+    earliestDay: null,
+    latestYear: null,
+    latestMonth: null,
+    latestDay: null,
+  },
   sources: [],
   revisionAuthor: "",
   primaryLoc: null,
@@ -19,16 +28,20 @@ export const stateSliceSelectedEvent = createSlice({
     load: (state, action) => {
       console.log({ "stateSliceSelectedEvent: load": action.payload })
 
-      let newState = initialState
-      newState.eventId = action.payload.eventId
-      newState.title = action.payload.title
-      newState.tags = action.payload.tags
-      newState.imageDataUrl = action.payload.imageDataUrl
-      newState.summary = action.payload.summary
-      newState.primaryLoc = action.payload.primaryLoc
-      newState.regionBoundaries = action.payload.regionBoundaries
-      newState.revisionAuthor = action.payload.revisionAuthor
-      return newState
+      return {
+        ...initialState,
+        eventId: action.payload.eventId,
+        title: action.payload.title,
+        tags: action.payload.tags || [],
+        eventIsCreationOfSource: action.payload.eventIsCreationOfSource || false,
+        imageDataUrl: action.payload.imageDataUrl || null,
+        summary: action.payload.summary || null,
+        eventTime: action.payload.eventTime || initialState.eventTime,
+        sources: action.payload.sources || [],
+        primaryLoc: action.payload.primaryLoc || null,
+        regionBoundaries: action.payload.regionBoundaries || [],
+        revisionAuthor: action.payload.revisionAuthor || "",
+      }
     },
   }
 })

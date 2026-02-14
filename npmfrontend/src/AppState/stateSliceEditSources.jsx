@@ -166,13 +166,36 @@ export const stateSliceEditSources = createSlice({
     importSource: (state, action) => {
       console.log("stateSliceEditSources.importSource")
 
-      let importObject = action.payload
-      let tempId = uuid()
-      let tempId2 = generateUUID()
       return {
         ...state
         // TODO: import everything
       }
+    },
+
+    loadSources: (state, action) => {
+      console.log({ "stateSliceEditSources.loadSources": action.payload })
+
+      let sourcesArray = action.payload
+      let newState = {}
+      sourcesArray.forEach((source) => {
+        let editId = uuid()
+        newState[editId] = {
+          ...sourceInitialState,
+          title: source.title || null,
+          isbn: source.isbn || null,
+          whereInSource: source.whereInSource || null,
+          publicationTime: {
+            earliestYear: source.publicationTime?.earliestYear || null,
+            earliestMonth: source.publicationTime?.earliestMonth || null,
+            earliestDay: source.publicationTime?.earliestDay || null,
+            latestYear: source.publicationTime?.latestYear || null,
+            latestMonth: source.publicationTime?.latestMonth || null,
+            latestDay: source.publicationTime?.latestDay || null,
+          },
+          authors: source.authors || [],
+        }
+      })
+      return newState
     },
 
     // newSource: (state, action) => {

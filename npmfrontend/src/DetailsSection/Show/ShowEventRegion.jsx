@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { roundFloat } from "../RoundFloat"
 
-export function ShowRegionDetails() {
+export function ShowEventRegion() {
   const selectedEventState = useSelector((state) => state.selectedEventReducer)
 
   const [latLongReactElements, setLatLongReactElements] = useState()

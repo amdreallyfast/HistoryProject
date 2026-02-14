@@ -1,29 +1,91 @@
 [
   {
-    "name": {
-      "common": "test",
-      "official": "test for regions"
+    "eventId": 1,
+    "title": "Test Title Event 1",
+    "tags": ["ancient", "west-africa"],
+    "summary": "This is the first test event. It occurred somewhere in West Africa.",
+    "eventIsCreationOfSource": false,
+    "imageDataUrl": null,
+    "eventTime": {
+      "earliestYear": "-500",
+      "earliestMonth": "3",
+      "earliestDay": null,
+      "latestYear": "-480",
+      "latestMonth": "6",
+      "latestDay": null
     },
-    "flags": {
-      "alt": "This is the test description"
+    "primaryLoc": {
+      "lat": 12.65,
+      "long": -5.62
     },
-    "where": [
-      [
-        5,
-        5
-      ],
-      [
-        12.5,
-        10
-      ],
-      [
-        12.5,
-        12.5
-      ],
-      [
-        5,
-        12.5
-      ]
+    "regionBoundaries": [
+      { "lat": 14.65, "long": -7.62 },
+      { "lat": 14.65, "long": -3.62 },
+      { "lat": 10.65, "long": -3.62 },
+      { "lat": 10.65, "long": -7.62 }
+    ],
+    "sources": [
+      {
+        "title": "Baggery",
+        "isbn": "978-0-123456-47-2",
+        "whereInSource": "Chapter 3, paragraph 12",
+        "publicationTime": {
+          "earliestYear": "1995",
+          "earliestMonth": "1",
+          "earliestDay": "15",
+          "latestYear": "1995",
+          "latestMonth": "1",
+          "latestDay": "15"
+        },
+        "authors": [
+          { "name": "Test Author" }
+        ]
+      }
+    ]
+  },
+  {
+    "eventId": 2,
+    "title": "Test Title Event 2",
+    "tags": ["medieval", "east-africa"],
+    "summary": "This is the second test event. It occurred near Madagascar.",
+    "eventIsCreationOfSource": true,
+    "imageDataUrl": null,
+    "eventTime": {
+      "earliestYear": "1100",
+      "earliestMonth": null,
+      "earliestDay": null,
+      "latestYear": "1200",
+      "latestMonth": null,
+      "latestDay": null
+    },
+    "primaryLoc": {
+      "lat": -20.07,
+      "long": 38.68
+    },
+    "regionBoundaries": [
+      { "lat": -18.07, "long": 36.68 },
+      { "lat": -18.07, "long": 40.68 },
+      { "lat": -22.07, "long": 40.68 },
+      { "lat": -22.07, "long": 36.68 }
+    ],
+    "sources": [
+      {
+        "title": "This Book Took Too Long",
+        "isbn": null,
+        "whereInSource": "Page 42",
+        "publicationTime": {
+          "earliestYear": "2010",
+          "earliestMonth": "6",
+          "earliestDay": null,
+          "latestYear": "2010",
+          "latestMonth": "6",
+          "latestDay": null
+        },
+        "authors": [
+          { "name": "Author One" },
+          { "name": "Author Two" }
+        ]
+      }
     ]
   }
 ]
