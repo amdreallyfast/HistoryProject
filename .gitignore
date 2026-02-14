@@ -25,3 +25,6 @@ replay_pid*
 
 # Visual Studio 2015 cache/options directory
 .vs/
+
+# Claude stdout null for Windows
+*nul
