@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../../AppState/stateSliceEditPoi"
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { detailRestrictions } from "./detailRestrictions"
 
 export function EditEventSummary() {
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const reduxDispatch = useDispatch()
 
   const summaryInputRef = useRef()
@@ -49,7 +49,7 @@ export function EditEventSummary() {
   // On text change, set state
   const summaryTextChanged = (e) => {
     let newText = e.target.value
-    reduxDispatch(editStateActions.setSummary(newText))
+    reduxDispatch(editEventStateActions.setSummary(newText))
     charCountLabelRef.current.innerHTML = `${newText.length}/${detailRestrictions.maxSummaryLength}`
     isComplete(newText)
   }

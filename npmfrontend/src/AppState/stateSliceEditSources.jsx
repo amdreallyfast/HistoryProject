@@ -65,13 +65,13 @@ const sourceInitialState = {
   // Set in form
   title: null,              // required string
   isbn: null,               // optional string
-  publicationTimeRange: {
-    lowerBoundYear: null,   // required
-    lowerBoundMonth: null,  // optional
-    lowerBoundDay: null,    // optional
-    upperBoundYear: null,   // required
-    upperBoundMonth: null,  // optional
-    upperBoundDay: null,    // optional
+  publicationTime: {
+    earliestYear: null,   // required
+    earliestMonth: null,  // optional
+    earliestDay: null,    // optional
+    latestYear: null,     // required
+    latestMonth: null,    // optional
+    latestDay: null,      // optional
   },
   authors: [],
   whereInSource: null,
@@ -85,14 +85,13 @@ const authorInitialState = {
   authorId: null,           // constant version across all revisions
   revision: 0,              // establishes order in which versions are made
   name: null,               // required string
-  lifetimeTimeRange: {
-    lowerBoundYear: null,   // required
-    lowerBoundMonth: null,  // optional
-    lowerBoundDay: null,    // optional
-
-    upperBoundYear: null,   // required
-    upperBoundMonth: null,  // optional
-    upperBoundDay: null,    // optional
+  lifetimeTime: {
+    earliestYear: null,   // required
+    earliestMonth: null,  // optional
+    earliestDay: null,    // optional
+    latestYear: null,     // required
+    latestMonth: null,    // optional
+    latestDay: null,      // optional
   }
 }
 
@@ -103,7 +102,7 @@ const copyState = (state) => {
   let sourceKeys = Object.keys(state)
   sourceKeys.forEach(sourceEditId => {
     let source = { ...state[sourceEditId] }
-    source.publicationTimeRange = { ...state[sourceEditId].publicationTimeRange }
+    source.publicationTime = { ...state[sourceEditId].publicationTime }
     copy[sourceEditId] = source
     // let propertyKeys = Object.keys(newState[sourceEditId])
     // propertyKeys.forEach(propertyKey => {
@@ -144,9 +143,9 @@ const evaluateSourceComplete = (source) => {
 
   let complete = true
   complete &= Boolean(source.title)
-  complete &= isNaN(Number(source.publicationTimeRange.lowerBoundYear))
-  complete &= isNaN(Number(source.publicationTimeRange.lowerBoundMonth))
-  complete &= isNaN(Number(source.publicationTimeRange.lowerBoundDay))
+  complete &= isNaN(Number(source.publicationTime.earliestYear))
+  complete &= isNaN(Number(source.publicationTime.earliestMonth))
+  complete &= isNaN(Number(source.publicationTime.earliestDay))
 
   return complete
 }
@@ -287,39 +286,78 @@ export const stateSliceEditSources = createSlice({
       }
     },
 
-    updateSourcePubDateLowerBoundYear: (state, action) => {
-      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundYear")
+    updateSourcePubDateEarliestYear: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateEarliestYear")
 
       let newState = copyState(state)
       let editId = action.payload.editId
       let year = action.payload.value
-      newState[editId].publicationTimeRange.lowerBoundYear = year
+      newState[editId].publicationTime.earliestYear = year
       newState[editId].complete = evaluateSourceComplete(newState[editId])
       return {
         ...newState,
       }
     },
 
-    updateSourcePubDateLowerBoundMonth: (state, action) => {
-      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundMonth")
+    updateSourcePubDateEarliestMonth: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateEarliestMonth")
 
       let newState = copyState(state)
       let editId = action.payload.editId
       let month = action.payload.value
-      newState[editId].publicationTimeRange.lowerBoundMonth = month
+      newState[editId].publicationTime.earliestMonth = month
       newState[editId].complete = evaluateSourceComplete(newState[editId])
       return {
         ...newState,
       }
     },
 
-    updateSourcePubDateLowerBoundDay: (state, action) => {
-      console.log("stateSliceEditSources.updateSourcePubDateLowerBoundDay")
+    updateSourcePubDateEarliestDay: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateEarliestDay")
 
       let newState = copyState(state)
       let editId = action.payload.editId
       let day = action.payload.value
-      newState[editId].publicationTimeRange.lowerBoundDay = day
+      newState[editId].publicationTime.earliestDay = day
+      newState[editId].complete = evaluateSourceComplete(newState[editId])
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLatestYear: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLatestYear")
+
+      let newState = copyState(state)
+      let editId = action.payload.editId
+      let year = action.payload.value
+      newState[editId].publicationTime.latestYear = year
+      newState[editId].complete = evaluateSourceComplete(newState[editId])
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLatestMonth: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLatestMonth")
+
+      let newState = copyState(state)
+      let editId = action.payload.editId
+      let month = action.payload.value
+      newState[editId].publicationTime.latestMonth = month
+      newState[editId].complete = evaluateSourceComplete(newState[editId])
+      return {
+        ...newState,
+      }
+    },
+
+    updateSourcePubDateLatestDay: (state, action) => {
+      console.log("stateSliceEditSources.updateSourcePubDateLatestDay")
+
+      let newState = copyState(state)
+      let editId = action.payload.editId
+      let day = action.payload.value
+      newState[editId].publicationTime.latestDay = day
       newState[editId].complete = evaluateSourceComplete(newState[editId])
       return {
         ...newState,

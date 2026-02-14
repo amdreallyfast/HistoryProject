@@ -1,9 +1,9 @@
 import { useEffect, useReducer, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../../AppState/stateSliceEditPoi"
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 
 export function EditEventTime() {
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const reduxDispatch = useDispatch()
 
   const earliestYearInputRef = useRef()
@@ -30,12 +30,12 @@ export function EditEventTime() {
       return
     }
 
-    setEarliestYear(editState.eventTimeEarliestYear || "")
-    setEarliestMonth(editState.eventTimeEarliestMonth || "")
-    setEarliestDay(editState.eventTimeEarliestDay || "")
-    setLatestYear(editState.eventTimeLatestYear || "")
-    setLatestMonth(editState.eventTimeLatestMonth || "")
-    setLatestDay(editState.eventTimeLatestDay || "")
+    setEarliestYear(editState.eventTime.earliestYear || "")
+    setEarliestMonth(editState.eventTime.earliestMonth || "")
+    setEarliestDay(editState.eventTime.earliestDay || "")
+    setLatestYear(editState.eventTime.latestYear || "")
+    setLatestMonth(editState.eventTime.latestMonth || "")
+    setLatestDay(editState.eventTime.latestDay || "")
 
     isComplete(earliestYear, earliestMonth, earliestDay, setEarliestError)
     isComplete(latestYear, latestMonth, latestDay, setLatestError)
@@ -88,42 +88,42 @@ export function EditEventTime() {
   const onEarliestYearChanged = (e) => {
     const value = e.target.value
     setEarliestYear(value)
-    reduxDispatch(editStateActions.setEventTimeEarliestYear(value || null))
+    reduxDispatch(editEventStateActions.setEventTimeEarliestYear(value || null))
     isComplete(value, earliestMonth, earliestDay, setEarliestError)
   }
 
   const onEarliestMonthChanged = (e) => {
     const value = e.target.value
     setEarliestMonth(value)
-    reduxDispatch(editStateActions.setEventTimeEarliestMonth(value || null))
+    reduxDispatch(editEventStateActions.setEventTimeEarliestMonth(value || null))
     isComplete(earliestYear, value, earliestDay, setEarliestError)
   }
 
   const onEarliestDayChanged = (e) => {
     const value = e.target.value
     setEarliestDay(value)
-    reduxDispatch(editStateActions.setEventTimeEarliestDay(value || null))
+    reduxDispatch(editEventStateActions.setEventTimeEarliestDay(value || null))
     isComplete(earliestYear, earliestMonth, value, setEarliestError)
   }
 
   const onLatestYearChanged = (e) => {
     const value = e.target.value
     setLatestYear(value)
-    reduxDispatch(editStateActions.setEventTimeLatestYear(value || null))
+    reduxDispatch(editEventStateActions.setEventTimeLatestYear(value || null))
     isComplete(value, latestMonth, latestDay, setLatestError)
   }
 
   const onLatestMonthChanged = (e) => {
     const value = e.target.value
     setLatestMonth(value)
-    reduxDispatch(editStateActions.setEventTimeLatestMonth(value || null))
+    reduxDispatch(editEventStateActions.setEventTimeLatestMonth(value || null))
     isComplete(latestYear, value, latestDay, setLatestError)
   }
 
   const onLatestDayChanged = (e) => {
     const value = e.target.value
     setLatestDay(value)
-    reduxDispatch(editStateActions.setEventTimeLatestDay(value || null))
+    reduxDispatch(editEventStateActions.setEventTimeLatestDay(value || null))
     isComplete(latestYear, latestMonth, value, setLatestError)
   }
 

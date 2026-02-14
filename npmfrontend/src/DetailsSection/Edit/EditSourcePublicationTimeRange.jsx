@@ -116,7 +116,7 @@ export function EditSourcePublicationTimeRange({
       editId: editId,
       value: e.target.value
     }
-    reduxDispatch(editSourcesStateActions.updateSourcePubDateLowerBoundYear(args))
+    reduxDispatch(editSourcesStateActions.updateSourcePubDateEarliestYear(args))
   }
 
   const onPubDateLowerBoundMonthChanged = (e) => {
@@ -127,7 +127,7 @@ export function EditSourcePublicationTimeRange({
       editId: editId,
       value: e.target.value
     }
-    reduxDispatch(editSourcesStateActions.updateSourcePubDateLowerBoundMonth(args))
+    reduxDispatch(editSourcesStateActions.updateSourcePubDateEarliestMonth(args))
   }
 
   const onPubDateLowerBoundDayChanged = (e) => {
@@ -138,20 +138,20 @@ export function EditSourcePublicationTimeRange({
       editId: editId,
       value: e.target.value
     }
-    reduxDispatch(editSourcesStateActions.updateSourcePubDateLowerBoundDay(args))
+    reduxDispatch(editSourcesStateActions.updateSourcePubDateEarliestDay(args))
   }
 
   useEffect(() => {
-    console.log({ "EditSource.useEffect[editSource.publicationTimeRange.lowerBoundYear]": editSource?.publicationTimeRange.lowerBoundYear })
+    console.log({ "EditSource.useEffect[editSource.publicationTime.earliestYear]": editSource?.publicationTime.earliestYear })
     if (!editSource) return // deleted last frame from state machine
     if (!pubDateLowerBoundYearRef.current) return
     if (!pubDateLowerBoundMonthRef.current) return
     if (!pubDateLowerBoundDayRef.current) return
 
     // on load
-    pubDateLowerBoundYearRef.current.value = editSource.publicationTimeRange.lowerBoundYear
-    pubDateLowerBoundMonthRef.current.value = editSource.publicationTimeRange.lowerBoundMonth
-    pubDateLowerBoundDayRef.current.value = editSource.publicationTimeRange.lowerBoundDay
+    pubDateLowerBoundYearRef.current.value = editSource.publicationTime.earliestYear
+    pubDateLowerBoundMonthRef.current.value = editSource.publicationTime.earliestMonth
+    pubDateLowerBoundDayRef.current.value = editSource.publicationTime.earliestDay
 
     evaluateLowerBoundComplete()
   }, [
@@ -167,33 +167,100 @@ export function EditSourcePublicationTimeRange({
   const pubDateUpperBoundYearRef = useRef()
   const pubDateUpperBoundMonthRef = useRef()
   const pubDateUpperBoundDayRef = useRef()
+  const [upperBoundError, setUpperBoundError] = useState()
+  const pubDateUpperBoundContainerRef = useRef()
+
+  const evaluateUpperBoundComplete = () => {
+    pubDateUpperBoundContainerRef.current.style.border = "2px solid red"
+
+    let year = pubDateUpperBoundYearRef.current.value
+    if (isNaN(Number(year))) {
+      setUpperBoundError(`Year is not a number: '${year}'`)
+      return
+    }
+    else if (!year) {
+      setUpperBoundError("Missing required value: 'Year'")
+      return false
+    }
+
+    let month = pubDateUpperBoundMonthRef.current.value
+    if (isNaN(Number(month))) {
+      setUpperBoundError(`Month is not a number: '${month}'`)
+      return
+    }
+
+    let day = pubDateUpperBoundDayRef.current.value
+    if (isNaN(Number(day))) {
+      setUpperBoundError(`Day is not a number: '${day}'`)
+      return
+    }
+
+    pubDateUpperBoundContainerRef.current.style.border = "2px solid transparent"
+    setUpperBoundError("")
+  }
+
   const onPubDateUpperBoundYearChanged = (e) => {
     console.log({ "EditSource.onPubDateUpperBoundYearChanged": e })
+    evaluateUpperBoundComplete()
+    let args = { editId: editId, value: e.target.value }
+    reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestYear(args))
   }
 
   const onPubDateUpperBoundMonthChanged = (e) => {
     console.log({ "EditSource.onPubDateUpperBoundMonthChanged": e })
+    evaluateUpperBoundComplete()
+    let args = { editId: editId, value: e.target.value }
+    reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestMonth(args))
   }
 
   const onPubDateUpperBoundDayChanged = (e) => {
     console.log({ "EditSource.onPubDateUpperBoundDayChanged": e })
+    evaluateUpperBoundComplete()
+    let args = { editId: editId, value: e.target.value }
+    reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestDay(args))
   }
 
+  useEffect(() => {
+    if (!editSource) return
+    if (!pubDateUpperBoundYearRef.current) return
+    if (!pubDateUpperBoundMonthRef.current) return
+    if (!pubDateUpperBoundDayRef.current) return
 
+    pubDateUpperBoundYearRef.current.value = editSource.publicationTime.latestYear
+    pubDateUpperBoundMonthRef.current.value = editSource.publicationTime.latestMonth
+    pubDateUpperBoundDayRef.current.value = editSource.publicationTime.latestDay
+
+    evaluateUpperBoundComplete()
+  }, [
+    pubDateUpperBoundYearRef.current,
+    pubDateUpperBoundMonthRef.current,
+    pubDateUpperBoundDayRef.current
+  ])
 
   return (
     <div className="flex flex-col m-1">
       <label className="text-left text-lg">Publication date</label>
 
-      {/* Lower bound */}
+      {/* Earliest */}
       <div ref={pubDateLowerBoundContainerRef} className="flex flex-col p-1">
-        <label className="text-left">Lower bound</label>
+        <label className="text-left">Earliest possible</label>
         <div className="grid grid-cols-3 auto-rows-min gap-1">
           <input ref={pubDateLowerBoundYearRef} className="text-black" type="text" placeholder="YYYY" onChange={onPubDateLowerBoundYearChanged}></input>
           <input ref={pubDateLowerBoundMonthRef} className="text-black" type="text" placeholder="MM (optional)" onChange={onPubDateLowerBoundMonthChanged}></input>
           <input ref={pubDateLowerBoundDayRef} className="text-black" type="text" placeholder="DD (optional)" onChange={onPubDateLowerBoundDayChanged}></input>
         </div>
         <label className="text-left text-red-500">{lowerBoundError}</label>
+      </div>
+
+      {/* Latest */}
+      <div ref={pubDateUpperBoundContainerRef} className="flex flex-col p-1">
+        <label className="text-left">Latest possible</label>
+        <div className="grid grid-cols-3 auto-rows-min gap-1">
+          <input ref={pubDateUpperBoundYearRef} className="text-black" type="text" placeholder="YYYY" onChange={onPubDateUpperBoundYearChanged}></input>
+          <input ref={pubDateUpperBoundMonthRef} className="text-black" type="text" placeholder="MM (optional)" onChange={onPubDateUpperBoundMonthChanged}></input>
+          <input ref={pubDateUpperBoundDayRef} className="text-black" type="text" placeholder="DD (optional)" onChange={onPubDateUpperBoundDayChanged}></input>
+        </div>
+        <label className="text-left text-red-500">{upperBoundError}</label>
       </div>
 
     </div>

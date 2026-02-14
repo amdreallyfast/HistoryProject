@@ -1,16 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { stateSlicePoi } from "./stateSlicePoi";
-import { stateSliceEditPoi } from "./stateSliceEditPoi";
+import { stateSliceEvent } from "./stateSliceEvent";
+import { stateSliceEditEvent } from "./stateSliceEditEvent";
 import { stateSliceMouseInfo } from "./stateSliceMouseInfo";
-import { stateSliceSelectedPoi } from "./stateSliceSelectedPoi";
+import { stateSliceSelectedEvent } from "./stateSliceSelectedEvent";
 import { stateSliceEditSources } from "./stateSliceEditSources";
 
 export const stateStore = configureStore({
   reducer: {
-    poiReducer: stateSlicePoi.reducer,
-    editPoiReducer: stateSliceEditPoi.reducer,
+    eventReducer: stateSliceEvent.reducer,
+    editEventReducer: stateSliceEditEvent.reducer,
     editSources: stateSliceEditSources.reducer,
     mouseInfoReducer: stateSliceMouseInfo.reducer,
-    selectedPoiReducer: stateSliceSelectedPoi.reducer
+    selectedEventReducer: stateSliceSelectedEvent.reducer
   }
 })

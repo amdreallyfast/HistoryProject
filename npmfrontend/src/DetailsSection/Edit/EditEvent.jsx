@@ -10,7 +10,7 @@ import { EditEventSources } from "./EditEventSources";
 
 
 export function EditEvent({ }) {
-  const editModeOn = useSelector((state) => state.editPoiReducer.editModeOn)
+  const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick")

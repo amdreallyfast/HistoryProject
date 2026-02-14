@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { roundFloat } from "../RoundFloat"
 
 export function ShowRegionDetails() {
-  const selectedPoiState = useSelector((state) => state.selectedPoiReducer)
+  const selectedEventState = useSelector((state) => state.selectedEventReducer)
 
   const [latLongReactElements, setLatLongReactElements] = useState()
   const htmlClass = {
@@ -14,9 +14,9 @@ export function ShowRegionDetails() {
   const createLatLongReactElements = () => {
     // Gather all pin locations together
     let locArr = []
-    locArr.push(selectedPoiState.primaryLoc)
-    for (let i = 0; i < selectedPoiState.regionBoundaries.length; i++) {
-      locArr.push(selectedPoiState.regionBoundaries[i])
+    locArr.push(selectedEventState.primaryLoc)
+    for (let i = 0; i < selectedEventState.regionBoundaries.length; i++) {
+      locArr.push(selectedEventState.regionBoundaries[i])
     }
 
     // And make HTML elements out of them
@@ -25,7 +25,7 @@ export function ShowRegionDetails() {
       let roundedLong = roundFloat(location.long, 4)
       // console.log({ lat: roundedLat, long: roundedLong })
 
-      if (location.id == selectedPoiState.primaryLoc.id) {
+      if (location.id == selectedEventState.primaryLoc.id) {
         return (
           <p id={location.id} key={location.id} className={htmlClass.PrimaryLoc}>
             {`${roundedLat}, ${roundedLong}`}
@@ -47,15 +47,15 @@ export function ShowRegionDetails() {
 
   // Re-create HTML to list locations
   useEffect(() => {
-    console.log({ "ShowRegionDetails.useEffect[selectedPoiState.primaryLoc]": selectedPoiState.primaryLoc })
+    console.log({ "ShowRegionDetails.useEffect[selectedEventState.primaryLoc]": selectedEventState.primaryLoc })
     createLatLongReactElements()
-  }, [selectedPoiState.primaryLoc])
+  }, [selectedEventState.primaryLoc])
 
   // Re-create HTML to list locations
   useEffect(() => {
-    console.log({ "ShowRegionDetails.useEffect[selectedPoiState.regionBoundaries]": selectedPoiState.regionBoundaries })
+    console.log({ "ShowRegionDetails.useEffect[selectedEventState.regionBoundaries]": selectedEventState.regionBoundaries })
     createLatLongReactElements()
-  }, [selectedPoiState.regionBoundaries])
+  }, [selectedEventState.regionBoundaries])
 
   return (
     <div className="flex flex-col items-start border-2 border-gray-600 m-1 h-1/4 overflow-auto">

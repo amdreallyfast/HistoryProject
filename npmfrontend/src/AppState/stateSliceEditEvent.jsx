@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  // TODO: change all other POIs and regions to dark grey to indicate that they cannot be highlighted
+  // TODO: change all other events and regions to dark grey to indicate that they cannot be highlighted
   editModeOn: true,
 
   eventId: 99,
@@ -13,18 +13,20 @@ const initialState = {
   summary: null,
 
   // Event time bounds
-  eventTimeEarliestYear: null,   // required
-  eventTimeEarliestMonth: null,  // optional
-  eventTimeEarliestDay: null,    // optional
-  eventTimeLatestYear: null,     // required
-  eventTimeLatestMonth: null,    // optional
-  eventTimeLatestDay: null,      // optional
+  eventTime: {
+    earliestYear: null,   // required
+    earliestMonth: null,  // optional
+    earliestDay: null,    // optional
+    latestYear: null,     // required
+    latestMonth: null,    // optional
+    latestDay: null,      // optional
+  },
 
   // Format: {
   //  isbn: null, // allow null; not all writings are publically registered
   //  title: null,
   //  detailedLocation: null, // allow null; ex: "Chapter 3, paragraph 28"
-  //  authors: [],  // strings 
+  //  authors: [],  // strings
   //  publicationLowerBoundYear: null,  // required
   //  publicationLowerBoundMonth: null, // allow null
   //  publicationLowerBoundDay: null,   // allow null
@@ -51,13 +53,13 @@ const initialState = {
   regionBoundaries: [],
 
   // Can't put ThreeJs meshes into this state machine (function objects are non-serializable), so
-  // use integer counters to indicate when there has been a change in meshes that the cursor 
+  // use integer counters to indicate when there has been a change in meshes that the cursor
   // should be able to hover over.
   updatedPrimaryPinMeshInScene: 0,
   updatedRegionMeshesInScene: 0,
 
   // For use during clicking and dragging a single point or the entire region.
-  // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the field "Id" as an 
+  // Note: Using "meshUuid" instead of "meshId" because ThreeJs uses the field "Id" as an
   // integer for some kind of counting, and it uses "uuid" for the global ID. I don't know why.
   // Format: null or
   //  {
@@ -71,25 +73,25 @@ const initialState = {
   //      }
   //    },
   //
-  //    // Fixed for duration of click-and-drag. Prevents click-and-drag from snapping the mesh's 
+  //    // Fixed for duration of click-and-drag. Prevents click-and-drag from snapping the mesh's
   //    // origin to the cursor the moment the cursor moves a single pixel.
-  //    // Note: Covers difference betwwen the 3D point where the raycast intersected a mesh and 
-  //    // where the rayasr intersected the globe underneath. 
+  //    // Note: Covers difference betwwen the 3D point where the raycast intersected a mesh and
+  //    // where the rayasr intersected the globe underneath.
   //    initialOffsetQuaternion: { w, x, y, z },
   //
-  //    // Continuously updated. Represents the movement of a mesh from its starting position to 
+  //    // Continuously updated. Represents the movement of a mesh from its starting position to
   //    // wherever the cursor is currently intersecting the globe
   //    rotorQuaternion: { w, x, y, z }
   //  },
   clickAndDrag: null,
 }
 
-export const stateSliceEditPoi = createSlice({
-  name: "stateSliceEditPoi",
+export const stateSliceEditEvent = createSlice({
+  name: "stateSliceEditEvent",
   initialState,
   reducers: {
     setThing: (state, action) => {
-      console.log("stateSliceEditPoi.setThing")
+      console.log("stateSliceEditEvent.setThing")
       return {
         ...state,
         thing: action.payload
@@ -97,7 +99,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     startEditMode: (state, action) => {
-      // console.log("stateSliceEditPoi.startEditMode")
+      // console.log("stateSliceEditEvent.startEditMode")
 
       // let eventId = action.payload.eventId
       return {
@@ -107,12 +109,12 @@ export const stateSliceEditPoi = createSlice({
     },
 
     endEditMode: (state, action) => {
-      // console.log("stateSliceEditPoi.endEditMode")
+      // console.log("stateSliceEditEvent.endEditMode")
       return initialState
     },
 
     setRevisionAuthor: (state, action) => {
-      console.log({ "stateSliceEditPoi.setRevisionAuthor": action.payload })
+      console.log({ "stateSliceEditEvent.setRevisionAuthor": action.payload })
 
       return {
         ...state,
@@ -121,7 +123,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setTitle: (state, action) => {
-      console.log({ "stateSliceEditPoi.setTitle": action.payload })
+      console.log({ "stateSliceEditEvent.setTitle": action.payload })
 
       return {
         ...state,
@@ -130,7 +132,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setTags: (state, action) => {
-      console.log({ "stateSliceEditPoi.setTags": action.payload })
+      console.log({ "stateSliceEditEvent.setTags": action.payload })
 
       return {
         ...state,
@@ -139,7 +141,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setEventIsCreationOfSource: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventIsCreationOfSource": action.payload })
+      console.log({ "stateSliceEditEvent.setEventIsCreationOfSource": action.payload })
 
       return {
         ...state,
@@ -148,7 +150,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setImageDataUrl: (state, action) => {
-      console.log({ "stateSliceEditPoi.setImageDataUrl": action.payload })
+      console.log({ "stateSliceEditEvent.setImageDataUrl": action.payload })
 
       let filename = action.payload.filename
       let dataUrl = action.payload.dataUrl
@@ -159,7 +161,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setSummary: (state, action) => {
-      console.log({ "stateSliceEditPoi.setSummary": action.payload })
+      console.log({ "stateSliceEditEvent.setSummary": action.payload })
 
       return {
         ...state,
@@ -168,61 +170,61 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setEventTimeEarliestYear: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventTimeEarliestYear": action.payload })
+      console.log({ "stateSliceEditEvent.setEventTimeEarliestYear": action.payload })
 
       return {
         ...state,
-        eventTimeEarliestYear: action.payload
+        eventTime: { ...state.eventTime, earliestYear: action.payload }
       }
     },
 
     setEventTimeEarliestMonth: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventTimeEarliestMonth": action.payload })
+      console.log({ "stateSliceEditEvent.setEventTimeEarliestMonth": action.payload })
 
       return {
         ...state,
-        eventTimeEarliestMonth: action.payload
+        eventTime: { ...state.eventTime, earliestMonth: action.payload }
       }
     },
 
     setEventTimeEarliestDay: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventTimeEarliestDay": action.payload })
+      console.log({ "stateSliceEditEvent.setEventTimeEarliestDay": action.payload })
 
       return {
         ...state,
-        eventTimeEarliestDay: action.payload
+        eventTime: { ...state.eventTime, earliestDay: action.payload }
       }
     },
 
     setEventTimeLatestYear: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventTimeLatestYear": action.payload })
+      console.log({ "stateSliceEditEvent.setEventTimeLatestYear": action.payload })
 
       return {
         ...state,
-        eventTimeLatestYear: action.payload
+        eventTime: { ...state.eventTime, latestYear: action.payload }
       }
     },
 
     setEventTimeLatestMonth: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventTimeLatestMonth": action.payload })
+      console.log({ "stateSliceEditEvent.setEventTimeLatestMonth": action.payload })
 
       return {
         ...state,
-        eventTimeLatestMonth: action.payload
+        eventTime: { ...state.eventTime, latestMonth: action.payload }
       }
     },
 
     setEventTimeLatestDay: (state, action) => {
-      console.log({ "stateSliceEditPoi.setEventTimeLatestDay": action.payload })
+      console.log({ "stateSliceEditEvent.setEventTimeLatestDay": action.payload })
 
       return {
         ...state,
-        eventTimeLatestDay: action.payload
+        eventTime: { ...state.eventTime, latestDay: action.payload }
       }
     },
 
     setSources: (state, action) => {
-      console.log({ "stateSliceEditPoi.setSources": action.payload })
+      console.log({ "stateSliceEditEvent.setSources": action.payload })
 
       return {
         ...state,
@@ -231,7 +233,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setPrimaryLoc: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.setPrimaryLoc", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.setPrimaryLoc", payload: action.payload })
 
       let spherePoint = action.payload
       return {
@@ -248,7 +250,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setUpdatedPrimaryPinMeshInScene: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.setUpdatedPrimaryPinMeshInScene", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.setUpdatedPrimaryPinMeshInScene", payload: action.payload })
 
       return {
         ...state,
@@ -257,7 +259,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setRegionBoundaries: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.setRegionBoundaries", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.setRegionBoundaries", payload: action.payload })
 
       return {
         ...state,
@@ -266,7 +268,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     setUpdatedRegionMeshesInScene: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.updatedRegionMeshesInScene", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.updatedRegionMeshesInScene", payload: action.payload })
 
       return {
         ...state,
@@ -275,7 +277,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     updateRegionBoundaryPin: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.updateRegionBoundaryPin", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.updateRegionBoundaryPin", payload: action.payload })
 
       // Expected format: See comment block on field.
       let updatedLocation = action.payload
@@ -296,7 +298,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     enableClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.startClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.startClickAndDrag", payload: action.payload })
 
       // Expected format: See comment block on field.
       return {
@@ -310,7 +312,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     updateClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.updateClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.updateClickAndDrag", payload: action.payload })
 
       return {
         ...state,
@@ -322,7 +324,7 @@ export const stateSliceEditPoi = createSlice({
     },
 
     disableClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditPoi.disableClickAndDrag", payload: action.payload })
+      // console.log({ msg: "stateSliceEditEvent.disableClickAndDrag", payload: action.payload })
 
       return {
         ...state,
@@ -332,4 +334,4 @@ export const stateSliceEditPoi = createSlice({
   }
 })
 
-export const editStateActions = stateSliceEditPoi.actions
+export const editEventStateActions = stateSliceEditEvent.actions

@@ -2,13 +2,13 @@ import * as THREE from "three"
 import { useEffect, useRef } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
+import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { globeInfo, meshNames } from "./constValues"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
 
 export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const reduxDispatch = useDispatch()
   const maxClickTimeMs = 200
   const maxClickCursorMovementPx = 1
@@ -29,7 +29,7 @@ export const MouseHandler = () => {
       z: globeIntersection.absolute.z - globeInfo.pos.z,
     }
     let spherePoint = createSpherePointFromXYZ(relativeToGlobe.x, relativeToGlobe.y, relativeToGlobe.z, globeInfo.radius)
-    reduxDispatch(editStateActions.setPrimaryLoc(spherePoint))
+    reduxDispatch(editEventStateActions.setPrimaryLoc(spherePoint))
   }
 
   const updateClickAndDrag = () => {
@@ -57,7 +57,7 @@ export const MouseHandler = () => {
         z: qFullRotor.z,
       }
     }
-    reduxDispatch(editStateActions.updateClickAndDrag(rotorData))
+    reduxDispatch(editEventStateActions.updateClickAndDrag(rotorData))
   }
 
   const enableClickAndDrag = () => {
@@ -99,7 +99,7 @@ export const MouseHandler = () => {
         z: qFullRotor.z,
       }
     }
-    reduxDispatch(editStateActions.enableClickAndDrag(clickAndDragData))
+    reduxDispatch(editEventStateActions.enableClickAndDrag(clickAndDragData))
   }
 
 
@@ -184,7 +184,7 @@ export const MouseHandler = () => {
 
     // Turn off click-and-drag
     if (editState.clickAndDrag) {
-      reduxDispatch(editStateActions.disableClickAndDrag())
+      reduxDispatch(editEventStateActions.disableClickAndDrag())
       clickAndDragEnabledRef.current = false
     }
 

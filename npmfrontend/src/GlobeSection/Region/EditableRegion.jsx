@@ -5,7 +5,7 @@ import { meshNames, pinMeshInfo, regionInfo } from "../constValues"
 import { PinMesh } from "../PinMesh"
 import _ from "lodash"
 import { v4 as uuid } from "uuid"
-import { editStateActions } from "../../AppState/stateSliceEditPoi"
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
 import { createSpherePointFromXYZ } from "../createSpherePoint"
 import { EditRegionMesh } from "./EditRegionMesh"
@@ -43,7 +43,7 @@ const createDefaultRegionBoundaries = (origin, globeInfo) => {
 
 export function EditableRegion({ globeInfo }) {
   // TODO: once I have an aray of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
 
   const [primaryLocationPinReactElement, setPrimaryLocationPinReactElement] = useState()
   const [regionPinReactElements, setRegionPinReactElements] = useState()
@@ -62,7 +62,7 @@ export function EditableRegion({ globeInfo }) {
       if (regionBoundaries.length == 0) {
         regionBoundaries = createDefaultRegionBoundaries(editState.primaryLoc, globeInfo)
       }
-      reduxDispatch(editStateActions.setRegionBoundaries(regionBoundaries))
+      reduxDispatch(editEventStateActions.setRegionBoundaries(regionBoundaries))
 
       setPrimaryLocationPinReactElement(
         <PinMesh
@@ -90,14 +90,14 @@ export function EditableRegion({ globeInfo }) {
   useEffect(() => {
     // console.log({ "EditableRegion.useEffect[primaryLocationPinReactElement]": primaryLocationPinReactElement })
 
-    reduxDispatch(editStateActions.setUpdatedPrimaryPinMeshInScene())
+    reduxDispatch(editEventStateActions.setUpdatedPrimaryPinMeshInScene())
   }, [primaryLocationPinReactElement])
 
   // Same for region meshes (there are several of them (pins, etc.)).
   useEffect(() => {
     // console.log({ "EditableRegion.useEffect[regionMeshesUpdated]": regionPinReactElements, mesh: regionMeshReactElements })
 
-    reduxDispatch(editStateActions.setUpdatedRegionMeshesInScene())
+    reduxDispatch(editEventStateActions.setUpdatedRegionMeshesInScene())
   }, [regionPinReactElements, regionMeshReactElements])
 
   // Create region pins when the number of region boundary points change.

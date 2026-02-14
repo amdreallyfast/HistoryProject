@@ -12,12 +12,12 @@ const initialState = {
   regionBoundaries: [],
 }
 
-export const stateSliceSelectedPoi = createSlice({
-  name: "stateSliceSelectedPoi",
+export const stateSliceSelectedEvent = createSlice({
+  name: "stateSliceSelectedEvent",
   initialState,
   reducers: {
     load: (state, action) => {
-      console.log({ "stateSliceSelectedPoi: load": action.payload })
+      console.log({ "stateSliceSelectedEvent: load": action.payload })
 
       let newState = initialState
       newState.eventId = action.payload.eventId
@@ -33,4 +33,4 @@ export const stateSliceSelectedPoi = createSlice({
   }
 })
 
-export const selectedPoiActions = stateSliceSelectedPoi.actions
+export const selectedEventStateActions = stateSliceSelectedEvent.actions

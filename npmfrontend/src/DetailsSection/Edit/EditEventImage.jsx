@@ -1,8 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
-import { editStateActions } from "../../AppState/stateSliceEditPoi";
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 
 export function EditEventImage() {
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const reduxDispatch = useDispatch()
 
   const imageUpload = (e) => {
@@ -18,7 +18,7 @@ export function EditEventImage() {
         filename: file.name,
         dataUrl: reader.result
       }
-      reduxDispatch(editStateActions.setImageDataUrl(payload))
+      reduxDispatch(editEventStateActions.setImageDataUrl(payload))
     }
 
     reader.readAsDataURL(file)

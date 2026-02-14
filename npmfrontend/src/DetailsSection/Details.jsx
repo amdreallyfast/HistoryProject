@@ -91,7 +91,7 @@ import { EditEvent } from "./Edit/EditEvent";
 import { ShowDetails } from "./Show/ShowDetails";
 
 export function Details({ }) {
-  const editModeOn = useSelector((state) => state.editPoiReducer.editModeOn)
+  const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
 
   return (
     <div className="h-full overflow-y-auto">

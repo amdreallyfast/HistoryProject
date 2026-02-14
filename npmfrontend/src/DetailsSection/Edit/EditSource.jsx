@@ -159,14 +159,14 @@ export function EditSource({
   // }
 
   // useEffect(() => {
-  //   console.log({ "EditSource.useEffect[editSource.publicationTimeRange.lowerBoundYear]": editSource?.publicationTimeRange.lowerBoundYear })
+  //   console.log({ "EditSource.useEffect[editSource.publicationTime.earliestYear]": editSource?.publicationTimeRange.lowerBoundYear })
   //   if (!pubDateLowerBoundYearRef.current) return
   //   if (!pubDateLowerBoundMonthRef.current) return
   //   if (!pubDateLowerBoundDayRef.current) return
   //   if (!editSource) return // deleted last frame from state machine
 
   //   // on load
-  //   let year = editSource.publicationTimeRange.lowerBoundYear
+  //   let year = editSource.publicationTime.earliestYear
   //   pubDateLowerBoundYearRef.current.valueAsNumber = year ? year : NaN
   //   updatePubDateLowerBoundStyle(year)
 
@@ -249,8 +249,8 @@ export function EditSource({
     }
     else {
       complete &= editSource.title?.trim().length > 0
-      complete &= Number.isInteger(editSource.publicationTimeRange.lowerBoundYear)
-      complete &= Number.isInteger(editSource.publicationTimeRange.upperBoundYear)
+      complete &= Number.isInteger(editSource.publicationTime.earliestYear)
+      complete &= Number.isInteger(editSource.publicationTime.latestYear)
       complete &= editSource.authors.length > 0
       complete &= editSource.whereInSource?.trim().length > 0
     }

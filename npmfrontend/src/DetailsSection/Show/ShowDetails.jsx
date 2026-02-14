@@ -5,7 +5,7 @@ import { ShowRegionDetails } from "./ShowRegionDetails"
 import { ShowSummaryDetails } from "./ShowSummaryDetails"
 
 export function ShowDetails({ }) {
-  const poiState = useSelector((state) => state.poiReducer)
+  const eventState = useSelector((state) => state.eventReducer)
 
   // TODO: ??pull from poiState or let the individual modules do that??
 

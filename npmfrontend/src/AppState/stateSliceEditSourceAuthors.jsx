@@ -14,14 +14,13 @@ const authorInitialState = {
   authorID: null,           // persistent version of this author
   revision: 0,              // establishes order in which versions are made
   name: null,               // required string
-  lifetimeTimeRange: {
-    lowerBoundYear: null,   // required
-    lowerBoundMonth: null,  // optional
-    lowerBoundDay: null,    // optional
-
-    upperBoundYear: null,   // required
-    upperBoundMonth: null,  // optional
-    upperBoundDay: null,    // optional
+  lifetimeTime: {
+    earliestYear: null,   // required
+    earliestMonth: null,  // optional
+    earliestDay: null,    // optional
+    latestYear: null,     // required
+    latestMonth: null,    // optional
+    latestDay: null,      // optional
   }
 }
 

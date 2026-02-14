@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { convertTimeRangeToGregorianYearMonthDay } from "../convertTimeRangeToString"
+import { convertTimeRangeToGregorianYearMonthDayString } from "../convertTimeRangeToString"
 import { EditSource } from "./EditSource"
 import { generateUUID } from "three/src/math/MathUtils.js"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
 import { detailRestrictions } from "./detailRestrictions"
 
 export function EditEventSources() {
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const editSources = useSelector((state) => state.editSources)
 
   const reduxDispatch = useDispatch()

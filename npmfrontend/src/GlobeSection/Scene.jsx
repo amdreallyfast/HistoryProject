@@ -45,8 +45,8 @@ export function Scene(
     poiInfoTitleElementRef
   }) {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
-  const poiState = useSelector((state) => state.poiReducer)
-  const editState = useSelector((state) => state.editPoiReducer)
+  const eventState = useSelector((state) => state.eventReducer)
+  const editState = useSelector((state) => state.editEventReducer)
 
   const reduxDispatch = useDispatch()
 
@@ -62,10 +62,10 @@ export function Scene(
 
   // Create interactable ThreeJs elements out of new search results.
   useEffect(() => {
-    // console.log({ "Scene.useEffect[poiState.allPois]": poiState.allPois })
+    // console.log({ "Scene.useEffect[eventState.allEvents]": eventState.allEvents })
 
     let poiInfo = []
-    poiState.allPois?.forEach((poi) => {
+    eventState.allEvents?.forEach((poi) => {
       // skip any item being edited
       if (poi.id != editState.eventId) {
         poiInfo.push({
@@ -82,7 +82,7 @@ export function Scene(
         )
       })
     )
-  }, [poiState.allPois])
+  }, [eventState.allEvents])
 
   // IfEdit mode determines whether we use "DisplayOnlyRegion" or "EditableRegion".
   useEffect(() => {
@@ -136,12 +136,12 @@ export function Scene(
   // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
   // follow-up poiReactElements are created, so they should all be there.
   useEffect(() => {
-    // console.log({ "Scene.useEffect[poiState.selectedPoi]": poiState.selectedPoi })
+    // console.log({ "Scene.useEffect[eventState.selectedEvent]": eventState.selectedEvent })
 
-    if (poiState.selectedPoi) {
+    if (eventState.selectedEvent) {
       // Should have exactly 1 matching element.
       // Note: If there is more or less than 1 with the same guid, then there is a problem.
-      let result = meshes.filter((mesh) => mesh.userData?.poiInfoJson?.myUniqueId == poiState.selectedPoi.myUniqueId)
+      let result = meshes.filter((mesh) => mesh.userData?.poiInfoJson?.myUniqueId == eventState.selectedEvent.myUniqueId)
       let selectedPoiMesh = result[0]
 
       // Fade in the new selected item.
@@ -153,9 +153,9 @@ export function Scene(
       currSelectedPoiMeshRef.current = selectedPoiMesh
     }
 
-    if (poiState.prevSelectedPoi) {
-      // let prevSelectedEement = document.getElementById(poiState.prevSelectedPoi.myUniqueId)
-      let result = meshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == poiState.prevSelectedPoi.myUniqueId)
+    if (eventState.prevSelectedEvent) {
+      // let prevSelectedEement = document.getElementById(eventState.prevSelectedEvent.myUniqueId)
+      let result = meshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == eventState.prevSelectedEvent.myUniqueId)
       let selectedPoiMesh = result[0]
 
       // Fade out the previously selected item.
@@ -164,7 +164,7 @@ export function Scene(
       selectedPoiMesh.material.opacity = selectedPoiMesh.userData.originalOpacity
     }
 
-  }, [poiState.selectedPoi])
+  }, [eventState.selectedEvent])
 
   // Handle mouse hover and mouse click.
   let prevMouseHoverPoiMeshRef = useRef()

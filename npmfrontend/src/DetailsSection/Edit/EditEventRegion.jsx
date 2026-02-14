@@ -4,7 +4,7 @@ import { mouseStateActions } from "../../AppState/stateSliceMouseInfo"
 import { roundFloat } from "../RoundFloat";
 
 export function EditEventRegion() {
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
 

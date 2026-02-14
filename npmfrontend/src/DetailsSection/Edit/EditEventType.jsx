@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../../AppState/stateSliceEditPoi"
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 
 export function EditEventType() {
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const reduxDispatch = useDispatch()
 
   const [isCreationOfSource, setIsCreationOfSource] = useState(false)
@@ -20,7 +20,7 @@ export function EditEventType() {
     const isChecked = e.target.checked
     setIsCreationOfSource(isChecked)
 
-    reduxDispatch(editStateActions.setEventIsCreationOfSource({ eventIsCreationOfSource: isChecked }))
+    reduxDispatch(editEventStateActions.setEventIsCreationOfSource({ eventIsCreationOfSource: isChecked }))
   }
 
   return (

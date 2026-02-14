@@ -6,7 +6,7 @@ import { meshNames } from "../constValues"
 
 export const EditRegionMesh = ({ sphereRadius }) => {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
   const [linePoints, setLinePoints] = useState([])

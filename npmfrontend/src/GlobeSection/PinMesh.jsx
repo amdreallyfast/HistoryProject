@@ -3,7 +3,7 @@ import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
 import { meshNames } from "./constValues"
-import { editStateActions } from "../AppState/stateSliceEditPoi"
+import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import _ from "lodash"
 
 export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
@@ -17,7 +17,7 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     throw new Error(`'${Object.keys({ spherePoint })}.id' must be defined`)
   }
 
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
   const meshRef = useRef()
@@ -180,12 +180,12 @@ export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, le
     loc.id = spherePoint.id
 
     if (pinType == meshNames.PrimaryPin) {
-      reduxDispatch(editStateActions.setPrimaryLoc(loc))
+      reduxDispatch(editEventStateActions.setPrimaryLoc(loc))
     }
     else if (pinType == meshNames.RegionBoundaryPin) {
       // Re-create region mesh whenever a boundary pin moves
       // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
-      reduxDispatch(editStateActions.updateRegionBoundaryPin(loc))
+      reduxDispatch(editEventStateActions.updateRegionBoundaryPin(loc))
     }
     else {
       throw new Error(`Unrecognized pin type '${pinType}'`)

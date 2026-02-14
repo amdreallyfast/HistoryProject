@@ -1,11 +1,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { editStateActions } from "../../AppState/stateSliceEditPoi"
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { detailRestrictions } from "./detailRestrictions"
 
 export function EditEventHeader() {
-  const editState = useSelector((state) => state.editPoiReducer)
+  const editState = useSelector((state) => state.editEventReducer)
   const reduxDispatch = useDispatch()
 
   const titleInputRef = useRef()
@@ -44,7 +44,7 @@ export function EditEventHeader() {
       console.log({ title: titleValue })
     }
 
-    reduxDispatch(editStateActions.setTitle(titleValue))
+    reduxDispatch(editEventStateActions.setTitle(titleValue))
     isComplete(titleValue, editState.tags)
   }
 
@@ -63,7 +63,7 @@ export function EditEventHeader() {
       tags.push(tagValue)
       tags = [...new Set(tags)]
       tags.sort()
-      reduxDispatch(editStateActions.setTags(tags))
+      reduxDispatch(editEventStateActions.setTags(tags))
 
       // // Don't tab away from the input if the user just entered a valid tag. Often, a single tag is not alone and the user wants to enter multiple in a row (??avoid this non-standard behavior??)
       // e.preventDefault()

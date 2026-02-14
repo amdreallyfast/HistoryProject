@@ -83,18 +83,17 @@ export function convertToTimeSinceFoundingOfRome(y, m, d) {
 //       }
 //     </div>
 //   ))
-export function convertTimeRangeToGregorianYearMonthDay(lbYear, lbMonth, lbDay, ubYear, ubMonth, ubDay) {
-  if (lbYear == ubYear && lbMonth == ubMonth && lbDay == ubDay) {
-    // Exact date. Upper bound == lower bound. Only need one.
-    return convertTimeToGregorianYearMonthDay(lbYear, lbMonth, lbDay)
+export function convertTimeRangeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay, latestYear, latestMonth, latestDay) {
+  if (earliestYear == latestYear && earliestMonth == latestMonth && earliestDay == latestDay) {
+    return convertTimeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay) + " (exact)"
   }
 
-  let lbString = convertTimeToGregorianYearMonthDay(lbYear, lbMonth, lbDay)
-  let ubString = convertTimeToGregorianYearMonthDay(ubYear, ubMonth, ubDay)
-  return `between '${lbString}' and ${ubString}`
+  let earliestString = convertTimeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay)
+  let latestString = convertTimeToGregorianYearMonthDayString(latestYear, latestMonth, latestDay)
+  return `between '${earliestString}' and ${latestString}`
 }
 
-export function convertTimeToGregorianYearMonthDay(y, m, d) {
+export function convertTimeToGregorianYearMonthDayString(y, m, d) {
   // "pivot" date == origin (zero point) of calendar
   let py = 0
   let pm = 0

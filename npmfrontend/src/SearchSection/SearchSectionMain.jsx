@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import _ from "lodash"
-import { poiStateActions } from "../AppState/stateSlicePoi"
+import { eventStateActions } from "../AppState/stateSliceEvent"
 import { v4 as uuid } from "uuid"
 import { damp } from "three/src/math/MathUtils"
 
@@ -64,9 +64,9 @@ export function SearchSectionMain() {
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
-  const allCurrentPois = useSelector((state) => state.poiReducer.allPois)
-  const selectedPoi = useSelector((state) => state.poiReducer.selectedPoi)
-  const prevSelectedPoi = useSelector((state) => state.poiReducer.prevSelectedPoi)
+  const allCurrentEvents = useSelector((state) => state.eventReducer.allEvents)
+  const selectedEvent = useSelector((state) => state.eventReducer.selectedEvent)
+  const prevSelectedEvent = useSelector((state) => state.eventReducer.prevSelectedEvent)
   const reduxDispatch = useDispatch()
 
   const searchTextRef = useRef()
@@ -86,9 +86,9 @@ export function SearchSectionMain() {
   })
 
   const writeSearchResultsQuery = useQuery({
-    queryKey: ["writeSearchResults", writeUri, allCurrentPois],
-    queryFn: () => writeSearchResults(writeUri, allCurrentPois),
-    enabled: !!writeUri && !!allCurrentPois
+    queryKey: ["writeSearchResults", writeUri, allCurrentEvents],
+    queryFn: () => writeSearchResults(writeUri, allCurrentEvents),
+    enabled: !!writeUri && !!allCurrentEvents
   })
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export function SearchSectionMain() {
       // arrays (except for the myUniqueId field, which I am creating) to see if anything changed.
       // If nothing changes, then don't bother re-creating everything and changing the POI.
       //TODO: ??how to handle the case that there is a change server-side? I don't want to stomp all over the user's current experience, but how do I handle this??
-      let searchResultsChanged = !_.isEqualWith(allCurrentPois, sortedJson, (value1, value2, key) => {
+      let searchResultsChanged = !_.isEqualWith(allCurrentEvents, sortedJson, (value1, value2, key) => {
         // Note: Returning "true" for a given JSON key without any other logic is effectively 
         // skipping it. Skip "myUniqueId", which should never change.
         // Also Note: Returning undefined will cause the comparison to be handled by 
@@ -173,10 +173,10 @@ export function SearchSectionMain() {
           // If already selected, de-select.
           // Note: Using bold text as a proxy for "is selected".
           if (e.target.className.includes("font-bold")) {
-            reduxDispatch(poiStateActions.setSelectedPoi(null))
+            reduxDispatch(eventStateActions.setSelectedEvent(null))
           }
           else {
-            reduxDispatch(poiStateActions.setSelectedPoi(poiJson))
+            reduxDispatch(eventStateActions.setSelectedEvent(poiJson))
           }
         }
 
@@ -198,7 +198,7 @@ export function SearchSectionMain() {
         setSearchResultsReactElements(htmlReactElements)
 
         // Finally, notify the global state of the change in available POIs.
-        reduxDispatch(poiStateActions.setAllPois(sortedJson))
+        reduxDispatch(eventStateActions.setAllEvents(sortedJson))
       }
     }
     else {
@@ -219,20 +219,20 @@ export function SearchSectionMain() {
     getSearchResultsQuery.status
   ])
 
-  // selectedPoi changes => highlight
+  // selectedEvent changes => highlight
   useEffect(() => {
-    // console.log({ "SearchSection.useEffect[selectedPoi]": selectedPoi })
+    // console.log({ "SearchSection.useEffect[selectedEvent]": selectedEvent })
 
-    if (selectedPoi) {
-      let selectedHtmlElement = document.getElementById(selectedPoi.myUniqueId)
+    if (selectedEvent) {
+      let selectedHtmlElement = document.getElementById(selectedEvent.myUniqueId)
       selectedHtmlElement.className = searchResultHtmlClassNameHighlighted
     }
 
-    if (prevSelectedPoi) {
-      let prevSelectedHtmlElement = document.getElementById(prevSelectedPoi.myUniqueId)
+    if (prevSelectedEvent) {
+      let prevSelectedHtmlElement = document.getElementById(prevSelectedEvent.myUniqueId)
       prevSelectedHtmlElement.className = searchResultHtmlClassNameNormal
     }
-  }, [selectedPoi])
+  }, [selectedEvent])
 
   const onSearchClicked = async (e) => {
     console.log({ searchAndDisplay: `searching for '${searchTextRef.current}'` })
@@ -269,7 +269,7 @@ export function SearchSectionMain() {
     // that there is no change, and therefore the UI will not update, giving no indication that
     // anything was done. This appearance of unresponsiveness is bad. 
     // Solution: reset the search results and start again, because that's what the user wants.
-    reduxDispatch(poiStateActions.setAllPois(null))
+    reduxDispatch(eventStateActions.setAllEvents(null))
   }
 
   const onSearchTextChanged = (e) => {
