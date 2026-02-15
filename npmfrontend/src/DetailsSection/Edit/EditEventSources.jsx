@@ -39,8 +39,9 @@ export function EditEventSources() {
   useEffect(() => {
     console.log({ "EditEventSources.useEffect[editState.sources]": editState.sources })
     editState.sources?.forEach(sourceinfo => {
-      throw new Error("not implemented")
-      reduxDispatch(editSourcesStateActions.importSource(sourceinfo))
+      // throw new Error("not implemented")
+      console.log({ "EditEventSources.useEffect[editState.sources]": "load sourceInfo" })
+      // reduxDispatch(editSourcesStateActions.loadSources(sourceinfo))
     })
   }, [editState.sources])
 

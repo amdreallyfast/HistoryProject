@@ -2,7 +2,10 @@
   {
     "eventId": 1,
     "title": "Test Title Event 1",
-    "tags": ["ancient", "west-africa"],
+    "tags": [
+      "ancient",
+      "west-africa"
+    ],
     "summary": "This is the first test event. It occurred somewhere in West Africa.",
     "eventIsCreationOfSource": false,
     "imageDataUrl": null,
@@ -15,14 +18,42 @@
       "latestDay": null
     },
     "primaryLoc": {
-      "lat": 12.65,
-      "long": -5.62
+      "lat": 11.0895,
+      "long": -14.0557
     },
     "regionBoundaries": [
-      { "lat": 14.65, "long": -7.62 },
-      { "lat": 14.65, "long": -3.62 },
-      { "lat": 10.65, "long": -3.62 },
-      { "lat": 10.65, "long": -7.62 }
+      {
+        "lat": 19.0895,
+        "long": -14.0557
+      },
+      {
+        "lat": 16.681,
+        "long": -19.9523
+      },
+      {
+        "lat": 10.9803,
+        "long": -22.2059
+      },
+      {
+        "lat": 5.3879,
+        "long": -19.7284
+      },
+      {
+        "lat": 3.0895,
+        "long": -14.0557
+      },
+      {
+        "lat": 5.3879,
+        "long": -8.3829
+      },
+      {
+        "lat": 10.9803,
+        "long": -5.9055
+      },
+      {
+        "lat": 16.681,
+        "long": -8.1591
+      }
     ],
     "sources": [
       {
@@ -38,7 +69,9 @@
           "latestDay": "15"
         },
         "authors": [
-          { "name": "Test Author" }
+          {
+            "name": "Test Author"
+          }
         ]
       }
     ]
@@ -46,7 +79,10 @@
   {
     "eventId": 2,
     "title": "Test Title Event 2",
-    "tags": ["medieval", "east-africa"],
+    "tags": [
+      "medieval",
+      "east-africa"
+    ],
     "summary": "This is the second test event. It occurred near Madagascar.",
     "eventIsCreationOfSource": true,
     "imageDataUrl": null,
@@ -59,14 +95,42 @@
       "latestDay": null
     },
     "primaryLoc": {
-      "lat": -20.07,
-      "long": 38.68
+      "lat": -14.2267,
+      "long": 34.8246
     },
     "regionBoundaries": [
-      { "lat": -18.07, "long": 36.68 },
-      { "lat": -18.07, "long": 40.68 },
-      { "lat": -22.07, "long": 40.68 },
-      { "lat": -22.07, "long": 36.68 }
+      {
+        "lat": -6.2288,
+        "long": 34.6401
+      },
+      {
+        "lat": -8.6382,
+        "long": 28.9816
+      },
+      {
+        "lat": -14.2687,
+        "long": 26.5704
+      },
+      {
+        "lat": -19.9334,
+        "long": 28.956
+      },
+      {
+        "lat": -22.2245,
+        "long": 35.0227
+      },
+      {
+        "lat": -19.6662,
+        "long": 40.9602
+      },
+      {
+        "lat": -13.9022,
+        "long": 43.0655
+      },
+      {
+        "lat": -8.384,
+        "long": 40.4002
+      }
     ],
     "sources": [
       {
@@ -82,8 +146,12 @@
           "latestDay": null
         },
         "authors": [
-          { "name": "Author One" },
-          { "name": "Author Two" }
+          {
+            "name": "Author One"
+          },
+          {
+            "name": "Author Two"
+          }
         ]
       }
     ]
