@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
@@ -6,6 +6,19 @@ import { editSourcesStateActions } from "../AppState/stateSliceEditSources"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { createSpherePointFromLatLong } from "../GlobeSection/createSpherePoint"
 import { globeInfo } from "../GlobeSection/constValues"
+
+function ParseDateTimeStr(str) {
+  let dateTimePair = str.split("T")
+  let dateArr = dateTimePair[0].split("-")
+  let timeArr = dateTimePair[1].split(":")
+  return {
+    year: dateArr[0],
+    month: dateArr[1],
+    day: dateArr[2],
+    hour: timeArr[0],
+    min: timeArr[1]
+  }
+}
 
 async function fetchEvents(url) {
   let response = await fetch(url)
@@ -16,6 +29,13 @@ async function fetchEvents(url) {
 }
 
 export function SearchSectionMain() {
+  const [searchText, setSearchText] = useState()
+  const [lowerBoundYear, setLowerBoundYear] = useState()
+  const [lowerBoundMon, setLowerBoundMon] = useState()
+  const [lowerBoundDay, setLowerBoundDay] = useState()
+  const [upperBoundYear, setUpperBoundYear] = useState()
+  const [upperBoundMon, setUpperBoundMon] = useState()
+  const [upperBoundDay, setUpperBoundDay] = useState()
   const [searchResultReactElements, setSearchResultsReactElements] = useState()
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
@@ -90,6 +110,30 @@ export function SearchSectionMain() {
     }))
   }
 
+  const onSearchTextChanged = (e) => {
+    setSearchText(e.target.value)
+  }
+
+  const onSearchTextKeyUp = (e) => {
+    if (e.key == "Enter") {
+      onSearchClicked()
+    }
+  }
+
+  const onSearchLowerBoundDateChanged = (e) => {
+    let parsedDateTime = ParseDateTimeStr(e.target.value)
+    setLowerBoundYear(parsedDateTime.year)
+    setLowerBoundMon(parsedDateTime.month)
+    setLowerBoundDay(parsedDateTime.day)
+  }
+
+  const onSearchUpperBoundDateChanged = (e) => {
+    let parsedDateTime = ParseDateTimeStr(e.target.value)
+    setUpperBoundYear(parsedDateTime.year)
+    setUpperBoundMon(parsedDateTime.month)
+    setUpperBoundDay(parsedDateTime.day)
+  }
+
   const onSearchClicked = async () => {
     console.log("Search: loading events.json...")
 
@@ -127,6 +171,31 @@ export function SearchSectionMain() {
     <div className="flex flex-col h-full border-2 border-green-500">
       {/* Search info */}
       <div className="flex flex-col border-2 border-gray-600">
+        <div className="flex flex-col items-start m-1">
+          <span>Search:</span>
+          <span>(titles, descriptions, sources, tags)</span>
+          <input type='text'
+            className='w-full bg-gray-700'
+            onChange={onSearchTextChanged}
+            onKeyUp={onSearchTextKeyUp}></input>
+        </div>
+
+        <div className="flex flex-col items-start m-1">
+          {/* TODO: set default value in the far past */}
+          <span>Date: Lower bound</span>
+          <input type='datetime-local'
+            className='w-full bg-gray-700'
+            onChange={onSearchLowerBoundDateChanged}></input>
+        </div>
+
+        <div className="flex flex-col items-start m-1">
+          {/* TODO: set default value today */}
+          <span>Date: Upper bound</span>
+          <input type='datetime-local'
+            className='w-full bg-gray-700'
+            onChange={onSearchUpperBoundDateChanged}></input>
+        </div>
+
         <div className="flex flex-col items-end m-1">
           <input type='button'
             className='p-1 text-white border-2 border-red-300'

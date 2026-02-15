@@ -8,6 +8,9 @@ import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { MouseHandler } from "./MouseHandler"
 import { EditableRegion } from "./Region/EditableRegion"
 import { DisplayOnlyRegion } from "./Region/DisplayOnlyRegion"
+import { PinMesh } from "./PinMesh"
+import { createSpherePointFromLatLong } from "./createSpherePoint"
+import { pinMeshInfo } from "./constValues"
 import * as THREE from "three"
 
 // Extract only what is needed for the state machine.
@@ -65,20 +68,36 @@ export function Scene(
     // console.log({ "Scene.useEffect[eventState.allEvents]": eventState.allEvents })
 
     let poiInfo = []
-    eventState.allEvents?.forEach((poi) => {
+    eventState.allEvents?.forEach((event) => {
       // skip any item being edited
-      if (poi.id != editState.eventId) {
-        poiInfo.push({
-          id: poi.id,
-          location: poi.location
-        })
+      if (event.eventId != editState.eventId) {
+        if (event.primaryLoc) {
+          poiInfo.push({
+            eventId: event.eventId,
+            primaryLoc: event.primaryLoc
+          })
+        }
       }
     })
 
     setPoiReactElements(
-      poiInfo.map((info, index) => {
+      poiInfo.map((info) => {
+        let spherePoint = createSpherePointFromLatLong(
+          info.primaryLoc.lat,
+          info.primaryLoc.long,
+          globeInfo.radius
+        )
         return (
-          <ShowRegion eventId={null} lat={info.location.lat} long={info.location.long} globePos={globeInfo.pos} />
+          <PinMesh
+            key={info.eventId}
+            pinType={meshNames.PrimaryPin}
+            eventId={info.eventId}
+            spherePoint={spherePoint}
+            globeInfo={earthGlobeInfo}
+            colorHex={pinMeshInfo.primaryPinColor}
+            length={pinMeshInfo.length}
+            scale={pinMeshInfo.primaryPinScale}
+          />
         )
       })
     )
