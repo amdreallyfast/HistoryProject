@@ -1,6 +1,6 @@
 import { convertTimeRangeToGregorianYearMonthDayString } from "../convertTimeRangeToString"
 
-export function ShowSourcePublicationTimeRange({ source }) {
+export function DisplaySourcePublicationTimeRange({ source }) {
   let timeString = "NA"
   if (source?.publicationTime?.earliestYear) {
     try {

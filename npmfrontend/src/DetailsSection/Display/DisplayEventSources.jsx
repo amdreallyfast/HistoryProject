@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux"
-import { ShowEventSource } from "./ShowEventSource"
+import { DisplayEventSource } from "./DisplayEventSource"
 
-export function ShowEventSources() {
+export function DisplayEventSources() {
   const selectedEventState = useSelector((state) => state.selectedEventReducer)
 
   if (!selectedEventState.sources || selectedEventState.sources.length === 0) {
@@ -17,7 +17,7 @@ export function ShowEventSources() {
     <div className="m-1">
       <span className="text-gray-400 text-xl">Sources</span>
       {selectedEventState.sources.map((source, index) => (
-        <ShowEventSource key={index} source={source} />
+        <DisplayEventSource key={index} source={source} />
       ))}
     </div>
   )

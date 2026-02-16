@@ -1,7 +1,7 @@
-import { ShowSourceAuthor } from "./ShowSourceAuthor"
-import { ShowSourcePublicationTimeRange } from "./ShowSourcePublicationTimeRange"
+import { DisplaySourceAuthor } from "./DisplaySourceAuthor"
+import { DisplaySourcePublicationTimeRange } from "./DisplaySourcePublicationTimeRange"
 
-export function ShowEventSource({ source }) {
+export function DisplayEventSource({ source }) {
   return (
     <div className="m-1">
       <div>
@@ -14,7 +14,7 @@ export function ShowEventSource({ source }) {
         {source.authors?.length > 0
           ? source.authors.map((author, index) => (
               <span key={index}>
-                <ShowSourceAuthor author={author} />
+                <DisplaySourceAuthor author={author} />
                 {index < source.authors.length - 1 && ", "}
               </span>
             ))
@@ -22,7 +22,7 @@ export function ShowEventSource({ source }) {
         }
       </div>
 
-      <ShowSourcePublicationTimeRange source={source} />
+      <DisplaySourcePublicationTimeRange source={source} />
 
       <div>
         <span className="text-gray-400">Where in source: </span>

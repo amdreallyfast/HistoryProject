@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux"
 import { convertTimeRangeToGregorianYearMonthDayString } from "../convertTimeRangeToString"
 
-export function ShowEventTime() {
+export function DisplayEventTime() {
   const selectedEventState = useSelector((state) => state.selectedEventReducer)
 
   let timeString = "NA"

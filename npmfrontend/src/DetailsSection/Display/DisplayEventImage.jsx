@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 
-export function ShowEventImage() {
+export function DisplayEventImage() {
   const selectedEventState = useSelector((state) => state.selectedEventReducer)
 
   return (

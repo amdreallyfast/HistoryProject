@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 
-export function ShowEventHeader() {
+export function DisplayEventHeader() {
   const selectedEventState = useSelector((state) => state.selectedEventReducer)
   const [tagReactElements, setTagReactElements] = useState()
 
