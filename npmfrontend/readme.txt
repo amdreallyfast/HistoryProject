@@ -123,8 +123,25 @@ Beginning plan mode for next major changes to the search and display and edit. W
 	Pause to check if things are working.
 
 TODO (likely will explode the token usage as we work out the design)
+Updates to selection handling:
+	The DisplayRegionMesh needs a boundary box so that it can be selected. ??how do we integrate it into to the mouse hover and mouse click handling??
+	There shall be "select event" and "de-select event" processes:
+		When an event is selected, it's details are loaded into the selected event state machine, it is highlighted in the search section, the DisplayRegionMesh and pins are highlighted, and the details are filled out in the DetailsSection/Display.
+		When an event is de-selected, the selected event is removed from the selected event state machine, it is no longer highlighted in the search section, the DisplayRegionMesh and pins return to their default colors, and the DetailsSection reverts to its base state of being empty. with no forms and saying "No event selected".
+		An event in edit mode cannot be selected or deselected. The Event details will be edited until either canceled or submitted.
+	If an event is selected in display mode (that is, not edit mode), then:
+		The details will be displayed in the DetailsSection/DetailsMain using the Display components.
+		Clicking somewhere in the search section (that is not another event or a button or an input) will de-select the selected event.
+		Clicking anywhere in the GlobeSection that is not another event will also de-select it.
+	If no event is selected:
+		Then the DisplayDetails section will show "no event selected", and there will be a button in the middle of the section called "Create New Event". Clicking it will enable the functionality that when the mouse clicks on the globe, then an event will be created in edit mode along with the new region and region mesh and boundaries that were created on that globe click, and the DetailsSection will immediately switch to using the edit components, along with the same Submit button as if editing an existing event.
+		If an event is selected in the search section, then there shall be a "select event" process that begins.
+	If no event is selected and a DisplayRegionMesh is clicked, then that even will become the selected event. It will be highlighted as the selected event in the search result, the DisplayRegionMesh will use the "selected color" value, and the DisplayDetails section will be filled out.
+
+
 6. In the DetailsSection/Display/DisplayDetails component that coordinates all the other Display components, there will be an Edit button at the bottom. When clicked, all the values of the selected event will be loaded into the edit state machine, and edit mode will be switched on. This will trigger DetailsSection/Details to show the EditEvent component. There is already an editStateAction.startEditMode() functin.
 Pause to check if things are working.
 7. In the DetailsSection/Edit/EditEvent component that coordinates all the other edit components, there is a Submit button. When clicked. it should submit the event details to the backend (currently approximated by npmfrontend/public/events.json), load all those values into the selected event, and turn edit mode off. This includes the parts of stateSliceEditEvent, stateSliceEditSources, and stateSliceEditSourceAuthors. We might need to reconsider this design. These three pieces of the edit state were separated because the edit state machine and its supporting reducer functions were getting extensive, and since I thought that it was necessary to replicate the state machine before changing anything, I made copy functions that got larger and larger as the number of things needing editing expanded. If we need to make a whole new design for this editing methodology, then lets do that. I have been using these "state slice" values because (1) I didn't know hwo to use cookies and (2) I was thinking of keeping everything in memory, but if the state machine becomes difficult to use because javascript and reducjs needs extensive deep copies, then I would be open to redesigns for this state machine, including cookies (as long as there is a way to display to the user where the cookies are being stored. Provide ideas.
+
 
 Consider anything that might be unclear, and put those notes in the design or plan documents, tell me what files you have created, and I will begin reviewing them.

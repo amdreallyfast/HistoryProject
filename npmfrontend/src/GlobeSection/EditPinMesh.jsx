@@ -117,7 +117,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
 
   // Create pin mesh when mesh reference is available.
   useEffect(() => {
-    // console.log({ "PinMesh.useEffect[meshRef.current]": meshRef.current })
+    // console.log({ "EditPinMesh.useEffect[meshRef.current]": meshRef.current })
     if (!meshRef.current) {
       return
     }
@@ -128,7 +128,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
 
   // Create box mesh when mesh reference is available.
   useEffect(() => {
-    // console.log({ "PinMesh.useEffect[boxMeshRef.current]": meshRef.current })
+    // console.log({ "EditPinMesh.useEffect[boxMeshRef.current]": meshRef.current })
     if (!boxMeshRef.current) {
       return
     }
@@ -148,11 +148,11 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
       return
     }
 
+    // Note: Pin selection triggered in MouseHandler.useEffect[mouseState.leftMouseDown].
     let moveThisPin = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
     let moveAllPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
     if (!moveThisPin && !moveAllPins) {
       // No change
-      // console.log("not me")
       return
     }
 
@@ -185,7 +185,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     else if (pinType == meshNames.RegionBoundaryPin) {
       // Re-create region mesh whenever a boundary pin moves
       // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
-      reduxDispatch(editEventStateActions.updateRegionBoundaryPin(loc))
+      reduxDispatch(editEventStateActions.updateRegionBoundary(loc))
     }
     else {
       throw new Error(`Unrecognized pin type '${pinType}'`)

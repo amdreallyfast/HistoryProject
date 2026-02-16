@@ -303,18 +303,20 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    updateRegionBoundaryPin: (state, action) => {
-      // console.log({ msg: "stateSliceEditEvent.updateRegionBoundaryPin", payload: action.payload })
+    updateRegionBoundary: (state, action) => {
+      // console.log({ msg: "stateSliceEditEvent.updateRegionBoundary", payload: action.payload })
 
       // Expected format: See comment block on field.
       let updatedLocation = action.payload
-      let updatedBoundaries = state.regionBoundaries.map((boundaryMarker, index) => {
-        if (boundaryMarker.id == updatedLocation.id) {
+      let updatedBoundaries = state.regionBoundaries.map((regionBoundary, index) => {
+        if (regionBoundary.id == updatedLocation.id) {
+          // console.log("that's me")
           return updatedLocation
         }
         else {
           // Don't change the others
-          return boundaryMarker
+          // console.log("not this pin")
+          return regionBoundary
         }
       })
 

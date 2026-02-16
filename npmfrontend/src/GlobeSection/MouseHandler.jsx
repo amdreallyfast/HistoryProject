@@ -116,32 +116,22 @@ export const MouseHandler = () => {
 
   // Left mouse down
   useEffect(() => {
-    // console.log({ "MouseHandler.useEffect[mouseState.leftMouseDown]": mouseState.leftMouseDown })
+    console.log({ "MouseHandler.useEffect[mouseState.leftMouseDown]": mouseState.leftMouseDown })
 
     if (!mouseState.leftMouseDown) {
       return
     }
 
-    // let intersection = mouseState.leftMouseDown.intersection
-    // if (intersection.mesh.name == meshNames.PinBoundingBox) {
-    //   if (mouseState.leftMouseDown.intersection) {
-    //     reduxDispatch(editStateActions.setSelectedPinId(intersection.mesh.userData.locationId))
-    //   }
-    //   else {
-    //     reduxDispatch(editStateActions.setSelectedPinId(null))
-    //   }
-    // }
-
-    // On pin click, select that location. Elsewhere, de-select.
-
+    // On pin click, select that location. 
+    // Note: Deselection handled on mouse up because that just feels better as an end user.
+    // Note: If region mesh selected an no pin, then the click-and-drag will trigger moveAllPins 
+    // in EditPinMesh.
     let clickedPin = mouseState.leftMouseDown.intersection?.mesh.name == meshNames.PinBoundingBox
     if (clickedPin) {
+      // console.log("clicked pin")
       let locId = mouseState.leftMouseDown.intersection.mesh.userData.locationId
       reduxDispatch(mouseStateActions.setSelectedLocId(locId))
     }
-    // else {
-    //   reduxDispatch(mouseStateActions.setSelectedLocId(null))
-    // }
 
 
     leftMouseDownRef.current = true
@@ -235,7 +225,7 @@ export const MouseHandler = () => {
     }
   }, [mouseState.currPos])
 
-  // Need to return some HTML so simply that this can be a component.
+  // Need to return some HTML simply so that this can be a component.
   return (
     <>
     </>
