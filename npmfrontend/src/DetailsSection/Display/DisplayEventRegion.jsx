@@ -12,6 +12,11 @@ export function DisplayEventRegion() {
   }
 
   const createLatLongReactElements = () => {
+    if (!selectedEventState.primaryLoc) {
+      setLatLongReactElements(null)
+      return
+    }
+
     // Gather all pin locations together
     let locArr = []
     locArr.push(selectedEventState.primaryLoc)

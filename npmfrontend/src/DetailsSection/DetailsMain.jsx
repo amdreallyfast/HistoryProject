@@ -92,10 +92,27 @@ import { DisplayEvent } from "./Display/DisplayEvent";
 
 export function DetailsMain({ }) {
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
+  const selectedEventId = useSelector((state) => state.selectedEventReducer.eventId)
+
+  if (editModeOn) {
+    return (
+      <div className="h-full overflow-y-auto">
+        <EditEvent />
+      </div>
+    )
+  }
+
+  if (!selectedEventId || selectedEventId < 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <span className="text-gray-400">No event selected</span>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full overflow-y-auto">
-      {editModeOn ? (<EditEvent />) : (<DisplayEvent />)}
+      <DisplayEvent />
     </div>
   )
 }
