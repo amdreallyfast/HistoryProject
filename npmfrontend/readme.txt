@@ -96,3 +96,14 @@ Claude:
 	Powershell (ex: in vscode terminal):
 		claude
 		/termina-setup		# first time
+
+Sat, 2/14/2026
+	Next:
+		Remove stateSliceEditSources.importSource. It has been replaced by loadSources.
+
+		The ShowDetails component should called ShowEvent to better align with the other Show components. 
+
+		It looks like the region mesh is not displaying properly for the display only region. There are a couple reasons. 1.) the editState.editModeOn variable is currently defaulting to True, and 2.) the DisplayOnlyRegion component is not finished. In GlobeSection/Scene.jsx,  there is a condition on line 91 that says if edit mode is on, then use the EditableRegion component, otherwise use the DisplayOnlyRegion. The EditableRegion is used to render the event's region mesh (assuming that region boundaries exist), primary location pin (the geometry), and its region boundary pins (all their pin geometries). The DisplayOnlyRegion should also render the event's region mesh, but it should not react when clicked on (unlike the EditableRegion does), and it should display smaller and non-interactable versions of the primary location pin and the region boundary pins.
+
+
+
