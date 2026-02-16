@@ -1,32 +1,49 @@
-import { useEffect } from "react"
-import { createSpherePointFromLatLong } from "../createSpherePoint"
+import { DisplayPinMesh } from "../DisplayPinMesh"
+import { DisplayRegionMesh } from "./DisplayRegionMesh"
+import { displayPinMeshInfo, groupNames } from "../constValues"
 
+export function DisplayOnlyRegion({ eventId, primaryLoc, regionBoundaries, globeInfo, isSelected }) {
+  if (!primaryLoc) {
+    return null
+  }
 
-export function DisplayOnlyRegion({ eventId, lat, long, globeInfo }) {
-  // TODO:
-  //  once I have an array of searchable POIs, get rid of "lat, long" inputs, search the POIs for this ID, and extract the necessary data
-
-  // TODO:
-  //  Show 2x regions and compute intersection
-
-
-  useEffect(() => {
-    console.log({ msg: "DisplayOnlyRegion()/useEffect()", value: null })
-  }, [])
-
-  let location = createSpherePointFromLatLong(lat, long, globeInfo.radius)
+  let primaryPinColor = isSelected ? displayPinMeshInfo.selectedPrimaryPinColor : displayPinMeshInfo.primaryPinColor
+  let regionPinColor = isSelected ? displayPinMeshInfo.selectedRegionPinColor : displayPinMeshInfo.regionPinColor
+  let regionColor = isSelected ? displayPinMeshInfo.selectedRegionColor : displayPinMeshInfo.regionColor
 
   return (
-    <>
-      <span className="border-2 border-gray-600 bg-gray-400 m-1">
-        Titleahdlfhlaskh
-      </span>
-
-      <PinMesh
-        pinType={meshNames.PoiPrimaryLocationPin}
-        spherePoint={location}
+    <group name={groupNames.DisplayRegionGroup}>
+      {/* Primary location pin */}
+      <DisplayPinMesh
+        spherePoint={primaryLoc}
         globeInfo={globeInfo}
-        lookAt={globeInfo.pos} />
-    </>
+        colorHex={primaryPinColor}
+        length={displayPinMeshInfo.length}
+        scale={displayPinMeshInfo.primaryPinScale}
+        lookAt={globeInfo.pos}
+      />
+
+      {/* Region boundary pins */}
+      {regionBoundaries?.map((point, index) => (
+        <DisplayPinMesh
+          key={index}
+          spherePoint={point}
+          globeInfo={globeInfo}
+          colorHex={regionPinColor}
+          length={displayPinMeshInfo.length}
+          scale={displayPinMeshInfo.regionPinScale}
+          lookAt={globeInfo.pos}
+        />
+      ))}
+
+      {/* Region fill mesh */}
+      {regionBoundaries && regionBoundaries.length >= 3 && (
+        <DisplayRegionMesh
+          regionBoundaries={regionBoundaries}
+          sphereRadius={globeInfo.radius}
+          color={regionColor}
+        />
+      )}
+    </group>
   )
 }

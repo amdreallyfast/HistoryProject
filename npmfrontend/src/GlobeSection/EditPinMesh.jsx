@@ -6,7 +6,7 @@ import { meshNames } from "./constValues"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import _ from "lodash"
 
-export function PinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
+export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (!pinType) {
     throw new Error(`'${Object.keys({ pinType })}' must be defined`)
   }

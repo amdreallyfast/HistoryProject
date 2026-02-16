@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { meshNames, pinMeshInfo, regionInfo } from "../constValues"
-import { PinMesh } from "../PinMesh"
+import { EditPinMesh } from "../EditPinMesh"
 import _ from "lodash"
 import { v4 as uuid } from "uuid"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
@@ -65,7 +65,7 @@ export function EditableRegion({ globeInfo }) {
       reduxDispatch(editEventStateActions.setRegionBoundaries(regionBoundaries))
 
       setPrimaryLocationPinReactElement(
-        <PinMesh
+        <EditPinMesh
           key={uuid()}
           pinType={meshNames.PrimaryPin}
           eventId={editState.eventId}
@@ -106,7 +106,7 @@ export function EditableRegion({ globeInfo }) {
 
     let reactElements = editState.regionBoundaries.map((spherePoint) => {
       return (
-        <PinMesh
+        <EditPinMesh
           key={uuid()}
           pinType={meshNames.RegionBoundaryPin}
           eventId={editState.eventId}

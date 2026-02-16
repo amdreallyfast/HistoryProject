@@ -8,9 +8,7 @@ import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { MouseHandler } from "./MouseHandler"
 import { EditableRegion } from "./Region/EditableRegion"
 import { DisplayOnlyRegion } from "./Region/DisplayOnlyRegion"
-import { PinMesh } from "./PinMesh"
 import { createSpherePointFromLatLong } from "./createSpherePoint"
-import { pinMeshInfo } from "./constValues"
 import * as THREE from "three"
 
 // Extract only what is needed for the state machine.
@@ -63,60 +61,49 @@ export function Scene(
 
   const earthGlobeInfo = globeInfo
 
-  // Create interactable ThreeJs elements out of new search results.
+  // Create display-only ThreeJs elements out of new search results.
   useEffect(() => {
     // console.log({ "Scene.useEffect[eventState.allEvents]": eventState.allEvents })
 
-    let poiInfo = []
+    let displayElements = []
     eventState.allEvents?.forEach((event) => {
       // skip any item being edited
-      if (event.eventId != editState.eventId) {
-        if (event.primaryLoc) {
-          poiInfo.push({
-            eventId: event.eventId,
-            primaryLoc: event.primaryLoc
-          })
-        }
+      if (event.eventId != editState.eventId && event.primaryLoc) {
+        let primarySpherePoint = createSpherePointFromLatLong(
+          event.primaryLoc.lat,
+          event.primaryLoc.long,
+          globeInfo.radius
+        )
+        let regionSpherePoints = (event.regionBoundaries || []).map((b) =>
+          createSpherePointFromLatLong(b.lat, b.long, globeInfo.radius)
+        )
+        displayElements.push(
+          <DisplayOnlyRegion
+            key={event.eventId}
+            eventId={event.eventId}
+            primaryLoc={primarySpherePoint}
+            regionBoundaries={regionSpherePoints}
+            globeInfo={earthGlobeInfo}
+            isSelected={event.eventId === eventState.selectedEvent?.eventId}
+          />
+        )
       }
     })
 
-    setPoiReactElements(
-      poiInfo.map((info) => {
-        let spherePoint = createSpherePointFromLatLong(
-          info.primaryLoc.lat,
-          info.primaryLoc.long,
-          globeInfo.radius
-        )
-        return (
-          <PinMesh
-            key={info.eventId}
-            pinType={meshNames.PrimaryPin}
-            eventId={info.eventId}
-            spherePoint={spherePoint}
-            globeInfo={earthGlobeInfo}
-            colorHex={pinMeshInfo.primaryPinColor}
-            length={pinMeshInfo.length}
-            scale={pinMeshInfo.primaryPinScale}
-          />
-        )
-      })
-    )
-  }, [eventState.allEvents])
+    setPoiReactElements(displayElements)
+  }, [eventState.allEvents, eventState.selectedEvent])
 
-  // IfEdit mode determines whether we use "DisplayOnlyRegion" or "EditableRegion".
+  // Edit mode determines whether we render EditableRegion.
   useEffect(() => {
     // console.log({ "Scene.useEffect[editState.editModeOn]": editState.editModeOn })
 
     if (editState.editModeOn) {
-      // TODO: set edit state info to current POI info
       setRegionReactElements((
         <EditableRegion globeInfo={earthGlobeInfo} />
       ))
     }
     else {
-      setRegionReactElements((
-        <DisplayOnlyRegion globeInfo={earthGlobeInfo} />
-      ))
+      setRegionReactElements(null)
     }
   }, [editState.editModeOn])
 
