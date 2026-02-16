@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
-import { editEventStateActions } from "../AppState/stateSliceEditEvent"
-import { editSourcesStateActions } from "../AppState/stateSliceEditSources"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { createSpherePointFromLatLong } from "../GlobeSection/createSpherePoint"
 import { globeInfo } from "../GlobeSection/constValues"
@@ -82,19 +80,7 @@ export function SearchSectionMain() {
       createSpherePointFromLatLong(boundary.lat, boundary.long, globeInfo.radius)
     )
 
-    // Dispatch to edit state (populates edit components)
-    reduxDispatch(editEventStateActions.loadEvent({
-      ...eventJson,
-      primaryLoc: primarySpherePoint,
-      regionBoundaries: regionSpherePoints,
-    }))
-
-    // Dispatch to sources state
-    if (eventJson.sources) {
-      reduxDispatch(editSourcesStateActions.loadSources(eventJson.sources))
-    }
-
-    // Dispatch to selected event state (populates show components)
+    // Dispatch to selected event state (populates display components)
     reduxDispatch(selectedEventStateActions.load({
       eventId: eventJson.eventId,
       title: eventJson.title,
