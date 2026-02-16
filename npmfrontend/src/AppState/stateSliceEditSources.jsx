@@ -104,10 +104,6 @@ const copyState = (state) => {
     let source = { ...state[sourceEditId] }
     source.publicationTime = { ...state[sourceEditId].publicationTime }
     copy[sourceEditId] = source
-    // let propertyKeys = Object.keys(newState[sourceEditId])
-    // propertyKeys.forEach(propertyKey => {
-    //   newState[sourceEditId][propertyKey] = state[sourceEditId][propertyKey]
-    // })
   });
 
   return copy
@@ -115,31 +111,6 @@ const copyState = (state) => {
 
 const evaluateSourceComplete = (source) => {
   console.log("stateSliceEditSources.evaluateSourceComplete")
-
-  // if (!source.title) {
-  //   return "Missing title"
-  // }
-
-  // let year = source.publicationTimeRange.lowerBoundYear
-  // if (isNaN(Number(year))) {
-  //   return `Year is not a number: '${year}'`
-  // }
-  // else if (!year) {
-  //   return "Missing required value: 'Year'"
-  // }
-
-  // let month = source.publicationTimeRange.value
-  // if (isNaN(Number(month))) {
-  //   return `Month is not a number: '${month}'`
-  // }
-
-  // let day = source.publicationTimeRange.value
-  // if (isNaN(Number(day))) {
-  //   return `Day is not a number: '${day}'`
-  // }
-
-  // // Ok
-  // return null
 
   let complete = true
   complete &= Boolean(source.title)
@@ -160,15 +131,6 @@ export const stateSliceEditSources = createSlice({
       return {
         ...state,
         thing: action.payload
-      }
-    },
-
-    importSource: (state, action) => {
-      console.log("stateSliceEditSources.importSource")
-
-      return {
-        ...state
-        // TODO: import everything
       }
     },
 
@@ -198,45 +160,6 @@ export const stateSliceEditSources = createSlice({
       return newState
     },
 
-    // newSource: (state, action) => {
-    //   console.log("stateSliceEditSources.newSource")
-
-    //   // let things = [singleSourceInitialState]
-    //   // things = [...things, singleSourceInitialState]
-    //   // things[0].id = generateUUID()
-
-    //   console.log({ "existing sources:": state.sources })
-
-    //   let editId = action.payload.id
-    //   let newSource = {
-    //     ...sourceInitialState,
-    //     id: "this is my source revisionId",
-    //     sourceId: "this is my persistant sourceId",
-    //     title: action.payload.title
-    //   }
-    //   newSource.complete = sourceIsComplete(newSource)
-
-    //   let mySources = { ...state.sources }
-    //   mySources[editId] = newSource
-    //   return {
-    //     ...state,
-    //     sources: mySources
-    //   }
-    // },
-
-    // deleteSource: (state, action) => {
-    //   console.log("stateSliceEditSources.deleteSource")
-
-    //   let editId = action.payload
-    //   let mySources = { ...state.sources }
-    //   delete mySources[editId]
-
-    //   return {
-    //     ...state,
-    //     sources: mySources
-    //   }
-    // },
-
     newSource: (state, action) => {
       console.log("stateSliceEditSources.newSource")
 
@@ -246,26 +169,14 @@ export const stateSliceEditSources = createSlice({
         id: "this is my source revisionId",
         sourceId: "this is my persistant sourceId"
       }
-      // newSource.complete = sourceIsComplete(newSource)
 
       // Duplicate existing state
       // Note: Need to jump through some syntactical hoops because I'm not sure that the state machine was designed to hold an arbitrary set of key-value pairs
       // ...does this code make me a bad person?
       let newState = { ...state }
-      // let keys = Object.keys(state)
-      // keys.forEach(key => {
-      //   newState[key] = { ...state[`${key}`] }
-      // });
-
-      // Assign new state
-      // newState[`${editId}`] = newSource
       newState[editId] = newSource
-      // let mySources = { ...state }
-      // let keys2 = Object.keys(mySources)
-      // mySources[editId] = newSource
       return {
         ...newState,
-        // testingNewSource: newSource
       }
     },
 
@@ -273,22 +184,8 @@ export const stateSliceEditSources = createSlice({
       console.log("stateSliceEditSources.deleteSource")
 
       let editId = action.payload
-      // let mySources = [...state.sources]
-      // let thing = { ...state.sources }
-      // mySources.filter((source) => source.editId != editId)
-
       let newState = { ...state }
-      //let keys = Object.keys(state)
-      //keys.forEach(key => {
-      //  if (key != editId) {
-      //    newState[key] = { ...state[`${key}`] }
-      //  }
-      //});
-      // let thing1 = newState[editId]
-      // let thing2 = state[editId]
-
       delete newState[editId]
-      // let newKeys = Object.keys(state)
 
       return {
         ...newState
@@ -386,33 +283,6 @@ export const stateSliceEditSources = createSlice({
         ...newState,
       }
     }
-
-
-
-    /*
-    importSource                      // takes an array of source objects + their "where to find"
-    newSource                         // takes a new key that will be used to retrieve it
-    deleteSource                      // takes a key
-    updateSourceTitle                 // takes a key and a string
-    updateSourceISBN                  // takes a key and a string
-    updatePublicationLowerBoundYear   // takes a key and an integer or null
-    updatePublicationLowerBoundMonth  // takes a key and an integer or null
-    updatePublicationLowerBoundDay    // takes a key and an integer or null
-    updatePublicationUpperBoundYear   // takes a key and an integer or null
-    updatePublicationUpperBoundMonth  // takes a key and an integer or null
-    updatePublicationUpperBoundDay    // takes a key and an integer or null
-
-    newAuthor                           // takes a new key that will be used to retrieve it
-    deleteAuthor                        // takes a key
-    updateAuthorTitle                   // takes a key and a string
-    updateAuthorISBN                    // takes a key and a string
-    updateAuthorLifetimeLowerBoundYear  // takes a key and an integer or null
-    updateAuthorLifetimeLowerBoundMonth // takes a key and an integer or null
-    updateAuthorLifetimeLowerBoundDay   // takes a key and an integer or null
-    updateAuthorLifetimeUpperBoundYear  // takes a key and an integer or null
-    updateAuthorLifetimeUpperBoundMonth // takes a key and an integer or null
-    updateAuthorLifetimeUpperBoundDay   // takes a key and an integer or null
-    */
   }
 })
 
