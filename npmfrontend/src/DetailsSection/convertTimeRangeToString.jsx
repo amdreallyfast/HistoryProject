@@ -90,7 +90,7 @@ export function convertTimeRangeToGregorianYearMonthDayString(earliestYear, earl
 
   let earliestString = convertTimeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay)
   let latestString = convertTimeToGregorianYearMonthDayString(latestYear, latestMonth, latestDay)
-  return `between '${earliestString}' and ${latestString}`
+  return `between '${earliestString}' and '${latestString}'`
 }
 
 export function convertTimeToGregorianYearMonthDayString(y, m, d) {
@@ -99,14 +99,16 @@ export function convertTimeToGregorianYearMonthDayString(y, m, d) {
   let pm = 0
   let pd = 0
 
+  let suffix = y < 0 ? "BC" : "AD"
+
   if (y && m && d) {
-    return `${y.toString()}/${m.toString().padStart(2)}/${d.toString().padStart(2)}`
+    return `${y.toString()}/${m.toString().padStart(2, "0")}/${d.toString().padStart(2, "0")} ${suffix}`
   }
   else if (y && m) {
-    return `${y.toString()}/${m.toString().padStart(2)}`
+    return `${y.toString()}/${m.toString().padStart(2, "0")} ${suffix}`
   }
   else if (y) {
-    return `${y.toString()}`
+    return `${y.toString()} ${suffix}`
   }
   else {
     throw new Error("couldn't convert to Gregorian time")
