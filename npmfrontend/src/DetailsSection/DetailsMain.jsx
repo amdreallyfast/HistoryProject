@@ -90,7 +90,7 @@ import { useSelector } from "react-redux"
 import { EditEvent } from "./Edit/EditEvent";
 import { DisplayEvent } from "./Display/DisplayEvent";
 
-export function Details({ }) {
+export function DetailsMain({ }) {
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
 
   return (
