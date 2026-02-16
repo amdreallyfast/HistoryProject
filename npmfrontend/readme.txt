@@ -97,14 +97,7 @@ Claude:
 		claude
 		/termina-setup		# first time
 
-Sat, 2/14/2026
-	Next:
-		Remove stateSliceEditSources.importSource. It has been replaced by loadSources.
-
-		The ShowDetails component should called ShowEvent to better align with the other Show components. 
-
-		It looks like the region mesh is not displaying properly for the display only region. There are a couple reasons. 1.) the editState.editModeOn variable is currently defaulting to True, and 2.) the DisplayOnlyRegion component is not finished. In GlobeSection/Scene.jsx,  there is a condition on line 91 that says if edit mode is on, then use the EditableRegion component, otherwise use the DisplayOnlyRegion. The EditableRegion is used to render the event's region mesh (assuming that region boundaries exist), primary location pin (the geometry), and its region boundary pins (all their pin geometries). The DisplayOnlyRegion should also render the event's region mesh, but it should not react when clicked on (unlike the EditableRegion does), and it should display smaller and non-interactable versions of the primary location pin and the region boundary pins.
-
+Mon, 2/16/2026
 w/claude: 
 	Planning for more updates to search, display, and edit.
 
@@ -128,6 +121,8 @@ Beginning plan mode for next major changes to the search and display and edit. W
 	5.4 The selected event's info will be used to feed the DetailsSection/Display components. That is, they will not pull from the edit state, but from the selected event state.
 	Note: Currently, the DetailsSection/Details component is a simple class. It checks if edit mode is on, and if it is, the DetailsSection will show EditEvent, else display only. Currently, because of all the previous attention spent on editng, the edit mode is hard-coded to true. Turn that off by default in order for display components to be tested.
 	Pause to check if things are working.
+
+TODO (likely will explode the token usage as we work out the design)
 6. In the DetailsSection/Display/DisplayDetails component that coordinates all the other Display components, there will be an Edit button at the bottom. When clicked, all the values of the selected event will be loaded into the edit state machine, and edit mode will be switched on. This will trigger DetailsSection/Details to show the EditEvent component. There is already an editStateAction.startEditMode() functin.
 Pause to check if things are working.
 7. In the DetailsSection/Edit/EditEvent component that coordinates all the other edit components, there is a Submit button. When clicked. it should submit the event details to the backend (currently approximated by npmfrontend/public/events.json), load all those values into the selected event, and turn edit mode off. This includes the parts of stateSliceEditEvent, stateSliceEditSources, and stateSliceEditSourceAuthors. We might need to reconsider this design. These three pieces of the edit state were separated because the edit state machine and its supporting reducer functions were getting extensive, and since I thought that it was necessary to replicate the state machine before changing anything, I made copy functions that got larger and larger as the number of things needing editing expanded. If we need to make a whole new design for this editing methodology, then lets do that. I have been using these "state slice" values because (1) I didn't know hwo to use cookies and (2) I was thinking of keeping everything in memory, but if the state machine becomes difficult to use because javascript and reducjs needs extensive deep copies, then I would be open to redesigns for this state machine, including cookies (as long as there is a way to display to the user where the cookies are being stored. Provide ideas.

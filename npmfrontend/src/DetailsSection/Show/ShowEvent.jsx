@@ -7,7 +7,7 @@ import { ShowEventRegion } from "./ShowEventRegion"
 import { ShowEventSummary } from "./ShowEventSummary"
 import { ShowEventSources } from "./ShowEventSources"
 
-export function ShowDetails({ }) {
+export function ShowEvent({ }) {
   const eventState = useSelector((state) => state.eventReducer)
 
   return (

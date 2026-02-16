@@ -88,14 +88,14 @@
 
 import { useSelector } from "react-redux"
 import { EditEvent } from "./Edit/EditEvent";
-import { ShowDetails } from "./Show/ShowDetails";
+import { ShowEvent } from "./Show/ShowEvent";
 
 export function Details({ }) {
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
 
   return (
     <div className="h-full overflow-y-auto">
-      {editModeOn ? (<EditEvent />) : (<ShowDetails />)}
+      {editModeOn ? (<EditEvent />) : (<ShowEvent />)}
     </div>
   )
 }
