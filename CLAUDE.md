@@ -10,7 +10,9 @@ This is a full-stack web application for visualizing historical events on an int
 - **`WebAPI/`** - ASP.NET Core backend (Entity Framework Core, SQL Server, Azure Key Vault for secrets)
 - **`Tutorials/`** - Reference tutorials
 - **`CLAUDE.md`** - This file (project-level guidance)
-- **`npmfrontend/PlanEditToShowConversion.md`** - Active plan for Edit-to-Show component conversion
+- **`TODO.md`** - Prioritized work items (bug fixes, refactors, features, design discussions)
+- **`claudePlans/`** - Plan documents for multi-step work (create plans here, not in the project root)
+- **`DESIGN.md`** - Living design document (to be created)
 
 ## Build & Run Commands
 
