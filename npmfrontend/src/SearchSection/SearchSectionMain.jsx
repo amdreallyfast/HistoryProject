@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { getLatestRevisions } from "../AppState/getLatestRevisions"
+import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { createSpherePointFromLatLong } from "../GlobeSection/createSpherePoint"
 import { globeInfo } from "../GlobeSection/constValues"
 
@@ -42,8 +43,11 @@ export function SearchSectionMain() {
   const selectedEvent = useSelector((state) => state.eventReducer.selectedEvent)
   const prevSelectedEvent = useSelector((state) => state.eventReducer.prevSelectedEvent)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
+  const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
   const allEventsRef = useRef(allEvents)
   allEventsRef.current = allEvents
+  const editModeOnRef = useRef(editModeOn)
+  editModeOnRef.current = editModeOn
   const reduxDispatch = useDispatch()
 
   // selectedEvent changes => highlight
@@ -64,6 +68,13 @@ export function SearchSectionMain() {
   }, [selectedEvent])
 
   const onEventClicked = (eventId) => {
+    // Guard: if in edit mode, confirm before switching
+    if (editModeOnRef.current) {
+      let confirmed = window.confirm("You have unsaved changes. Discard and load the new event?")
+      if (!confirmed) return
+      reduxDispatch(editEventStateActions.endEditMode())
+    }
+
     // If already selected, de-select.
     if (selectedEvent?.eventId === eventId) {
       reduxDispatch(eventStateActions.setSelectedEvent(null))
