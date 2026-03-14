@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { EditEventHeader } from "./EditEventHeader";
 import { EditEventType } from "./EditEventType";
@@ -18,6 +19,53 @@ export function EditEvent({ }) {
   const editState = useSelector((state) => state.editEventReducer)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
   const editSources = useSelector((state) => state.editSources)
+
+  // Compare current edit state against original snapshot to detect changes.
+  // Compares the fields that the user can edit (not sphere point ids/xyz, just lat/long).
+  const hasChanges = useMemo(() => {
+    let orig = editState.originalEvent
+    if (!orig) return false
+
+    if (editState.title !== orig.title) return true
+    if (editState.summary !== orig.summary) return true
+    if (editState.eventIsCreationOfSource !== orig.eventIsCreationOfSource) return true
+    if (editState.imageDataUrl !== orig.imageDataUrl) return true
+    if (JSON.stringify(editState.tags) !== JSON.stringify(orig.tags)) return true
+    if (JSON.stringify(editState.eventTime) !== JSON.stringify(orig.eventTime)) return true
+
+    // Compare primary location (lat/long only)
+    let editLat = editState.primaryLoc?.lat
+    let editLong = editState.primaryLoc?.long
+    let origLat = orig.primaryLoc?.lat
+    let origLong = orig.primaryLoc?.long
+    if (editLat !== origLat || editLong !== origLong) return true
+
+    // Compare region boundaries (lat/long only)
+    if (editState.regionBoundaries.length !== orig.regionBoundaries.length) return true
+    for (let i = 0; i < editState.regionBoundaries.length; i++) {
+      if (editState.regionBoundaries[i].lat !== orig.regionBoundaries[i].lat) return true
+      if (editState.regionBoundaries[i].long !== orig.regionBoundaries[i].long) return true
+    }
+
+    // Compare sources from editSources slice (extract only comparable fields)
+    let editSourceKeys = Object.keys(editSources)
+    if (editSourceKeys.length !== orig.sources.length) return true
+    let editSourcesArr = editSourceKeys.map(k => {
+      let s = editSources[k]
+      return {
+        title: s.title,
+        isbn: s.isbn,
+        whereInSource: s.whereInSource,
+        publicationTime: s.publicationTime,
+        authors: s.authors,
+      }
+    })
+    for (let i = 0; i < editSourcesArr.length; i++) {
+      if (JSON.stringify(editSourcesArr[i]) !== JSON.stringify(orig.sources[i])) return true
+    }
+
+    return false
+  }, [editState, editSources])
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick")
@@ -128,8 +176,9 @@ export function EditEvent({ }) {
           Cancel
         </button>
         <button
-          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          className={`font-bold py-2 px-4 rounded text-white ${hasChanges ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
           onClick={(e) => onSubmitClick(e)}
+          disabled={!hasChanges}
         >
           Submit
         </button>

@@ -84,6 +84,9 @@ const initialState = {
   //    rotorQuaternion: { w, x, y, z }
   //  },
   clickAndDrag: null,
+
+  // Snapshot of the event as it was when Edit was clicked, for change detection
+  originalEvent: null,
 }
 
 export const stateSliceEditEvent = createSlice({
@@ -117,9 +120,7 @@ export const stateSliceEditEvent = createSlice({
       console.log({ "stateSliceEditEvent.loadEvent": action.payload })
 
       let event = action.payload
-      return {
-        ...initialState,
-        editModeOn: true,
+      let snapshot = {
         eventId: event.eventId,
         title: event.title,
         tags: event.tags || [],
@@ -137,6 +138,12 @@ export const stateSliceEditEvent = createSlice({
         sources: event.sources || [],
         primaryLoc: event.primaryLoc || null,
         regionBoundaries: event.regionBoundaries || [],
+      }
+      return {
+        ...initialState,
+        ...snapshot,
+        editModeOn: true,
+        originalEvent: snapshot,
       }
     },
 

@@ -44,14 +44,8 @@ export function EditEventHeader() {
     }
   }
 
-  //??necessary function? just use 'on changed'??
-  const titleTextCapture = (e) => {
-    let titleValue = titleInputRef?.current.value
-    console.log({ key: e.key, code: e.code })
-    if (titleValue && (e.key == "Tab" || e.key == "Enter")) {
-      console.log({ title: titleValue })
-    }
-
+  const onTitleChanged = (e) => {
+    let titleValue = e.target.value
     reduxDispatch(editEventStateActions.setTitle(titleValue))
     isComplete(titleValue, editState.tags)
   }
@@ -93,7 +87,7 @@ export function EditEventHeader() {
   return (
     <div className={`flex flex-col m-1 rounded-md ${getBorderClass()}`}>
       {/* Title */}
-      <input ref={titleInputRef} className="m-1 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onKeyDown={(e) => titleTextCapture(e)} />
+      <input ref={titleInputRef} className="m-1 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onChange={onTitleChanged} />
 
       {/* Tags */}
       <div className="flex flex-row items-start m-1 overflow-auto flex-wrap">

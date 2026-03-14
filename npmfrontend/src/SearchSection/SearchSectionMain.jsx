@@ -42,6 +42,8 @@ export function SearchSectionMain() {
   const selectedEvent = useSelector((state) => state.eventReducer.selectedEvent)
   const prevSelectedEvent = useSelector((state) => state.eventReducer.prevSelectedEvent)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
+  const allEventsRef = useRef(allEvents)
+  allEventsRef.current = allEvents
   const reduxDispatch = useDispatch()
 
   // selectedEvent changes => highlight
@@ -68,8 +70,8 @@ export function SearchSectionMain() {
       return
     }
 
-    // Look up the latest revision from current allEvents (not a stale closure)
-    let latestRevisions = getLatestRevisions(allEvents)
+    // Look up the latest revision from current allEvents (use ref to avoid stale closure)
+    let latestRevisions = getLatestRevisions(allEventsRef.current)
     let eventJson = latestRevisions.find(ev => ev.eventId === eventId)
     if (!eventJson) return
 
