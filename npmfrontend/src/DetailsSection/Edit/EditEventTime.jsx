@@ -30,15 +30,22 @@ export function EditEventTime() {
       return
     }
 
-    setEarliestYear(editState.eventTime.earliestYear || "")
-    setEarliestMonth(editState.eventTime.earliestMonth || "")
-    setEarliestDay(editState.eventTime.earliestDay || "")
-    setLatestYear(editState.eventTime.latestYear || "")
-    setLatestMonth(editState.eventTime.latestMonth || "")
-    setLatestDay(editState.eventTime.latestDay || "")
+    let eYear = editState.eventTime.earliestYear || ""
+    let eMonth = editState.eventTime.earliestMonth || ""
+    let eDay = editState.eventTime.earliestDay || ""
+    let lYear = editState.eventTime.latestYear || ""
+    let lMonth = editState.eventTime.latestMonth || ""
+    let lDay = editState.eventTime.latestDay || ""
 
-    isComplete(earliestYear, earliestMonth, earliestDay, setEarliestError)
-    isComplete(latestYear, latestMonth, latestDay, setLatestError)
+    setEarliestYear(eYear)
+    setEarliestMonth(eMonth)
+    setEarliestDay(eDay)
+    setLatestYear(lYear)
+    setLatestMonth(lMonth)
+    setLatestDay(lDay)
+
+    isComplete(eYear, eMonth, eDay, setEarliestError)
+    isComplete(lYear, lMonth, lDay, setLatestError)
   }, [
     earliestYearInputRef.current,
     earliestMonthInputRef.current,

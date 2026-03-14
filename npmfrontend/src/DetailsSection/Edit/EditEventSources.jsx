@@ -35,14 +35,12 @@ export function EditEventSources() {
     }
   }
 
-  // On load
+  // On load: populate the editSources slice from the event's sources array
   useEffect(() => {
     console.log({ "EditEventSources.useEffect[editState.sources]": editState.sources })
-    editState.sources?.forEach(sourceinfo => {
-      // throw new Error("not implemented")
-      console.log({ "EditEventSources.useEffect[editState.sources]": "load sourceInfo" })
-      // reduxDispatch(editSourcesStateActions.loadSources(sourceinfo))
-    })
+    if (editState.sources && editState.sources.length > 0) {
+      reduxDispatch(editSourcesStateActions.loadSources(editState.sources))
+    }
   }, [editState.sources])
 
 

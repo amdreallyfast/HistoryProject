@@ -124,7 +124,7 @@ export const MouseHandler = () => {
 
     // On pin click, select that location. 
     // Note: Deselection handled on mouse up because that just feels better as an end user.
-    // Note: If region mesh selected an no pin, then the click-and-drag will trigger moveAllPins 
+    // Note: If region mesh selected and no pin, then the click-and-drag will trigger moveAllPins 
     // in EditPinMesh.
     let clickedPin = mouseState.leftMouseDown.intersection?.mesh.name == meshNames.PinBoundingBox
     if (clickedPin) {

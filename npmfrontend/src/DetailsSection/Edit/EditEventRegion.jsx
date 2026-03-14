@@ -132,15 +132,17 @@ export function EditEventRegion() {
     // Highlight selected.
     if (mouseState.selectedLocId) {
       let htmlElement = document.getElementById(mouseState.selectedLocId)
-      if (mouseState.selectedLocId == editState.primaryLoc.id) {
-        htmlElement.className = htmlClass.PrimaryLocHighlighted
-      }
-      else {
-        htmlElement.className = htmlClass.RegionBoundaryHighlighted
-      }
+      if (htmlElement && editState.primaryLoc) {
+        if (mouseState.selectedLocId == editState.primaryLoc.id) {
+          htmlElement.className = htmlClass.PrimaryLocHighlighted
+        }
+        else {
+          htmlElement.className = htmlClass.RegionBoundaryHighlighted
+        }
 
-      // Scroll to selected
-      htmlElement.scrollIntoView({ behavior: "smooth", block: "center" })
+        // Scroll to selected
+        htmlElement.scrollIntoView({ behavior: "smooth", block: "center" })
+      }
     }
 
     // De-highlight previous.
@@ -150,11 +152,13 @@ export function EditEventRegion() {
       }
       else {
         let htmlElement = document.getElementById(mouseState.prevSelectedLocId)
-        if (mouseState.prevSelectedLocId == editState.primaryLoc.id) {
-          htmlElement.className = htmlClass.PrimaryLoc
-        }
-        else {
-          htmlElement.className = htmlClass.RegionBoundary
+        if (htmlElement && editState.primaryLoc) {
+          if (mouseState.prevSelectedLocId == editState.primaryLoc.id) {
+            htmlElement.className = htmlClass.PrimaryLoc
+          }
+          else {
+            htmlElement.className = htmlClass.RegionBoundary
+          }
         }
       }
     }

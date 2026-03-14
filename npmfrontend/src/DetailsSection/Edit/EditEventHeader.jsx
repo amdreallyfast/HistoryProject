@@ -13,6 +13,14 @@ export function EditEventHeader() {
   const [tagReactElements, setTagReactElements] = useState()
   const [error, setError] = useState(null)
 
+  // Populate title input and run validation when edit state loads
+  useEffect(() => {
+    if (titleInputRef.current && editState.title) {
+      titleInputRef.current.value = editState.title
+    }
+    isComplete(editState.title, editState.tags)
+  }, [editState.title])
+
   // Validation function
   const isComplete = (title, tags) => {
     if (!title || title.trim() === "") {

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
+import { getLatestRevisions } from "../AppState/getLatestRevisions"
 import { createSpherePointFromLatLong } from "../GlobeSection/createSpherePoint"
 import { globeInfo } from "../GlobeSection/constValues"
 
@@ -40,6 +41,7 @@ export function SearchSectionMain() {
 
   const selectedEvent = useSelector((state) => state.eventReducer.selectedEvent)
   const prevSelectedEvent = useSelector((state) => state.eventReducer.prevSelectedEvent)
+  const allEvents = useSelector((state) => state.eventReducer.allEvents)
   const reduxDispatch = useDispatch()
 
   // selectedEvent changes => highlight
@@ -59,12 +61,17 @@ export function SearchSectionMain() {
     }
   }, [selectedEvent])
 
-  const onEventClicked = (eventJson) => {
+  const onEventClicked = (eventId) => {
     // If already selected, de-select.
-    if (selectedEvent?.eventId === eventJson.eventId) {
+    if (selectedEvent?.eventId === eventId) {
       reduxDispatch(eventStateActions.setSelectedEvent(null))
       return
     }
+
+    // Look up the latest revision from current allEvents (not a stale closure)
+    let latestRevisions = getLatestRevisions(allEvents)
+    let eventJson = latestRevisions.find(ev => ev.eventId === eventId)
+    if (!eventJson) return
 
     // Select this event
     reduxDispatch(eventStateActions.setSelectedEvent(eventJson))
@@ -92,7 +99,7 @@ export function SearchSectionMain() {
       sources: eventJson.sources,
       primaryLoc: primarySpherePoint,
       regionBoundaries: regionSpherePoints,
-      revisionAuthor: "",
+      revisionAuthor: eventJson.revisionAuthor || "",
     }))
   }
 
@@ -126,16 +133,19 @@ export function SearchSectionMain() {
     try {
       let eventsJson = await fetchEvents(import.meta.env.BASE_URL + "events.json")
 
-      // Store all events
+      // Store all events (all revisions)
       reduxDispatch(eventStateActions.setAllEvents(eventsJson))
 
+      // Show only latest revision of each event in search results
+      let latestEvents = getLatestRevisions(eventsJson)
+
       // Build search result UI
-      let htmlReactElements = eventsJson.map((eventJson) => (
+      let htmlReactElements = latestEvents.map((eventJson) => (
         <p
           id={`event-${eventJson.eventId}`}
           key={eventJson.eventId}
           className={searchResultHtmlClassNameNormal}
-          onClick={() => onEventClicked(eventJson)}
+          onClick={() => onEventClicked(eventJson.eventId)}
         >
           {eventJson.title}
         </p>

@@ -21,6 +21,14 @@ export const stateSliceEvent = createSlice({
         prevSelectedEvent: null
       }
     },
+    appendEvent: (state, action) => {
+      console.log({ stateSliceEvent_appendEvent: action.payload })
+
+      return {
+        ...state,
+        allEvents: [...(state.allEvents || []), action.payload]
+      }
+    },
     setSelectedEvent: (state, action) => {
       console.log({ stateSliceEvent_setSelectedEvent: action.payload })
 

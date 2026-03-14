@@ -9,6 +9,7 @@ import { MouseHandler } from "./MouseHandler"
 import { EditableRegion } from "./Region/EditableRegion"
 import { DisplayOnlyRegion } from "./Region/DisplayOnlyRegion"
 import { createSpherePointFromLatLong } from "./createSpherePoint"
+import { getLatestRevisions } from "../AppState/getLatestRevisions"
 import * as THREE from "three"
 
 // Extract only what is needed for the state machine.
@@ -66,7 +67,8 @@ export function Scene(
     // console.log({ "Scene.useEffect[eventState.allEvents]": eventState.allEvents })
 
     let displayElements = []
-    eventState.allEvents?.forEach((event) => {
+    let latestEvents = getLatestRevisions(eventState.allEvents) || []
+    latestEvents.forEach((event) => {
       // skip any item being edited
       if (event.eventId != editState.eventId && event.primaryLoc) {
         let primarySpherePoint = createSpherePointFromLatLong(
