@@ -1,6 +1,8 @@
 [
   {
     "eventId": 1,
+    "revision": 1,
+    "revisionAuthor": "amdreallyfast",
     "title": "Test Title Event 1",
     "tags": [
       "ancient",
@@ -78,6 +80,8 @@
   },
   {
     "eventId": 2,
+    "revision": 1,
+    "revisionAuthor": "amdreallyfast",
     "title": "Test Title Event 2",
     "tags": [
       "medieval",
