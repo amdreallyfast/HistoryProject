@@ -45,6 +45,8 @@ These two refactors address the same root cause (imperative DOM manipulation + s
 
 - [ ] `[simple]` **Rename DisplayOnlyRegion to DisplayRegion.** No need for "Only" in the name.
 
+- [ ] `[simple]` **Deselect selected region.** When a selected search result or a selected region in the globe is selected again, deselect it. The selected event should become null.
+
 ## Code Quality
 
 - [ ] `[simple]` **Standardize debug console.log messages.** Use this format throughout:
