@@ -1,5 +1,4 @@
-import { useSelector } from "react-redux"
-import axios from "axios";
+import { useSelector, useDispatch } from "react-redux"
 import { EditEventHeader } from "./EditEventHeader";
 import { EditEventType } from "./EditEventType";
 import { EditEventImage } from "./EditEventImage";
@@ -7,28 +6,19 @@ import { EditEventTime } from "./EditEventTime";
 import { EditEventRegion } from "./EditEventRegion";
 import { EditEventSummary } from "./EditEventSummary";
 import { EditEventSources } from "./EditEventSources";
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 
 
 export function EditEvent({ }) {
-  const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
+  const reduxDispatch = useDispatch()
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick")
-    // reduxDispatch(editStateActions.endEditMode())
-    let data = {
-      eventId: editState.eventId,
-      imageDataUrl: editState.imageDataUrl
-    }
-    axios.post("https://localhost:7121/api/HistoricalEvent/Create2", data)
-      .then((response) => {
-        console.log({ response })
-      })
-      .catch((error) => {
-        console.error({ msg: "oh no!", error })
-      })
-      .finally(() => {
-        console.log("finally")
-      })
+    // TODO: Step 4 will implement proper submit with revision tracking
+  }
+
+  const onCancelClick = () => {
+    reduxDispatch(editEventStateActions.endEditMode())
   }
 
   // TODO: RevisionAuthor
@@ -54,8 +44,17 @@ export function EditEvent({ }) {
     Source:
       https://stackoverflow.com/questions/31000885/align-an-element-to-bottom-with-flexbox
   */}
-      <div className="items-end flex m-2 h-full">
-        <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded " onClick={(e) => onSubmitClick(e)}>
+      <div className="flex justify-end gap-2 mt-auto m-2">
+        <button
+          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          onClick={onCancelClick}
+        >
+          Cancel
+        </button>
+        <button
+          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          onClick={(e) => onSubmitClick(e)}
+        >
           Submit
         </button>
       </div>
