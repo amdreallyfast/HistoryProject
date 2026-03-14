@@ -10,9 +10,9 @@ This is a full-stack web application for visualizing historical events on an int
 - **`WebAPI/`** - ASP.NET Core backend (Entity Framework Core, SQL Server, Azure Key Vault for secrets)
 - **`Tutorials/`** - Reference tutorials
 - **`CLAUDE.md`** - This file (project-level guidance)
+- **`DESIGN.md`** - Living design document (vision, architecture, design decisions)
 - **`TODO.md`** - Prioritized work items (bug fixes, refactors, features, design discussions)
-- **`claudePlans/`** - Plan documents for multi-step work (create plans here, not in the project root)
-- **`DESIGN.md`** - Living design document (to be created)
+- **`claudePlans/`** - Archived plan documents and setup guides (numbered chronologically)
 
 ## Build & Run Commands
 
@@ -34,22 +34,20 @@ npm run preview  # Preview production build
 ## Frontend Architecture (`npmfrontend/`)
 
 ### Main Layout (App.jsx)
-- **SearchSection** (left): Search interface, currently using restcountries.com API as placeholder; displays clickable results
+- **SearchSection** (left): Search interface, loads events from `events.json`, displays clickable results
 - **GlobeSection** (center): 3D globe with react-three/fiber, handles raycasting and mouse interactions
-- **DetailsSection** (right): Shows/edits event details, toggles between view and edit modes
+- **DetailsSection** (right): Shows/edits event details, toggles between Display and Edit modes
 - **Timeline** (bottom): Placeholder for timeline functionality
 
 ### State Management
 
 Redux Toolkit slices in `src/AppState/`:
-- `stateSlicePoi`: All events collection and selected event tracking (`poiReducer`)
-- `stateSliceEditPoi`: Edit mode state for event modifications (`editPoiReducer`)
+- `stateSliceEvent`: All events collection and selected event tracking (`eventReducer`)
+- `stateSliceEditEvent`: Edit mode state for event modifications (`editEventReducer`)
 - `stateSliceEditSources`: Source document editing state (`editSourcesReducer`)
 - `stateSliceEditSourceAuthors`: Author editing state (`editSourceAuthorsReducer`)
 - `stateSliceMouseInfo`: Mouse position, raycasting intersections, hover states (`mouseInfoReducer`)
-- `stateSliceSelectedPoi`: Selected event state for Show components (`selectedPoiReducer`)
-
-Note: "POI" naming is being migrated to "Event" naming per the plan.
+- `stateSliceSelectedEvent`: Selected event state for Display components (`selectedEventReducer`)
 
 React Query (`@tanstack/react-query`) handles data fetching in SearchSectionMain.
 
@@ -61,7 +59,7 @@ The Three.js scene hierarchy:
 - `Globe`: Earth sphere with custom GLSL shaders (`src/assets/shaders/`)
 - `Stars`: Background star field
 - `EditableRegion`/`DisplayOnlyRegion`: Region boundary visualization
-- `PinMesh`: Location markers on globe surface
+- `EditPinMesh`/`DisplayPinMesh`: Location markers on globe surface (edit = draggable, display = static)
 
 Mesh names and group names are centralized in `constValues.jsx`.
 
@@ -73,11 +71,11 @@ Mesh names and group names are centralized in `constValues.jsx`.
 
 ### Edit vs Display Mode
 
-`DetailsSection/Details.jsx` switches between:
-- `ShowDetails`: Read-only view of selected event
-- `EditEvent`: Full edit interface with sub-components for time, region, sources, etc.
+`DetailsSection/DetailsMain.jsx` switches between:
+- `DisplayEvent`: Read-only view of selected event (components in `Display/`)
+- `EditEvent`: Full edit interface with sub-components for time, region, sources, etc. (components in `Edit/`)
 
-Components in `Edit/` handle specific event fields; `Show/` components display them.
+App starts in display mode. Editing copies selected event into edit slices. Submit creates a new revision.
 
 ## Backend Architecture (`WebAPI/`)
 

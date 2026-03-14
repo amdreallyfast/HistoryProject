@@ -72,3 +72,29 @@ These are bigger architectural questions. Present options with pros/cons before 
   - Document database (e.g., MongoDB, CosmosDB)
   - Graph database (e.g., Neo4j — for relationship discovery between events)
   - Any other options worth considering
+
+---
+
+## Is this still needed/relevant?
+
+Items extracted from older plan and design documents. Review and either promote to a section above or delete.
+
+- [ ] **Clickable line mesh object.** Create a reusable "clickable line mesh" for use in boundary lines and timeline rendering on the globe surface. (From designNotes.txt, idea ~2024)
+
+- [ ] **Boundary line on region mesh.** Render a visible boundary line on top of the region mesh. When selected, the line can be moved (moves boundary pins on either side) or subdivided (creates a new boundary pin and splits into two line segments). Prerequisite: clickable line mesh. (From designNotes.txt, idea ~2024)
+
+- [ ] **Timeline object on globe surface.** Render a timeline object on the globe surface. When clicked, selects a timeline in the backend. (From designNotes.txt, idea ~2024, noted as "later")
+
+- [ ] **Command pattern for CTRL-Z undo.** Implement the Command pattern so users can undo the last edit action. (From designNotes.txt, idea ~2024)
+
+- [ ] **Star field brightness variation.** Make each star vary brightness with a random delay so they don't all pulse simultaneously. (From designNotes.txt)
+
+- [ ] **Bug: react-three-fiber "points" does not record "name" when provided.** Possible upstream bug to report. (From designNotes.txt)
+
+- [ ] **Full RecordsCreated/EverythingElse event type workflow.** The checkbox exists (`EditEventType.jsx`), but the full workflow is not built: "EverythingElse" events should require at least one source, and if the source isn't recorded yet, a "Create source" button should open a nested event creation interface locked to type "RecordsCreated". (From designNotes.txt, idea 2025-09-01)
+
+- [ ] **Auto-set revisionAuthor from current user.** `setRevisionAuthor(...)` currently defaults to a hardcoded value. Should be set automatically based on the logged-in user. (From designNotes.txt)
+
+- [ ] **"No event selected" state with "Create New Event" button.** When no event is selected, the Display section should show "No event selected" and a "Create New Event" button. Clicking it should allow globe-click to create a new event in edit mode. (From searchDisplayEditOverhaulPlan.md)
+
+- [ ] **Deselect event process.** Clicking empty space in the search section or on the globe (not on another event) should deselect the current event, returning Display to its empty state. An event in edit mode cannot be deselected. (From searchDisplayEditOverhaulPlan.md)
