@@ -1,4 +1,4 @@
-# Plan: Integrate Edit & Display Modes with Revision Tracking
+# Plan: Integrate Edit & Display Modes with Revision Tracking (COMPLETE)
 
 ## Current State
 
@@ -109,3 +109,20 @@ After each step, stop and let the user test. If it works, commit. If not, commit
 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 Each step stops for user testing and a commit before proceeding.
+
+## Completion Notes
+
+All 7 steps completed. Step 7 was implemented as part of Step 4 (getLatestRevisions utility).
+
+### Bugs found and fixed during implementation:
+- **EditEventHeader**: title input used `onKeyDown` (fires before value updates) instead of `onChange`
+- **EditEventTime**: validation ran with stale local state instead of freshly-set values
+- **EditEventSources**: `loadSources` dispatch was commented out, so sources never loaded in edit mode
+- **EditEventRegion**: crash on re-entering edit mode due to `document.getElementById` returning null
+- **SearchSectionMain**: stale closures from storing JSX in useState; fixed with refs for allEvents and editModeOn
+- **Submit handler**: stored `{lat, long}` only but edit mode needs full sphere points `{id, lat, long, x, y, z}`
+- **Source change detection**: editSources slice has extra fields vs original sources; comparison needed field extraction
+
+### Known technical debt (prompts saved for future refactors):
+1. **Submit handler does too much** — should only save data and end edit mode; display updates should be reactive via useEffects
+2. **SearchSectionMain anti-pattern** — stores JSX in useState causing stale closures; should store only data and render reactively
