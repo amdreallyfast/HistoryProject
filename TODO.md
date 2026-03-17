@@ -8,7 +8,7 @@ Work items for the HistoryProject. Organized by priority — start from the top.
 
 ## Bug Fixes
 
-- [ ] `[simple]` **Display region pins don't update after edit submit.** After editing an event's region boundaries and submitting, the DisplayRegion mesh moves correctly, but the region boundary pins stay in their original positions.
+- [x] `[simple]` **Display region pins don't update after edit submit.** After editing an event's region boundaries and submitting, the DisplayRegion mesh moves correctly, but the region boundary pins stay in their original positions.
 
 - [ ] `[simple]` **Clean up stale TODO comments.** Some comments in EditEvent.jsx reference RevisionAuthor, Sources, Summary, and "Edit button in show mode" as TODOs, but these are already implemented. Find and remove all outdated TODO comments across the codebase.
 

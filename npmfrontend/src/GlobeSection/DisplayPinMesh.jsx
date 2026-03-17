@@ -48,7 +48,7 @@ export function DisplayPinMesh({ spherePoint, globeInfo, colorHex, length = 3, s
     meshRef.current.geometry.attributes.position.needsUpdate = true
   }
 
-  // Create pin mesh when mesh reference is available.
+  // Create pin geometry when mesh reference is available.
   useEffect(() => {
     if (!meshRef.current) {
       return
@@ -56,6 +56,18 @@ export function DisplayPinMesh({ spherePoint, globeInfo, colorHex, length = 3, s
 
     makePin()
   }, [meshRef.current])
+
+  // Update position when spherePoint changes (e.g., after edit submit).
+  useEffect(() => {
+    if (!meshRef.current) {
+      return
+    }
+
+    meshRef.current.position.x = spherePoint.x
+    meshRef.current.position.y = spherePoint.y
+    meshRef.current.position.z = spherePoint.z
+    meshRef.current.lookAt(lookAt)
+  }, [spherePoint])
 
   // Update color when colorHex changes (for highlighting).
   useEffect(() => {
