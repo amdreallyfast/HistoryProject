@@ -7,7 +7,6 @@ import { EditSourcePublicationTimeRange } from "./EditSourcePublicationTimeRange
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
 
 
-// TODO: edit title field (set value, fix the watermark defining the number of characters)
 // TODO: ??why is the component getting re-rendered multiple times on startup??
 // TODO: ??pack textbox fields into a single class with header lable, input text box, char count label, internal state, etc? how do I handle the linkage with the state machine??
 

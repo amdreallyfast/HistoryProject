@@ -93,10 +93,6 @@ export function EditEventSources() {
 
 
 
-  // TODO: ??how to add an "edit session"??
-  /*
-  // Note: 'id' should be a guid. New sources should be passed id = null. The EditSource will submit to the state machine with this id.
-  */
   const onAddSourceClicked = (e) => {
     console.log({ "EditEventSources.onAddSourceClicked": e })
     // setSingleSourceEdit(

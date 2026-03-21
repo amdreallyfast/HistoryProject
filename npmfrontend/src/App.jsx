@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react'
 import { SearchSectionMain } from './SearchSection/SearchSectionMain'
 import { GlobeSectionMain } from "./GlobeSection/GlobeSectionMain"
 import { DetailsMain } from './DetailsSection/DetailsMain'
@@ -8,35 +7,6 @@ import './App.css'
 //  https://flowbite.com/docs/getting-started/introduction/
 
 function App() {
-  // const [searchResultsJson, setSearchResultsJson] = useState()
-  const [selectedItemJson, setSelectedItemJson] = useState()
-  // const selectedItemRef = useRef()
-
-  // /*
-  // TODO:
-  //   Search -> fetch data -> 
-  //     error: 
-  //       error in search results
-  //     ok: 
-  //       display in search results
-  //       display all on globe
-  //       display all on timeline
-  //   select search result ->
-  //     highlight in globe
-  //     highlight in timeline
-  //     display in details
-  // */
-
-  // const searchResultsCallback = (jsonResults) => {
-  //   // console.log({ msg: "App(): searchResultsCallback()", value: jsonResults })
-  //   setSearchResultsJson(jsonResults)
-  // }
-  // const itemSelectedCallback = (selectedJson) => {
-  //   console.log({ msg: "App(): itemSelectedCallback()", value: selectedJson?.name.common })
-  //   setSelectedItemJson(selectedJson)
-  //   selectedItemRef.current = selectedJson
-  // }
-
   return (
     <>
       <div className='grid grid-rows-5 grid-cols-10 w-screen h-screen bg-black border-4 border-yellow-500'>

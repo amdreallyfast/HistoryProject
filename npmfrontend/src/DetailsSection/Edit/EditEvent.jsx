@@ -145,11 +145,6 @@ export function EditEvent({ }) {
     reduxDispatch(editEventStateActions.endEditMode())
   }
 
-  // TODO: RevisionAuthor
-  // TODO: Sources
-  // TODO: Summary
-  // TODO: "Edit" button in "show" mode"
-
   return (
     <div className="flex flex-col h-full">
       <EditEventHeader />
