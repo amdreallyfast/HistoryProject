@@ -2,7 +2,14 @@
 
 Work items for the HistoryProject. Organized by priority — start from the top.
 
-**Instructions for Claude:** Work through items top-to-bottom. For items marked `[simple]`, just do them. For items marked `[plan first]`, create a plan document, get user approval, then implement step-by-step with testing between steps. For items marked `[discussion]`, present options and wait for the user to decide before doing anything.
+**Instructions for Claude:** Work through items top-to-bottom.
+- `[simple]` — Just do it.
+- `[plan first]` — Create a plan document, get user approval, then create a git branch and implement step-by-step with testing between steps.
+- `[discussion]` — Present options and wait for the user to decide before doing anything.
+
+After completing any item, commit the changes.
+
+For any item that would alter the program's design: highlight the change, summarize the impact, and get permission before continuing. If approved, also update DESIGN.md.
 
 ---
 
@@ -10,7 +17,7 @@ Work items for the HistoryProject. Organized by priority — start from the top.
 
 - [x] `[simple]` **Display region pins don't update after edit submit.** After editing an event's region boundaries and submitting, the DisplayRegion mesh moves correctly, but the region boundary pins stay in their original positions.
 
-- [ ] `[simple]` **Clean up stale TODO comments.** Some comments in EditEvent.jsx reference RevisionAuthor, Sources, Summary, and "Edit button in show mode" as TODOs, but these are already implemented. Find and remove all outdated TODO comments across the codebase.
+- [x] `[simple]` **Clean up stale TODO comments.** Some comments in EditEvent.jsx reference RevisionAuthor, Sources, Summary, and "Edit button in show mode" as TODOs, but these are already implemented. Find and remove all outdated TODO comments across the codebase.
 
 ## Refactors
 
