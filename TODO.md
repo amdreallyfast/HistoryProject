@@ -7,9 +7,11 @@ Work items for the HistoryProject. Organized by priority — start from the top.
 - `[plan first]` — Create a plan document, get user approval, then create a git branch and implement step-by-step with testing between steps.
 - `[discussion]` — Present options and wait for the user to decide before doing anything.
 
-After completing any item, commit the changes.
-
 For any item that would alter the program's design: highlight the change, summarize the impact, and get permission before continuing. If approved, also update DESIGN.md.
+
+After completing any item, commit the changes, and ask the user the test. 
+- If the test is successful, then mark the TODO item as complete, and commit. 
+- If not, then attempt to diagnose the problem, and engage the user for missing info or unclear intent, and when it is working as the using expects, then mark the TODO item as complete, and commit the changes.
 
 ---
 
