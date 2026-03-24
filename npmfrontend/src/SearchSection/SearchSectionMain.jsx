@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
@@ -36,40 +36,18 @@ export function SearchSectionMain() {
   const [upperBoundYear, setUpperBoundYear] = useState()
   const [upperBoundMon, setUpperBoundMon] = useState()
   const [upperBoundDay, setUpperBoundDay] = useState()
-  const [searchResultReactElements, setSearchResultsReactElements] = useState()
+  const [searchError, setSearchError] = useState(null)
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
   const selectedEvent = useSelector((state) => state.eventReducer.selectedEvent)
-  const prevSelectedEvent = useSelector((state) => state.eventReducer.prevSelectedEvent)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
-  const allEventsRef = useRef(allEvents)
-  allEventsRef.current = allEvents
-  const editModeOnRef = useRef(editModeOn)
-  editModeOnRef.current = editModeOn
   const reduxDispatch = useDispatch()
-
-  // selectedEvent changes => highlight
-  useEffect(() => {
-    if (selectedEvent) {
-      let selectedHtmlElement = document.getElementById(`event-${selectedEvent.eventId}`)
-      if (selectedHtmlElement) {
-        selectedHtmlElement.className = searchResultHtmlClassNameHighlighted
-      }
-    }
-
-    if (prevSelectedEvent) {
-      let prevSelectedHtmlElement = document.getElementById(`event-${prevSelectedEvent.eventId}`)
-      if (prevSelectedHtmlElement) {
-        prevSelectedHtmlElement.className = searchResultHtmlClassNameNormal
-      }
-    }
-  }, [selectedEvent])
 
   const onEventClicked = (eventId) => {
     // Guard: if in edit mode, confirm before switching
-    if (editModeOnRef.current) {
+    if (editModeOn) {
       let confirmed = window.confirm("You have unsaved changes. Discard and load the new event?")
       if (!confirmed) return
       reduxDispatch(editEventStateActions.endEditMode())
@@ -81,8 +59,8 @@ export function SearchSectionMain() {
       return
     }
 
-    // Look up the latest revision from current allEvents (use ref to avoid stale closure)
-    let latestRevisions = getLatestRevisions(allEventsRef.current)
+    // Look up the latest revision from current allEvents
+    let latestRevisions = getLatestRevisions(allEvents)
     let eventJson = latestRevisions.find(ev => ev.eventId === eventId)
     if (!eventJson) return
 
@@ -142,39 +120,19 @@ export function SearchSectionMain() {
 
   const onSearchClicked = async () => {
     console.log("Search: loading events.json...")
+    setSearchError(null)
 
     try {
       let eventsJson = await fetchEvents(import.meta.env.BASE_URL + "events.json")
-
-      // Store all events (all revisions)
       reduxDispatch(eventStateActions.setAllEvents(eventsJson))
-
-      // Show only latest revision of each event in search results
-      let latestEvents = getLatestRevisions(eventsJson)
-
-      // Build search result UI
-      let htmlReactElements = latestEvents.map((eventJson) => (
-        <p
-          id={`event-${eventJson.eventId}`}
-          key={eventJson.eventId}
-          className={searchResultHtmlClassNameNormal}
-          onClick={() => onEventClicked(eventJson.eventId)}
-        >
-          {eventJson.title}
-        </p>
-      ))
-
-      setSearchResultsReactElements(htmlReactElements)
     }
     catch (error) {
       console.error({ "Search error": error })
-      setSearchResultsReactElements(
-        <p className="font-bold text-red-500 text-left">
-          Error loading events: {error.message}
-        </p>
-      )
+      setSearchError(error.message)
     }
   }
+
+  const latestEvents = allEvents ? getLatestRevisions(allEvents) : null
 
   return (
     <div className="flex flex-col h-full border-2 border-green-500">
@@ -215,7 +173,22 @@ export function SearchSectionMain() {
 
       {/* Search results */}
       <div className='flex flex-col items-start border-2 border-gray-600 m-1 h-full overflow-auto'>
-        {searchResultReactElements}
+        {searchError && (
+          <p className="font-bold text-red-500 text-left">
+            Error loading events: {searchError}
+          </p>
+        )}
+        {latestEvents && latestEvents.map((eventJson) => (
+          <p
+            key={eventJson.eventId}
+            className={eventJson.eventId === selectedEvent?.eventId
+              ? searchResultHtmlClassNameHighlighted
+              : searchResultHtmlClassNameNormal}
+            onClick={() => onEventClicked(eventJson.eventId)}
+          >
+            {eventJson.title}
+          </p>
+        ))}
       </div>
     </div>
   )
