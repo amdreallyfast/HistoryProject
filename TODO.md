@@ -56,6 +56,8 @@ These two refactors address the same root cause (imperative DOM manipulation + s
 
 ## Code Quality
 
+- [ ] `[simple]` **Review and clean up lint errors.** `npm run lint` currently reports 292 problems across the codebase. Review each category (unused vars, missing prop-types, no-empty-pattern, react/no-unknown-property, react-hooks/exhaustive-deps) and fix or suppress with justification.
+
 - [ ] `[simple]` **Standardize debug console.log messages.** Use this format throughout:
   ```js
   console.log({ "ClassName.functionName": argumentValue })
