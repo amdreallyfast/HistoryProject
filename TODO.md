@@ -23,7 +23,7 @@ For any item that would alter the program's design: highlight the change, summar
 
 These two refactors address the same root cause (imperative DOM manipulation + stale closures) and should be done together.
 
-- [ ] `[plan first]` **Refactor SearchSectionMain to be fully reactive.** The current SearchSectionMain stores pre-built `<p>` React elements in useState. This means click handler closures capture stale Redux state (allEvents, selectedEvent), requiring refs as workarounds. Similarly, selection highlighting uses `document.getElementById` to imperatively set classNames instead of letting React re-render. Refactor to:
+- [x] `[plan first]` **Refactor SearchSectionMain to be fully reactive.** The current SearchSectionMain stores pre-built `<p>` React elements in useState. This means click handler closures capture stale Redux state (allEvents, selectedEvent), requiring refs as workarounds. Similarly, selection highlighting uses `document.getElementById` to imperatively set classNames instead of letting React re-render. Refactor to:
   1. Store only data in state (e.g., a list of eventIds or a search query), not JSX elements. Render the search results directly from allEvents (filtered to latest revisions) during each render cycle.
   2. Remove all `document.getElementById` / imperative className manipulation. Use React's rendering — compare `eventId === selectedEvent?.eventId` inline to pick the right CSS class.
   3. This eliminates the stale closure problem entirely (no stored JSX = no frozen closures) and removes the need for `allEventsRef`.

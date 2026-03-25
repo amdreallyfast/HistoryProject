@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
@@ -131,6 +131,26 @@ export function SearchSectionMain() {
       setSearchError(error.message)
     }
   }
+
+  // When allEvents changes (e.g. after an edit submit), re-sync selectedEvent to latest revision
+  useEffect(() => {
+    if (!allEvents || !selectedEvent) return
+    const latest = getLatestRevisions(allEvents).find(e => e.eventId === selectedEvent.eventId)
+    if (!latest || latest.revision === selectedEvent.revision) return
+
+    reduxDispatch(eventStateActions.setSelectedEvent(latest))
+    const primarySpherePoint = latest.primaryLoc
+      ? createSpherePointFromLatLong(latest.primaryLoc.lat, latest.primaryLoc.long, globeInfo.radius)
+      : null
+    const regionSpherePoints = latest.regionBoundaries.map(rb =>
+      createSpherePointFromLatLong(rb.lat, rb.long, globeInfo.radius)
+    )
+    reduxDispatch(selectedEventStateActions.load({
+      ...latest,
+      primaryLoc: primarySpherePoint,
+      regionBoundaries: regionSpherePoints,
+    }))
+  }, [allEvents, selectedEvent])
 
   const latestEvents = allEvents ? getLatestRevisions(allEvents) : null
 

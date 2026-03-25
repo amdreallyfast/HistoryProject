@@ -9,9 +9,6 @@ import { EditEventSummary } from "./EditEventSummary";
 import { EditEventSources } from "./EditEventSources";
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 import { eventStateActions } from "../../AppState/stateSliceEvent";
-import { selectedEventStateActions } from "../../AppState/stateSliceSelectedEvent";
-import { createSpherePointFromLatLong } from "../../GlobeSection/createSpherePoint";
-import { globeInfo } from "../../GlobeSection/constValues";
 
 
 export function EditEvent({ }) {
@@ -116,26 +113,8 @@ export function EditEvent({ }) {
       sources: sourcesArray,
     }
 
-    // Append new revision to allEvents (preserves selection)
+    // Append new revision to allEvents; SearchSectionMain useEffect handles re-syncing display
     reduxDispatch(eventStateActions.appendEvent(newEvent))
-
-    // Build sphere points for selectedEvent (display + edit components need id/x/y/z)
-    let primarySpherePoint = newEvent.primaryLoc
-      ? createSpherePointFromLatLong(newEvent.primaryLoc.lat, newEvent.primaryLoc.long, globeInfo.radius)
-      : null
-    let regionSpherePoints = newEvent.regionBoundaries.map(rb =>
-      createSpherePointFromLatLong(rb.lat, rb.long, globeInfo.radius)
-    )
-
-    let selectedEventData = {
-      ...newEvent,
-      primaryLoc: primarySpherePoint,
-      regionBoundaries: regionSpherePoints,
-    }
-
-    // Load the new revision into display mode
-    reduxDispatch(eventStateActions.setSelectedEvent(newEvent))
-    reduxDispatch(selectedEventStateActions.load(selectedEventData))
 
     // Exit edit mode
     reduxDispatch(editEventStateActions.endEditMode())
