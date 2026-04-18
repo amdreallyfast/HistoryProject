@@ -17,6 +17,8 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Top Priority
 
+- [ ] `[plan first]` **Set up local SQL Server database for backend development.** The Azure deployment uses Managed Identity to connect to Azure SQL, but local development needs a real SQL Server connection. `Program.cs` now reads `ConnectionStrings:LocalDb` from `appsettings.Development.json` (gitignored) when running in Development mode. This file does not yet exist — local backend development is blocked until a local SQL Server instance is set up and the file is created. Plan needed: install SQL Server locally (or use Docker), create the database, run EF migrations, and create `appsettings.Development.json`.
+
 - [ ] `[discussion]` **Host application in Azure (main + test environments with CI from GitHub).** Currently running on a small VM requiring manual `npm run dev`. Goal: browser-accessible URL for both main and test environments, auto-updated on push to the respective GitHub branch. Evaluate and decide:
 
   1. **Hosting option for the React frontend:**

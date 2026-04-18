@@ -28,3 +28,6 @@ replay_pid*
 
 # Claude stdout null for Windows
 *nul
+
+# Local dev secrets (never commit)
+**/appsettings.Development.json

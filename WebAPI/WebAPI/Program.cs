@@ -1,42 +1,26 @@
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json.Serialization;
-using System.Security.Cryptography.X509Certificates;
-using WebAPI.Exceptions;
 using WebAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get cert that's needed to access the key vault.
-// Janky, but this is the way that I'm running the security during development. Only a machine
-// with the cert installed can even attempt to access the key vault.
-var certStore = new X509Store(StoreLocation.CurrentUser);
-certStore.Open(OpenFlags.ReadOnly);
-const string certCommonName = "historyprojectwebapp";
-var certsByName = certStore.Certificates.Find(X509FindType.FindBySubjectName, certCommonName, false);
-if (certsByName.Count == 0)
+string dbConnStr;
+if (builder.Environment.IsDevelopment())
 {
-    throw new MissingKeyVaultAccessCertException(certCommonName);
+    // Local dev: connection string from appsettings.Development.json (gitignored)
+    dbConnStr = builder.Configuration.GetConnectionString("LocalDb")
+        ?? throw new InvalidOperationException("ConnectionStrings:LocalDb not set in appsettings.Development.json");
 }
-var cert = certsByName.First();
-
-// Get the DB conn string from the key vault.
-const string tenantIdKey = "KeyVaultAccess:TenantId";
-const string appIdKey = "KeyVaultAccess:HistoryProjectWebAppId";
-const string vaultUriKey = "KeyVaultAccess:VaultUrl";
-const string secretNameKey = "KeyVaultAccess:SecretNameLocalDbConnStr";
-
-var tenantId = builder.Configuration.GetValue<String>(tenantIdKey) ?? throw new MissingKeyVaultAccessConfigException(tenantIdKey);
-var appId = builder.Configuration.GetValue<String>(appIdKey) ?? throw new MissingKeyVaultAccessConfigException(appIdKey);
-var vaultUri = builder.Configuration.GetValue<String>(vaultUriKey) ?? throw new MissingKeyVaultAccessConfigException(vaultUriKey);
-var secretName = builder.Configuration.GetValue<String>(secretNameKey) ?? throw new MissingKeyVaultAccessConfigException(secretNameKey);
-var loginCredential = new ClientCertificateCredential(tenantId, appId, cert);
-var client = new SecretClient(new Uri(vaultUri), loginCredential);
-var response = await client.GetSecretAsync(secretName);
-var keyVaultSecret = response.Value;
-var dbConnStr = keyVaultSecret.Value;
+else
+{
+    // Azure: Managed Identity authenticates — no password needed
+    var sqlServer = builder.Configuration["AzureSql:Server"]
+        ?? throw new InvalidOperationException("AzureSql:Server not configured");
+    var sqlDb = builder.Configuration["AzureSql:Database"]
+        ?? throw new InvalidOperationException("AzureSql:Database not configured");
+    dbConnStr = $"Server=tcp:{sqlServer},1433;Database={sqlDb};Authentication=Active Directory Default;Encrypt=True;";
+}
 
 // Add services to the container.
 builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
