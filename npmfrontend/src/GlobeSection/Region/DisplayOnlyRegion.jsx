@@ -3,7 +3,7 @@ import { DisplayPinMesh } from "../DisplayPinMesh"
 import { DisplayRegionMesh } from "./DisplayRegionMesh"
 import { displayPinMeshInfo, groupNames } from "../constValues"
 
-export function DisplayOnlyRegion({ eventId, primaryLoc, regionBoundaries, globeInfo, isSelected }) {
+export function DisplayOnlyRegion({ eventId, primaryLoc, regionBoundaries, globeInfo, isSelected, isBeingEdited }) {
   const hoverEventId = useSelector((state) => state.mouseInfoReducer.hoverEventId)
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
   const isHovered = hoverEventId === eventId
@@ -13,7 +13,12 @@ export function DisplayOnlyRegion({ eventId, primaryLoc, regionBoundaries, globe
   }
 
   let primaryPinColor, regionPinColor, regionColor
-  if (editModeOn) {
+  if (editModeOn && isBeingEdited) {
+    // Ghost reference: original region shape shown in selected blue while the user edits above it.
+    primaryPinColor = displayPinMeshInfo.selectedPrimaryPinColor
+    regionPinColor  = displayPinMeshInfo.selectedRegionPinColor
+    regionColor     = displayPinMeshInfo.selectedRegionColor
+  } else if (editModeOn) {
     primaryPinColor = displayPinMeshInfo.dimPrimaryPinColor
     regionPinColor  = displayPinMeshInfo.dimRegionPinColor
     regionColor     = displayPinMeshInfo.dimRegionColor

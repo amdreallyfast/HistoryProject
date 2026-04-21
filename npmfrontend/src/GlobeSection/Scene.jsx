@@ -64,8 +64,7 @@ export function Scene() {
     let displayElements = []
     let latestEvents = getLatestRevisions(eventState.allEvents) || []
     latestEvents.forEach((event) => {
-      // skip any item being edited
-      if (event.eventId != editState.eventId && event.primaryLoc) {
+      if (event.primaryLoc) {
         let primarySpherePoint = createSpherePointFromLatLong(
           event.primaryLoc.lat,
           event.primaryLoc.long,
@@ -82,6 +81,7 @@ export function Scene() {
             regionBoundaries={regionSpherePoints}
             globeInfo={earthGlobeInfo}
             isSelected={event.eventId === eventState.selectedEvent?.eventId}
+          isBeingEdited={editState.editModeOn && event.eventId === editState.eventId}
           />
         )
       }

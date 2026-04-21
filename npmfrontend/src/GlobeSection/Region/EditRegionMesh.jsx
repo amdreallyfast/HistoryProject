@@ -23,8 +23,8 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       return
     }
 
-    // offset the mesh just a bit from the sphere so that it will sit on top
-    let meshRadius = sphereRadius + 0.01
+    // Raised above DisplayRegionMesh (+0.01) so the raycaster hits this mesh first
+    let meshRadius = sphereRadius + 0.1
     let baseVertices = editState.regionBoundaries.map((boundaryMarker) => [boundaryMarker.x, boundaryMarker.y, boundaryMarker.z])
     let geometry = generateRegionMesh(baseVertices, meshRadius)
 
