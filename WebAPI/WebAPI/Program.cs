@@ -65,9 +65,11 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
+var photosPath = Path.Combine(Directory.GetCurrentDirectory(), "Photos");
+Directory.CreateDirectory(photosPath); // no-op if already exists
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Photos")),
+    FileProvider = new PhysicalFileProvider(photosPath),
     RequestPath = "/Photos"
 });
 

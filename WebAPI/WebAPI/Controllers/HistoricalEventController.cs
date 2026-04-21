@@ -94,21 +94,16 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetFirst100()
         {
-            //var things = await dbContext.Events.Take(1).ToListAsync();
-
-            //var first100Events = await dbContext.Events
-            //    .Take(100)
-            //    .Include(x => x.Tags)
-            //    .Include(x => x.EventImage)
-            //    .Include(x => x.SpecificLocation)
-            //    .Include(x => x.Region)
-            //    .Include(x => x.Sources)
-            //        .ThenInclude(source => source.Authors)
-            //    .ToListAsync();
-
-            //List<EventDto> dtos = first100Events.Select(x => x.ToDto()).ToList();
-            //return Ok(first100Events);
-            return Ok("hi there and things");
+            var first100Events = await dbContext.Events
+                .Take(100)
+                .Include(x => x.Tags)
+                .Include(x => x.EventImage)
+                .Include(x => x.SpecificLocation)
+                .Include(x => x.Region)
+                .Include(x => x.Sources)
+                    .ThenInclude(source => source.Authors)
+                .ToListAsync();
+            return Ok(first100Events);
         }
 
         [Route("GetEventOfTheDay")]
