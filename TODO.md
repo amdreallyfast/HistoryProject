@@ -17,7 +17,7 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Top Priority
 
-- [ ] `[plan first]` **Set up local SQL Server database for backend development.** The Azure deployment uses Managed Identity to connect to Azure SQL, but local development needs a real SQL Server connection. `Program.cs` now reads `ConnectionStrings:LocalDb` from `appsettings.Development.json` (gitignored) when running in Development mode. This file does not yet exist — local backend development is blocked until a local SQL Server instance is set up and the file is created. Plan needed: install SQL Server locally (or use Docker), create the database, run EF migrations, and create `appsettings.Development.json`.
+- [x] `[plan first]` **Set up local SQL Server database for backend development.** The Azure deployment uses Managed Identity to connect to Azure SQL, but local development needs a real SQL Server connection. `Program.cs` now reads `ConnectionStrings:LocalDb` from `appsettings.Development.json` (gitignored) when running in Development mode. This file does not yet exist — local backend development is blocked until a local SQL Server instance is set up and the file is created. Plan needed: install SQL Server locally (or use Docker), create the database, run EF migrations, and create `appsettings.Development.json`.
 
 - [ ] `[discussion]` **Host application in Azure (main + test environments with CI from GitHub).** Currently running on a small VM requiring manual `npm run dev`. Goal: browser-accessible URL for both main and test environments, auto-updated on push to the respective GitHub branch. Evaluate and decide:
 
@@ -57,7 +57,7 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Refactors
 
-- [ ] `[simple]` **Update project to .NET 10.** The machine only has the .NET 10 SDK installed. After local dev and test database environments are working, retarget `WebAPI.csproj` from `net8.0` to `net10.0` and verify the backend builds and runs.
+- [x] `[simple]` **Update project to .NET 10.** The machine only has the .NET 10 SDK installed. After local dev and test database environments are working, retarget `WebAPI.csproj` from `net8.0` to `net10.0` and verify the backend builds and runs.
 
 These two refactors address the same root cause (imperative DOM manipulation + stale closures) and should be done together.
 
@@ -74,6 +74,8 @@ These two refactors address the same root cause (imperative DOM manipulation + s
   2. Add a useEffect (in SearchSectionMain or DetailsMain) that watches allEvents and selectedEvent — when allEvents changes and there's a selected event, look up the latest revision for that eventId and re-dispatch it to `selectedEventStateActions.load` with proper sphere points.
   3. Simplify EditEvent's `onSubmitClick` to just: append new event to allEvents, end edit mode. Remove all the sphere-point creation and selectedEvent dispatching from submit.
   4. This way submit is only responsible for saving, and display updates are reactive.
+
+- [ ] `[simple]` **Implement `GetEventOfTheDay` endpoint.** Currently throws `NotImplementedException`. Implement the logic to select and return a daily event.
 
 ## Globe Interaction
 
