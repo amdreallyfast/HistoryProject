@@ -17,34 +17,6 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Top Priority
 
-- [ ] `[discussion]` **Host application in Azure (main + test environments with CI from GitHub).** Currently running on a small VM requiring manual `npm run dev`. Goal: browser-accessible URL for both main and test environments, auto-updated on push to the respective GitHub branch. Evaluate and decide:
-
-  1. **Hosting option for the React frontend:**
-     - Azure Static Web Apps (free tier) — purpose-built for SPAs, built-in GitHub Actions CI/CD, custom domains, free SSL. Likely the best fit and cheapest option.
-     - Azure App Service (Basic B1 ~$13/mo) — more general, supports both frontend and backend on one plan, but overkill for a static frontend.
-
-  2. **Hosting option for the ASP.NET Core backend:**
-     - Azure App Service Free (F1) — limited (60 CPU-min/day, no custom domain, no always-on), but $0.
-     - Azure App Service Basic (B1, ~$13/mo) — always-on, custom domain, SSL, reasonable for light use.
-     - Azure Functions (Consumption plan) — pay-per-execution (~$0 at low traffic). The backend is a standard REST controller — it would need to be refactored into Azure Functions or wrapped with a Function proxy. Adds complexity.
-     - Recommendation to evaluate: App Service Free tier for now (cheap/free), upgrade to B1 when always-on matters. Functions are cheaper at scale but require refactor.
-
-  3. **Database:** Azure SQL is expensive (~$5–15/mo minimum). Evaluate:
-     - Azure SQL Database (serverless, auto-pause) — cheapest SQL Server option, pauses when idle.
-     - Keep existing SQL Server on the VM for now and only migrate the app hosting.
-
-  4. **CI/CD via GitHub Actions:**
-     - Azure Static Web Apps has first-class GitHub Actions integration (auto-generates workflow on creation).
-     - Azure App Service supports GitHub Actions deployment via publish profile secrets.
-     - Branching strategy: `main` branch → production slot; `test` branch → staging slot or separate App Service instance.
-     - Azure deployment slots (requires Standard tier ~$70/mo) vs. two separate free/basic instances.
-
-  5. **Recommended path to evaluate (least expensive):**
-     - Frontend: Azure Static Web Apps (Free tier) with built-in CI for main + test.
-     - Backend: Azure App Service Free (F1) × 2 (one per environment), or a single Basic B1 with deployment slots.
-     - Database: Stay on VM DB for now OR migrate to Azure SQL Serverless.
-     - Walk through setup step by step once option is chosen.
-
 ---
 
 ## Bug Fixes
