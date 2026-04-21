@@ -57,6 +57,16 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Refactors
 
+- [ ] `[plan first]` **End-to-end event workflow: seed test data, edit/submit, search refresh, globe update, revision browsing.** *Prerequisite: complete "Refactor EditEvent submit to be minimal" below first — that reactive architecture is what makes steps 3–5 here work automatically.* The two test events in `npmfrontend/dist/events.json` need to be in the localDB so the full workflow can be exercised. Once that's done, the following needs to work end-to-end:
+  1. **Seed test data:** Import the two events from `events.json` into the local SQL Server DB so the backend returns real data.
+  2. **Edit and submit as new revision:** Editing an event and submitting must write a new revision to the DB (not overwrite) and return it to the frontend.
+  3. **Search refresh:** After submit, the search must re-run and return the latest revision for each eventId.
+  4. **Globe and details update:** The globe and details section must reflect the newly submitted revision immediately after submit.
+  5. **Exit to display mode:** After submit, the UI must switch from edit mode to display mode showing the updated event.
+  6. **Revision browsing in details:** The details section should display revisions as a stack of cards — the latest revision is shown by default, but the user can click back through older revisions and see both the details and the globe update to reflect whichever revision is selected. When search runs, it always finds the latest revision; the stack makes the existence of prior revisions visible.
+
+  This is the minimum viable feature set needed before the UI work can go much further.
+
 - [x] `[simple]` **Update project to .NET 10.** The machine only has the .NET 10 SDK installed. After local dev and test database environments are working, retarget `WebAPI.csproj` from `net8.0` to `net10.0` and verify the backend builds and runs.
 
 These two refactors address the same root cause (imperative DOM manipulation + stale closures) and should be done together.
@@ -109,6 +119,8 @@ These two refactors address the same root cause (imperative DOM manipulation + s
 ## Design Discussions (after features stabilize)
 
 These are bigger architectural questions. Present options with pros/cons before doing anything.
+
+- [ ] `[discussion]` **Replace "Edit" button with a "ghost revision card" to clarify intent.** The current "Edit" button implies modifying the existing event, but the data model always creates a new revision — it never overwrites. Consider replacing the button with a ghost/placeholder card (styled like a revision card but with a "+" icon) appended to the revision stack in the details section. Clicking it would open the edit interface. This framing makes "add a revision" the visible action rather than "edit", and fits naturally into the revision-card stack UI. Discuss: visual design, interaction model, whether this replaces or supplements the current button, and what the ghost card should look like when the revision stack is empty (i.e., no event selected or a new event).
 
 - [ ] `[discussion]` **Frontend state persistence strategy.** The app currently keeps everything in Redux (in-memory). This was chosen because it's simple and disappears on tab close (no cookies needed). But Redux state has grown complex with multiple slices tracking different parts of the program. Questions to address:
   - Is this complexity necessary, or is it over-engineered?
