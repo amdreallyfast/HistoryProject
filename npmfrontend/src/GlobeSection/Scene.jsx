@@ -81,7 +81,6 @@ export function Scene() {
             regionBoundaries={regionSpherePoints}
             globeInfo={earthGlobeInfo}
             isSelected={event.eventId === eventState.selectedEvent?.eventId}
-          isBeingEdited={editState.editModeOn && event.eventId === editState.eventId}
           />
         )
       }
