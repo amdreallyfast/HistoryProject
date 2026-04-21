@@ -21,6 +21,17 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Bug Fixes
 
+- [ ] `[plan first]` **Address GitHub Dependabot package vulnerabilities in npmfrontend (121 reported).** GitHub reports 121 vulnerabilities (4 critical, 59 high, 46 moderate, 12 low). Backend (.NET 10) packages appear current. Frontend npm packages are the source. Each step is its own implementation and verification cycle — commit and confirm the app works before proceeding to the next. Do not combine steps; interacting breaking changes from multiple major-version bumps are difficult to diagnose.
+
+  1. **Remove accidental `save` package.** `save` is listed as a runtime dependency but is almost certainly an accidental `npm install save` — it is not used by this project. Removing it will likely eliminate a significant portion of transitive vulnerabilities. Verify it is not imported anywhere before removing. Run `npm audit` after; confirm app still works.
+  2. **Apply non-breaking updates.** Run `npm audit fix` (no `--force`) to apply patch/minor fixes automatically. Run `npm audit` after; confirm app still works.
+  3. **Upgrade `@reduxjs/toolkit` v1 → v2 (and `react-redux` v8 → v9).** These two are coupled — upgrade together since RTK v2 requires react-redux v9. Review migration guide, apply changes, run app end-to-end. Run `npm audit` after.
+  4. **Upgrade `@tanstack/react-query` v4 → v5.** Breaking API changes (e.g., `cacheTime` → `gcTime`, `useQuery` result shape). Review migration guide, apply changes, run app end-to-end. Run `npm audit` after.
+  5. **Upgrade `three` r156 → latest.** Three.js has breaking changes across minor versions. Review changelog, apply changes, test globe rendering. Run `npm audit` after.
+  6. **For any vulnerability that still cannot be resolved** after the above steps, open a discussion item with specifics — what the package is, what the vulnerability is, and what alternatives exist.
+
+  Goal: reach zero critical and high severity issues; accept low/moderate only if there is no available fix.
+
 ## Refactors
 
 - [ ] `[plan first]` **End-to-end event workflow: seed test data, edit/submit, search refresh, globe update, revision browsing.** *Prerequisite: complete "Refactor EditEvent submit to be minimal" below first — that reactive architecture is what makes steps 3–5 here work automatically.* The two test events in `npmfrontend/dist/events.json` need to be in the localDB so the full workflow can be exercised. Once that's done, the following needs to work end-to-end:
@@ -67,6 +78,11 @@ After completing any item, commit the changes, and ask the user the test.
   console.log({ "ClassName.functionName": argumentValue })
   console.log({ "ClassName.useEffect[dependency]": dependencyValue })
   ```
+
+- [ ] `[plan first]` **Add "X" button to top-right of details section for clean exit.** Three problems with the current exit UX: (1) the unsaved-changes warning is a browser `confirm()` popup, which looks out of place; (2) the cancel button does not warn about unsaved changes; (3) the only visible exit control is a button at the bottom of the details panel, requiring the user to scroll. Fix: add a visible "X" button anchored to the top-right corner of the details section. Behavior:
+  - **Display mode:** clicking "X" deselects the current event and returns the details section to the empty "no event selected" state.
+  - **Edit mode (no unsaved changes):** clicking "X" exits edit mode immediately.
+  - **Edit mode (unsaved changes):** clicking "X" shows an in-page confirmation message (styled to match the app, not a browser popup) asking the user to confirm discarding changes. Replace the existing `window.confirm()` calls in `SearchSectionMain` with the same in-page prompt so the UX is consistent.
 
 - [ ] `[discussion]` **Three.js skill/plugin for Claude.** Is there a skill or plugin for using Three.js with Claude Code? If not, what are the options? The Three.js API is central to this project (globe, meshes, raycasting, shaders), and having focused context would help. Options to explore: existing MCP servers, creating a custom skill from the Three.js docs, or downloading API reference for local use.
 

@@ -7,16 +7,22 @@ on:
       - 'WebAPI/**'
       - '.github/workflows/deploy-backend.yml'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Build and publish
         run: |
@@ -24,12 +30,18 @@ jobs:
             --configuration Release \
             --output ./publish
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy to production (main branch)
         if: github.ref == 'refs/heads/main'
         uses: azure/webapps-deploy@v3
         with:
           app-name: historyprojectapi
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PROD }}
           package: ./publish
 
       - name: Deploy to testing (test branch)
@@ -37,5 +49,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: historyprojectapi-testing
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_TESTING }}
           package: ./publish
