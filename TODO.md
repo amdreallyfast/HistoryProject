@@ -57,6 +57,8 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Refactors
 
+- [ ] `[simple]` **Update project to .NET 10.** The machine only has the .NET 10 SDK installed. After local dev and test database environments are working, retarget `WebAPI.csproj` from `net8.0` to `net10.0` and verify the backend builds and runs.
+
 These two refactors address the same root cause (imperative DOM manipulation + stale closures) and should be done together.
 
 - [x] `[plan first]` **Refactor SearchSectionMain to be fully reactive.** The current SearchSectionMain stores pre-built `<p>` React elements in useState. This means click handler closures capture stale Redux state (allEvents, selectedEvent), requiring refs as workarounds. Similarly, selection highlighting uses `document.getElementById` to imperatively set classNames instead of letting React re-render. Refactor to:
