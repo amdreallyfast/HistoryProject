@@ -64,9 +64,42 @@ After completing any item, commit the changes, and ask the user the test.
 
 - [x] `[simple]` **Dim other events' display regions in edit mode.** When edit mode is active, all other events' display regions and pins render in gray and are non-interactive (hover suppressed, clicks blocked). This replaced the earlier plan of hiding display meshes entirely and adding a globe-click confirmation dialog.
 
+- [x] `[simple]` **Show edited event's display region as a blue ghost in edit mode.** The DisplayOnlyRegion for the event being edited renders in selected-blue (not dim gray) as a visual reference. EditRegionMesh raised to `sphereRadius + 0.1` so raycasting hits the edit mesh first. Fixed a stale-prop bug where `isBeingEdited` was computed in a useEffect without `editState` as a dependency — moved to a reactive `useSelector` inside `DisplayOnlyRegion`.
+
 - [ ] `[simple]` **Rename DisplayOnlyRegion to DisplayRegion.** No need for "Only" in the name.
 
 - [ ] `[simple]` **Deselect selected region.** When a selected search result or a selected region in the globe is selected again, deselect it. The selected event should become null.
+
+- [ ] `[plan first]` **Create new event workflow.** Implement the full workflow for creating a new event from scratch. *Prerequisite: submitting an event to the backend must work first (see "End-to-end event workflow" refactor above).* Consolidates and supersedes two items in "Is this still needed?" below ("No event selected state with Create New Event button" and "Deselect event process") — remove those when implementing this.
+
+  **Deselection (implement first — prerequisite for the new-event button):**
+  1. Clicking empty globe space (no mesh hit other than the globe itself) while an event is selected should deselect it and return the details section to "No event selected". Add to `MouseHandler.jsx`: detect a click where no display mesh and no pin is hit, and dispatch `setSelectedEvent(null)` plus clear `selectedEventReducer`. Must not fire during edit mode or during the "awaiting placement" pre-edit state (see below).
+  2. Clicking the same search result again already deselects — keep that behavior.
+  3. An event in edit mode cannot be deselected via globe or search-result click. Leave deselection from edit mode to the cancel process.
+
+  **"Create New Event" button — Stage 1 (idle):**
+  4. When no event is selected, `DetailsMain.jsx` shows "No event selected" and a "Create New Event" button.
+
+  **Awaiting globe placement — Stage 2 (pre-edit waiting state):**
+  5. Clicking "Create New Event" does NOT enter edit mode immediately. Instead, it sets a new flag `newEventAwaitingPlacement: true` in `stateSliceEditEvent` via a new action (e.g., `prepareNewEvent()`). Edit mode is NOT yet active.
+  6. While `newEventAwaitingPlacement` is true, the details section shows: the button text changed to "Click on globe" (disabled/unclickable) and a "Cancel" button below it. No edit form fields yet.
+  7. Clicking Cancel clears `newEventAwaitingPlacement` and returns to Stage 1.
+
+  **Globe click → edit mode — Stage 3:**
+  8. `MouseHandler.jsx` detects `editState.newEventAwaitingPlacement && clickedGlobe`. Dispatches a new combined action `startNewEvent(spherePoint)` that atomically sets `editModeOn: true`, `primaryLoc: spherePoint`, and clears `newEventAwaitingPlacement`. Single dispatch = single render; avoids an intermediate state where edit mode is on but no location exists.
+  9. `EditableRegion` sees the new `primaryLoc` and auto-creates 8 default boundary pins in the correct order for ear-clipping triangulation — this is the existing behavior and should not change.
+  10. No `DisplayOnlyRegion` appears during editing — display regions come from `allEvents`, and the new event is not in `allEvents` until submitted. Full edit form is now shown.
+
+  **Cancel and submit:**
+  11. Cancel in edit mode exits via `editEventStateActions.endEditMode()`. The new event is discarded — it was never in `allEvents`.
+  12. Submit follows the existing path — appends to `allEvents` and persists to the backend.
+
+  **Files to modify:**
+  - `stateSliceEditEvent.jsx`: Add `newEventAwaitingPlacement: false` to `initialState`; add `prepareNewEvent()` action; add `startNewEvent(spherePoint)` combined action; ensure `endEditMode()` clears the flag.
+  - `DetailsMain.jsx`: Stage 1 "Create New Event" button and Stage 2 waiting-state UI.
+  - `MouseHandler.jsx`: Detect `newEventAwaitingPlacement` + globe click → `startNewEvent()`; detect globe-empty-space click → deselect (blocked during edit and awaiting states).
+  - `stateSliceSelectedEvent.jsx`: Verify/add a `clear` action for deselection.
+  - No changes needed to `EditableRegion.jsx` or the existing `createNewRegion()` logic.
 
 ## Code Quality
 
@@ -133,7 +166,3 @@ Items extracted from older plan and design documents. Review and either promote 
 - [ ] **Full RecordsCreated/EverythingElse event type workflow.** The checkbox exists (`EditEventType.jsx`), but the full workflow is not built: "EverythingElse" events should require at least one source, and if the source isn't recorded yet, a "Create source" button should open a nested event creation interface locked to type "RecordsCreated". (From designNotes.txt, idea 2025-09-01)
 
 - [ ] **Auto-set revisionAuthor from current user.** `setRevisionAuthor(...)` currently defaults to a hardcoded value. Should be set automatically based on the logged-in user. (From designNotes.txt)
-
-- [ ] **"No event selected" state with "Create New Event" button.** When no event is selected, the Display section should show "No event selected" and a "Create New Event" button. Clicking it should allow globe-click to create a new event in edit mode. (From searchDisplayEditOverhaulPlan.md)
-
-- [ ] **Deselect event process.** Clicking empty space in the search section or on the globe (not on another event) should deselect the current event, returning Display to its empty state. An event in edit mode cannot be deselected. (From searchDisplayEditOverhaulPlan.md)
