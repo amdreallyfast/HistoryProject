@@ -4,7 +4,6 @@ import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
-import { meshNames } from "./constValues"
 
 export function GlobeSectionMain() {
   // Toggle with CTRL key.
@@ -14,18 +13,16 @@ export function GlobeSectionMain() {
   const reduxDispatch = useDispatch()
 
   const canvasContainerDivRef = useRef()
-  const poiInfoPopupElementRef = useRef()
-  const poiInfoTitleElementRef = useRef()
 
   function convertClientXYToScreenSpaceXY(clientX, clientY) {
     // Adjustments due to current (9/15/2023) quirks in React Three Fiber's canvas event system:
-    //  1. The "client" coordinates from the canvas are based on the parent container. Parent 
-    //    container margins or borders can shift the actual starting position of the canvas. If 
-    //    the canvas is not perfectly anchored in the upper left, then 
+    //  1. The "client" coordinates from the canvas are based on the parent container. Parent
+    //    container margins or borders can shift the actual starting position of the canvas. If
+    //    the canvas is not perfectly anchored in the upper left, then
     //    (clientX == 0) != left edge
     //    (clientY == 0) != top edge
-    //  2. The canvas offset needs info from the containing <div> element. The <div> has an 
-    //    offset. This offset is found within the <div>'s "client" object (in this case, the 
+    //  2. The canvas offset needs info from the containing <div> element. The <div> has an
+    //    offset. This offset is found within the <div>'s "client" object (in this case, the
     //    canvas).
     let canvasX = clientX - canvasContainerDivRef.current.clientLeft - canvasContainerDivRef.current.offsetLeft + 1
     let canvasY = clientY - canvasContainerDivRef.current.clientTop - canvasContainerDivRef.current.offsetTop
@@ -33,10 +30,10 @@ export function GlobeSectionMain() {
     // Normalize mouse coordinates to screen space for the raycaster ([-1,+1] on x and y):
     //  x: -1 (left) to +1 (right)
     //  y: -1 (bottom) to +1 (top)
-    //  Note: Another quirk: Negate the Y when normalizing. 
-    //    This event reverses ThreeJs' default coordinate system's Y axis. OpenGL, and 
-    //    consequently ThreeJs, have canvas y=0 at the bottom, but React Three Fiber's event 
-    //    system, like all modern canvas systems, puts y=0 at the top, and so we need to negate 
+    //  Note: Another quirk: Negate the Y when normalizing.
+    //    This event reverses ThreeJs' default coordinate system's Y axis. OpenGL, and
+    //    consequently ThreeJs, have canvas y=0 at the bottom, but React Three Fiber's event
+    //    system, like all modern canvas systems, puts y=0 at the top, and so we need to negate
     //    the Y axis when calculating OpenGL screen space coordinates.
     let canvasNormalizedX = ((canvasX / canvasContainerDivRef.current.clientWidth) * 2) - 1
     let canvasNormalizedY = -((canvasY / canvasContainerDivRef.current.clientHeight) * 2) + 1
@@ -51,7 +48,7 @@ export function GlobeSectionMain() {
   function onCanvasMouseMove(e) {
     // console.log({ "onCanvasMouseMove": e })
 
-    if (canvasContainerDivRef.current == null || poiInfoPopupElementRef.current == null) {
+    if (canvasContainerDivRef.current == null) {
       return
     }
 
@@ -61,13 +58,6 @@ export function GlobeSectionMain() {
       y: normalized.y
     }
     reduxDispatch(mouseStateActions.setMousePos(mousePos))
-
-    // Note: The POI info pop's position, unlike the mouse, seems to be able to follow the 
-    // unfiltered client (that is, the canvas)...*shrug*.
-    if (poiInfoPopupElementRef) {
-      poiInfoPopupElementRef.current.style.left = `${e.clientX}px`
-      poiInfoPopupElementRef.current.style.top = `${e.clientY}px`
-    }
   }
 
   function onCanvasMouseDown(e) {
@@ -156,34 +146,21 @@ export function GlobeSectionMain() {
   }
 
   return (
-    <>
-      {/* TODO: ??how to make this opaque, or at least easier to read?? */}
-      <div ref={poiInfoPopupElementRef} className="fixed hidden bg-gray-900 bg-opacity-0 px-4 py-2 w-1/6 rounded-lg bg-transparent">
-        <h2 ref={poiInfoTitleElementRef} className="text-white text-lg">
-          Title placeholder
-        </h2>
-      </div>
-
-      <div ref={canvasContainerDivRef} className='w-full h-full bg-black border-4 border-red-500'>
-        <Canvas
-          // Note: tabIndex must exist for the canvas to take focus and respond to key presses.
-          tabIndex={0}
-          onMouseMove={(e) => onCanvasMouseMove(e)}
-          onMouseDown={(e) => onCanvasMouseDown(e)}
-          onMouseUp={(e) => onCanvasMouseUp(e)}
-          onKeyDown={(e) => onCanvasKeyDown(e)}
-          onKeyUp={(e) => onCanvasKeyUp(e)}
-        >
-          <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} near={0.5} far={3000} />
-          <OrbitControls enableRotate={cameraRotateEnabled} enablePan={cameraPanEnabled} />
-          <spotLight position={(10, 15, 10)} angle={0.3} intensity={0.2} />
-          <Scene
-            poiInfoPopupElementRef={poiInfoPopupElementRef}
-            poiInfoTitleElementRef={poiInfoTitleElementRef}
-          >
-          </Scene>
-        </Canvas>
-      </div>
-    </>
+    <div ref={canvasContainerDivRef} className='w-full h-full bg-black border-4 border-red-500'>
+      <Canvas
+        // Note: tabIndex must exist for the canvas to take focus and respond to key presses.
+        tabIndex={0}
+        onMouseMove={(e) => onCanvasMouseMove(e)}
+        onMouseDown={(e) => onCanvasMouseDown(e)}
+        onMouseUp={(e) => onCanvasMouseUp(e)}
+        onKeyDown={(e) => onCanvasKeyDown(e)}
+        onKeyUp={(e) => onCanvasKeyUp(e)}
+      >
+        <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} near={0.5} far={3000} />
+        <OrbitControls enableRotate={cameraRotateEnabled} enablePan={cameraPanEnabled} />
+        <spotLight position={(10, 15, 10)} angle={0.3} intensity={0.2} />
+        <Scene />
+      </Canvas>
+    </div>
   )
 }

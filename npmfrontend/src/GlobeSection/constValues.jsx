@@ -33,6 +33,11 @@ export const displayPinMeshInfo = {
   selectedPrimaryPinColor: 0xff4444,
   selectedRegionPinColor: 0xffee00,
   selectedRegionColor: 0x00aaff,
+
+  // Hover colors (cursor over region/pins without clicking)
+  hoverPrimaryPinColor: 0xff6600,
+  hoverRegionPinColor: 0xff8800,
+  hoverRegionColor: 0xff4400,
 }
 
 export const meshNames = {

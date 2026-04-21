@@ -165,6 +165,23 @@ export const MouseHandler = () => {
         createNewRegion(globeInfo)
       }
 
+      // Display mesh click: hand off to SearchSectionMain via pendingGlobeEventSelection.
+      // MouseHandler only knows the eventId; SearchSectionMain owns event-selection logic
+      // (lat/long → sphere point conversion, selectedEventStateActions.load, etc.).
+      let clickedMeshName = leftMouseDown.intersection?.mesh.name
+      let clickedDisplayMesh =
+        clickedMeshName == meshNames.DisplayRegion ||
+        clickedMeshName == meshNames.DisplayPin
+      if (!editState.editModeOn && clickedDisplayMesh) {
+        let eid = leftMouseDown.intersection.mesh.userData.eventId
+        if (eid) {
+          reduxDispatch(mouseStateActions.setPendingGlobeEventSelection(eid))
+          reduxDispatch(mouseStateActions.resetLeftMouse())
+          leftMouseDownRef.current = false
+          return
+        }
+      }
+
       // If you didn't click a location pin, de-select.
       let clickedPin = leftMouseDown.intersection?.mesh.name == meshNames.PinBoundingBox
       if (!clickedPin) {

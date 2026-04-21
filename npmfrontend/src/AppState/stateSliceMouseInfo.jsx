@@ -60,6 +60,15 @@ const initialState = {
   prevSelectedLocId: null,
   hoverLocId: null,
   prevHoverLocId: null,
+
+  // Tracks which event (by eventId) the cursor is hovering over on the globe.
+  hoverEventId: null,
+  prevHoverEventId: null,
+
+  // Set by MouseHandler when a DisplayRegion/DisplayPin is clicked. SearchSectionMain watches
+  // this and calls onEventClicked — keeping all event-selection logic in one place rather than
+  // duplicating it inside MouseHandler.
+  pendingGlobeEventSelection: null,
 }
 
 export const stateSliceMouseInfo = createSlice({
@@ -184,6 +193,21 @@ export const stateSliceMouseInfo = createSlice({
         ...state,
         selectedLocId: action.payload,
         prevSelectedLocId: state.selectedLocId
+      }
+    },
+
+    setHoverEventId: (state, action) => {
+      return {
+        ...state,
+        hoverEventId: action.payload,
+        prevHoverEventId: state.hoverEventId,
+      }
+    },
+
+    setPendingGlobeEventSelection: (state, action) => {
+      return {
+        ...state,
+        pendingGlobeEventSelection: action.payload,
       }
     },
   }

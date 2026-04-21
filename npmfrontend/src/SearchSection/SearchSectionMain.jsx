@@ -4,6 +4,7 @@ import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { getLatestRevisions } from "../AppState/getLatestRevisions"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
+import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { createSpherePointFromLatLong } from "../GlobeSection/createSpherePoint"
 import { globeInfo } from "../GlobeSection/constValues"
 
@@ -43,6 +44,7 @@ export function SearchSectionMain() {
   const selectedEvent = useSelector((state) => state.eventReducer.selectedEvent)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
+  const pendingGlobeEventSelection = useSelector((state) => state.mouseInfoReducer.pendingGlobeEventSelection)
   const reduxDispatch = useDispatch()
 
   const onEventClicked = (eventId) => {
@@ -131,6 +133,15 @@ export function SearchSectionMain() {
       setSearchError(error.message)
     }
   }
+
+  // Bridge globe clicks to event selection. MouseHandler sets pendingGlobeEventSelection
+  // with just the eventId; this component owns the full selection logic (sphere point
+  // conversion, selectedEventStateActions.load), so it handles it here.
+  useEffect(() => {
+    if (!pendingGlobeEventSelection) return
+    reduxDispatch(mouseStateActions.setPendingGlobeEventSelection(null))
+    onEventClicked(pendingGlobeEventSelection)
+  }, [pendingGlobeEventSelection])
 
   // When allEvents changes (e.g. after an edit submit), re-sync selectedEvent to latest revision
   useEffect(() => {

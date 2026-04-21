@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 import { meshNames } from "../constValues"
 import { generateRegionMesh } from "./regionMeshGeometry"
 
-export const DisplayRegionMesh = ({ regionBoundaries, sphereRadius, color }) => {
+export const DisplayRegionMesh = ({ eventId, regionBoundaries, sphereRadius, color }) => {
   let regionMeshRef = useRef()
 
   useEffect(() => {
@@ -29,6 +29,7 @@ export const DisplayRegionMesh = ({ regionBoundaries, sphereRadius, color }) => 
     regionMeshRef.current.geometry.setIndex(new THREE.Uint32BufferAttribute(flattenedMeshIndices, valuesPerIndex))
     regionMeshRef.current.geometry.attributes.position.needsUpdate = true
     regionMeshRef.current.geometry.computeBoundingSphere()
+    regionMeshRef.current.userData.eventId = eventId
   }, [regionBoundaries])
 
   // Update color when it changes (for highlighting).

@@ -1,5 +1,5 @@
 import { useFrame, useThree } from "@react-three/fiber"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { Stars } from "./Stars"
 import { Globe } from "./Globe"
@@ -41,11 +41,7 @@ const parseIntersectionForState = (intersection, globePos) => {
 }
 
 // Note: _Must_ be a child element of react-three/fiber "Canvas".
-export function Scene(
-  {
-    poiInfoPopupElementRef,
-    poiInfoTitleElementRef
-  }) {
+export function Scene() {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const eventState = useSelector((state) => state.eventReducer)
   const editState = useSelector((state) => state.editEventReducer)
@@ -58,7 +54,6 @@ export function Scene(
 
   const [meshes, setMeshes] = useState()
   const getThreeJsState = useThree((state) => state.get)
-  let currSelectedPoiMeshRef = useRef()
 
   const earthGlobeInfo = globeInfo
 
@@ -140,58 +135,18 @@ export function Scene(
     // console.log({ meshesArr, count: meshesArr.length })
   }, [poiReactElements, editState.updatedPrimaryPinMeshInScene, editState.updatedRegionMeshesInScene])
 
-  // Update POI highlight.
-  // Note: This useEffect() will only trigger (if I got this right) _after_ allPois and the 
-  // follow-up poiReactElements are created, so they should all be there.
-  useEffect(() => {
-    // console.log({ "Scene.useEffect[eventState.selectedEvent]": eventState.selectedEvent })
-
-    if (eventState.selectedEvent) {
-      // Should have exactly 1 matching element.
-      // Note: If there is more or less than 1 with the same guid, then there is a problem.
-      let result = meshes.filter((mesh) => mesh.userData?.poiInfoJson?.myUniqueId == eventState.selectedEvent.myUniqueId)
-      let selectedPoiMesh = result[0]
-
-      // Fade in the new selected item.
-      //??use GSAP somehow??
-      selectedPoiMesh.material.color = selectedPoiMesh.userData.highlightColor
-      selectedPoiMesh.material.opacity = selectedPoiMesh.userData.highlightOpacity
-
-      // Record for later use during "useFrame".
-      currSelectedPoiMeshRef.current = selectedPoiMesh
-    }
-
-    if (eventState.prevSelectedEvent) {
-      // let prevSelectedEement = document.getElementById(eventState.prevSelectedEvent.myUniqueId)
-      let result = meshes.filter((mesh) => mesh.userData.poiInfoJson?.myUniqueId == eventState.prevSelectedEvent.myUniqueId)
-      let selectedPoiMesh = result[0]
-
-      // Fade out the previously selected item.
-      //??use GSAP somehow??
-      selectedPoiMesh.material.color = selectedPoiMesh.userData.originalColor
-      selectedPoiMesh.material.opacity = selectedPoiMesh.userData.originalOpacity
-    }
-
-  }, [eventState.selectedEvent])
-
   // Handle mouse hover and mouse click.
-  let prevMouseHoverPoiMeshRef = useRef()
 
   // Determine cursor intersections
   useFrame((state) => {
     // console.log("useFrame()")
 
     // Construction of the React elements and ThreeJs meshes may take a few frames. Wait.
-    if (meshes == null || poiInfoPopupElementRef.current == null) {
+    if (meshes == null) {
       return
     }
 
-    // TODO: move "mouse hover" logic to MouseHandler
-    // Only consider "mouse hover" intersections that are:
-    // 1. Not the globe
-    // 2. Not behind the globe
     // Note: Intersections are organized by increasing distance, making item 0 the closest.
-    let mouseHoverPoiMesh = null
     state.raycaster.setFromCamera(mouseState.currPos, state.camera)
 
     const intersections = state.raycaster.intersectObjects(meshes)
@@ -215,99 +170,27 @@ export function Scene(
         // Last hover no longer valid.
         reduxDispatch(mouseStateActions.setHoverLocId(null))
       }
+
+      if (
+        first.mesh.name == meshNames.DisplayRegion ||
+        first.mesh.name == meshNames.DisplayPin
+      ) {
+        let eid = first.mesh.userData.eventId
+        // Guard: only dispatch when the hovered event actually changes (useFrame runs 60x/sec).
+        if (eid !== mouseState.hoverEventId) {
+          reduxDispatch(mouseStateActions.setHoverEventId(eid))
+        }
+      } else if (mouseState.hoverEventId) {
+        reduxDispatch(mouseStateActions.setHoverEventId(null))
+      }
     }
     else if (mouseState.cursorRaycasting.intersections.length > 0) {
       // No intersections. Clear it out.
       reduxDispatch(mouseStateActions.setCursorRaycasting(null))
       reduxDispatch(mouseStateActions.setHoverLocId(null))
+      reduxDispatch(mouseStateActions.setHoverEventId(null))
     }
 
-    // Occurs when the mouse drifts from the world (or space) to a POI.
-    let newPoiHover =
-      mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current == null
-
-    // Occurs when the mouse drifts from a POI to the world (or space).
-    let leavingPoiHover =
-      mouseHoverPoiMesh == null && prevMouseHoverPoiMeshRef.current != null
-
-    // Occurs when the mouse drifts from one POI to another without going through open space 
-    // in-between. Need to shift focus w/out turning off the info popup.
-    let changingPoiHover =
-      mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
-      mouseHoverPoiMesh?.uuid != prevMouseHoverPoiMeshRef.current?.uuid
-
-    // Occurs when the mouse is stationary over a POI and is clicked. Creates new selectedPoi.
-    let clickedSamePoiHover =
-      mouseHoverPoiMesh != null && prevMouseHoverPoiMeshRef.current != null &&
-      mouseHoverPoiMesh?.uuid == prevMouseHoverPoiMeshRef.current?.uuid
-
-    if (newPoiHover) {
-      // console.log({ msg: "newPoiHover" })
-
-      // Turn on the popup.
-      //??use GSAP somehow??
-      poiInfoPopupElementRef.current.style.display = "block"
-      poiInfoTitleElementRef.current.innerHTML = mouseHoverPoiMesh.userData.poiInfoJson.name.common
-
-      // Fade-in a highlight of the hovered item.
-      // Note: Ignore if it is the currently selected POI. Leave that alone.
-      if (mouseHoverPoiMesh.uuid != currSelectedPoiMeshRef.current?.uuid) {
-        //??use GSAP somehow??
-        mouseHoverPoiMesh.material.opacity = 1.0
-      }
-    }
-    else if (leavingPoiHover) {
-      // console.log({ msg: "leavingPoiHover" })
-
-      // Turn off the popup
-      //??use GSAP somehow??
-      poiInfoPopupElementRef.current.style.display = "none"
-
-      // Fade-out the POI highlight.
-      // Note: Ignore if it was the currently selected POI. Leave that alone.
-      if (prevMouseHoverPoiMeshRef.current.uuid != currSelectedPoiMeshRef.current?.uuid) {
-        //??use GSAP somehow??
-        prevMouseHoverPoiMeshRef.current.material.opacity = prevMouseHoverPoiMeshRef.current.userData.originalOpacity
-      }
-    }
-    else if (changingPoiHover) {
-      // console.log({ msg: "changingPoiHover" })
-
-      // Change the popup's info:
-      //??use GSAP somehow??
-      poiInfoTitleElementRef.current.innerHTML = mouseHoverPoiMesh.userData.poiInfoJson.name.common
-
-      // Fade in the new
-      //??use GSAP somehow??
-      mouseHoverPoiMesh.material.opacity = mouseHoverPoiMesh.userData.highlightOpacity
-
-      // Fade out the old (unless it's the currently selected POI).
-      if (prevMouseHoverPoiMeshRef.current.uuid != currSelectedPoiMeshRef.current?.uuid) {
-        //??use GSAP somehow??
-        prevMouseHoverPoiMeshRef.current.material.opacity = prevMouseHoverPoiMeshRef.current.userData.originalOpacity
-      }
-    }
-    else if (clickedSamePoiHover) {
-      console.log({ msg: "clickedSamePoiHover" })
-
-      if (mouseHoverPoiMesh.uuid == currSelectedPoiMeshRef.current?.uuid) {
-        // The currently selected item is clicked again => de-selected
-        currSelectedPoiMeshRef.current = null
-        reduxDispatch(setSelectedPoi(null))
-      }
-      else {
-        // A new item is clicked.
-        currSelectedPoiMeshRef.current = mouseHoverPoiMesh
-        reduxDispatch(setSelectedPoi(mouseHoverPoiMesh.userData.poiInfoJson))
-      }
-    }
-    else {
-      // Not hovering over any POI. Ignore.
-      // console.log("no POI hover")
-    }
-
-    // End of frame. Mouse handling done.
-    prevMouseHoverPoiMeshRef.current = mouseHoverPoiMesh
   })
 
   return (
