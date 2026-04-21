@@ -88,6 +88,13 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Design Discussions (after features stabilize)
 
+- [ ] `[discussion]` **DevOps routine: PR-based workflow, preview environments, and the role of the `test` branch.** Now that prod and test have separate Azure resources (SWA + App Service each), consider whether the development workflow should evolve:
+  - **Work item tracking:** TODO.md is simple and works for solo development. GitHub Issues/Projects would add visibility and PR linkage but adds overhead. Is the switch worth it?
+  - **PR-based changes:** Should all changes go through PRs instead of direct branch pushes? PRs enable preview environments (SWA auto-creates one per open PR) so changes can be reviewed live before merging to main.
+  - **Preview environments:** Azure Static Web Apps already supports per-PR preview URLs. If PRs are adopted, each open PR gets its own frontend URL. The backend would still need a strategy (share the test App Service, or spin up per-PR?).
+  - **Role of the `test` branch:** Currently a long-lived branch that mirrors prod infrastructure. Options: (a) keep as a persistent staging/scratchpad branch, (b) retire it in favor of short-lived PR branches + preview environments, (c) use it as a PR merge target before promoting to main.
+  - Decide before investing further in the test branch setup.
+
 These are bigger architectural questions. Present options with pros/cons before doing anything.
 
 - [ ] `[discussion]` **Replace "Edit" button with a "ghost revision card" to clarify intent.** The current "Edit" button implies modifying the existing event, but the data model always creates a new revision — it never overwrites. Consider replacing the button with a ghost/placeholder card (styled like a revision card but with a "+" icon) appended to the revision stack in the details section. Clicking it would open the edit interface. This framing makes "add a revision" the visible action rather than "edit", and fits naturally into the revision-card stack UI. Discuss: visual design, interaction model, whether this replaces or supplements the current button, and what the ghost card should look like when the revision stack is empty (i.e., no event selected or a new event).
