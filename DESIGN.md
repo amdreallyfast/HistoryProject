@@ -29,7 +29,7 @@ The same model could also be used for fictional worlds (D&D campaigns, Star Wars
 ```
 HistoryProject/
   npmfrontend/     React + Vite frontend (Three.js, Redux Toolkit, TanStack React Query, Tailwind CSS)
-  WebAPI/          ASP.NET Core backend (Entity Framework Core, SQL Server, Azure Key Vault)
+  WebAPI/          ASP.NET Core (.NET 10) backend (Entity Framework Core, SQL Server, Azure Key Vault)
 ```
 
 The frontend is the primary development focus. The backend exists but is not actively wired up — the frontend currently uses a local `events.json` file as a data source, with Redux holding session state.
@@ -252,10 +252,11 @@ The backend model has `Id` (database PK), `EventId` (shared across revisions), `
 ### Infrastructure
 
 - SQL Server database (local dev with SQL Server Express, production planned for Azure SQL)
-- Azure Key Vault stores the database connection string
-- Client certificate authentication to Azure AD for Key Vault access
+- **Local development**: connection string provided via `appsettings.Development.json` (gitignored), read as `ConnectionStrings:LocalDb` in Development mode
+- **Production**: connection string stored in and retrieved from Azure Key Vault; client certificate authentication to Azure AD for Key Vault access
 - CORS enabled for frontend cross-origin requests
 - Swagger UI available in development mode
+- Backend targets **.NET 10** (migrated from .NET 8)
 
 Detailed setup instructions are archived in `claudePlans/2.GettingStartedSetup.txt`.
 
@@ -279,6 +280,16 @@ Edit state is split across `stateSliceEditEvent`, `stateSliceEditSources`, and `
 
 ### Display Pins as Props-Driven Components (2026-02)
 Display pins and regions receive all data via props, with no Redux connection. This makes them lightweight and allows rendering many of them (one per search result) without performance concerns from Redux subscriptions.
+
+### .NET 10 Migration (2026-04)
+The backend was retargeted from .NET 8 to .NET 10. The development machine only has the .NET 10 SDK installed, making .NET 8 non-functional locally. No API or EF Core changes were required — the migration was a `<TargetFramework>` change in the project file only.
+
+### Reactive UI Principle — No JSX in State, No Imperative DOM (2026-04)
+Established during the SearchSectionMain refactor. The rule: components read from Redux and render — no JSX elements stored in `useState`, no `document.getElementById` to set styles imperatively, no refs used to paper over stale closures.
+
+Storing JSX in state freezes closures at creation time, causing stale reads of Redux values (the original `allEventsRef` workaround was a symptom). The fix: store only data (IDs, queries) in state and derive JSX during each render cycle. Selection highlighting is expressed as `eventId === selectedEvent?.eventId` inline, not via imperative className assignment.
+
+This principle applies project-wide. `EditEventRegion` was also corrected during the same refactor.
 
 ---
 

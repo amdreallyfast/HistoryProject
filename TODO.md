@@ -17,8 +17,6 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Top Priority
 
-- [x] `[plan first]` **Set up local SQL Server database for backend development.** The Azure deployment uses Managed Identity to connect to Azure SQL, but local development needs a real SQL Server connection. `Program.cs` now reads `ConnectionStrings:LocalDb` from `appsettings.Development.json` (gitignored) when running in Development mode. This file does not yet exist — local backend development is blocked until a local SQL Server instance is set up and the file is created. Plan needed: install SQL Server locally (or use Docker), create the database, run EF migrations, and create `appsettings.Development.json`.
-
 - [ ] `[discussion]` **Host application in Azure (main + test environments with CI from GitHub).** Currently running on a small VM requiring manual `npm run dev`. Goal: browser-accessible URL for both main and test environments, auto-updated on push to the respective GitHub branch. Evaluate and decide:
 
   1. **Hosting option for the React frontend:**
@@ -51,10 +49,6 @@ After completing any item, commit the changes, and ask the user the test.
 
 ## Bug Fixes
 
-- [x] `[simple]` **Display region pins don't update after edit submit.** After editing an event's region boundaries and submitting, the DisplayRegion mesh moves correctly, but the region boundary pins stay in their original positions.
-
-- [x] `[simple]` **Clean up stale TODO comments.** Some comments in EditEvent.jsx reference RevisionAuthor, Sources, Summary, and "Edit button in show mode" as TODOs, but these are already implemented. Find and remove all outdated TODO comments across the codebase.
-
 ## Refactors
 
 - [ ] `[plan first]` **End-to-end event workflow: seed test data, edit/submit, search refresh, globe update, revision browsing.** *Prerequisite: complete "Refactor EditEvent submit to be minimal" below first — that reactive architecture is what makes steps 3–5 here work automatically.* The two test events in `npmfrontend/dist/events.json` need to be in the localDB so the full workflow can be exercised. Once that's done, the following needs to work end-to-end:
@@ -66,18 +60,6 @@ After completing any item, commit the changes, and ask the user the test.
   6. **Revision browsing in details:** The details section should display revisions as a stack of cards — the latest revision is shown by default, but the user can click back through older revisions and see both the details and the globe update to reflect whichever revision is selected. When search runs, it always finds the latest revision; the stack makes the existence of prior revisions visible.
 
   This is the minimum viable feature set needed before the UI work can go much further.
-
-- [x] `[simple]` **Update project to .NET 10.** The machine only has the .NET 10 SDK installed. After local dev and test database environments are working, retarget `WebAPI.csproj` from `net8.0` to `net10.0` and verify the backend builds and runs.
-
-These two refactors address the same root cause (imperative DOM manipulation + stale closures) and should be done together.
-
-- [x] `[plan first]` **Refactor SearchSectionMain to be fully reactive.** The current SearchSectionMain stores pre-built `<p>` React elements in useState. This means click handler closures capture stale Redux state (allEvents, selectedEvent), requiring refs as workarounds. Similarly, selection highlighting uses `document.getElementById` to imperatively set classNames instead of letting React re-render. Refactor to:
-  1. Store only data in state (e.g., a list of eventIds or a search query), not JSX elements. Render the search results directly from allEvents (filtered to latest revisions) during each render cycle.
-  2. Remove all `document.getElementById` / imperative className manipulation. Use React's rendering — compare `eventId === selectedEvent?.eventId` inline to pick the right CSS class.
-  3. This eliminates the stale closure problem entirely (no stored JSX = no frozen closures) and removes the need for `allEventsRef`.
-  4. Apply the same principle to EditEventRegion, which also uses `document.getElementById` to highlight lat/long text — it should derive highlight state from Redux during render instead.
-  5. Review other components for the same anti-pattern: storing JSX in useState or using `document.getElementById` to update styling.
-  6. The goal is: components read from Redux and render. No imperative DOM manipulation, no JSX in useState, no refs to work around stale closures.
 
 - [ ] `[plan first]` **Refactor EditEvent submit to be minimal; make display updates reactive.** EditEvent's submit handler currently does too much (builds sphere points, dispatches to multiple slices, manages selection). Refactor so submit only appends the new revision to allEvents and ends edit mode. Move the reactive behavior into useEffects:
   1. In SearchSectionMain, extract the search result list building into a useEffect that watches allEvents so results auto-rebuild when events change (showing latest revisions with updated titles).
