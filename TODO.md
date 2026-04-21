@@ -62,9 +62,7 @@ After completing any item, commit the changes, and ask the user the test.
   - Mesh names are compared against const values to sort out what's being detected.
   - If this code can be cleaned up during implementation, propose improvements.
 
-- [ ] `[simple]` **Add edit-mode guard to globe selection.** Once DisplayRegion is selectable from the globe, add the same confirmation dialog as SearchSectionMain: "You have unsaved changes. Discard and load the new event?"
-
-- [ ] `[simple]` **When entering edit mode, hide display meshes.** The display meshes should stop rendering so they don't interfere with selecting edit region/pin meshes.
+- [x] `[simple]` **Dim other events' display regions in edit mode.** When edit mode is active, all other events' display regions and pins render in gray and are non-interactive (hover suppressed, clicks blocked). This replaced the earlier plan of hiding display meshes entirely and adding a globe-click confirmation dialog.
 
 - [ ] `[simple]` **Rename DisplayOnlyRegion to DisplayRegion.** No need for "Only" in the name.
 

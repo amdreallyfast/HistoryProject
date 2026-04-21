@@ -98,6 +98,7 @@ export function Scene() {
       setRegionReactElements((
         <EditableRegion globeInfo={earthGlobeInfo} />
       ))
+      reduxDispatch(mouseStateActions.setHoverEventId(null))
     }
     else {
       setRegionReactElements(null)
@@ -171,17 +172,19 @@ export function Scene() {
         reduxDispatch(mouseStateActions.setHoverLocId(null))
       }
 
-      if (
-        first.mesh.name == meshNames.DisplayRegion ||
-        first.mesh.name == meshNames.DisplayPin
-      ) {
-        let eid = first.mesh.userData.eventId
-        // Guard: only dispatch when the hovered event actually changes (useFrame runs 60x/sec).
-        if (eid !== mouseState.hoverEventId) {
-          reduxDispatch(mouseStateActions.setHoverEventId(eid))
+      if (!editState.editModeOn) {
+        if (
+          first.mesh.name == meshNames.DisplayRegion ||
+          first.mesh.name == meshNames.DisplayPin
+        ) {
+          let eid = first.mesh.userData.eventId
+          // Guard: only dispatch when the hovered event actually changes (useFrame runs 60x/sec).
+          if (eid !== mouseState.hoverEventId) {
+            reduxDispatch(mouseStateActions.setHoverEventId(eid))
+          }
+        } else if (mouseState.hoverEventId) {
+          reduxDispatch(mouseStateActions.setHoverEventId(null))
         }
-      } else if (mouseState.hoverEventId) {
-        reduxDispatch(mouseStateActions.setHoverEventId(null))
       }
     }
     else if (mouseState.cursorRaycasting.intersections.length > 0) {

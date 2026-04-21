@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  // TODO: change all other events and regions to dark grey to indicate that they cannot be highlighted
   editModeOn: false,
 
   eventId: 99,

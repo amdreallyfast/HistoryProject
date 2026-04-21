@@ -5,6 +5,7 @@ import { displayPinMeshInfo, groupNames } from "../constValues"
 
 export function DisplayOnlyRegion({ eventId, primaryLoc, regionBoundaries, globeInfo, isSelected }) {
   const hoverEventId = useSelector((state) => state.mouseInfoReducer.hoverEventId)
+  const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
   const isHovered = hoverEventId === eventId
 
   if (!primaryLoc) {
@@ -12,7 +13,11 @@ export function DisplayOnlyRegion({ eventId, primaryLoc, regionBoundaries, globe
   }
 
   let primaryPinColor, regionPinColor, regionColor
-  if (isSelected) {
+  if (editModeOn) {
+    primaryPinColor = displayPinMeshInfo.dimPrimaryPinColor
+    regionPinColor  = displayPinMeshInfo.dimRegionPinColor
+    regionColor     = displayPinMeshInfo.dimRegionColor
+  } else if (isSelected) {
     primaryPinColor = displayPinMeshInfo.selectedPrimaryPinColor
     regionPinColor  = displayPinMeshInfo.selectedRegionPinColor
     regionColor     = displayPinMeshInfo.selectedRegionColor

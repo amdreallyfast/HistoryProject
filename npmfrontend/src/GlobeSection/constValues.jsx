@@ -38,6 +38,11 @@ export const displayPinMeshInfo = {
   hoverPrimaryPinColor: 0xff6600,
   hoverRegionPinColor: 0xff8800,
   hoverRegionColor: 0xff4400,
+
+  // Dim colors used when edit mode is active (globe is in focused editing state)
+  dimPrimaryPinColor: 0x555555,
+  dimRegionPinColor:  0x444444,
+  dimRegionColor:     0x333333,
 }
 
 export const meshNames = {
