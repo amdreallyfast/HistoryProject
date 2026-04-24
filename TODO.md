@@ -17,12 +17,15 @@ Guidance:
   1. The first line of the commit should briefly describe both the TODO item and the step:
     * Many TODO items end up with multiple fixes, and it will be useful to see that multiple commits in a row are part of the same routine.
     * Ex: For the the large TODO item **Address GitHub Dependabot package vulnerabilities in npmfrontend (121 reported)**, step 2, the first line could be something like: "Package vulnerabilities: 2. Apply non-breaking updates".
-  2. As usual, provide a brief description of the changes
-  3. Cite youself as the author at the direction of the github username who is authorizing these changes.
+  2. Add an `Authorized-By: <user.name from git config>` trailer alongside the standard `Co-Authored-By` trailer. Example:
+    ```
+    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+    Authorized-By: HistoryProject
+    ```
 3. Perform no more than one TODO item (or for larger items, a single TODO step) per commit.
 4. After completing any item:
   1. commit
-  2. ask the user the test:
+  2. ask the user to test:
     1. If the test is successful, then mark the TODO item as complete, and commit. 
     2. If not, then attempt to diagnose the problem, and engage the user for missing info or unclear intent, and when it is working as the using expects, then mark the TODO item as complete, and commit the changes.
 
