@@ -7,11 +7,24 @@ Work items for the HistoryProject. Organized by priority — start from the top.
 - `[plan first]` — Create a plan document, get user approval, then create a git branch and implement step-by-step with testing between steps.
 - `[discussion]` — Present options and wait for the user to decide before doing anything.
 
-For any item that would alter the program's design: highlight the change, summarize the impact, and get permission before continuing. If approved, also update DESIGN.md.
-
-After completing any item, commit the changes, and ask the user the test. 
-- If the test is successful, then mark the TODO item as complete, and commit. 
-- If not, then attempt to diagnose the problem, and engage the user for missing info or unclear intent, and when it is working as the using expects, then mark the TODO item as complete, and commit the changes.
+Guidance:
+1. For any item that would alter the program's design, do the following:
+  1. highlight the change
+  2. summarize the impact
+  3. get permission before continuing
+  4. when finished, update DESIGN.md
+2. When making commits:
+  1. The first line of the commit should briefly describe both the TODO item and the step:
+    * Many TODO items end up with multiple fixes, and it will be useful to see that multiple commits in a row are part of the same routine.
+    * Ex: For the the large TODO item **Address GitHub Dependabot package vulnerabilities in npmfrontend (121 reported)**, step 2, the first line could be something like: "Package vulnerabilities: 2. Apply non-breaking updates".
+  2. As usual, provide a brief description of the changes
+  3. Cite youself as the author at the direction of the github username who is authorizing these changes.
+3. Perform no more than one TODO item (or for larger items, a single TODO step) per commit.
+4. After completing any item:
+  1. commit
+  2. ask the user the test:
+    1. If the test is successful, then mark the TODO item as complete, and commit. 
+    2. If not, then attempt to diagnose the problem, and engage the user for missing info or unclear intent, and when it is working as the using expects, then mark the TODO item as complete, and commit the changes.
 
 ---
 
