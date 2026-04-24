@@ -57,7 +57,7 @@ Guidance:
 
 - [x] `[simple]` **Upgrade `three-mesh-bvh` v0.7.8 → v0.8.0.** During the clean install verification in the vulnerability fix above, npm printed: `three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.` Not a security issue, but the package is outdated relative to three r184. Upgrade, run the app, and confirm globe/region rendering still works.
 
-- [ ] `[simple]` **Replace `THREE.Clock` with `THREE.Timer`.** Browser console reports: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` Find all usages of `THREE.Clock` in the codebase, replace with `THREE.Timer`, and confirm the app still runs correctly.
+- [ ] `[plan first]` **Upgrade React + @react-three/fiber + @react-three/drei (v18/v8 → v19/v9).** Investigation shows `THREE.Clock` deprecation and the `[Violation] Added non-passive event listener to a scroll-blocking 'wheel' event` warning both originate from `@react-three/fiber` internals — not project source code. No `THREE.Clock` usage exists in the project. The fix is upgrading the package chain: `react`/`react-dom` v18 → v19, `@react-three/fiber` v8 → v9, `@react-three/drei` v9.122 → latest (latest drei already requires `@react-three/fiber ^9.0.0`). This is a multi-major-version bump — review migration guides for each, apply changes, and test globe rendering end-to-end.
 
 ## Refactors
 
