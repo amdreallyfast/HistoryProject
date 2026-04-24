@@ -51,6 +51,8 @@ Guidance:
 
   Goal: reach zero critical and high severity issues; accept low/moderate only if there is no available fix.
 
+- [ ] `[simple]` **Upgrade `three-mesh-bvh` v0.7.8 → v0.8.0.** During the clean install verification in the vulnerability fix above, npm printed: `three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.` Not a security issue, but the package is outdated relative to three r184. Upgrade, run the app, and confirm globe/region rendering still works.
+
 ## Refactors
 
 - [ ] `[plan first]` **End-to-end event workflow: seed test data, edit/submit, search refresh, globe update, revision browsing.** *Prerequisite: complete "Refactor EditEvent submit to be minimal" below first — that reactive architecture is what makes steps 3–5 here work automatically.* The two test events in `npmfrontend/dist/events.json` need to be in the localDB so the full workflow can be exercised. Once that's done, the following needs to work end-to-end:
