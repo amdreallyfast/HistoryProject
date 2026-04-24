@@ -51,10 +51,9 @@ Guidance:
 
   Goal: reach zero critical and high severity issues; accept low/moderate only if there is no available fix.
 
-- [ ] `[simple]` **Page load errors in dev tools.** On page load, dev tools reports two errors on the first lines:
-  - `content.js:1 Uncaught (in promise) Error: Corruption: block checksum mismatch`
-  - `index-D-bjwAXJ.js:3697 {MouseHandler.useEffect[mouseState.leftMouseDown]: null}`
-  Investigate and resolve both.
+- [x] `[simple]` **Page load errors in dev tools.** On page load, dev tools reports two errors on the first lines:
+  - `content.js:1 Uncaught (in promise) Error: Corruption: block checksum mismatch` — **Not app code.** `content.js` is injected by a browser extension. Verify with a clean browser profile (no extensions); the error won't appear.
+  - `index-D-bjwAXJ.js:3697 {MouseHandler.useEffect[mouseState.leftMouseDown]: null}` — Fixed: `leftMouseDown` was initialized to `null` instead of `false` in `stateSliceMouseInfo.jsx`.
 
 - [ ] `[simple]` **Upgrade `three-mesh-bvh` v0.7.8 → v0.8.0.** During the clean install verification in the vulnerability fix above, npm printed: `three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.` Not a security issue, but the package is outdated relative to three r184. Upgrade, run the app, and confirm globe/region rendering still works.
 
