@@ -1,0 +1,533 @@
+
+/* =============================================================================
+ * Load the STIX font
+ * =============================================================================
+ */
+@font-face {
+    font-family: "STIX";
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-Regular.woff2');
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-Regular.woff2') format('woff2'),
+         url('./fonts/STIX/static_otf/STIXTwoText-Regular.otf') format('opentype'),
+         url('./fonts/STIX/static_ttf/STIXTwoText-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "STIX";
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-Bold.woff2');
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-Bold.woff2') format('woff2'),
+         url('./fonts/STIX/static_otf/STIXTwoText-Bold.otf') format('opentype'),
+         url('./fonts/STIX/static_ttf/STIXTwoText-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "STIX";
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-Italic.woff2');
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-Italic.woff2') format('woff2'),
+         url('./fonts/STIX/static_otf/STIXTwoText-Italic.otf') format('opentype'),
+         url('./fonts/STIX/static_ttf/STIXTwoText-Italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "STIX";
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-BoldItalic.woff2');
+    src: url('./fonts/STIX/static_otf_woff2/STIXTwoText-BoldItalic.woff2') format('woff2'),
+         url('./fonts/STIX/static_otf/STIXTwoText-BoldItalic.otf') format('opentype'),
+         url('./fonts/STIX/static_ttf/STIXTwoText-BoldItalic.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* =============================================================================
+ * Most regular text elements font sizes and font
+ * =============================================================================
+ */
+
+html {
+  /*
+    The scrollbar will change the page width so if content is changed
+    so that scrollbar appears the whole page will be pushed a little
+    off-center if this is not added.
+  */
+  overflow-y: scroll;
+}
+
+body {
+  font-family: "STIX";
+  font-weight: normal;
+  max-width: 900px;
+  max-width: clamp(5vw, 50rem, 90vw);
+  margin: 0 auto;
+  /*background-color: #f5f5f0;*/
+  background-color: #ffffff;
+  font-size: 1.25rem;
+  color: black;
+
+}
+
+.md {
+    font-family: "STIX";
+    font-size: 1.25rem;
+}
+
+/*
+.md a {
+    font-family: "STIX";
+    font-size: 1rem;
+}
+
+.md p {
+    font-size: 1rem;
+}
+*/
+
+.md div.title {
+    font-size: 2.0rem;
+}
+
+.md h1 {
+    font-family: "STIX";
+    font-size: 1.75rem;
+    margin-top: 0;
+    margin-bottom: 1ch;
+    padding: 0px 0px 0px;
+}
+
+.md h2 {
+    font-family: "STIX";
+    font-size: 1.50rem;
+    margin: 0 0 1rem 0;
+    padding: 0;
+}
+
+.md h3 {
+    font-family: "STIX";
+    font-size: 1.50rem;
+}
+
+/* =============================================================================
+ * Hide symbols of the colored tips since they are inconsistent across browsers
+ * =============================================================================
+ */
+
+.md .admonition.info {
+    border-left-width: 4.0rem;
+}
+
+.md .admonition.tip {
+  border-left-width: 4.0rem;
+}
+
+.md .admonition.warning {
+  border-left-width: 4.0rem;
+}
+
+.md .admonition.error {
+  border-left-width: 4.0rem;
+}
+
+.md .admonition.tip::before {
+    visibility: hidden;
+}
+
+.md .admonition.warning::before {
+    visibility: hidden;
+}
+
+.md .admonition.error::before {
+    visibility: hidden;
+}
+
+/* =============================================================================
+ * MathJax font sizes. Some are later overloaded but this gives consistency
+ * with main text regarding size and font.
+ * =============================================================================
+ */
+
+.math {
+    font-size: 1.25rem;
+}
+
+.mtext {
+    font-size: 1.25rem;
+}
+
+.mi {
+    font-size: 1.25rem;
+}
+
+.mn {
+    font-size: 1.25rem;
+}
+
+/* =============================================================================
+ * Style the markdeep diagrams.
+ * These are not so easy. Can either be statically scaled or cropped.
+ * =============================================================================
+ */
+
+.md svg.diagram {
+  font-family: "STIX";
+  font-size: 1.25rem;
+  block-size: fit-content;
+  max-width: 100%
+}
+
+/* =============================================================================
+ * Other classes and elements
+ * =============================================================================
+ */
+
+.ArticleHeader {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-top: 1ch;
+    margin-bottom: 1ch;
+    margin-bottom: auto;
+    line-height: normal;
+}
+
+h2.ArticleHeader {
+    font-family: "STIX";
+    font-size: 2rem;
+}
+
+h4.ArticleHeader {
+    font-family: "STIX";
+    font-size: 1.25rem;
+}
+
+h5.ArticleHeader {
+    font-family: "STIX";
+    margin-bottom: 4rem;
+}
+
+a {
+  font-family: "STIX";
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a.HoverableLink:hover {
+  color: grey;
+}
+
+a.ArticleLink {
+  font-family: "STIX";
+  color:  black;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a.ArticleLink:hover {
+  color: grey;
+}
+
+a.RepositoryLink {
+  font-family: "STIX";
+  color: black;
+  font-weight: normal;
+}
+
+a.RepositoryLink:hover {
+  color: grey;
+}
+
+.title {
+  font-family: "STIX";
+  text-decoration: none;
+}
+
+.title:hover {
+  color: grey;
+  text-decoration: none;
+}
+
+img {
+  border: none;
+}
+
+p {
+    font-family: "STIX";
+    margin-top: 0ch;
+    margin-bottom: 2ch;
+    text-align: justify;
+    font-weight: normal;
+    font-size: 1.25rem;
+}
+
+b {
+    font-family: "STIX";
+}
+
+h5 {
+  font-family: "STIX";
+  margin-top: 0ch;
+  margin-bottom: 3rem;
+}
+
+.md table.table td {
+  font-family: "STIX";
+  font-size: 1.25rem;
+}
+
+.md table.table th {
+  font-family: "STIX";
+  font-size: 1.25rem;
+}
+
+pre {
+  /*font-family: "STIX";*/ /* Linux = DejaVu Sans Mono */
+  font-size: 1.25rem;
+  overflow: scroll;
+  white-space:pre;
+}
+
+overlayText {
+ position:absolute;
+  top:30%;
+  left:20%;
+  z-index:1;
+}
+
+topText {
+  color: white;
+  font-size: 20px;
+  align-self: center;
+}
+
+.mylayText {
+  background-color: rgba(1,1,0,0.3);
+  color: #ff0;
+  position: relative;
+  font-weight: bold;
+  top: -140px;
+  left: 0px;
+}
+
+div.bkg {
+  background-color: rgb(245,245,245);
+}
+
+.list_gallery_button {
+  font-family: "STIX";
+  font-size: 1.25rem;
+  width: 33%;
+  text-align: center;
+
+  cursor: pointer;
+
+  color: black !important;
+  background-color: rgb(245,245,245);
+
+  border: 5px;
+  background: none;
+  box-shadow: none;
+  border-radius: 5px 5px 0px 0px;
+}
+
+.list_gallery_button:hover {
+  color: grey !important;
+  /*color: black !important;*/
+  /*font-weight: bold !important;*/
+  /*background-color: green !important;*/
+}
+
+#article_list {
+  visibility: hidden;
+  display: none;
+  overflow: hidden;
+}
+
+#group_list {
+  visibility: visible;
+  display: inherit;
+  overflow: visible;
+}
+
+.gallery img {
+  width: 100% !important;
+  text-align: center !important;
+  /*margin: 4px !important;*/
+  vertical-align: middle !important;
+  /*display: block;*/
+  /*overflow: hidden;*/ /* [1.2] Hide the overflowing of child elements */
+}
+
+.img-hover-zoom {
+  border: 2px solid black;
+  border-radius: 4px;
+  width: 90%;
+  height: auto;
+  overflow: hidden;
+  position: relative;
+}
+
+/* [2] Transition property for smooth transformation of images */
+.img-hover-zoom img {
+  transition: all 1s ease;
+  scale: 1.0;
+  opacity: 0.5;
+}
+
+/* [3] Finally, transforming the image when container gets hovered */
+.img-hover-zoom:hover img {
+  transform: scale(1.1);
+  opacity: 1.0;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 1.0;
+  background-color: rgba(1,1,1,0);
+  transition: all 1s ease;
+  color: black;
+}
+
+.overlay:hover {
+  color: gray;
+  opacity: 0.0;
+}
+
+.text {
+  font-weight: normal;
+  font-size: 1.5em;
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+td {
+  /* This is a trick to keep the columns in the gallery table the same width */
+  width: 1%;
+}
+
+/*
+.markdeep {
+  font-family: "STIX";
+  font-size: 1.0rem;
+  */
+  /*
+  background-color: white;
+  border: 1px solid Black;
+  padding-left: 2ch;
+  padding-top: 1ch;
+  padding-bottom: 1ch;
+  */
+/*
+  overflow: scroll;
+  white-space:pre;
+}
+*/
+
+/*
+@media (max-width: 500px) {
+    body {
+        font-size: 12px;
+      }
+    pre {
+      font-size: 12px;
+    }
+}
+*/
+
+.img-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background-color: rgba(255,255,255,0);
+  padding: 0%;
+}
+
+.img-gallery-grid-container {
+  /*
+  background-color: rgba(255,0,0,255);
+  background-color: rgb(255,255,255);
+  border: 2px dashed black;
+  */
+  width: 100%;
+  aspect-ratio: 1;
+  position: relative;
+}
+
+.img-gallery-grid-item {
+  width: 90%;
+  aspect-ratio: 1;
+  /*height: auto;*/
+  object-fit: scale-down;
+  background-color: rgb(255,255,255);
+  border: 2px solid black;
+  border-radius: 5px;
+  padding: 0%;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.img-gallery-grid-item:hover {
+  transition: width .2s;
+  width: 95%;
+}
+
+.imggallery {
+  height: 900px;
+  width: auto;
+}
+
+.imgicon {
+  height: 1.25rem;
+  width: auto;
+  transform: translate(0%, 20%);
+}
+
+.mediumicon {
+  height: 1.75rem;
+  width: auto;
+  transform: translate(0%, 30%);
+}
+
+.imgiconlink {
+  height: 1.25rem;
+  width: auto;
+  transition: transform .2s;
+  transform: translate(0%, 20%);
+  transform-origin: top left;
+}
+
+.imgiconlink:hover {
+  transform: scale(125%);
+}
+
+.post-col-container {
+  display: table; /* Make the container element behave like a table */
+  width: 100%;
+  color: black;
+  table-layout: fixed;
+  column-count: 2;
+}
+
+.post-col {
+  display: table-cell; /* Make elements inside the container behave like table cells */
+  vertical-align:middle;
+  text-align: left;
+  color: black;
+  width: 100%;
+}
