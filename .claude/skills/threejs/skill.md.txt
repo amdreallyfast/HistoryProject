@@ -1,0 +1,643 @@
+---
+name: threejs
+description: Examples from documentation for threejs, react-three/fiber, and drer for the 3D tooling used in this project as of time of writing (Friday, 2026/04/24).
+user-invocable: true
+disable-model-invocation: false
+---
+# Three.js Reference — Features Used in This Project
+
+This skill loads the API reference for every Three.js, react-three/fiber, and drei API
+currently used in the HistoryProject frontend (`npmfrontend/`). Use it when writing or
+reviewing 3D scene code to get constructor signatures, property names, and method
+signatures without guessing.
+
+---
+
+## react-three/fiber
+
+### Canvas
+```jsx
+<Canvas
+  camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 0, 5] }}
+  gl={{}}                    // WebGLRenderer props or async callback
+  scene={{}}                 // Scene props or THREE.Scene instance
+  shadows={false}            // true = PCFSoft, or 'basic'|'percentage'|'soft'|'variance'
+  dpr={[1, 2]}               // device pixel ratio or [min, max]
+  frameloop="always"         // 'always' | 'demand' | 'never'
+  raycaster={{}}             // raycaster props
+  orthographic={false}
+  flat={false}               // true = NoToneMapping instead of ACESFilmic
+  legacy={false}
+  linear={false}
+  eventSource={/* HTMLElement */}
+  eventPrefix="offset"
+  onCreated={(state) => {}}
+  onPointerMissed={(event) => {}}
+/>
+```
+
+### useThree
+```js
+// Full state object
+const state = useThree()
+
+// Selective (preferred — avoids unnecessary re-renders)
+const camera   = useThree((s) => s.camera)   // THREE.PerspectiveCamera
+const scene    = useThree((s) => s.scene)     // THREE.Scene
+const gl       = useThree((s) => s.gl)        // THREE.WebGLRenderer
+const pointer  = useThree((s) => s.pointer)   // THREE.Vector2, normalized [-1,1]
+const size     = useThree((s) => s.size)      // { width, height } in pixels
+const raycaster = useThree((s) => s.raycaster) // THREE.Raycaster
+
+// Other state fields
+state.viewport      // canvas size in three.js units
+state.invalidate()  // request a frame in 'demand' frameloop mode
+state.set()         // mutate state
+state.get()         // read state outside React
+```
+
+### useFrame
+```js
+useFrame((state, delta, xrFrame) => {
+  // state  — same as useThree()
+  // delta  — seconds since last frame (Float)
+  // xrFrame — WebXR frame (nullable)
+}, renderPriority?)  // number; positive = takes over render loop, negative = execution order only
+
+// Rules:
+// - Never call setState() inside useFrame
+// - Positive priority: you must call state.gl.render() yourself
+// - Negative priority: auto-render still happens, only execution order changes
+```
+
+### useLoader
+```js
+// Single asset
+const texture = useLoader(THREE.TextureLoader, '/path/to/image.jpg')
+
+// Multiple assets
+const [tex1, tex2] = useLoader(THREE.TextureLoader, ['/a.jpg', '/b.jpg'])
+
+// With loader configuration
+const gltf = useLoader(GLTFLoader, url, (loader) => {
+  loader.setDRACOLoader(dracoLoader)
+})
+
+// Pre-load outside component
+useLoader.preload(THREE.TextureLoader, '/path/to/image.jpg')
+// Results are cached by URL automatically.
+// Wrap the consuming component in <Suspense> for async loading.
+```
+
+---
+
+## @react-three/drei
+
+### PerspectiveCamera
+```jsx
+<PerspectiveCamera
+  makeDefault           // registers as the system default camera
+  manual={false}        // if true: you must set aspect and call updateProjectionMatrix()
+  fov={75}
+  near={0.1}
+  far={1000}
+  position={[0, 0, 5]}
+  // ...all THREE.PerspectiveCamera props
+/>
+// makeDefault=true is required for OrbitControls to pick it up automatically.
+```
+
+### OrbitControls
+```jsx
+import { OrbitControls } from '@react-three/drei'
+
+<OrbitControls
+  enableDamping={false}
+  dampingFactor={0.05}
+  enableZoom={true}
+  enablePan={true}
+  enableRotate={true}
+  minDistance={0}
+  maxDistance={Infinity}
+  minPolarAngle={0}        // radians, default 0 (top)
+  maxPolarAngle={Math.PI}  // radians, default π (bottom)
+  minAzimuthAngle={-Infinity}
+  maxAzimuthAngle={Infinity}
+  target={[0, 0, 0]}       // look-at point
+  makeDefault              // registers controls in r3f state
+  // Passes all THREE.OrbitControls props through
+/>
+// OrbitControls reads the default camera set by PerspectiveCamera makeDefault.
+```
+
+### Line (drei)
+```jsx
+import { Line } from '@react-three/drei'
+
+<Line
+  points={[[0,0,0], [1,0,0], ...]}  // Vector3[] | Vector2[] | [x,y,z][] | number[]
+  color="black"                      // string | number | THREE.Color
+  lineWidth={1}                      // pixels
+  segments={false}                   // true → THREE.LineSegments2
+  dashed={false}
+  vertexColors={[]}                  // Float32Array or [r,g,b][] matching points
+  // ...all THREE.Line2 and THREE.LineMaterial props
+/>
+```
+
+---
+
+## THREE — Math
+
+### Vector3
+```js
+// Constructor
+new THREE.Vector3(x?, y?, z?)   // defaults to (0, 0, 0)
+
+// Properties
+.x  .y  .z   // number
+
+// Set / copy
+.set(x, y, z)                    // → Vector3
+.setScalar(s)                    // x=y=z=s → Vector3
+.copy(v)                         // → Vector3
+.clone()                         // → new Vector3
+
+// Arithmetic (mutates this)
+.add(v)                          .addScalar(s)
+.addVectors(a, b)                .addScaledVector(v, s)
+.sub(v)                          .subScalar(s)
+.subVectors(a, b)
+.multiply(v)                     .multiplyScalar(s)
+.divide(v)                       .divideScalar(s)
+.negate()
+
+// Geometry
+.length()                        // magnitude
+.lengthSq()                      // magnitude squared (cheaper)
+.manhattanLength()
+.normalize()                     // → Vector3 (unit vector, mutates)
+.setLength(l)
+.dot(v)                          // → number
+.cross(v)                        // → Vector3 (mutates)
+.crossVectors(a, b)              // → Vector3 (mutates)
+.distanceTo(v)                   // → number
+.distanceToSquared(v)
+
+// Transforms
+.applyEuler(euler)               // → Vector3
+.applyAxisAngle(axis, angle)     // axis: unit Vector3, angle: radians → Vector3
+.applyMatrix3(m)                 // → Vector3
+.applyMatrix4(m)                 // → Vector3 (includes translation)
+.applyQuaternion(q)              // → Vector3
+.transformDirection(m)           // applies rotation only (ignores translation)
+.project(camera)                 // world → NDC
+.unproject(camera)               // NDC → world
+
+// Utility
+.lerp(v, alpha)                  // → Vector3 (mutates)
+.lerpVectors(v1, v2, alpha)
+.clamp(min, max)                 // component-wise clamp by Vector3 bounds
+.clampScalar(minVal, maxVal)
+.min(v)  .max(v)
+.floor()  .ceil()  .round()
+.equals(v)                       // → boolean
+.fromArray(arr, offset?)         // → Vector3
+.toArray(arr?, offset?)          // → number[]
+.fromBufferAttribute(attr, index) // read vertex from BufferAttribute
+.random()                        // random unit cube [0,1]³
+.randomDirection()               // random point on unit sphere
+```
+
+### Quaternion
+```js
+// Constructor
+new THREE.Quaternion(x?, y?, z?, w?)  // defaults to identity (0,0,0,1)
+
+// Properties
+.x  .y  .z  .w   // number
+
+// Set / copy
+.set(x, y, z, w)
+.copy(q)
+.clone()                              // → new Quaternion
+
+// Build from other representations
+.setFromEuler(euler)                  // → Quaternion
+.setFromAxisAngle(axis, angle)        // axis: unit Vector3 → Quaternion
+.setFromRotationMatrix(m)             // upper-left 3×3 of Matrix4 → Quaternion
+.setFromUnitVectors(vFrom, vTo)       // rotation mapping one unit vector to another
+
+// Combine / modify
+.multiply(q)                          // this = this * q
+.premultiply(q)                       // this = q * this
+.multiplyQuaternions(a, b)            // this = a * b
+.slerp(qb, t)                         // spherical lerp toward qb by t ∈ [0,1]
+.slerpQuaternions(qa, qb, t)
+.rotateTowards(q, step)               // rotate by at most step radians toward q
+
+// Query
+.length()   .lengthSq()
+.normalize()
+.invert()                             // conjugate / |q|² (unit q → conjugate)
+.conjugate()                          // negate x,y,z
+.dot(q)                               // → number
+.angleTo(q)                           // → radians
+.equals(q)                            // → boolean
+.identity()                           // reset to (0,0,0,1)
+
+// Serialization
+.fromArray(arr, offset?)
+.toArray(arr?, offset?)
+```
+
+### Matrix4
+```js
+// Constructor
+new THREE.Matrix4()    // identity
+
+// Properties
+.elements   // Float32Array[16], column-major
+
+// Set
+.set(n11,n12,...,n44)               // row-major arguments
+.identity()
+.copy(m)
+.clone()
+
+// Build transforms
+.makeTranslation(x, y, z)
+.makeRotationX(theta)               // radians
+.makeRotationY(theta)
+.makeRotationZ(theta)
+.makeRotationAxis(axis, angle)      // axis: unit Vector3
+.makeRotationFromEuler(euler)
+.makeRotationFromQuaternion(q)
+.makeScale(x, y, z)
+.makeShear(xy, xz, yx, yz, zx, zy)
+.makePerspective(left, right, top, bottom, near, far)
+.makeOrthographic(left, right, top, bottom, near, far)
+.compose(position, quaternion, scale)   // build TRS matrix
+.decompose(position, quaternion, scale) // extract TRS into existing objects
+
+// Combine
+.multiply(m)                        // this = this * m
+.premultiply(m)                     // this = m * this
+.multiplyMatrices(a, b)             // this = a * b
+.multiplyScalar(s)
+
+// Extract / modify
+.setPosition(v | x, y?, z?)
+.getPosition(target)                // → target Vector3
+.copyPosition(m)
+.extractRotation(m)
+.extractBasis(xAxis, yAxis, zAxis)
+.makeBasis(xAxis, yAxis, zAxis)
+.lookAt(eye, target, up)
+
+// Math
+.transpose()
+.invert()
+.determinant()                      // → number
+.getMaxScaleOnAxis()                // → number
+
+// Serialization
+.fromArray(arr, offset?)
+.toArray(arr?, offset?)
+.equals(m)
+```
+
+### Color
+```js
+// Constructor — accepts any ColorRepresentation
+new THREE.Color()                   // black
+new THREE.Color(0xff0000)           // hex number
+new THREE.Color('#ff0000')          // hex string
+new THREE.Color('red')              // CSS name
+new THREE.Color(r, g, b)           // floats in [0, 1]
+
+// Properties
+.r  .g  .b   // number in [0, 1]
+
+// Set
+.set(value)                         // any ColorRepresentation → Color
+.setHex(hex, colorSpace?)
+.setRGB(r, g, b, colorSpace?)
+.setHSL(h, s, l, colorSpace?)
+.setStyle(css, colorSpace?)
+.copy(c)
+.clone()
+
+// Get
+.getHex(colorSpace?)                // → number
+.getHexString(colorSpace?)          // → '######'
+.getHSL(target)                     // → { h, s, l }
+.getStyle(colorSpace?)              // → CSS string
+
+// Arithmetic
+.add(c)    .addColors(c1, c2)
+.sub(c)
+.multiply(c)   .multiplyScalar(s)
+.lerp(c, alpha)   .lerpColors(c1, c2, alpha)
+.offsetHSL(h, s, l)
+
+// Color space
+.convertSRGBToLinear()
+.convertLinearToSRGB()
+
+// Serialization
+.fromArray(arr, offset?)
+.toArray(arr?, offset?)
+.equals(c)                          // → boolean
+```
+
+---
+
+## THREE — Geometry
+
+### BufferGeometry
+```js
+new THREE.BufferGeometry()
+
+// Core properties
+.attributes       // { [name: string]: BufferAttribute }
+.index            // BufferAttribute | null  — triangle indices
+.groups           // [{ start, count, materialIndex? }]
+.boundingBox      // Box3 | null
+.boundingSphere   // Sphere | null
+
+// Set attributes
+.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3))
+.setAttribute('normal',   new THREE.Float32BufferAttribute(arr, 3))
+.setAttribute('uv',       new THREE.Float32BufferAttribute(arr, 2))
+.getAttribute(name)                 // → BufferAttribute
+.deleteAttribute(name)
+
+// Set index (triangle soup → indexed geometry)
+.setIndex(bufferAttribute | null)
+.getIndex()                         // → BufferAttribute | null
+
+// Groups (multi-material)
+.addGroup(start, count, materialIndex?)
+.clearGroups()
+
+// Bake / compute
+.computeBoundingBox()
+.computeBoundingSphere()
+.computeVertexNormals()             // auto-smooth normals from position+index
+
+// Other
+.setDrawRange(start, count)
+.toNonIndexed()                     // → new non-indexed BufferGeometry
+.clone()
+.dispose()                          // ALWAYS call when removing from scene
+```
+
+### Float32BufferAttribute
+```js
+// Used for: position, normal, uv, color — any float vertex data
+new THREE.Float32BufferAttribute(array, itemSize, normalized?)
+// array     — Float32Array or plain number[]
+// itemSize  — components per vertex: 3 for xyz, 2 for uv, 1 for scalars
+// normalized — default false
+
+// Inherited from BufferAttribute:
+.array        // Float32Array
+.itemSize     // number
+.count        // array.length / itemSize
+.needsUpdate  // set true after CPU-side mutation to push to GPU
+
+// Read individual components
+.getX(index)  .getY(index)  .getZ(index)  .getW(index)
+
+// Write individual components
+.setX(index, x)
+.setXY(index, x, y)
+.setXYZ(index, x, y, z)
+.setXYZW(index, x, y, z, w)
+
+// Bulk
+.set(value, offset?)
+.copy(source)
+.clone()
+
+// Typical pattern:
+const positions = new Float32Array([0,0,0, 1,0,0, 0,1,0])
+geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+```
+
+### Uint32BufferAttribute
+```js
+// Used for: triangle indices (setIndex)
+new THREE.Uint32BufferAttribute(array, itemSize, normalized?)
+// array     — Uint32Array or plain number[]
+// itemSize  — almost always 1 when used as an index buffer
+
+// Same BufferAttribute interface as Float32BufferAttribute above.
+// Supports up to 4,294,967,295 unique vertices (vs. 65,535 for Uint16).
+
+// Typical pattern:
+const indices = new Uint32Array([0,1,2, 1,3,2])
+geometry.setIndex(new THREE.Uint32BufferAttribute(indices, 1))
+```
+
+### SphereGeometry
+```js
+new THREE.SphereGeometry(
+  radius        = 1,
+  widthSegments = 32,   // longitude subdivisions (min 3)
+  heightSegments = 16,  // latitude subdivisions  (min 2)
+  phiStart      = 0,              // horizontal start angle (radians)
+  phiLength     = Math.PI * 2,   // horizontal sweep angle
+  thetaStart    = 0,              // vertical start angle
+  thetaLength   = Math.PI        // vertical sweep angle
+)
+// .parameters — object echoing the constructor args
+// Inherits all BufferGeometry properties and methods.
+```
+
+### BoxGeometry
+```js
+new THREE.BoxGeometry(
+  width          = 1,
+  height         = 1,
+  depth          = 1,
+  widthSegments  = 1,
+  heightSegments = 1,
+  depthSegments  = 1
+)
+// .parameters — object echoing the constructor args
+// Inherits all BufferGeometry properties and methods.
+```
+
+---
+
+## THREE — Materials
+
+### ShaderMaterial
+```js
+new THREE.ShaderMaterial({
+  vertexShader:   string,    // GLSL source for vertex shader
+  fragmentShader: string,    // GLSL source for fragment shader
+  uniforms: {
+    myUniform: { value: someValue }  // updated via .uniforms.myUniform.value = x
+  },
+  side:        THREE.FrontSide | THREE.BackSide | THREE.DoubleSide,
+  blending:    THREE.NormalBlending | THREE.AdditiveBlending | ...,
+  transparent: boolean,      // must be true when using alpha/blending
+  depthTest:   boolean,      // default true
+  depthWrite:  boolean,      // default true
+  fog:         boolean,
+  wireframe:   boolean,
+  lights:      boolean,      // false = no Three.js light uniforms injected
+  clipping:    boolean,
+  extensions: {
+    derivatives:      boolean,  // #extension GL_OES_standard_derivatives
+    fragDepth:        boolean,
+    drawBuffers:      boolean,
+    shaderTextureLOD: boolean,
+  }
+})
+
+// Three.js auto-injects these built-in uniforms into ShaderMaterial:
+//   projectionMatrix, modelViewMatrix, normalMatrix, modelMatrix, viewMatrix
+//   cameraPosition
+// And these built-in attributes:
+//   position (vec3), normal (vec3), uv (vec2)
+
+// Update a uniform each frame:
+meshRef.current.material.uniforms.myUniform.value = newValue
+
+// In r3f JSX (lower-camel props map to constructor options):
+<shaderMaterial
+  vertexShader={vertSrc}
+  fragmentShader={fragSrc}
+  uniforms={uniforms}
+  side={THREE.BackSide}
+  blending={THREE.AdditiveBlending}
+  transparent
+/>
+```
+
+---
+
+## THREE — Constants
+
+### Side
+```js
+THREE.FrontSide   // render front faces only (default)
+THREE.BackSide    // render back faces only  — used for atmosphere inner surface
+THREE.DoubleSide  // render both faces       — used for flat region meshes
+```
+
+### Blending
+```js
+THREE.NoBlending           // no blending
+THREE.NormalBlending       // standard alpha blend (default)
+THREE.AdditiveBlending     // src + dst — used for glow/atmosphere effects
+THREE.SubtractiveBlending  // dst - src
+THREE.MultiplyBlending     // src * dst
+THREE.CustomBlending       // manual blendSrc / blendDst / blendEquation
+// When using any blending other than NormalBlending, set transparent: true
+```
+
+---
+
+## THREE — Loaders
+
+### TextureLoader
+```js
+// Typically used via r3f's useLoader (preferred — handles Suspense + caching):
+const texture = useLoader(THREE.TextureLoader, '/earth.jpg')
+
+// Imperative form (outside components):
+const loader = new THREE.TextureLoader()
+loader.load(
+  url,
+  (texture) => { /* onLoad */ },
+  (event)   => { /* onProgress — ProgressEvent */ },
+  (event)   => { /* onError   — ErrorEvent     */ }
+)
+// Returns Texture immediately (empty until loaded).
+```
+
+---
+
+## THREE — Raycaster
+```js
+// In this project accessed via useThree, not constructed directly:
+const raycaster = useThree((s) => s.raycaster)
+
+// Key properties
+raycaster.ray           // THREE.Ray — origin + direction
+raycaster.near          // default 0
+raycaster.far           // default Infinity
+raycaster.camera        // Camera used for setFromCamera
+raycaster.params        // { Mesh: {}, Line: { threshold }, Points: { threshold }, ... }
+
+// Set ray from mouse/pointer
+raycaster.setFromCamera(pointer, camera)
+// pointer — THREE.Vector2 with normalized device coords in [-1, 1]
+// camera  — typically the scene camera
+
+// Cast
+raycaster.intersectObject(object, recursive?)      // → Intersection[]
+raycaster.intersectObjects(objects, recursive?)    // → Intersection[]
+
+// Intersection shape
+{
+  distance:   number,        // distance from ray origin
+  point:      THREE.Vector3, // world-space hit point
+  face:       THREE.Face,    // hit face (null for non-mesh)
+  faceIndex:  number,
+  object:     THREE.Object3D,
+  uv:         THREE.Vector2,
+}
+```
+
+---
+
+## Project-specific patterns
+
+### Coordinate conversion
+`convertLatLongXYZ.jsx` converts latitude/longitude to XYZ using `THREE.Vector3`.
+
+### Mouse pointer normalization
+Mouse events from React canvas use pixel coords. Normalize to NDC for raycasting:
+```js
+pointer.x =  (event.clientX / width)  * 2 - 1
+pointer.y = -(event.clientY / height) * 2 + 1  // Y is inverted vs. OpenGL
+```
+
+### Procedural indexed geometry (ear-clipping pattern)
+```js
+const geo = new THREE.BufferGeometry()
+geo.setAttribute('position', new THREE.Float32BufferAttribute(flatXYZ, 3))
+geo.setIndex(new THREE.Uint32BufferAttribute(triangleIndices, 1))
+geo.computeVertexNormals()   // optional — derives smooth normals
+```
+
+### Geometry transform baked into vertices
+```js
+const matrix = new THREE.Matrix4().makeTranslation(x, y, z)
+geometry.applyMatrix4(matrix)   // bakes transform into vertex positions
+```
+
+### ShaderMaterial in r3f with raw GLSL files
+```js
+import vertSrc from './shaders/globe.vert?raw'
+import fragSrc from './shaders/globe.frag?raw'
+
+// In JSX:
+<mesh>
+  <sphereGeometry args={[radius, wSeg, hSeg]} />
+  <shaderMaterial
+    vertexShader={vertSrc}
+    fragmentShader={fragSrc}
+    uniforms={{ globeTexture: { value: texture } }}
+    side={THREE.BackSide}
+    blending={THREE.AdditiveBlending}
+    transparent
+  />
+</mesh>
+```
