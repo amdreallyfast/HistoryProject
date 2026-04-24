@@ -23,6 +23,7 @@
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
     "three": "^0.184.0",
+    "three-mesh-bvh": "^0.8.0",
     "uuid": "^14.0.0"
   },
   "devDependencies": {
