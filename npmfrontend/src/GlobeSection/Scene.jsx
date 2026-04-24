@@ -133,7 +133,7 @@ export function Scene() {
     setMeshes(meshesArr)
 
     // console.log({ meshesArr, count: meshesArr.length })
-  }, [poiReactElements, editState.updatedPrimaryPinMeshInScene, editState.updatedRegionMeshesInScene])
+  }, [poiReactElements, regionReactElements, editState.updatedPrimaryPinMeshInScene, editState.updatedRegionMeshesInScene])
 
   // Handle mouse hover and mouse click.
 
