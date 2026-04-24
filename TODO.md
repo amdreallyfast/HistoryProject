@@ -55,7 +55,7 @@ Guidance:
   - `content.js:1 Uncaught (in promise) Error: Corruption: block checksum mismatch` — **Not app code.** `content.js` is injected by a browser extension. Verify with a clean browser profile (no extensions); the error won't appear.
   - `index-D-bjwAXJ.js:3697 {MouseHandler.useEffect[mouseState.leftMouseDown]: null}` — Fixed: `leftMouseDown` was initialized to `null` instead of `false` in `stateSliceMouseInfo.jsx`.
 
-- [ ] `[simple]` **Upgrade `three-mesh-bvh` v0.7.8 → v0.8.0.** During the clean install verification in the vulnerability fix above, npm printed: `three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.` Not a security issue, but the package is outdated relative to three r184. Upgrade, run the app, and confirm globe/region rendering still works.
+- [x] `[simple]` **Upgrade `three-mesh-bvh` v0.7.8 → v0.8.0.** During the clean install verification in the vulnerability fix above, npm printed: `three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.` Not a security issue, but the package is outdated relative to three r184. Upgrade, run the app, and confirm globe/region rendering still works.
 
 - [ ] `[simple]` **Replace `THREE.Clock` with `THREE.Timer`.** Browser console reports: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` Find all usages of `THREE.Clock` in the codebase, replace with `THREE.Timer`, and confirm the app still runs correctly.
 
