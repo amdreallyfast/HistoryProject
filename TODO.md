@@ -39,7 +39,7 @@ Guidance:
 
 ## Bug Fixes
 
-- [ ] `[plan first]` **Address GitHub Dependabot package vulnerabilities in npmfrontend (121 reported).** GitHub reports 121 vulnerabilities (4 critical, 59 high, 46 moderate, 12 low). Backend (.NET 10) packages appear current. Frontend npm packages are the source. Each step is its own implementation and verification cycle — commit and confirm the app works before proceeding to the next. Do not combine steps; interacting breaking changes from multiple major-version bumps are difficult to diagnose.
+- [x] `[plan first]` **Address GitHub Dependabot package vulnerabilities in npmfrontend (121 reported).** GitHub reports 121 vulnerabilities (4 critical, 59 high, 46 moderate, 12 low). Backend (.NET 10) packages appear current. Frontend npm packages are the source. Each step is its own implementation and verification cycle — commit and confirm the app works before proceeding to the next. Do not combine steps; interacting breaking changes from multiple major-version bumps are difficult to diagnose.
 
   1. **Remove accidental packages.** `save` and `@anthropic-ai/claude-code` are both listed as runtime dependencies but are almost certainly accidental installs — `save` from `npm install save` without `--save-dev`, and `@anthropic-ai/claude-code` (the Claude Code CLI tool) likely from early setup attempts to get Claude Code working. Neither is a runtime library used by this project. Verify neither is imported anywhere, then remove both. Removing them will likely eliminate a significant portion of transitive vulnerabilities. Run `npm audit` after; confirm app still works.
   2. **Apply non-breaking updates.** Run `npm audit fix` (no `--force`) to apply patch/minor fixes automatically. Run `npm audit` after; confirm app still works.
