@@ -1,6 +1,6 @@
 # TODO
 
-Work items for the HistoryProject. Organized by priority — start from the top.
+Work items for the HistoryProject repository. Organized by priority — start from the top.
 
 **Instructions for Claude:** Work through items top-to-bottom.
 - `[simple]` — Just do it.
@@ -17,11 +17,13 @@ Guidance:
   1. The first line of the commit should briefly describe both the TODO item and the step:
     * Many TODO items end up with multiple fixes, and it will be useful to see that multiple commits in a row are part of the same routine.
     * Ex: For the the large TODO item **Address GitHub Dependabot package vulnerabilities in npmfrontend (121 reported)**, step 2, the first line could be something like: "Package vulnerabilities: 2. Apply non-breaking updates".
-  2. Add an `Authorized-By: <user.name from git config>` trailer alongside the standard `Co-Authored-By` trailer. Example:
-    ```
-    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
-    Authorized-By: HistoryProject
-    ```
+  2. Add an `Authorized-By: <git config --local user.name>` trailer alongside the standard `Co-Authored-By` trailer.
+    * Note: If user.name is null, then git will throw an error when trying to commit. If that happens, show the user the error and inform that that git was the source and that git requires them to run `git config --local user.name <name>`. This will make it clear that git is asking for the info, not you the model.
+    * Example: 
+      ```
+      Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+      Authorized-By: amdreallyfast
+      ```
 3. Perform no more than one TODO item (or for larger items, a single TODO step) per commit.
 4. After completing any item:
   1. commit
