@@ -51,6 +51,11 @@ Guidance:
 
   Goal: reach zero critical and high severity issues; accept low/moderate only if there is no available fix.
 
+- [ ] `[simple]` **Page load errors in dev tools.** On page load, dev tools reports two errors on the first lines:
+  - `content.js:1 Uncaught (in promise) Error: Corruption: block checksum mismatch`
+  - `index-D-bjwAXJ.js:3697 {MouseHandler.useEffect[mouseState.leftMouseDown]: null}`
+  Investigate and resolve both.
+
 - [ ] `[simple]` **Upgrade `three-mesh-bvh` v0.7.8 → v0.8.0.** During the clean install verification in the vulnerability fix above, npm printed: `three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.` Not a security issue, but the package is outdated relative to three r184. Upgrade, run the app, and confirm globe/region rendering still works.
 
 ## Refactors
@@ -121,6 +126,19 @@ Guidance:
   - `stateSliceSelectedEvent.jsx`: Verify/add a `clear` action for deselection.
   - No changes needed to `EditableRegion.jsx` or the existing `createNewRegion()` logic.
 
+- [ ] `[plan first]` **Add "Subdivide" button for region boundaries in edit mode.** Adds a button in edit mode that doubles the number of boundary points, giving finer control over boundary shape. Each new point is inserted halfway between its two neighbors, preserving the counterclockwise order required by the ear-clipping algorithm (see `npmfrontend/src/GlobeSection/Region/regionMeshGeometry.js`, comment on class `EarClipping`). This change updates the event object and must cascade into boundary pin rendering; the new points must be immediately available for editing.
+
+- [ ] `[discussion]` **Snap-click for boundary pins.** Add the ability to snap-click boundary pins (interaction model TBD).
+
+- [ ] `[simple]` **Scale boundary pins with zoom level.** Add a scaling factor so boundary pins shrink as the user zooms in. Large pins and bounding boxes become obstacles when making detailed boundary edits at high zoom; smaller pins preserve usability.
+
+- [ ] `[discussion]` **Add a text preview** (details TBD).
+
+- [ ] `[plan first]` **Allow direct coordinate editing for boundary points.** Add a UI for editing boundary point coordinates as text. Must support all three common standards:
+  1. **Decimal Degrees (DD):** Current default. Decimal value, positive/negative sign, no symbols. Positive = North/East, negative = South/West.
+  2. **Degrees and Decimal Minutes (DDM):** Common for marine/GPS.
+  3. **Degrees, Minutes, and Seconds (DMS):** Traditional map format.
+
 ## Code Quality
 
 - [ ] `[simple]` **Review and clean up lint errors.** `npm run lint` currently reports 292 problems across the codebase. Review each category (unused vars, missing prop-types, no-empty-pattern, react/no-unknown-property, react-hooks/exhaustive-deps) and fix or suppress with justification.
@@ -130,6 +148,8 @@ Guidance:
   console.log({ "ClassName.functionName": argumentValue })
   console.log({ "ClassName.useEffect[dependency]": dependencyValue })
   ```
+
+- [ ] `[simple]` **Disable console.log for production; keep for test.** *Prerequisite: complete "Standardize debug console.log messages" above first.* After log messages are standardized, gate them so they are active in test but suppressed in production. Use Vite's `import.meta.env.MODE` or a custom env variable.
 
 - [ ] `[plan first]` **Add "X" button to top-right of details section for clean exit.** Three problems with the current exit UX: (1) the unsaved-changes warning is a browser `confirm()` popup, which looks out of place; (2) the cancel button does not warn about unsaved changes; (3) the only visible exit control is a button at the bottom of the details panel, requiring the user to scroll. Fix: add a visible "X" button anchored to the top-right corner of the details section. Behavior:
   - **Display mode:** clicking "X" deselects the current event and returns the details section to the empty "no event selected" state.
