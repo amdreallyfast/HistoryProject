@@ -58,6 +58,7 @@ export function SearchSectionMain() {
     // If already selected, de-select.
     if (selectedEvent?.eventId === eventId) {
       reduxDispatch(eventStateActions.setSelectedEvent(null))
+      reduxDispatch(selectedEventStateActions.clear())
       return
     }
 

@@ -43,6 +43,7 @@ export const stateSliceSelectedEvent = createSlice({
         revisionAuthor: action.payload.revisionAuthor || "",
       }
     },
+    clear: () => initialState,
   }
 })
 

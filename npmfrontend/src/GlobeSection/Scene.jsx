@@ -7,7 +7,7 @@ import { globeInfo, meshNames, groupNames } from "./constValues"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { MouseHandler } from "./MouseHandler"
 import { EditableRegion } from "./Region/EditableRegion"
-import { DisplayOnlyRegion } from "./Region/DisplayOnlyRegion"
+import { DisplayRegion } from "./Region/DisplayRegion"
 import { createSpherePointFromLatLong } from "./createSpherePoint"
 import { getLatestRevisions } from "../AppState/getLatestRevisions"
 import * as THREE from "three"
@@ -74,7 +74,7 @@ export function Scene() {
           createSpherePointFromLatLong(b.lat, b.long, globeInfo.radius)
         )
         displayElements.push(
-          <DisplayOnlyRegion
+          <DisplayRegion
             key={event.eventId}
             eventId={event.eventId}
             primaryLoc={primarySpherePoint}

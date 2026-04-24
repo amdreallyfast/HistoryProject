@@ -3,7 +3,7 @@ import { DisplayPinMesh } from "../DisplayPinMesh"
 import { DisplayRegionMesh } from "./DisplayRegionMesh"
 import { displayPinMeshInfo, groupNames } from "../constValues"
 
-export function DisplayOnlyRegion({ eventId, primaryLoc, regionBoundaries, globeInfo, isSelected }) {
+export function DisplayRegion({ eventId, primaryLoc, regionBoundaries, globeInfo, isSelected }) {
   const hoverEventId  = useSelector((state) => state.mouseInfoReducer.hoverEventId)
   const editModeOn    = useSelector((state) => state.editEventReducer.editModeOn)
   const editEventId   = useSelector((state) => state.editEventReducer.eventId)
