@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { convertTimeRangeToGregorianYearMonthDayString } from "../convertTimeRangeToString"
 import { EditSource } from "./EditSource"
-import { generateUUID } from "three/src/math/MathUtils.js"
+import { v4 as uuid } from "uuid"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
 import { detailRestrictions } from "./detailRestrictions"
 
@@ -109,7 +109,7 @@ export function EditEventSources() {
     //   )
     // )
 
-    let newId = generateUUID()
+    let newId = uuid()
     reduxDispatch(editSourcesStateActions.newSource({
       id: newId,
       // title: `title for '${newId}'`
