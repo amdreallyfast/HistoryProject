@@ -66,9 +66,9 @@ After completing any item, commit the changes, and ask the user the test.
 
 - [x] `[simple]` **Show edited event's display region as a blue ghost in edit mode.** The DisplayOnlyRegion for the event being edited renders in selected-blue (not dim gray) as a visual reference. EditRegionMesh raised to `sphereRadius + 0.1` so raycasting hits the edit mesh first. Fixed a stale-prop bug where `isBeingEdited` was computed in a useEffect without `editState` as a dependency — moved to a reactive `useSelector` inside `DisplayOnlyRegion`.
 
-- [ ] `[simple]` **Rename DisplayOnlyRegion to DisplayRegion.** No need for "Only" in the name.
+- [x] `[simple]` **Rename DisplayOnlyRegion to DisplayRegion.** No need for "Only" in the name.
 
-- [ ] `[simple]` **Deselect selected region.** When a selected search result or a selected region in the globe is selected again, deselect it. The selected event should become null.
+- [x] `[simple]` **Deselect selected region.** When a selected search result or a selected region in the globe is selected again, deselect it. The selected event should become null.
 
 - [ ] `[plan first]` **Create new event workflow.** Implement the full workflow for creating a new event from scratch. *Prerequisite: submitting an event to the backend must work first (see "End-to-end event workflow" refactor above).* Consolidates and supersedes two items in "Is this still needed?" below ("No event selected state with Create New Event button" and "Deselect event process") — remove those when implementing this.
 
