@@ -20,7 +20,7 @@ const initialState = {
   //   intersection: null // or cursor raycast intersection (see below)
   // },
   leftMouseUp: null,
-  leftMouseDown: null,
+  leftMouseDown: false,
   rightMouseUp: null,
   rightMouseDown: null,
 
