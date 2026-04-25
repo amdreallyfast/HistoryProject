@@ -13,6 +13,8 @@ namespace WebAPI.Models
         [Required]
         public double Longitude { get; set; }
 
+        public int OrderIndex { get; set; }
+
         //public bool Equals(EventLocation? other)
         //{
         //    if (ReferenceEquals(this, other)) return true;

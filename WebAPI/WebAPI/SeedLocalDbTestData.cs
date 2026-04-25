@@ -6,8 +6,14 @@ internal static class SeedLocalDbTestData
 {
     internal static void Initialize(HistoryProjectDbContext db)
     {
-        if (db.Events.Any())
-            return;
+        // Wipe all data in FK-safe order, then reseed fresh on every Development startup.
+        db.Database.ExecuteSqlRaw("DELETE FROM SourceAuthors");
+        db.Database.ExecuteSqlRaw("DELETE FROM Sources");
+        db.Database.ExecuteSqlRaw("UPDATE Events SET SpecificLocationId = NULL");
+        db.Database.ExecuteSqlRaw("DELETE FROM Locations");
+        db.Database.ExecuteSqlRaw("DELETE FROM Events");
+        db.Database.ExecuteSqlRaw("DELETE FROM Images");
+        db.Database.ExecuteSqlRaw("DELETE FROM Tags");
 
         var event1 = new Event
         {
@@ -40,14 +46,14 @@ internal static class SeedLocalDbTestData
             },
             Region = new List<EventLocation>
             {
-                new EventLocation { Id = new Guid("aaaaaaaa-0005-0000-0000-000000000001"), Latitude = 19.0895,  Longitude = -14.0557 },
-                new EventLocation { Id = new Guid("aaaaaaaa-0006-0000-0000-000000000001"), Latitude = 16.681,   Longitude = -19.9523 },
-                new EventLocation { Id = new Guid("aaaaaaaa-0007-0000-0000-000000000001"), Latitude = 10.9803,  Longitude = -22.2059 },
-                new EventLocation { Id = new Guid("aaaaaaaa-0008-0000-0000-000000000001"), Latitude = 5.3879,   Longitude = -19.7284 },
-                new EventLocation { Id = new Guid("aaaaaaaa-0009-0000-0000-000000000001"), Latitude = 3.0895,   Longitude = -14.0557 },
-                new EventLocation { Id = new Guid("aaaaaaaa-000a-0000-0000-000000000001"), Latitude = 5.3879,   Longitude = -8.3829  },
-                new EventLocation { Id = new Guid("aaaaaaaa-000b-0000-0000-000000000001"), Latitude = 10.9803,  Longitude = -5.9055  },
-                new EventLocation { Id = new Guid("aaaaaaaa-000c-0000-0000-000000000001"), Latitude = 16.681,   Longitude = -8.1591  },
+                new EventLocation { Id = new Guid("aaaaaaaa-0005-0000-0000-000000000001"), OrderIndex = 0, Latitude = 19.0895,  Longitude = -14.0557 },
+                new EventLocation { Id = new Guid("aaaaaaaa-0006-0000-0000-000000000001"), OrderIndex = 1, Latitude = 16.681,   Longitude = -19.9523 },
+                new EventLocation { Id = new Guid("aaaaaaaa-0007-0000-0000-000000000001"), OrderIndex = 2, Latitude = 10.9803,  Longitude = -22.2059 },
+                new EventLocation { Id = new Guid("aaaaaaaa-0008-0000-0000-000000000001"), OrderIndex = 3, Latitude = 5.3879,   Longitude = -19.7284 },
+                new EventLocation { Id = new Guid("aaaaaaaa-0009-0000-0000-000000000001"), OrderIndex = 4, Latitude = 3.0895,   Longitude = -14.0557 },
+                new EventLocation { Id = new Guid("aaaaaaaa-000a-0000-0000-000000000001"), OrderIndex = 5, Latitude = 5.3879,   Longitude = -8.3829  },
+                new EventLocation { Id = new Guid("aaaaaaaa-000b-0000-0000-000000000001"), OrderIndex = 6, Latitude = 10.9803,  Longitude = -5.9055  },
+                new EventLocation { Id = new Guid("aaaaaaaa-000c-0000-0000-000000000001"), OrderIndex = 7, Latitude = 16.681,   Longitude = -8.1591  },
             },
             Sources = new List<EventSource>
             {
@@ -100,14 +106,14 @@ internal static class SeedLocalDbTestData
             },
             Region = new List<EventLocation>
             {
-                new EventLocation { Id = new Guid("bbbbbbbb-0005-0000-0000-000000000002"), Latitude = -6.2288,   Longitude = 34.6401 },
-                new EventLocation { Id = new Guid("bbbbbbbb-0006-0000-0000-000000000002"), Latitude = -8.6382,   Longitude = 28.9816 },
-                new EventLocation { Id = new Guid("bbbbbbbb-0007-0000-0000-000000000002"), Latitude = -14.2687,  Longitude = 26.5704 },
-                new EventLocation { Id = new Guid("bbbbbbbb-0008-0000-0000-000000000002"), Latitude = -19.9334,  Longitude = 28.956  },
-                new EventLocation { Id = new Guid("bbbbbbbb-0009-0000-0000-000000000002"), Latitude = -22.2245,  Longitude = 35.0227 },
-                new EventLocation { Id = new Guid("bbbbbbbb-000a-0000-0000-000000000002"), Latitude = -19.6662,  Longitude = 40.9602 },
-                new EventLocation { Id = new Guid("bbbbbbbb-000b-0000-0000-000000000002"), Latitude = -13.9022,  Longitude = 43.0655 },
-                new EventLocation { Id = new Guid("bbbbbbbb-000c-0000-0000-000000000002"), Latitude = -8.384,    Longitude = 40.4002 },
+                new EventLocation { Id = new Guid("bbbbbbbb-0005-0000-0000-000000000002"), OrderIndex = 0, Latitude = -6.2288,   Longitude = 34.6401 },
+                new EventLocation { Id = new Guid("bbbbbbbb-0006-0000-0000-000000000002"), OrderIndex = 1, Latitude = -8.6382,   Longitude = 28.9816 },
+                new EventLocation { Id = new Guid("bbbbbbbb-0007-0000-0000-000000000002"), OrderIndex = 2, Latitude = -14.2687,  Longitude = 26.5704 },
+                new EventLocation { Id = new Guid("bbbbbbbb-0008-0000-0000-000000000002"), OrderIndex = 3, Latitude = -19.9334,  Longitude = 28.956  },
+                new EventLocation { Id = new Guid("bbbbbbbb-0009-0000-0000-000000000002"), OrderIndex = 4, Latitude = -22.2245,  Longitude = 35.0227 },
+                new EventLocation { Id = new Guid("bbbbbbbb-000a-0000-0000-000000000002"), OrderIndex = 5, Latitude = -19.6662,  Longitude = 40.9602 },
+                new EventLocation { Id = new Guid("bbbbbbbb-000b-0000-0000-000000000002"), OrderIndex = 6, Latitude = -13.9022,  Longitude = 43.0655 },
+                new EventLocation { Id = new Guid("bbbbbbbb-000c-0000-0000-000000000002"), OrderIndex = 7, Latitude = -8.384,    Longitude = 40.4002 },
             },
             Sources = new List<EventSource>
             {

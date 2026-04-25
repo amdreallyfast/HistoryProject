@@ -27,10 +27,10 @@ export function backendToFrontend(e) {
     primaryLoc: e.SpecificLocation
       ? { lat: e.SpecificLocation.Latitude, long: e.SpecificLocation.Longitude }
       : null,
-    regionBoundaries: e.Region?.map(loc => ({
+    regionBoundaries: [...(e.Region ?? [])].sort((a, b) => a.OrderIndex - b.OrderIndex).map(loc => ({
       lat: loc.Latitude,
       long: loc.Longitude,
-    })) ?? [],
+    })),
     sources: e.Sources?.map(s => ({
       title: s.Title ?? "",
       isbn: s.ISBN ?? null,
@@ -75,10 +75,11 @@ export function frontendToBackend(ev) {
     SpecificLocation: ev.primaryLoc
       ? { Id: crypto.randomUUID(), Latitude: ev.primaryLoc.lat, Longitude: ev.primaryLoc.long }
       : null,
-    Region: ev.regionBoundaries?.map(b => ({
+    Region: ev.regionBoundaries?.map((b, index) => ({
       Id: crypto.randomUUID(),
       Latitude: b.lat,
       Longitude: b.long,
+      OrderIndex: index,
     })) ?? [],
     Sources: ev.sources?.map(s => ({
       Id: crypto.randomUUID(),
