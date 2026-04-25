@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
+import { isDateRangeInverted } from "./detailRestrictions"
 
 export function EditEventTime() {
   const editState = useSelector((state) => state.editEventReducer)
@@ -44,8 +45,7 @@ export function EditEventTime() {
     setLatestMonth(lMonth)
     setLatestDay(lDay)
 
-    isComplete(eYear, eMonth, eDay, setEarliestError)
-    isComplete(lYear, lMonth, lDay, setLatestError)
+    validateBothBounds(eYear, eMonth, eDay, lYear, lMonth, lDay)
   }, [
     earliestYearInputRef.current,
     earliestMonthInputRef.current,
@@ -55,40 +55,53 @@ export function EditEventTime() {
     latestDayInputRef.current
   ])
 
-  // Validation function
+  // Validation function — returns true if valid, false if error
   const isComplete = (year, month, day, setErrorFunction) => {
     console.log({ "EditEventTime.isComplete": `year: '${year}', month: '${month}', day: '${day}'` })
 
     let yearDefined = (year && year.trim() !== "")
     if (!yearDefined) {
       setErrorFunction("Missing required value: 'Year'")
-      return
+      return false
     }
     else if (isNaN(year)) {
       setErrorFunction(`Year is not a number: '${year}'. Use negative for BC and postive for AD.`)
-      return
+      return false
     }
     else if (!Number.isInteger(Number(year))) {
       setErrorFunction(`Year must be an integer (no decimal): '${year}'`)
-      return
+      return false
     }
 
     let monthDefined = (month && month?.trim() !== "")
     if (monthDefined) {
       if (isNaN(month) || !Number.isInteger(Number(month)) || month < 1) {
         setErrorFunction(`Month (if defined) must be a positive integer (no decimal): '${month}'`)
-        return
+        return false
       }
     }
 
     let dayDefined = (day && day.trim() !== "")
     if (dayDefined) {
-      if (isNaN(day) || !Number.isInteger(Number(day)) || day < 1)
+      if (isNaN(day) || !Number.isInteger(Number(day)) || day < 1) {
         setErrorFunction(`Day (if defined) must be a positive integer (no decimal): '${day}'`)
-      return
+        return false
+      }
     }
 
     setErrorFunction(null)
+    return true
+  }
+
+  // Cross-field validation — checks both bounds and the range order
+  const validateBothBounds = (eYear, eMonth, eDay, lYear, lMonth, lDay) => {
+    const earliestValid = isComplete(eYear, eMonth, eDay, setEarliestError)
+    const latestValid = isComplete(lYear, lMonth, lDay, setLatestError)
+    if (earliestValid && latestValid) {
+      if (isDateRangeInverted(eYear, eMonth, eDay, lYear, lMonth, lDay)) {
+        setLatestError("Latest date cannot be earlier than earliest date")
+      }
+    }
   }
 
   // Event handlers
@@ -96,42 +109,42 @@ export function EditEventTime() {
     const value = e.target.value
     setEarliestYear(value)
     reduxDispatch(editEventStateActions.setEventTimeEarliestYear(value || null))
-    isComplete(value, earliestMonth, earliestDay, setEarliestError)
+    validateBothBounds(value, earliestMonth, earliestDay, latestYear, latestMonth, latestDay)
   }
 
   const onEarliestMonthChanged = (e) => {
     const value = e.target.value
     setEarliestMonth(value)
     reduxDispatch(editEventStateActions.setEventTimeEarliestMonth(value || null))
-    isComplete(earliestYear, value, earliestDay, setEarliestError)
+    validateBothBounds(earliestYear, value, earliestDay, latestYear, latestMonth, latestDay)
   }
 
   const onEarliestDayChanged = (e) => {
     const value = e.target.value
     setEarliestDay(value)
     reduxDispatch(editEventStateActions.setEventTimeEarliestDay(value || null))
-    isComplete(earliestYear, earliestMonth, value, setEarliestError)
+    validateBothBounds(earliestYear, earliestMonth, value, latestYear, latestMonth, latestDay)
   }
 
   const onLatestYearChanged = (e) => {
     const value = e.target.value
     setLatestYear(value)
     reduxDispatch(editEventStateActions.setEventTimeLatestYear(value || null))
-    isComplete(value, latestMonth, latestDay, setLatestError)
+    validateBothBounds(earliestYear, earliestMonth, earliestDay, value, latestMonth, latestDay)
   }
 
   const onLatestMonthChanged = (e) => {
     const value = e.target.value
     setLatestMonth(value)
     reduxDispatch(editEventStateActions.setEventTimeLatestMonth(value || null))
-    isComplete(latestYear, value, latestDay, setLatestError)
+    validateBothBounds(earliestYear, earliestMonth, earliestDay, latestYear, value, latestDay)
   }
 
   const onLatestDayChanged = (e) => {
     const value = e.target.value
     setLatestDay(value)
     reduxDispatch(editEventStateActions.setEventTimeLatestDay(value || null))
-    isComplete(latestYear, latestMonth, value, setLatestError)
+    validateBothBounds(earliestYear, earliestMonth, earliestDay, latestYear, latestMonth, value)
   }
 
   // Determine border color based on validation state

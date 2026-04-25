@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
+import { isDateRangeInverted } from "./detailRestrictions"
 
 /*
 TODO: (??maybe just duplicate the form and customize it? how much do you want to avoid duplication? are you willing to sacrifice the readability of the code??
@@ -65,6 +66,7 @@ export function EditSourcePublicationTimeRange({
   const [publicationDateLowerBoundComplete, setPublicationDateLowerBoundComplete] = useState()
 
   const [lowerBoundError, setLowerBoundError] = useState()
+  const [rangeError, setRangeError] = useState(null)
 
   // const setLowerBoundErrorStyle = () => {
   //   pubDateLowerBoundContainerRef.current.style.border = "2px solid red"
@@ -75,43 +77,50 @@ export function EditSourcePublicationTimeRange({
   // }
 
   const evaluateLowerBoundComplete = () => {
-    // assume bad
     pubDateLowerBoundContainerRef.current.style.border = "2px solid red"
-
-    // Year is required. For everything else, just make sure that they are numbers.
 
     let year = pubDateLowerBoundYearRef.current.value
     if (isNaN(Number(year))) {
       setLowerBoundError(`Year is not a number: '${year}'`)
-      return
+      setRangeError(null)
+      return false
     }
     else if (!year) {
       setLowerBoundError("Missing required value: 'Year'")
+      setRangeError(null)
       return false
     }
 
     let month = pubDateLowerBoundMonthRef.current.value
     if (isNaN(Number(month))) {
       setLowerBoundError(`Month is not a number: '${month}'`)
-      return
+      setRangeError(null)
+      return false
     }
 
     let day = pubDateLowerBoundDayRef.current.value
     if (isNaN(Number(day))) {
       setLowerBoundError(`Day is not a number: '${day}'`)
-      return
+      setRangeError(null)
+      return false
     }
 
-    // Ok
     pubDateLowerBoundContainerRef.current.style.border = "2px solid transparent"
     setLowerBoundError("")
+    return true
+  }
+
+  const validateBoth = () => {
+    const lowerValid = evaluateLowerBoundComplete()
+    const upperValid = evaluateUpperBoundComplete()
+    return lowerValid && upperValid
   }
 
   // On changed
   const onPubDateLowerBoundYearChanged = (e) => {
     console.log({ "EditSource.onPubDateLowerBoundYearChanged": e })
 
-    evaluateLowerBoundComplete()
+    validateBoth()
     let args = {
       editId: editId,
       value: e.target.value
@@ -122,7 +131,7 @@ export function EditSourcePublicationTimeRange({
   const onPubDateLowerBoundMonthChanged = (e) => {
     console.log({ "EditSource.onPubDateLowerBoundMonthChanged": e })
 
-    evaluateLowerBoundComplete()
+    validateBoth()
     let args = {
       editId: editId,
       value: e.target.value
@@ -133,7 +142,7 @@ export function EditSourcePublicationTimeRange({
   const onPubDateLowerBoundDayChanged = (e) => {
     console.log({ "EditSource.onPubDateLowerBoundDayChanged": e })
 
-    evaluateLowerBoundComplete()
+    validateBoth()
     let args = {
       editId: editId,
       value: e.target.value
@@ -176,46 +185,64 @@ export function EditSourcePublicationTimeRange({
     let year = pubDateUpperBoundYearRef.current.value
     if (isNaN(Number(year))) {
       setUpperBoundError(`Year is not a number: '${year}'`)
-      return
+      setRangeError(null)
+      return false
     }
     else if (!year) {
       setUpperBoundError("Missing required value: 'Year'")
+      setRangeError(null)
       return false
     }
 
     let month = pubDateUpperBoundMonthRef.current.value
     if (isNaN(Number(month))) {
       setUpperBoundError(`Month is not a number: '${month}'`)
-      return
+      setRangeError(null)
+      return false
     }
 
     let day = pubDateUpperBoundDayRef.current.value
     if (isNaN(Number(day))) {
       setUpperBoundError(`Day is not a number: '${day}'`)
-      return
+      setRangeError(null)
+      return false
     }
 
     pubDateUpperBoundContainerRef.current.style.border = "2px solid transparent"
     setUpperBoundError("")
+
+    if (isDateRangeInverted(
+      pubDateLowerBoundYearRef.current.value,
+      pubDateLowerBoundMonthRef.current.value,
+      pubDateLowerBoundDayRef.current.value,
+      year, month, day
+    )) {
+      pubDateUpperBoundContainerRef.current.style.border = "2px solid red"
+      setRangeError("Latest cannot be earlier than earliest")
+      return false
+    }
+
+    setRangeError(null)
+    return true
   }
 
   const onPubDateUpperBoundYearChanged = (e) => {
     console.log({ "EditSource.onPubDateUpperBoundYearChanged": e })
-    evaluateUpperBoundComplete()
+    validateBoth()
     let args = { editId: editId, value: e.target.value }
     reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestYear(args))
   }
 
   const onPubDateUpperBoundMonthChanged = (e) => {
     console.log({ "EditSource.onPubDateUpperBoundMonthChanged": e })
-    evaluateUpperBoundComplete()
+    validateBoth()
     let args = { editId: editId, value: e.target.value }
     reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestMonth(args))
   }
 
   const onPubDateUpperBoundDayChanged = (e) => {
     console.log({ "EditSource.onPubDateUpperBoundDayChanged": e })
-    evaluateUpperBoundComplete()
+    validateBoth()
     let args = { editId: editId, value: e.target.value }
     reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestDay(args))
   }
@@ -261,6 +288,7 @@ export function EditSourcePublicationTimeRange({
           <input ref={pubDateUpperBoundDayRef} className="text-black" type="text" placeholder="DD (optional)" onChange={onPubDateUpperBoundDayChanged}></input>
         </div>
         <label className="text-left text-red-500">{upperBoundError}</label>
+        <label className="text-left text-red-500">{rangeError}</label>
       </div>
 
     </div>

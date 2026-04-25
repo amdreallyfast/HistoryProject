@@ -12,6 +12,7 @@ import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 import { eventStateActions } from "../../AppState/stateSliceEvent";
 import { createEvent } from "../../api/historyEventApi";
 import { frontendToBackend } from "../../api/eventMapper";
+import { isDateRangeInverted } from "./detailRestrictions";
 
 
 export function EditEvent({ }) {
@@ -67,6 +68,18 @@ export function EditEvent({ }) {
 
     return false
   }, [editState, editSources])
+
+  const hasDateErrors = useMemo(() => {
+    const et = editState.eventTime
+    if (isDateRangeInverted(et.earliestYear, et.earliestMonth, et.earliestDay,
+                            et.latestYear,   et.latestMonth,   et.latestDay)) return true
+    for (const key of Object.keys(editSources)) {
+      const pt = editSources[key].publicationTime
+      if (isDateRangeInverted(pt.earliestYear, pt.earliestMonth, pt.earliestDay,
+                              pt.latestYear,   pt.latestMonth,   pt.latestDay)) return true
+    }
+    return false
+  }, [editState.eventTime, editSources])
 
   const onSubmitClick = async (e) => {
 
@@ -162,9 +175,9 @@ export function EditEvent({ }) {
           Cancel
         </button>
         <button
-          className={`font-bold py-2 px-4 rounded text-white ${hasChanges ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
+          className={`font-bold py-2 px-4 rounded text-white ${hasChanges && !hasDateErrors ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
           onClick={(e) => onSubmitClick(e)}
-          disabled={!hasChanges}
+          disabled={!hasChanges || hasDateErrors}
         >
           Submit
         </button>
