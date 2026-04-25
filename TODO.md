@@ -41,7 +41,9 @@ Guidance:
 
 - [ ] `[simple]` **THREE.Clock deprecation warning still present after fiber v9 upgrade.** **Ignore for now (Friday, 2026/04/25).** After upgrading to `@react-three/fiber` v9.6.0, the console still shows: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` The source is `node_modules/@react-three/fiber/dist/events-760a1017.esm.js:985` — not project code. The wheel-event violation warning is gone; only the Clock warning remains. Revisit when a newer fiber stable release migrates its internal clock to `THREE.Timer`.
 
-- [ ] `[simple]` **Bug: Earliest event/source date can be set later than the latest date.** When entering event time or a source publication time, there is no validation preventing the user from entering an earliest date that is chronologically later than the latest date. Add a cross-field validation rule to `EditEventTime.jsx` and `EditSourcePublicationTimeRange.jsx` that flags this as an error (red border, error message) and blocks submit.
+- [x] `[simple]` **Bug: Earliest event/source date can be set later than the latest date.** When entering event time or a source publication time, there is no validation preventing the user from entering an earliest date that is chronologically later than the latest date. Add a cross-field validation rule to `EditEventTime.jsx` and `EditSourcePublicationTimeRange.jsx` that flags this as an error (red border, error message) and blocks submit.
+
+- [ ] `[simple]` **Bug: Adding a source does not create a new revision.** When the user adds a source to an event and submits, the `hasChanges` check in `EditEvent.jsx` compares `editSourceKeys.length !== orig.sources.length` — but `orig.sources` comes from `editState.originalEvent.sources`, which is populated when edit mode begins. Verify whether the source count comparison is actually firing and, if not, trace why the submit path treats an added source as "no change". Adding a source should count as a revision.
 
 ## Refactors
 
