@@ -9,6 +9,8 @@ import { EditEventSummary } from "./EditEventSummary";
 import { EditEventSources } from "./EditEventSources";
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 import { eventStateActions } from "../../AppState/stateSliceEvent";
+import { createEvent } from "../../api/historyEventApi";
+import { frontendToBackend } from "../../api/eventMapper";
 
 
 export function EditEvent({ }) {
@@ -64,8 +66,7 @@ export function EditEvent({ }) {
     return false
   }, [editState, editSources])
 
-  const onSubmitClick = (e) => {
-    console.log("onSubmitClick")
+  const onSubmitClick = async (e) => {
 
     // Find max revision for this eventId
     let maxRevision = 0
@@ -118,6 +119,13 @@ export function EditEvent({ }) {
 
     // Exit edit mode
     reduxDispatch(editEventStateActions.endEditMode())
+
+    // Persist to backend (non-blocking: UI is already updated via Redux above)
+    try {
+      await createEvent(frontendToBackend(newEvent))
+    } catch (err) {
+      console.error({ "EditEvent.onSubmitClick[create]": err.message })
+    }
   }
 
   const onCancelClick = () => {
