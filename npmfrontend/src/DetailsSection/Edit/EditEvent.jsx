@@ -1,5 +1,6 @@
 import { useMemo } from "react"
 import { useSelector, useDispatch } from "react-redux"
+import { useQueryClient } from "@tanstack/react-query"
 import { EditEventHeader } from "./EditEventHeader";
 import { EditEventType } from "./EditEventType";
 import { EditEventImage } from "./EditEventImage";
@@ -15,6 +16,7 @@ import { frontendToBackend } from "../../api/eventMapper";
 
 export function EditEvent({ }) {
   const reduxDispatch = useDispatch()
+  const queryClient = useQueryClient()
   const editState = useSelector((state) => state.editEventReducer)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
   const editSources = useSelector((state) => state.editSources)
@@ -123,6 +125,8 @@ export function EditEvent({ }) {
     // Persist to backend (non-blocking: UI is already updated via Redux above)
     try {
       await createEvent(frontendToBackend(newEvent))
+      // Invalidate the revision history cache so RevisionStack shows the new revision
+      queryClient.invalidateQueries({ queryKey: ["revisions", newEvent.eventId] })
     } catch (err) {
       console.error({ "EditEvent.onSubmitClick[create]": err.message })
     }

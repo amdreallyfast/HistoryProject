@@ -1,12 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  eventId: -1,
-  title: "the things",
-  tags: ["tag1", "tag2"],
+  eventId: null,
+  revision: null,
+  title: null,
+  tags: [],
   eventIsCreationOfSource: false,
   imageDataUrl: null,
-  summary: "oh my goodness things have happened here",
+  summary: null,
   eventTime: {
     earliestYear: null,
     earliestMonth: null,
@@ -31,6 +32,7 @@ export const stateSliceSelectedEvent = createSlice({
       return {
         ...initialState,
         eventId: action.payload.eventId,
+        revision: action.payload.revision ?? null,
         title: action.payload.title,
         tags: action.payload.tags || [],
         eventIsCreationOfSource: action.payload.eventIsCreationOfSource || false,

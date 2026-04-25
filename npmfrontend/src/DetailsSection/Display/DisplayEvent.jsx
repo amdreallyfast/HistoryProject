@@ -6,6 +6,7 @@ import { DisplayEventTime } from "./DisplayEventTime"
 import { DisplayEventRegion } from "./DisplayEventRegion"
 import { DisplayEventSummary } from "./DisplayEventSummary"
 import { DisplayEventSources } from "./DisplayEventSources"
+import { RevisionStack } from "./RevisionStack"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 
 export function DisplayEvent({ }) {
@@ -25,6 +26,7 @@ export function DisplayEvent({ }) {
       <DisplayEventRegion />
       <DisplayEventSummary />
       <DisplayEventSources />
+      <RevisionStack eventId={selectedEvent.eventId} />
 
       <div className="m-2 text-left text-sm text-gray-400">
         Last edited by: {selectedEvent.revisionAuthor || "unknown"}

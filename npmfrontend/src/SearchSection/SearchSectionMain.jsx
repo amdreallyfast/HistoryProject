@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
@@ -138,9 +138,17 @@ export function SearchSectionMain() {
     onEventClicked(pendingGlobeEventSelection)
   }, [pendingGlobeEventSelection])
 
-  // When allEvents changes (e.g. after an edit submit), re-sync selectedEvent to latest revision
+  // Track previous allEvents reference so the re-sync below only fires when
+  // allEvents itself changed (new submit), not when selectedEvent changes (user
+  // browsing revision history).
+  const prevAllEventsRef = useRef(null)
+
+  // When allEvents changes (after an edit submit), re-sync selectedEvent to latest revision.
   useEffect(() => {
-    if (!allEvents || !selectedEvent) return
+    const allEventsChanged = prevAllEventsRef.current !== allEvents
+    prevAllEventsRef.current = allEvents
+    if (!allEventsChanged || !allEvents || !selectedEvent) return
+
     const latest = getLatestRevisions(allEvents).find(e => e.eventId === selectedEvent.eventId)
     if (!latest || latest.revision === selectedEvent.revision) return
 
