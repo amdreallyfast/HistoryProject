@@ -8,7 +8,7 @@ export function getLatestRevisions(events) {
   let latestByEventId = {}
   events.forEach(event => {
     let existing = latestByEventId[event.eventId]
-    if (!existing || (event.revision || 1) > (existing.revision || 1)) {
+    if (!existing || event.revision > existing.revision) {
       latestByEventId[event.eventId] = event
     }
   })
