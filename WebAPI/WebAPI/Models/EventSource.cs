@@ -9,8 +9,8 @@ namespace WebAPI.Models
         [Key]
         public Guid Id { get; set; }
 
-        [AllowNull, MaxLength(32)]
-        public string ISBN { get; set; }    // Not all sources are officially registered
+        [MaxLength(32)]
+        public string? ISBN { get; set; }    // Not all sources are officially registered
         
         [Required, MaxLength(256)]
         public string Title { get; set; } = default!;

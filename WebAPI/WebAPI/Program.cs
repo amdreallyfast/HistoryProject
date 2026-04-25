@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json.Serialization;
+using WebAPI;
 using WebAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,5 +75,12 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.MapControllers();
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<HistoryProjectDbContext>();
+    SeedLocalDbTestData.Initialize(db);
+}
 
 app.Run();
