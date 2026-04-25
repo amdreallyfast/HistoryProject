@@ -59,11 +59,11 @@ Guidance:
 
 - [x] `[plan first]` **Upgrade React + @react-three/fiber + @react-three/drei (v18/v8 → v19/v9).** Investigation shows `THREE.Clock` deprecation and the `[Violation] Added non-passive event listener to a scroll-blocking 'wheel' event` warning both originate from `@react-three/fiber` internals — not project source code. No `THREE.Clock` usage exists in the project. The fix is upgrading the package chain: `react`/`react-dom` v18 → v19, `@react-three/fiber` v8 → v9, `@react-three/drei` v9.122 → latest (latest drei already requires `@react-three/fiber ^9.0.0`). This is a multi-major-version bump — review migration guides for each, apply changes, and test globe rendering end-to-end.
 
-- [ ] `[simple]` **THREE.Clock deprecation warning still present after fiber v9 upgrade.** After upgrading to `@react-three/fiber` v9.6.0, the console still shows: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` The source is `node_modules/@react-three/fiber/dist/events-760a1017.esm.js:985` — not project code. The wheel-event violation warning is gone; only the Clock warning remains. Revisit when a newer fiber stable release migrates its internal clock to `THREE.Timer`.
+- [ ] `[simple]` **THREE.Clock deprecation warning still present after fiber v9 upgrade.** **Ignore for now (Friday, 2026/04/25).** After upgrading to `@react-three/fiber` v9.6.0, the console still shows: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` The source is `node_modules/@react-three/fiber/dist/events-760a1017.esm.js:985` — not project code. The wheel-event violation warning is gone; only the Clock warning remains. Revisit when a newer fiber stable release migrates its internal clock to `THREE.Timer`.
 
 ## Refactors
 
-- [ ] `[plan first]` **End-to-end event workflow: seed test data, edit/submit, search refresh, globe update, revision browsing.** *Prerequisite: complete "Refactor EditEvent submit to be minimal" below first — that reactive architecture is what makes steps 3–5 here work automatically.* The two test events in `npmfrontend/dist/events.json` need to be in the localDB so the full workflow can be exercised. Once that's done, the following needs to work end-to-end:
+- [x] `[plan first]` **End-to-end event workflow: seed test data, edit/submit, search refresh, globe update, revision browsing.** *Prerequisite: complete "Refactor EditEvent submit to be minimal" below first — that reactive architecture is what makes steps 3–5 here work automatically.* The two test events in `npmfrontend/dist/events.json` need to be in the localDB so the full workflow can be exercised. Once that's done, the following needs to work end-to-end:
   1. **Seed test data:** Import the two events from `events.json` into the local SQL Server DB so the backend returns real data.
   2. **Edit and submit as new revision:** Editing an event and submitting must write a new revision to the DB (not overwrite) and return it to the frontend.
   3. **Search refresh:** After submit, the search must re-run and return the latest revision for each eventId.
@@ -78,6 +78,8 @@ Guidance:
   2. Add a useEffect (in SearchSectionMain or DetailsMain) that watches allEvents and selectedEvent — when allEvents changes and there's a selected event, look up the latest revision for that eventId and re-dispatch it to `selectedEventStateActions.load` with proper sphere points.
   3. Simplify EditEvent's `onSubmitClick` to just: append new event to allEvents, end edit mode. Remove all the sphere-point creation and selectedEvent dispatching from submit.
   4. This way submit is only responsible for saving, and display updates are reactive.
+
+- [ ] `[plan first]` **Wire image upload to backend.** Currently `EventImage.ImageBinary` is always sent as empty bytes. The frontend has an `imageDataUrl` field (base64 data URL). Need to: (1) convert the data URL to a byte array in `frontendToBackend` mapper, (2) store and retrieve binary image data via the backend API, (3) render it in `DisplayEventImage`. `eventIsCreationOfSource` is also missing from the backend `Event` model and must be added (with a migration) as part of this work.
 
 - [ ] `[simple]` **Implement `GetEventOfTheDay` endpoint.** Currently throws `NotImplementedException`. Implement the logic to select and return a daily event.
 
@@ -162,6 +164,13 @@ Guidance:
 - [ ] `[discussion]` **Three.js skill/plugin for Claude.** Is there a skill or plugin for using Three.js with Claude Code? If not, what are the options? The Three.js API is central to this project (globe, meshes, raycasting, shaders), and having focused context would help. Options to explore: existing MCP servers, creating a custom skill from the Three.js docs, or downloading API reference for local use.
 
 ## Design Discussions (after features stabilize)
+
+- [ ] `[discussion]` **Test vs. production database strategy.** The Azure test environment (historyprojectswa-testing / historyprojectapi-testing) currently points to the same production SQL DB. This creates three distinct scenarios with no test isolation in the cloud:
+  1. Local development: `npm run dev` + `dotnet run` (Development mode) → local SQL Express → seeded test data via `SeedLocalDbTestData`
+  2. Cloud test: Azure SWA testing → historyprojectapi-testing → production SQL DB (shared with prod, no test isolation)
+  3. Cloud production: Azure SWA → historyprojectapi → production SQL DB
+
+  The app cannot distinguish scenarios 2 vs. 3 without compile-time constants (which we want to avoid). Decide: should the test App Service get its own SQL DB? If so, what's the promotion/migration strategy? Present options and trade-offs.
 
 - [ ] `[discussion]` **DevOps routine: PR-based workflow, preview environments, and the role of the `test` branch.** Now that prod and test have separate Azure resources (SWA + App Service each), consider whether the development workflow should evolve:
   - **Work item tracking:** TODO.md is simple and works for solo development. GitHub Issues/Projects would add visibility and PR linkage but adds overhead. Is the switch worth it?
