@@ -3,8 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   editModeOn: false,
 
-  eventId: 99,
-  revisionAuthor: "TestingAuthor",
+  eventId: null,
+  revisionAuthor: "amdreallyfast",
   title: null,
   tags: [],
   eventIsCreationOfSource: false,

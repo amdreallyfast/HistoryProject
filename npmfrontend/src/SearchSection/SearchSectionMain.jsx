@@ -7,6 +7,8 @@ import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { createSpherePointFromLatLong } from "../GlobeSection/createSpherePoint"
 import { globeInfo } from "../GlobeSection/constValues"
+import { getFirst100 } from "../api/historyEventApi"
+import { backendToFrontend } from "../api/eventMapper"
 
 function ParseDateTimeStr(str) {
   let dateTimePair = str.split("T")
@@ -19,14 +21,6 @@ function ParseDateTimeStr(str) {
     hour: timeArr[0],
     min: timeArr[1]
   }
-}
-
-async function fetchEvents(url) {
-  let response = await fetch(url)
-  if (!response.ok) {
-    throw Error(`${response.status} (${response.statusText}): '${response.url}'`)
-  }
-  return response.json()
 }
 
 export function SearchSectionMain() {
@@ -122,15 +116,15 @@ export function SearchSectionMain() {
   }
 
   const onSearchClicked = async () => {
-    console.log("Search: loading events.json...")
     setSearchError(null)
 
     try {
-      let eventsJson = await fetchEvents(import.meta.env.BASE_URL + "events.json")
-      reduxDispatch(eventStateActions.setAllEvents(eventsJson))
+      const rawEvents = await getFirst100()
+      const frontendEvents = rawEvents.map(backendToFrontend)
+      reduxDispatch(eventStateActions.setAllEvents(frontendEvents))
     }
     catch (error) {
-      console.error({ "Search error": error })
+      console.error({ "SearchSectionMain.onSearchClicked": error.message })
       setSearchError(error.message)
     }
   }
