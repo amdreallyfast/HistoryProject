@@ -11,8 +11,7 @@ namespace WebAPI.Models
         [Required, MaxLength(128)]
         public string Value { get; set; } = default!;
 
-        [Required]
-        public List<Event> Events { get; set; } = default!;
+        public List<Event>? Events { get; set; }
 
         //public Tag()
         //{
