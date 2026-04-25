@@ -80,6 +80,7 @@ if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<HistoryProjectDbContext>();
+    db.Database.Migrate();
     SeedLocalDbTestData.Initialize(db);
 }
 
