@@ -6,13 +6,16 @@ import atmosphereVertShaderText from "../assets/shaders/atmosphere.vert?raw"
 import atmosphereFragShaderText from "../assets/shaders/atmosphere.frag?raw"
 import * as THREE from "three"
 import { meshNames, groupNames } from "./constValues"
-import { useDispatch } from "react-redux"
 
 export function Globe({ globeRadius }) {
   // console.log("Globe(): begin")
 
   const sphereRef = useRef()
   const groupRef = useRef()
+
+  // R3F v9 no longer auto-applies SRGBColorSpace to loaded textures — set it explicitly.
+  const texture = useLoader(THREE.TextureLoader, import.meta.env.BASE_URL + "textures/earthmap1k.jpg")
+  texture.colorSpace = THREE.SRGBColorSpace
 
   const globeMemo = useMemo(() => {
     // console.log("Globe(): useMemo")
@@ -22,12 +25,8 @@ export function Globe({ globeRadius }) {
     const heightSegments = 50
     const geometry = new THREE.SphereGeometry(globeRadius, widthSegments, heightSegments)
 
-    // ??how to load from offline assets instead of public URL? is that a bad idea??
-    const texture = useLoader(THREE.TextureLoader, import.meta.env.BASE_URL + "textures/earthmap1k.jpg")
-
     return {
       geometry: geometry,
-      texture: texture
     }
   }, [])
 
@@ -71,7 +70,7 @@ export function Globe({ globeRadius }) {
           uniforms={  // Yes, there are a lot of parenthesis
             {
               globeTexture: {
-                value: globeMemo.texture
+                value: texture
               }
             }
           }
