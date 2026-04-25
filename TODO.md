@@ -39,66 +39,23 @@ Guidance:
 
 ## Bug Fixes
 
-- [x] `[plan first]` **Address GitHub Dependabot package vulnerabilities in npmfrontend (121 reported).** GitHub reports 121 vulnerabilities (4 critical, 59 high, 46 moderate, 12 low). Backend (.NET 10) packages appear current. Frontend npm packages are the source. Each step is its own implementation and verification cycle — commit and confirm the app works before proceeding to the next. Do not combine steps; interacting breaking changes from multiple major-version bumps are difficult to diagnose.
-
-  1. **Remove accidental packages.** `save` and `@anthropic-ai/claude-code` are both listed as runtime dependencies but are almost certainly accidental installs — `save` from `npm install save` without `--save-dev`, and `@anthropic-ai/claude-code` (the Claude Code CLI tool) likely from early setup attempts to get Claude Code working. Neither is a runtime library used by this project. Verify neither is imported anywhere, then remove both. Removing them will likely eliminate a significant portion of transitive vulnerabilities. Run `npm audit` after; confirm app still works.
-  2. **Apply non-breaking updates.** Run `npm audit fix` (no `--force`) to apply patch/minor fixes automatically. Run `npm audit` after; confirm app still works.
-  3. **Upgrade `@reduxjs/toolkit` v1 → v2 (and `react-redux` v8 → v9).** These two are coupled — upgrade together since RTK v2 requires react-redux v9. Review migration guide, apply changes, run app end-to-end. Run `npm audit` after.
-  4. **Upgrade `@tanstack/react-query` v4 → v5.** Breaking API changes (e.g., `cacheTime` → `gcTime`, `useQuery` result shape). Review migration guide, apply changes, run app end-to-end. Run `npm audit` after.
-  5. **Upgrade `three` r156 → latest.** Three.js has breaking changes across minor versions. Review changelog, apply changes, test globe rendering. Run `npm audit` after.
-  6. **For any vulnerability that still cannot be resolved** after the above steps, open a discussion item with specifics — what the package is, what the vulnerability is, and what alternatives exist.
-  7. **Clean install verification.** Delete `npmfrontend/node_modules/` entirely, then run `npm install` from `npmfrontend/` to rebuild from the final `package.json`. Run `npm run dev` and confirm the app works end-to-end. This catches any implicit dependencies that were masked by leftover packages in node_modules.
-
-  Goal: reach zero critical and high severity issues; accept low/moderate only if there is no available fix.
-
-- [x] `[simple]` **Page load errors in dev tools.** On page load, dev tools reports two errors on the first lines:
-  - `content.js:1 Uncaught (in promise) Error: Corruption: block checksum mismatch` — **Not app code.** `content.js` is injected by a browser extension. Verify with a clean browser profile (no extensions); the error won't appear.
-  - `index-D-bjwAXJ.js:3697 {MouseHandler.useEffect[mouseState.leftMouseDown]: null}` — Fixed: `leftMouseDown` was initialized to `null` instead of `false` in `stateSliceMouseInfo.jsx`.
-
-- [x] `[simple]` **Upgrade `three-mesh-bvh` v0.7.8 → v0.8.0.** During the clean install verification in the vulnerability fix above, npm printed: `three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.` Not a security issue, but the package is outdated relative to three r184. Upgrade, run the app, and confirm globe/region rendering still works.
-
-- [x] `[plan first]` **Upgrade React + @react-three/fiber + @react-three/drei (v18/v8 → v19/v9).** Investigation shows `THREE.Clock` deprecation and the `[Violation] Added non-passive event listener to a scroll-blocking 'wheel' event` warning both originate from `@react-three/fiber` internals — not project source code. No `THREE.Clock` usage exists in the project. The fix is upgrading the package chain: `react`/`react-dom` v18 → v19, `@react-three/fiber` v8 → v9, `@react-three/drei` v9.122 → latest (latest drei already requires `@react-three/fiber ^9.0.0`). This is a multi-major-version bump — review migration guides for each, apply changes, and test globe rendering end-to-end.
-
 - [ ] `[simple]` **THREE.Clock deprecation warning still present after fiber v9 upgrade.** **Ignore for now (Friday, 2026/04/25).** After upgrading to `@react-three/fiber` v9.6.0, the console still shows: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` The source is `node_modules/@react-three/fiber/dist/events-760a1017.esm.js:985` — not project code. The wheel-event violation warning is gone; only the Clock warning remains. Revisit when a newer fiber stable release migrates its internal clock to `THREE.Timer`.
 
+- [ ] `[simple]` **Bug: Earliest event/source date can be set later than the latest date.** When entering event time or a source publication time, there is no validation preventing the user from entering an earliest date that is chronologically later than the latest date. Add a cross-field validation rule to `EditEventTime.jsx` and `EditSourcePublicationTimeRange.jsx` that flags this as an error (red border, error message) and blocks submit.
+
 ## Refactors
-
-- [x] `[plan first]` **End-to-end event workflow: seed test data, edit/submit, search refresh, globe update, revision browsing.** *Prerequisite: complete "Refactor EditEvent submit to be minimal" below first — that reactive architecture is what makes steps 3–5 here work automatically.* The two test events in `npmfrontend/dist/events.json` need to be in the localDB so the full workflow can be exercised. Once that's done, the following needs to work end-to-end:
-  1. **Seed test data:** Import the two events from `events.json` into the local SQL Server DB so the backend returns real data.
-  2. **Edit and submit as new revision:** Editing an event and submitting must write a new revision to the DB (not overwrite) and return it to the frontend.
-  3. **Search refresh:** After submit, the search must re-run and return the latest revision for each eventId.
-  4. **Globe and details update:** The globe and details section must reflect the newly submitted revision immediately after submit.
-  5. **Exit to display mode:** After submit, the UI must switch from edit mode to display mode showing the updated event.
-  6. **Revision browsing in details:** The details section should display revisions as a stack of cards — the latest revision is shown by default, but the user can click back through older revisions and see both the details and the globe update to reflect whichever revision is selected. When search runs, it always finds the latest revision; the stack makes the existence of prior revisions visible.
-
-  This is the minimum viable feature set needed before the UI work can go much further.
-
-- [x] `[plan first]` **Refactor EditEvent submit to be minimal; make display updates reactive.** EditEvent's submit handler currently does too much (builds sphere points, dispatches to multiple slices, manages selection). Refactor so submit only appends the new revision to allEvents and ends edit mode. Move the reactive behavior into useEffects:
-  1. In SearchSectionMain, extract the search result list building into a useEffect that watches allEvents so results auto-rebuild when events change (showing latest revisions with updated titles).
-  2. Add a useEffect (in SearchSectionMain or DetailsMain) that watches allEvents and selectedEvent — when allEvents changes and there's a selected event, look up the latest revision for that eventId and re-dispatch it to `selectedEventStateActions.load` with proper sphere points.
-  3. Simplify EditEvent's `onSubmitClick` to just: append new event to allEvents, end edit mode. Remove all the sphere-point creation and selectedEvent dispatching from submit.
-  4. This way submit is only responsible for saving, and display updates are reactive.
 
 - [ ] `[plan first]` **Wire image upload to backend.** Currently `EventImage.ImageBinary` is always sent as empty bytes. The frontend has an `imageDataUrl` field (base64 data URL). Need to: (1) convert the data URL to a byte array in `frontendToBackend` mapper, (2) store and retrieve binary image data via the backend API, (3) render it in `DisplayEventImage`. `eventIsCreationOfSource` is also missing from the backend `Event` model and must be added (with a migration) as part of this work.
 
 - [ ] `[simple]` **Implement `GetEventOfTheDay` endpoint.** Currently throws `NotImplementedException`. Implement the logic to select and return a daily event.
 
+- [ ] `[discussion]` **Redesign revision browsing as a visual stack of cards.** Revision browsing currently works as a clickable table of entries. The intended design is a stack of cards: the latest revision is shown as the top card; earlier revisions stack behind it visually, with the user able to click back through them. Discuss: exact visual design (card layout, depth cues, navigation controls), interaction model (swipe? buttons? collapse?), and whether the stack should be part of the details panel or a separate overlay. Prerequisite: revision browsing table must already work (it does).
+
+- [ ] `[simple]` **Show revision author as a read-only label during event editing.** The revision author field is currently an input. Change it to a read-only label that displays what will be stored on submit. Hard-code the value to `"amdreallyfast"` (current GitHub account name) for now — a future account system will supply this automatically. See also: the account system discussion TODO in Design Discussions below.
+
+- [ ] `[simple]` **Clarify source publication date label to "Estimated date of writing".** Many historical sources were written before any formalized publication system existed, so "publication date" is a misnomer. Rename the label in `EditSourcePublicationTimeRange.jsx` and its display counterpart to **"Estimated date of writing"** and add a sub-label note: *"Publication date is close enough, if available."*
+
 ## Globe Interaction
-
-- [x] `[plan first]` **Make DisplayRegion selectable via mouse.** The DisplayRegion needs to be detectable by the mouse handler. When the mouse hovers over it, the region, region boundary pins, and primary pin should all adopt a "hover" color. When clicked, it should become the selected event. This used to partially work before the Display regions were overhauled. Relevant code is scattered across `GlobeSection/Scene.jsx`, `GlobeSection/MouseHandler.jsx`, `stateSliceMouseInfo.jsx`, and various mesh files. Currently, EditPinMesh uses a visible bounding box for selection that integrates with clickAndDrag, but that's for edit mode. Display mode just needs hover detection and click-to-select. Key details:
-  - The ThreeJS raycaster in Scene.jsx (`state.raycaster.intersectObjects(meshes)`) provides all meshes under the cursor, but only if the mesh is in the `meshes` collection.
-  - The mouse handler's left-click handler needs the eventId in the mesh's userData to select the event.
-  - Must select the top-most intersected mesh since the raycaster goes through everything and there could be other events in the path of the ray from camera to cursor that are behind the top-most region.
-  - Mesh names are compared against const values to sort out what's being detected.
-  - If this code can be cleaned up during implementation, propose improvements.
-
-- [x] `[simple]` **Dim other events' display regions in edit mode.** When edit mode is active, all other events' display regions and pins render in gray and are non-interactive (hover suppressed, clicks blocked). This replaced the earlier plan of hiding display meshes entirely and adding a globe-click confirmation dialog.
-
-- [x] `[simple]` **Show edited event's display region as a blue ghost in edit mode.** The DisplayOnlyRegion for the event being edited renders in selected-blue (not dim gray) as a visual reference. EditRegionMesh raised to `sphereRadius + 0.1` so raycasting hits the edit mesh first. Fixed a stale-prop bug where `isBeingEdited` was computed in a useEffect without `editState` as a dependency — moved to a reactive `useSelector` inside `DisplayOnlyRegion`.
-
-- [x] `[simple]` **Rename DisplayOnlyRegion to DisplayRegion.** No need for "Only" in the name.
-
-- [x] `[simple]` **Deselect selected region.** When a selected search result or a selected region in the globe is selected again, deselect it. The selected event should become null.
 
 - [ ] `[plan first]` **Create new event workflow.** Implement the full workflow for creating a new event from scratch. *Prerequisite: submitting an event to the backend must work first (see "End-to-end event workflow" refactor above).* Consolidates and supersedes two items in "Is this still needed?" below ("No event selected state with Create New Event button" and "Deselect event process") — remove those when implementing this.
 
@@ -118,7 +75,7 @@ Guidance:
   **Globe click → edit mode — Stage 3:**
   8. `MouseHandler.jsx` detects `editState.newEventAwaitingPlacement && clickedGlobe`. Dispatches a new combined action `startNewEvent(spherePoint)` that atomically sets `editModeOn: true`, `primaryLoc: spherePoint`, and clears `newEventAwaitingPlacement`. Single dispatch = single render; avoids an intermediate state where edit mode is on but no location exists.
   9. `EditableRegion` sees the new `primaryLoc` and auto-creates 8 default boundary pins in the correct order for ear-clipping triangulation — this is the existing behavior and should not change.
-  10. No `DisplayOnlyRegion` appears during editing — display regions come from `allEvents`, and the new event is not in `allEvents` until submitted. Full edit form is now shown.
+  10. No `DisplayRegion` appears during editing — display regions come from `allEvents`, and the new event is not in `allEvents` until submitted. Full edit form is now shown.
 
   **Cancel and submit:**
   11. Cancel in edit mode exits via `editEventStateActions.endEditMode()`. The new event is discarded — it was never in `allEvents`.
@@ -196,6 +153,10 @@ These are bigger architectural questions. Present options with pros/cons before 
   - Document database (e.g., MongoDB, CosmosDB)
   - Graph database (e.g., Neo4j — for relationship discovery between events)
   - Any other options worth considering
+
+- [ ] `[discussion]` **Account system: where does the revision author come from?** The revision author is currently hard-coded to `"amdreallyfast"`. Eventually, this should come from a logged-in user account. Questions to address: What account system to use (GitHub OAuth, Azure AD, custom)? How does the frontend pass identity to the backend? How does the backend validate it? What does the revision author field look like in the DB? Discuss options and trade-offs before implementing.
+
+- [ ] `[discussion]` **Date storage in days relative to 0 AD with Julian calendar conversion.** Instead of storing year/month/day directly, consider storing dates as an integer count of days relative to January 1, 0 AD (proleptic Julian calendar). A conversion function to year/month/day (Julian calendar) would then open options for displaying dates in other calendar systems (Chinese calendar, AUC — years since the founding of Rome, etc.). Questions to address first: How do we define "day 0"? What calendar system is used for the reference point? How do we handle BCE dates (negative days)? Is there an established standard (e.g., Julian Day Number) we should adopt instead of inventing our own? This is a long-horizon architectural question — discuss before any storage changes.
 
 ---
 

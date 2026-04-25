@@ -32,7 +32,7 @@ HistoryProject/
   WebAPI/          ASP.NET Core (.NET 10) backend (Entity Framework Core, SQL Server, Azure Key Vault)
 ```
 
-The frontend is the primary development focus. The backend exists but is not actively wired up — the frontend currently uses a local `events.json` file as a data source, with Redux holding session state.
+The frontend is the primary development focus. The backend is wired up and serving as the primary data source. Redux holds session/edit state.
 
 ### Frontend Layout (App.jsx)
 
@@ -42,7 +42,7 @@ Four main sections, matching the UI mockup:
 |---------|-----------|---------|
 | Left | `SearchSection/SearchSectionMain` | Search interface, results list |
 | Center | `GlobeSection/GlobeSectionMain` | 3D globe with pins, regions, raycasting |
-| Right | `DetailsSection/DetailsMain` | Event details — switches between Display and Edit modes |
+| Right | `DetailsSection/DetailsMain` | Event details — switches between Display and Edit modes; Display mode includes a revision browsing table |
 | Bottom | Timeline (placeholder) | Not yet implemented |
 
 ---
@@ -127,7 +127,7 @@ Key design: Edit and Display use **separate Redux slices**. Editing copies data 
 ### Display vs Edit Mode
 
 `DetailsMain.jsx` switches between:
-- **`DisplayEvent`**: Read-only view of the selected event, with an "Edit" button
+- **`DisplayEvent`**: Read-only view of the selected event, with an "Edit" button. Shows the latest revision by default. Prior revisions are accessible via a clickable table of entries — selecting one updates both the details panel and the globe to reflect that revision. (A visual "stack of cards" redesign is a planned future enhancement.)
 - **`EditEvent`**: Full edit interface with sub-components for each field group
 
 The app starts in display mode (`editModeOn: false`). Entering edit mode copies the selected event into the edit slices. Canceling discards changes. Submitting creates a new revision.
@@ -135,6 +135,10 @@ The app starts in display mode (`editModeOn: false`). Entering edit mode copies 
 **Confirmation guard**: If the user selects a different event while editing, a confirmation dialog asks whether to discard unsaved changes.
 
 **Change detection**: Submit is disabled when the edit state matches the original event (deep comparison).
+
+**Deselection**: Clicking an already-selected search result or globe region again deselects the event — the details section returns to "no event selected".
+
+**Edit mode globe behavior**: While editing, all other events' display regions and pins render in gray and are non-interactive (hover suppressed, clicks blocked). The event being edited shows its display region as a blue ghost for visual reference. Clicking on other regions or search results during edit triggers the confirmation guard rather than switching events.
 
 ### Component Organization
 
@@ -182,8 +186,8 @@ GlobeSectionMain          — Canvas, camera (PerspectiveCamera), OrbitControls,
     EditableRegion        — Edit-mode pins + region mesh (only rendered when editing)
       EditPinMesh         — Draggable pin with bounding box, connected to editState + mouseState
       EditRegionMesh      — Region mesh from edit state boundary pins
-    DisplayOnlyRegion     — Display-mode pins + region mesh (one per search result, props-driven)
-      DisplayPinMesh      — Static pin, no interaction, no Redux
+    DisplayRegion         — Display-mode pins + region mesh (one per search result, props-driven); supports hover detection and click-to-select via raycaster
+      DisplayPinMesh      — Static pin, hover highlight, no Redux
       DisplayRegionMesh   — Static region mesh from props
 ```
 
@@ -219,10 +223,10 @@ For **whole region movement**, the region mesh vertices are recalculated from th
 ### Search Flow
 
 1. User clicks Search button
-2. `SearchSectionMain` fetches `events.json` via TanStack React Query
+2. `SearchSectionMain` fetches from the backend API (`GetFirst100` / search endpoint) via TanStack React Query
 3. Results are filtered to latest revisions per `eventId` (`getLatestRevisions.jsx`)
-4. All events render as `DisplayOnlyRegion` components on the globe
-5. Clicking a search result or globe region selects the event, populating Display components
+4. All events render as `DisplayRegion` components on the globe
+5. Clicking a search result or globe region selects the event, populating Display components; clicking the already-selected event deselects it
 
 ---
 
@@ -293,6 +297,9 @@ Frontend on two Azure Static Web Apps (Free) — one per branch (`main`/`test`),
 
 ### .NET 10 Migration (2026-04)
 The backend was retargeted from .NET 8 to .NET 10. The development machine only has the .NET 10 SDK installed, making .NET 8 non-functional locally. No API or EF Core changes were required — the migration was a `<TargetFramework>` change in the project file only.
+
+### Display Region Interaction (2026-04)
+Display regions (`DisplayRegion`) support hover detection and click-to-select via the Three.js raycaster. Only the topmost intersected mesh is acted on — other event regions may be behind the cursor in the ray path. In edit mode, display regions are non-interactive (dimmed gray); the event being edited shows its display region as a blue ghost for spatial reference. Clicking an already-selected event deselects it. These behaviors are centralized in `MouseHandler.jsx` using `mesh.userData.eventId` for event identification.
 
 ### Reactive UI Principle — No JSX in State, No Imperative DOM (2026-04)
 Established during the SearchSectionMain refactor. The rule: components read from Redux and render — no JSX elements stored in `useState`, no `document.getElementById` to set styles imperatively, no refs used to paper over stale closures.
