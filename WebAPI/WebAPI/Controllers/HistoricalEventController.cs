@@ -25,9 +25,8 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<Event>> GetLatestRevision(Guid eventId)
         {
             var latestEvent = await dbContext.Events
-                .Where(x => x.Id == eventId)
+                .Where(x => x.EventId == eventId)
                 .OrderByDescending(x => x.Revision)
-                .Take(1)    // Take latest revision
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
                 .Include(x => x.SpecificLocation)
@@ -49,7 +48,7 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<IEnumerable<Event>>> GetAllRevisions(Guid eventId)
         {
             var eventRevisions = await dbContext.Events
-                .Where(x => x.Id == eventId)
+                .Where(x => x.EventId == eventId)
                 .OrderByDescending(x => x.Revision)   // biggest revision number first
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
@@ -58,9 +57,9 @@ namespace WebAPI.Controllers
                 .Include(x => x.Sources)
                     .ThenInclude(source => source.Authors)
                 .ToListAsync();
-            if (eventRevisions == null)
+            if (!eventRevisions.Any())
             {
-                return NotFound($"Unknown HistoricalEvent Id: '{eventId}'");
+                return NotFound($"Unknown HistoricalEvent EventId: '{eventId}'");
             }
 
             //List<EventDto> dtos = eventRevisions.Select(x => x.ToDto()).ToList();
@@ -94,7 +93,12 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetFirst100()
         {
-            var first100Events = await dbContext.Events
+            // Return only the latest revision per EventId. The NOT EXISTS subquery
+            // filters out any row where a newer revision of the same EventId exists.
+            var latestRevisions = await dbContext.Events
+                .Where(e => !dbContext.Events.Any(e2 =>
+                    e2.EventId == e.EventId &&
+                    e2.Revision > e.Revision))
                 .Take(100)
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
@@ -103,7 +107,7 @@ namespace WebAPI.Controllers
                 .Include(x => x.Sources)
                     .ThenInclude(source => source.Authors)
                 .ToListAsync();
-            return Ok(first100Events);
+            return Ok(latestRevisions);
         }
 
         [Route("GetEventOfTheDay")]
