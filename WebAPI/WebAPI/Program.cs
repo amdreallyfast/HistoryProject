@@ -76,7 +76,7 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.MapControllers();
 
-if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+if (app.Environment.IsDevelopment() || app.Environment.IsTesting())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<HistoryProjectDbContext>();
