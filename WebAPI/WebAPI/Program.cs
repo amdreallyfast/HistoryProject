@@ -76,12 +76,16 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<HistoryProjectDbContext>();
     db.Database.Migrate();
-    SeedLocalDbTestData.Initialize(db);
+
+    if (app.Environment.IsDevelopment())
+    {
+        SeedLocalDbTestData.Initialize(db);
+    }
 }
 
 app.Run();
