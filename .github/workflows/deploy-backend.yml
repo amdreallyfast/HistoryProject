@@ -5,6 +5,7 @@ on:
     branches: [main, test]
     paths:
       - 'WebAPI/**'
+      - 'global.json'
       - '.github/workflows/deploy-backend.yml'
 
 env:
