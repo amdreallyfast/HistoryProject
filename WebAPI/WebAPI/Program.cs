@@ -26,7 +26,10 @@ else
 // Add services to the container.
 builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
 {
-    options.UseSqlServer(dbConnStr);
+    options.UseSqlServer(dbConnStr, sql => sql.EnableRetryOnFailure(
+        maxRetryCount: 6,
+        maxRetryDelay: TimeSpan.FromSeconds(30),
+        errorNumbersToAdd: null));
 });
 
 // Enable CORS (which is useful...how?)
@@ -46,6 +49,10 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Pre-opens a SQL connection during app boot so the first user request doesn't pay
+// the cold-handshake cost. See DbWarmupService.cs for details.
+builder.Services.AddHostedService<DbWarmupService>();
  
 var app = builder.Build();
 app.UseCors(corsPolicyBuilder =>
@@ -87,7 +94,5 @@ if (app.Environment.IsDevelopment() || app.Environment.IsTesting())
         SeedLocalDbTestData.Initialize(db);
     }
 }
-
-
 
 app.Run();
