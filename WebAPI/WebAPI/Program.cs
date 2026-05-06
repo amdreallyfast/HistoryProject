@@ -20,7 +20,7 @@ else
         ?? throw new InvalidOperationException("AzureSql:Server not configured");
     var sqlDb = builder.Configuration["AzureSql:Database"]
         ?? throw new InvalidOperationException("AzureSql:Database not configured");
-    dbConnStr = $"Server=tcp:{sqlServer},1433;Database={sqlDb};Authentication=Active Directory Default;Encrypt=True;";
+    dbConnStr = $"Server=tcp:{sqlServer},1433;Database={sqlDb};Authentication=Active Directory Managed Identity;Encrypt=True;";
 }
 
 // Add services to the container.
