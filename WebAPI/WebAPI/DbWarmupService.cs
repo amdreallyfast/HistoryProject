@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using WebAPI.Models;
 
 namespace WebAPI;
