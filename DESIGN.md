@@ -258,8 +258,8 @@ The backend model has `Id` (database PK), `EventId` (shared across revisions), `
 **Production (Azure):**
 - **Frontend**: Two Azure Static Web Apps (Free tier) — `historyprojectswa` (`main` branch) and `historyprojectswa-testing` (`test` branch); each has its own URL and API token; CI/CD via manually maintained GitHub Actions workflows
 - **Backend**: Two App Services on a single B1 plan — `historyprojectapi` (production, Always On) and `historyprojectapi-testing` (test branch); deployed via GitHub Actions using Azure OIDC (Workload Identity Federation — no secrets to rotate)
-- **Database**: Azure SQL Basic, shared between both environments
-- **Auth**: Managed Identity per App Service → Azure SQL (no passwords or connection string secrets in config)
+- **Database**: Two Azure SQL Basic databases on one logical SQL server — `HistoryProjectDb` (prod) and `HistoryProjectDb-Test` (test). Test auto-migrates on app startup (gated by `IsTesting()`); prod is migrated manually via `dotnet ef migrations script` to keep schema changes deliberate.
+- **Auth**: Managed Identity per App Service → Azure SQL (no passwords or connection string secrets in config). Connection strings use `Authentication=Active Directory Managed Identity` to go straight to IMDS rather than probing the full DefaultAzureCredential chain.
 
 **Local development:**
 - SQL Server Express with connection string in `appsettings.Development.json` (gitignored), read as `ConnectionStrings:LocalDb` in Development mode
@@ -293,7 +293,24 @@ Edit state is split across `stateSliceEditEvent`, `stateSliceEditSources`, and `
 Display pins and regions receive all data via props, with no Redux connection. This makes them lightweight and allows rendering many of them (one per search result) without performance concerns from Redux subscriptions.
 
 ### Azure Hosting Architecture (2026-04)
-Frontend on two Azure Static Web Apps (Free) — one per branch (`main`/`test`), each with its own URL and SWA API token. Backend on two App Services sharing one B1 plan (production + test), single Azure SQL Basic database shared between environments. Managed Identity handles DB auth — no stored credentials. CI/CD via GitHub Actions: frontend workflows are manually maintained (split per SWA), backend workflow uses Azure OIDC (Workload Identity Federation) so basic auth stays disabled and no secrets need rotation. Two separate App Services chosen over deployment slots because slots require Standard tier (~$70/mo).
+Frontend on two Azure Static Web Apps (Free) — one per branch (`main`/`test`), each with its own URL and SWA API token. Backend on two App Services sharing one B1 plan (production + test), originally with a single Azure SQL Basic database shared between environments (split into separate prod/test DBs in 2026-05 — see "Test Database Split (2026-05)" below). Managed Identity handles DB auth — no stored credentials. CI/CD via GitHub Actions: frontend workflows are manually maintained (split per SWA), backend workflow uses Azure OIDC (Workload Identity Federation) so basic auth stays disabled and no secrets need rotation. Two separate App Services chosen over deployment slots because slots require Standard tier (~$70/mo).
+
+### Test Database Split (2026-05)
+Test and prod environments now have separate Azure SQL Basic databases (`HistoryProjectDb` and `HistoryProjectDb-Test`) on the same logical SQL server. Previously the test App Service shared the prod DB, which meant any Create/Update operation from test would write into prod data.
+
+Auto-migration is gated to `Development` and `Testing` environments only via the `IsTesting()` extension in `HostEnvironmentExtensions.cs`; prod schema changes are run manually via `dotnet ef migrations script` against the live DB to keep them deliberate. The test App Service runs with `ASPNETCORE_ENVIRONMENT=Testing` and `AzureSql:Database=HistoryProjectDb-Test`.
+
+### Cold-start Reliability (2026-05)
+Two changes guard against cold-start behavior on the B1 App Service plan:
+
+1. `EnableRetryOnFailure(maxRetryCount: 6, maxRetryDelay: 30s)` on the `DbContext` (Program.cs). The first SQL login after a container cold start frequently fails with a transient `TdsParser` "Connection reset by peer" — common during the MI auth handshake. EF Core's retry strategy retries transparently with exponential backoff, masking the failure from the user.
+
+2. `DbWarmupService` — an `IHostedService` registered in `Program.cs` that opens a `SELECT 1` during `StartAsync`. Because `IHostedService.StartAsync` runs before Kestrel begins accepting requests, the MI token fetch + TLS + TDS handshake costs are paid during boot rather than on the first user request. Warmup failures are swallowed and logged as warnings — the first user request will still benefit from `EnableRetryOnFailure`.
+
+Together: the first request after a deploy or container recycle should succeed instead of erroring. The B1 cold-boot stall itself (cert rehash, container respawn) is unchanged — that's a plan-tier property and outside the scope of these app-level mitigations.
+
+### SQL Authentication via Active Directory Managed Identity (2026-05)
+The connection string switched from `Authentication=Active Directory Default` to `Authentication=Active Directory Managed Identity`. The "Default" credential chain probes multiple sources (env vars, Azure CLI, MI, etc.) and was producing intermittent token-acquisition failures on App Service; "Managed Identity" goes straight to IMDS and is more reliable.
 
 ### .NET 10 Migration (2026-04)
 The backend was retargeted from .NET 8 to .NET 10. The development machine only has the .NET 10 SDK installed, making .NET 8 non-functional locally. No API or EF Core changes were required — the migration was a `<TargetFramework>` change in the project file only.

@@ -35,6 +35,8 @@ Guidance:
 
 ## Top Priority
 
+- [ ] `[simple]` **Verify cold-start fix on prod and merge `test` → `main`.** Cold-start changes (EF `EnableRetryOnFailure`, `DbWarmupService`) live on `test` only. Once the test app holds up across a few cold/warm cycles, merge `test` → `main` so prod gets the same protection.
+
 ---
 
 ## Bug Fixes
@@ -42,6 +44,8 @@ Guidance:
 - [ ] `[simple]` **THREE.Clock deprecation warning still present after fiber v9 upgrade.** **Ignore for now (Friday, 2026/04/25).** After upgrading to `@react-three/fiber` v9.6.0, the console still shows: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` The source is `node_modules/@react-three/fiber/dist/events-760a1017.esm.js:985` — not project code. The wheel-event violation warning is gone; only the Clock warning remains. Revisit when a newer fiber stable release migrates its internal clock to `THREE.Timer`.
 
 - [x] `[simple]` **Bug: Earliest event/source date can be set later than the latest date.** When entering event time or a source publication time, there is no validation preventing the user from entering an earliest date that is chronologically later than the latest date. Add a cross-field validation rule to `EditEventTime.jsx` and `EditSourcePublicationTimeRange.jsx` that flags this as an error (red border, error message) and blocks submit.
+
+- [ ] `[simple]` **Wrap `onSearchClicked` in try/catch — `SearchSectionMain.jsx:118-130`.** Backend errors during search currently surface as unhandled promise rejections and a console error. Wrap the search-trigger call in try/catch (or use the React Query error boundary) so users see a friendly inline message instead.
 
 - [ ] `[simple]` **Bug: Adding a source does not create a new revision.** When the user adds a source to an event and submits, the `hasChanges` check in `EditEvent.jsx` compares `editSourceKeys.length !== orig.sources.length` — but `orig.sources` comes from `editState.originalEvent.sources`, which is populated when edit mode begins. Verify whether the source count comparison is actually firing and, if not, trace why the submit path treats an added source as "no change". Adding a source should count as a revision.
 
@@ -120,16 +124,15 @@ Guidance:
   - **Edit mode (no unsaved changes):** clicking "X" exits edit mode immediately.
   - **Edit mode (unsaved changes):** clicking "X" shows an in-page confirmation message (styled to match the app, not a browser popup) asking the user to confirm discarding changes. Replace the existing `window.confirm()` calls in `SearchSectionMain` with the same in-page prompt so the UX is consistent.
 
+- [ ] `[simple]` **Drop dormant `[historyprojectapi-testing]` user from the prod SQL DB.** Created when Phase 4a's SQL grants were applied to the prod DB by mistake. Now harmless because the test App Service's MI authenticates against `HistoryProjectDb-Test`, not prod — but it's clutter. Run on `HistoryProjectDb` (prod): `DROP USER [historyprojectapi-testing];`
+
 - [ ] `[discussion]` **Three.js skill/plugin for Claude.** Is there a skill or plugin for using Three.js with Claude Code? If not, what are the options? The Three.js API is central to this project (globe, meshes, raycasting, shaders), and having focused context would help. Options to explore: existing MCP servers, creating a custom skill from the Three.js docs, or downloading API reference for local use.
 
 ## Design Discussions (after features stabilize)
 
-- [ ] `[discussion]` **Test vs. production database strategy.** The Azure test environment (historyprojectswa-testing / historyprojectapi-testing) currently points to the same production SQL DB. This creates three distinct scenarios with no test isolation in the cloud:
-  1. Local development: `npm run dev` + `dotnet run` (Development mode) → local SQL Express → seeded test data via `SeedLocalDbTestData`
-  2. Cloud test: Azure SWA testing → historyprojectapi-testing → production SQL DB (shared with prod, no test isolation)
-  3. Cloud production: Azure SWA → historyprojectapi → production SQL DB
+- [x] `[discussion]` **Test vs. production database strategy.** Resolved 2026-05-06: separated test from prod by creating `HistoryProjectDb-Test` on the same SQL server. Test App Service runs `ASPNETCORE_ENVIRONMENT=Testing` and auto-migrates on startup (gated by `IsTesting()`); prod migrations are run manually via `dotnet ef migrations script`. See DESIGN.md "Test Database Split (2026-05)" for the decision details.
 
-  The app cannot distinguish scenarios 2 vs. 3 without compile-time constants (which we want to avoid). Decide: should the test App Service get its own SQL DB? If so, what's the promotion/migration strategy? Present options and trade-offs.
+- [ ] `[discussion]` **Always-On on the test App Service.** Prod has Always-On enabled; test does not. Cold starts on test produce 504s and TdsParser failures. Trade-off: enabling Always-On on test increases load on the shared B1 plan (which already hosts both apps). Decide: enable, or accept slow first-hits on test as the cost of the environment.
 
 - [ ] `[discussion]` **DevOps routine: PR-based workflow, preview environments, and the role of the `test` branch.** Now that prod and test have separate Azure resources (SWA + App Service each), consider whether the development workflow should evolve:
   - **Work item tracking:** TODO.md is simple and works for solo development. GitHub Issues/Projects would add visibility and PR linkage but adds overhead. Is the switch worth it?
