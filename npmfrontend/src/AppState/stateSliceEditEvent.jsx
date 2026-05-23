@@ -1,7 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { v4 as uuid } from "uuid";
 
 const initialState = {
   editModeOn: false,
+  newEventAwaitingPlacement: false,
 
   eventId: null,
   revisionAuthor: "amdreallyfast",
@@ -143,6 +145,52 @@ export const stateSliceEditEvent = createSlice({
         ...snapshot,
         editModeOn: true,
         originalEvent: snapshot,
+      }
+    },
+
+    prepareNewEvent: (state, action) => {
+      return {
+        ...initialState,
+        newEventAwaitingPlacement: true,
+      }
+    },
+
+    startNewEvent: (state, action) => {
+      let spherePoint = action.payload
+      // Empty snapshot so EditEvent.hasChanges fires as soon as the user types anything.
+      let blankSnapshot = {
+        eventId: null,
+        title: null,
+        tags: [],
+        eventIsCreationOfSource: false,
+        imageDataUrl: null,
+        summary: null,
+        eventTime: {
+          earliestYear: null,
+          earliestMonth: null,
+          earliestDay: null,
+          latestYear: null,
+          latestMonth: null,
+          latestDay: null,
+        },
+        sources: [],
+        primaryLoc: null,
+        regionBoundaries: [],
+      }
+      return {
+        ...initialState,
+        editModeOn: true,
+        newEventAwaitingPlacement: false,
+        eventId: uuid(),
+        primaryLoc: {
+          id: spherePoint.id,
+          lat: spherePoint.lat,
+          long: spherePoint.long,
+          x: spherePoint.x,
+          y: spherePoint.y,
+          z: spherePoint.z,
+        },
+        originalEvent: blankSnapshot,
       }
     },
 
