@@ -15,8 +15,8 @@ namespace WebAPI.Models
         [Required, MaxLength(256)]
         public string Title { get; set; } = default!;
 
-        [Required, MaxLength(128)]
-        public string Where { get; set; } = default!;
+        [MaxLength(128)]
+        public string? Where { get; set; }
 
         [Required]
         public List<EventSourceAuthor> Authors { get; set; } = default!;

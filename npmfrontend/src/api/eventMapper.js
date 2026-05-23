@@ -85,7 +85,7 @@ export function frontendToBackend(ev) {
       Id: crypto.randomUUID(),
       Title: s.title ?? "",
       ISBN: s.isbn ?? null,
-      Where: s.whereInSource ?? "",
+      Where: s.whereInSource || null,
       PublicationLBYear: toInt(s.publicationTime?.earliestYear) ?? -99999,
       PublicationLBMonth: toInt(s.publicationTime?.earliestMonth),
       PublicationLBDay: toInt(s.publicationTime?.earliestDay),
