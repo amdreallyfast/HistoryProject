@@ -45,7 +45,7 @@ Guidance:
 
 - [x] `[simple]` **Bug: Earliest event/source date can be set later than the latest date.** When entering event time or a source publication time, there is no validation preventing the user from entering an earliest date that is chronologically later than the latest date. Add a cross-field validation rule to `EditEventTime.jsx` and `EditSourcePublicationTimeRange.jsx` that flags this as an error (red border, error message) and blocks submit.
 
-- [ ] `[simple]` **Wrap `onSearchClicked` in try/catch — `SearchSectionMain.jsx:118-130`.** Backend errors during search currently surface as unhandled promise rejections and a console error. Wrap the search-trigger call in try/catch (or use the React Query error boundary) so users see a friendly inline message instead.
+- [x] `[simple]` **Wrap `onSearchClicked` in try/catch — `SearchSectionMain.jsx:118-130`.** Backend errors during search currently surface as unhandled promise rejections and a console error. Wrap the search-trigger call in try/catch (or use the React Query error boundary) so users see a friendly inline message instead. *(Stale TODO — try/catch + inline error UI were already in place from commit 23f6091, March 2026; this entry was added later in error.)*
 
 - [ ] `[simple]` **Bug: Adding a source does not create a new revision.** When the user adds a source to an event and submits, the `hasChanges` check in `EditEvent.jsx` compares `editSourceKeys.length !== orig.sources.length` — but `orig.sources` comes from `editState.originalEvent.sources`, which is populated when edit mode begins. Verify whether the source count comparison is actually firing and, if not, trace why the submit path treats an added source as "no change". Adding a source should count as a revision.
 
