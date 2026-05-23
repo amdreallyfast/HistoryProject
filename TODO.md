@@ -69,9 +69,9 @@ Guidance:
 
 - [ ] `[simple]` **Clarify source publication date label to "Estimated date of writing".** Many historical sources were written before any formalized publication system existed, so "publication date" is a misnomer. Rename the label in `EditSourcePublicationTimeRange.jsx` and its display counterpart to **"Estimated date of writing"** and add a sub-label note: *"Publication date is close enough, if available."*
 
-## Globe Interaction
+## Interface
 
-- [x] `[plan first]` **Create new event workflow.** Implement the full workflow for creating a new event from scratch. *Prerequisite: submitting an event to the backend must work first (see "End-to-end event workflow" refactor above).* Consolidates and supersedes two items in "Is this still needed?" below ("No event selected state with Create New Event button" and "Deselect event process") — remove those when implementing this.
+- [x] `[plan first]` **Globe: Create new event workflow.** Implement the full workflow for creating a new event from scratch. *Prerequisite: submitting an event to the backend must work first (see "End-to-end event workflow" refactor above).* Consolidates and supersedes two items in "Is this still needed?" below ("No event selected state with Create New Event button" and "Deselect event process") — remove those when implementing this.
 
   **Deselection (implement first — prerequisite for the new-event button):**
   1. Clicking empty globe space (no mesh hit other than the globe itself) while an event is selected should deselect it and return the details section to "No event selected". Add to `MouseHandler.jsx`: detect a click where no display mesh and no pin is hit, and dispatch `setSelectedEvent(null)` plus clear `selectedEventReducer`. Must not fire during edit mode or during the "awaiting placement" pre-edit state (see below).
@@ -102,15 +102,15 @@ Guidance:
   - `stateSliceSelectedEvent.jsx`: Verify/add a `clear` action for deselection.
   - No changes needed to `EditableRegion.jsx` or the existing `createNewRegion()` logic.
 
-- [ ] `[plan first]` **Add "Subdivide" button for region boundaries in edit mode.** Adds a button in edit mode that doubles the number of boundary points, giving finer control over boundary shape. Each new point is inserted halfway between its two neighbors, preserving the counterclockwise order required by the ear-clipping algorithm (see `npmfrontend/src/GlobeSection/Region/regionMeshGeometry.js`, comment on class `EarClipping`). This change updates the event object and must cascade into boundary pin rendering; the new points must be immediately available for editing.
+- [ ] `[plan first]` **Globe: Add "Subdivide" button for region boundaries in edit mode.** Adds a button in edit mode that doubles the number of boundary points, giving finer control over boundary shape. Each new point is inserted halfway between its two neighbors, preserving the counterclockwise order required by the ear-clipping algorithm (see `npmfrontend/src/GlobeSection/Region/regionMeshGeometry.js`, comment on class `EarClipping`). This change updates the event object and must cascade into boundary pin rendering; the new points must be immediately available for editing.
 
-- [ ] `[discussion]` **Snap-click for boundary pins.** Add the ability to snap-click boundary pins (interaction model TBD).
+- [ ] `[discussion]` **Globe: Snap-click for boundary pins.** Add the ability to snap-click boundary pins (interaction model TBD).
 
-- [ ] `[simple]` **Scale boundary pins with zoom level.** Add a scaling factor so boundary pins shrink as the user zooms in. Large pins and bounding boxes become obstacles when making detailed boundary edits at high zoom; smaller pins preserve usability.
+- [ ] `[simple]` **Globe: Scale boundary pins with zoom level.** Add a scaling factor so boundary pins shrink as the user zooms in. Large pins and bounding boxes become obstacles when making detailed boundary edits at high zoom; smaller pins preserve usability.
 
 - [ ] `[discussion]` **Add a text preview** (details TBD).
 
-- [ ] `[plan first]` **Allow direct coordinate editing for boundary points.** Add a UI for editing boundary point coordinates as text. Must support all three common standards:
+- [ ] `[plan first]` **Globe: Allow direct coordinate editing for boundary points.** Add a UI for editing boundary point coordinates as text. Must support all three common standards:
   1. **Decimal Degrees (DD):** Current default. Decimal value, positive/negative sign, no symbols. Positive = North/East, negative = South/West.
   2. **Degrees and Decimal Minutes (DDM):** Common for marine/GPS.
   3. **Degrees, Minutes, and Seconds (DMS):** Traditional map format.
