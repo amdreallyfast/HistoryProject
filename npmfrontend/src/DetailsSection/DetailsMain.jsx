@@ -86,13 +86,16 @@
 //   )
 // }
 
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { EditEvent } from "./Edit/EditEvent";
 import { DisplayEvent } from "./Display/DisplayEvent";
+import { editEventStateActions } from "../AppState/stateSliceEditEvent";
 
 export function DetailsMain({ }) {
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
+  const newEventAwaitingPlacement = useSelector((state) => state.editEventReducer.newEventAwaitingPlacement)
   const selectedEventId = useSelector((state) => state.selectedEventReducer.eventId)
+  const reduxDispatch = useDispatch()
 
   if (editModeOn) {
     return (
@@ -103,9 +106,34 @@ export function DetailsMain({ }) {
   }
 
   if (!selectedEventId || selectedEventId < 0) {
+    if (newEventAwaitingPlacement) {
+      return (
+        <div className="h-full flex flex-col items-center justify-center gap-3">
+          <button
+            className="bg-gray-700 text-white font-bold py-2 px-4 rounded opacity-50 cursor-not-allowed"
+            disabled
+          >
+            Click on globe
+          </button>
+          <button
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => reduxDispatch(editEventStateActions.endEditMode())}
+          >
+            Cancel
+          </button>
+        </div>
+      )
+    }
+
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="h-full flex flex-col items-center justify-center gap-3">
         <span className="text-gray-400">No event selected</span>
+        <button
+          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => reduxDispatch(editEventStateActions.prepareNewEvent())}
+        >
+          Create New Event
+        </button>
       </div>
     )
   }
