@@ -3,12 +3,15 @@ import { useEffect, useRef } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
+import { eventStateActions } from "../AppState/stateSliceEvent"
+import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { globeInfo, meshNames } from "./constValues"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
 
 export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const editState = useSelector((state) => state.editEventReducer)
+  const selectedEventId = useSelector((state) => state.selectedEventReducer.eventId)
   const reduxDispatch = useDispatch()
   const maxClickTimeMs = 200
   const maxClickCursorMovementPx = 1
@@ -180,6 +183,16 @@ export const MouseHandler = () => {
           leftMouseDownRef.current = false
           return
         }
+      }
+
+      // Click on open globe space (no display mesh, not in edit mode, not awaiting
+      // placement) deselects the current event.
+      if (clickedGlobe
+        && !editState.editModeOn
+        && !editState.newEventAwaitingPlacement
+        && selectedEventId) {
+        reduxDispatch(eventStateActions.setSelectedEvent(null))
+        reduxDispatch(selectedEventStateActions.clear())
       }
 
       // If you didn't click a location pin, de-select.
