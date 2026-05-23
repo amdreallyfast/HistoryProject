@@ -83,9 +83,11 @@ export function EditEvent({ }) {
 
   const onSubmitClick = async (e) => {
 
-    // Find max revision for this eventId
+    // Find max revision for this eventId. allEvents is null until the user runs
+    // Search at least once, so guard against it (a brand-new event submitted from
+    // a fresh session has no prior revisions anyway → maxRevision stays 0).
     let maxRevision = 0
-    allEvents.forEach(ev => {
+    allEvents?.forEach(ev => {
       if (ev.eventId === editState.eventId && ev.revision > maxRevision) {
         maxRevision = ev.revision
       }
