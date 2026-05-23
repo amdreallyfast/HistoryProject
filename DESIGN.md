@@ -312,6 +312,17 @@ Together: the first request after a deploy or container recycle should succeed i
 ### SQL Authentication via Active Directory Managed Identity (2026-05)
 The connection string switched from `Authentication=Active Directory Default` to `Authentication=Active Directory Managed Identity`. The "Default" credential chain probes multiple sources (env vars, Azure CLI, MI, etc.) and was producing intermittent token-acquisition failures on App Service; "Managed Identity" goes straight to IMDS and is more reliable.
 
+### New Event Creation Workflow (2026-05)
+Brand-new events are created via a three-stage workflow when nothing is selected:
+
+1. **Idle.** `DetailsMain.jsx` shows "No event selected" plus a "Create New Event" button.
+2. **Awaiting placement.** Clicking the button dispatches `prepareNewEvent`, which sets a `newEventAwaitingPlacement` flag in `stateSliceEditEvent`. The details panel swaps to a disabled "Click on globe" button and a Cancel button. Edit mode is NOT yet on. Display-mesh and search-result clicks are ignored in this state — explicit Cancel (`endEditMode`, which resets to `initialState`) is the only exit.
+3. **Globe click → edit mode.** `MouseHandler.jsx` detects `newEventAwaitingPlacement && clickedGlobe` and dispatches a single combined action `startNewEvent(spherePoint)` that atomically sets `editModeOn: true`, generates a fresh `eventId` via `uuid()`, sets `primaryLoc`, clears the awaiting flag, and stores an empty `originalEvent` snapshot. The empty snapshot is required because `EditEvent.hasChanges` returns false when `originalEvent` is null, which would leave Submit permanently disabled for a new event. `EditableRegion` then auto-creates the default 8-pin ring from `primaryLoc?.id` changing.
+
+Two existing patterns extended at the same time: empty-globe-click (no display mesh, not editing, not awaiting) now deselects the current event by dispatching `setSelectedEvent(null)` + `selectedEventStateActions.clear()` (mirroring the search-result re-click pattern in `SearchSectionMain.jsx`). `EditEvent.onSubmitClick` was hardened to optional-chain `allEvents.forEach` because `allEvents` is null until the user has run Search at least once.
+
+Also during this work: `EventSource.Where` was flipped from `[Required, MaxLength(128)]` to nullable `string?` because the frontend has no UI for it and the data-model comment in `stateSliceEditEvent.jsx` documents it as optional ("Chapter 3, paragraph 28"). EF migration `MakeEventSourceWhereNullable` (2026-05-23) makes the column nullable. Test auto-migrates on app startup; prod will need a manual `dotnet ef migrations script` run before its next deploy.
+
 ### .NET 10 Migration (2026-04)
 The backend was retargeted from .NET 8 to .NET 10. The development machine only has the .NET 10 SDK installed, making .NET 8 non-functional locally. No API or EF Core changes were required — the migration was a `<TargetFramework>` change in the project file only.
 
