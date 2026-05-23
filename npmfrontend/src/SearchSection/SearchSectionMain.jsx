@@ -38,10 +38,14 @@ export function SearchSectionMain() {
   const selectedEvent = useSelector((state) => state.eventReducer.selectedEvent)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
+  const newEventAwaitingPlacement = useSelector((state) => state.editEventReducer.newEventAwaitingPlacement)
   const pendingGlobeEventSelection = useSelector((state) => state.mouseInfoReducer.pendingGlobeEventSelection)
   const reduxDispatch = useDispatch()
 
   const onEventClicked = (eventId) => {
+    // Ignore search-result clicks while awaiting globe placement for a new event.
+    if (newEventAwaitingPlacement) return
+
     // Guard: if in edit mode, confirm before switching
     if (editModeOn) {
       let confirmed = window.confirm("You have unsaved changes. Discard and load the new event?")

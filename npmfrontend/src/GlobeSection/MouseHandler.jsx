@@ -161,8 +161,27 @@ export const MouseHandler = () => {
     let yDiff = Math.abs(leftMouseUp.pos.y - leftMouseDown.pos.y)
     let clicked = timeDiffMs < maxClickTimeMs && xDiff < maxClickCursorMovementPx && yDiff < maxClickCursorMovementPx
     if (clicked) {
-      // On globe click, (potentially) create new region
       let clickedGlobe = (mouseState.cursorRaycasting.globeIndex == 0)
+
+      // Awaiting-placement globe click: transition into edit mode for a new event.
+      // Atomic dispatch sets editModeOn, primaryLoc, eventId (uuid), and clears the
+      // awaiting flag in a single render — avoids an intermediate state where edit
+      // mode is on but primaryLoc isn't set.
+      if (editState.newEventAwaitingPlacement && clickedGlobe) {
+        let globeIntersection = mouseState.cursorRaycasting.intersections[0]
+        let relativeToGlobe = {
+          x: globeIntersection.absolute.x - globeInfo.pos.x,
+          y: globeIntersection.absolute.y - globeInfo.pos.y,
+          z: globeIntersection.absolute.z - globeInfo.pos.z,
+        }
+        let spherePoint = createSpherePointFromXYZ(relativeToGlobe.x, relativeToGlobe.y, relativeToGlobe.z, globeInfo.radius)
+        reduxDispatch(editEventStateActions.startNewEvent(spherePoint))
+        reduxDispatch(mouseStateActions.resetLeftMouse())
+        leftMouseDownRef.current = false
+        return
+      }
+
+      // On globe click, (potentially) create new region
       let noRegionCreated = !editState.primaryLoc
       if (editState.editModeOn && clickedGlobe && noRegionCreated) {
         createNewRegion(globeInfo)
@@ -175,7 +194,7 @@ export const MouseHandler = () => {
       let clickedDisplayMesh =
         clickedMeshName == meshNames.DisplayRegion ||
         clickedMeshName == meshNames.DisplayPin
-      if (!editState.editModeOn && clickedDisplayMesh) {
+      if (!editState.editModeOn && !editState.newEventAwaitingPlacement && clickedDisplayMesh) {
         let eid = leftMouseDown.intersection.mesh.userData.eventId
         if (eid) {
           reduxDispatch(mouseStateActions.setPendingGlobeEventSelection(eid))
