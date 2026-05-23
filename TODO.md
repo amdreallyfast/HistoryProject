@@ -35,7 +35,7 @@ Guidance:
 
 ## Top Priority
 
-- [ ] `[simple]` **Verify cold-start fix on prod and merge `test` → `main`.** Cold-start changes (EF `EnableRetryOnFailure`, `DbWarmupService`) live on `test` only. Once the test app holds up across a few cold/warm cycles, merge `test` → `main` so prod gets the same protection.
+- [x] `[simple]` **Verify cold-start fix on prod and merge `test` → `main`.** Cold-start changes (EF `EnableRetryOnFailure`, `DbWarmupService`) live on `test` only. Once the test app holds up across a few cold/warm cycles, merge `test` → `main` so prod gets the same protection.
 
 ---
 
