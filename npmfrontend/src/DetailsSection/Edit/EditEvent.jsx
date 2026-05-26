@@ -12,7 +12,7 @@ import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 import { eventStateActions } from "../../AppState/stateSliceEvent";
 import { createEvent } from "../../api/historyEventApi";
 import { frontendToBackend } from "../../api/eventMapper";
-import { isDateRangeInverted } from "./detailRestrictions";
+import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
 
 
 export function EditEvent({ }) {
@@ -73,10 +73,15 @@ export function EditEvent({ }) {
     const et = editState.eventTime
     if (isDateRangeInverted(et.earliestYear, et.earliestMonth, et.earliestDay,
                             et.latestYear,   et.latestMonth,   et.latestDay)) return true
+    if (isMonthOutOfRange(et.earliestMonth) || isMonthOutOfRange(et.latestMonth)) return true
+    if (isDayOutOfRange(et.earliestDay)     || isDayOutOfRange(et.latestDay))     return true
+
     for (const key of Object.keys(editSources)) {
       const pt = editSources[key].publicationTime
       if (isDateRangeInverted(pt.earliestYear, pt.earliestMonth, pt.earliestDay,
                               pt.latestYear,   pt.latestMonth,   pt.latestDay)) return true
+      if (isMonthOutOfRange(pt.earliestMonth) || isMonthOutOfRange(pt.latestMonth)) return true
+      if (isDayOutOfRange(pt.earliestDay)     || isDayOutOfRange(pt.latestDay))     return true
     }
     return false
   }, [editState.eventTime, editSources])

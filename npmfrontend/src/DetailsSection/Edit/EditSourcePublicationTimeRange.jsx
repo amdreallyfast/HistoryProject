@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
-import { isDateRangeInverted } from "./detailRestrictions"
+import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions"
 
 /*
 TODO: (??maybe just duplicate the form and customize it? how much do you want to avoid duplication? are you willing to sacrifice the readability of the code??
@@ -97,10 +97,20 @@ export function EditSourcePublicationTimeRange({
       setRangeError(null)
       return false
     }
+    if (isMonthOutOfRange(month)) {
+      setLowerBoundError(`Month must be between 1 and 12: '${month}'`)
+      setRangeError(null)
+      return false
+    }
 
     let day = pubDateLowerBoundDayRef.current.value
     if (isNaN(Number(day))) {
       setLowerBoundError(`Day is not a number: '${day}'`)
+      setRangeError(null)
+      return false
+    }
+    if (isDayOutOfRange(day)) {
+      setLowerBoundError(`Day must be between 1 and 31: '${day}'`)
       setRangeError(null)
       return false
     }
@@ -200,10 +210,20 @@ export function EditSourcePublicationTimeRange({
       setRangeError(null)
       return false
     }
+    if (isMonthOutOfRange(month)) {
+      setUpperBoundError(`Month must be between 1 and 12: '${month}'`)
+      setRangeError(null)
+      return false
+    }
 
     let day = pubDateUpperBoundDayRef.current.value
     if (isNaN(Number(day))) {
       setUpperBoundError(`Day is not a number: '${day}'`)
+      setRangeError(null)
+      return false
+    }
+    if (isDayOutOfRange(day)) {
+      setUpperBoundError(`Day must be between 1 and 31: '${day}'`)
       setRangeError(null)
       return false
     }

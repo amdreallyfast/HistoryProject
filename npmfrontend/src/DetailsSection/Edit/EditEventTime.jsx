@@ -75,16 +75,24 @@ export function EditEventTime() {
 
     let monthDefined = (month && month?.trim() !== "")
     if (monthDefined) {
-      if (isNaN(month) || !Number.isInteger(Number(month)) || month < 1) {
-        setErrorFunction(`Month (if defined) must be a positive integer (no decimal): '${month}'`)
+      if (isNaN(month) || !Number.isInteger(Number(month))) {
+        setErrorFunction(`Month (if defined) must be an integer (no decimal): '${month}'`)
+        return false
+      }
+      if (Number(month) < 1 || Number(month) > 12) {
+        setErrorFunction(`Month must be between 1 and 12: '${month}'`)
         return false
       }
     }
 
     let dayDefined = (day && day.trim() !== "")
     if (dayDefined) {
-      if (isNaN(day) || !Number.isInteger(Number(day)) || day < 1) {
-        setErrorFunction(`Day (if defined) must be a positive integer (no decimal): '${day}'`)
+      if (isNaN(day) || !Number.isInteger(Number(day))) {
+        setErrorFunction(`Day (if defined) must be an integer (no decimal): '${day}'`)
+        return false
+      }
+      if (Number(day) < 1 || Number(day) > 31) {
+        setErrorFunction(`Day must be between 1 and 31: '${day}'`)
         return false
       }
     }

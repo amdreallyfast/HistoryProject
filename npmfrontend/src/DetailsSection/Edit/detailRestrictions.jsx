@@ -22,3 +22,17 @@ export function isDateRangeInverted(eYear, eMonth, eDay, lYear, lMonth, lDay) {
   if (!eDay || !lDay || isNaN(ed) || isNaN(ld)) return false
   return ed > ld
 }
+
+export function isMonthOutOfRange(month) {
+  if (!month || month.toString().trim() === "") return false
+  const m = Number(month)
+  if (isNaN(m)) return false
+  return m < 1 || m > 12
+}
+
+export function isDayOutOfRange(day) {
+  if (!day || day.toString().trim() === "") return false
+  const d = Number(day)
+  if (isNaN(d)) return false
+  return d < 1 || d > 31
+}
