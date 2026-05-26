@@ -37,7 +37,7 @@ Guidance:
 
 - [x] `[simple]` **Verify cold-start fix on prod and merge `test` → `main`.** Cold-start changes (EF `EnableRetryOnFailure`, `DbWarmupService`) live on `test` only. Once the test app holds up across a few cold/warm cycles, merge `test` → `main` so prod gets the same protection.
 
-- [ ] `[simple]` **Prep prod migration for `MakeEventSourceWhereNullable` before next `test` → `main` merge.** Test auto-migrates on startup so `HistoryProjectDb-Test` already has the nullable `Where` column. Prod migrates manually per the test-split decision (DESIGN.md, "Test Database Split (2026-05)"). Before merging `test` → `main`, generate the SQL script with `dotnet ef migrations script 20260425210000_AddOrderIndexToLocations 20260523211133_MakeEventSourceWhereNullable -o where-nullable.sql` from `WebAPI/WebAPI/`, then run it against `HistoryProjectDb` via the Azure portal query editor (no `GO` terminator). Once applied, the merge can proceed and the prod App Service will deploy code that matches the schema.
+- [x] `[simple]` **Prep prod migration for `MakeEventSourceWhereNullable` before next `test` → `main` merge.** Test auto-migrates on startup so `HistoryProjectDb-Test` already has the nullable `Where` column. Prod migrates manually per the test-split decision (DESIGN.md, "Test Database Split (2026-05)"). Before merging `test` → `main`, generate the SQL script with `dotnet ef migrations script 20260425210000_AddOrderIndexToLocations 20260523211133_MakeEventSourceWhereNullable -o where-nullable.sql` from `WebAPI/WebAPI/`, then run it against `HistoryProjectDb` via the Azure portal query editor (no `GO` terminator). Once applied, the merge can proceed and the prod App Service will deploy code that matches the schema.
 
 ---
 
