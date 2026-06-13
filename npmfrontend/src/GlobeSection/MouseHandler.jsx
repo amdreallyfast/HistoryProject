@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { useEffect, useRef } from "react"
+import { useFrame } from "@react-three/fiber"
 import { useSelector, useDispatch } from "react-redux"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
@@ -235,10 +236,11 @@ export const MouseHandler = () => {
     leftMouseDownRef.current = false
   }, [mouseState.leftMouseUp])
 
-  // Mouse move (click-and-drag)
-  useEffect(() => {
-    // console.log({ "MouseHandler.useEffect[mouseState.currPos]": mouseState.currPos })
-
+  // Click-and-drag tick: throttle to ~60Hz via useFrame so multiple browser
+  // mousemoves between frames coalesce into a single updateClickAndDrag
+  // dispatch. The previous useEffect[currPos] ran once per setMousePos
+  // (~120Hz) and drove the dispatch cascade that overwhelmed React + WebGL.
+  useFrame(() => {
     if (!editState.editModeOn) {
       // Do not allow click-and-drag.
       return
@@ -274,7 +276,7 @@ export const MouseHandler = () => {
         clickAndDragEnabledRef.current = true
       }
     }
-  }, [mouseState.currPos])
+  })
 
   // Need to return some HTML simply so that this can be a component.
   return (
