@@ -175,21 +175,14 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     boxMeshRef.current.lookAt(globeInfo.pos)
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
 
-    // Update state
-    let loc = createSpherePointFromXYZ(newPos.x, newPos.y, newPos.z, globeInfo.radius)
-    loc.id = spherePoint.id
-
-    if (pinType == meshNames.PrimaryPin) {
-      reduxDispatch(editEventStateActions.setPrimaryLoc(loc))
-    }
-    else if (pinType == meshNames.RegionBoundaryPin) {
-      // Re-create region mesh whenever a boundary pin moves
-      // Note: Yes, even when all pins move at once. See designNotes.txt for explanation.
-      reduxDispatch(editEventStateActions.updateRegionBoundary(loc))
-    }
-    else {
-      throw new Error(`Unrecognized pin type '${pinType}'`)
-    }
+    // Boundary state (primaryLoc / regionBoundaries) is intentionally NOT
+    // dispatched here. The mesh is mutated in place each frame; Redux is only
+    // updated on mouseUp (see the leftMouseUp useEffect below). This avoids
+    // the dispatch cascade that drove EditRegionMesh to re-run ear-clipping
+    // and reallocate GPU buffers every frame, exhausting WebGL on low-power
+    // hardware. Trade-off: the polygon mesh between the pins stays at its
+    // drag-start shape until release. Step 3 of the plan restores live
+    // polygon tracking via useFrame if the snap feels bad.
   }, [editState.clickAndDrag?.rotorQuaternion])
 
   // Update following click-and-drag
@@ -199,9 +192,24 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     }
 
     if (!originalPosRef.current.equals(meshRef.current.position)) {
-      // Record updated position
-      // Note: The mesh position has already been updated in real time. We just need to update 
-      // this position reference for the next click-and-drag.
+      // Drag ended. The mesh and bounding box have been mutated in place each
+      // frame; now commit the final position to Redux as a single dispatch so
+      // EditRegionMesh regenerates the polygon once (instead of per frame).
+      let pos = meshRef.current.position
+      let loc = createSpherePointFromXYZ(pos.x, pos.y, pos.z, globeInfo.radius)
+      loc.id = spherePoint.id
+
+      if (pinType == meshNames.PrimaryPin) {
+        reduxDispatch(editEventStateActions.setPrimaryLoc(loc))
+      }
+      else if (pinType == meshNames.RegionBoundaryPin) {
+        reduxDispatch(editEventStateActions.updateRegionBoundary(loc))
+      }
+      else {
+        throw new Error(`Unrecognized pin type '${pinType}'`)
+      }
+
+      // Update reference for the next click-and-drag.
       originalPosRef.current = meshRef.current.position.clone()
     }
 
