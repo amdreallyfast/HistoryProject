@@ -394,18 +394,6 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    updateClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditEvent.updateClickAndDrag", payload: action.payload })
-
-      return {
-        ...state,
-        clickAndDrag: {
-          ...state.clickAndDrag,
-          rotorQuaternion: action.payload.rotorQuaternion
-        }
-      }
-    },
-
     disableClickAndDrag: (state, action) => {
       // console.log({ msg: "stateSliceEditEvent.disableClickAndDrag", payload: action.payload })
 

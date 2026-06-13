@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
+import { useFrame } from "@react-three/fiber"
 import { useDispatch, useSelector } from "react-redux"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
 import { meshNames } from "./constValues"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
+import { sharedDragRotor } from "./sharedDragRotor"
 import _ from "lodash"
 
 export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
@@ -141,10 +143,22 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
   }, [meshRef.current, boxMeshRef.current])
 
 
-  // Update click-and-drag
-  useEffect(() => {
-    // Don't move the pin unless we're in edit mode.
+  // Per-frame pin movement during click-and-drag. Reads the rotor from the
+  // shared module (written by MouseHandler.useFrame earlier in the same RAF
+  // via tree order), bypassing Redux. The previous implementation used
+  // useEffect[clickAndDrag.rotorQuaternion], which fired only after React
+  // committed the dispatch — leaving the pin one render behind. With useFrame
+  // + sharedDragRotor the mutation happens in the same RAF the rotor was
+  // written, so the pin moves with the cursor instead of trailing it.
+  //
+  // Boundary state (primaryLoc / regionBoundaries) is still NOT dispatched
+  // here — only the visual mesh moves. The commit to Redux happens once on
+  // mouseUp (see the leftMouseUp useEffect below). Step 2 of the plan.
+  useFrame(() => {
     if (!editState.editModeOn || !editState.clickAndDrag) {
+      return
+    }
+    if (!meshRef.current || !boxMeshRef.current || !originalPosRef.current) {
       return
     }
 
@@ -152,14 +166,10 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     let moveThisPin = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
     let moveAllPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
     if (!moveThisPin && !moveAllPins) {
-      // No change
       return
     }
 
-    // Calculate
-    let qValues = editState.clickAndDrag.rotorQuaternion
-    let qRotor = new THREE.Quaternion(qValues.x, qValues.y, qValues.z, qValues.w)
-    let newPos = originalPosRef.current.clone().applyQuaternion(qRotor)
+    let newPos = originalPosRef.current.clone().applyQuaternion(sharedDragRotor.quaternion)
 
     // Move pin
     meshRef.current.position.x = newPos.x
@@ -174,16 +184,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     boxMeshRef.current.position.z = newPos.z
     boxMeshRef.current.lookAt(globeInfo.pos)
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
-
-    // Boundary state (primaryLoc / regionBoundaries) is intentionally NOT
-    // dispatched here. The mesh is mutated in place each frame; Redux is only
-    // updated on mouseUp (see the leftMouseUp useEffect below). This avoids
-    // the dispatch cascade that drove EditRegionMesh to re-run ear-clipping
-    // and reallocate GPU buffers every frame, exhausting WebGL on low-power
-    // hardware. Trade-off: the polygon mesh between the pins stays at its
-    // drag-start shape until release. Step 3 of the plan restores live
-    // polygon tracking via useFrame if the snap feels bad.
-  }, [editState.clickAndDrag?.rotorQuaternion])
+  })
 
   // Update following click-and-drag
   useEffect(() => {
