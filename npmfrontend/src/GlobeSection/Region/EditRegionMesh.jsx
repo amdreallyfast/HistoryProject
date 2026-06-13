@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { Line } from "@react-three/drei"
 import { useEffect, useRef, useState } from "react"
+import { useFrame } from "@react-three/fiber"
 import { useSelector } from "react-redux"
 import { meshNames } from "../constValues"
 import { generateRegionMesh } from "./regionMeshGeometry"
@@ -11,6 +12,10 @@ export const EditRegionMesh = ({ sphereRadius }) => {
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
   const [linePoints, setLinePoints] = useState([])
+  // Buffer snapshot captured on the first useFrame of a whole-region drag, used
+  // to keep the polygon visually live without re-running ear-clipping or
+  // allocating new GPU buffers each frame. See useFrame below.
+  const dragStartPositionsRef = useRef(null)
 
   // Region changed => regenerate mesh
   useEffect(() => {
@@ -51,6 +56,60 @@ export const EditRegionMesh = ({ sphereRadius }) => {
     regionMeshRef.current.geometry.computeBoundingSphere()
   }, [editState.regionBoundaries])
 
+  // Live polygon tracking during whole-region drag, without dispatching state.
+  // The pin meshes are mutated in place every frame by EditPinMesh; the
+  // boundary state in Redux deliberately stays at drag-start values (Step 2 of
+  // the perf plan) so EditRegionMesh's regen useEffect doesn't fire. To keep
+  // the polygon visually attached to the pins, snapshot the position buffer
+  // once at drag start and apply the cumulative rotor to the snapshot each
+  // frame — same rigid rotation that EditPinMesh applies to each pin. No new
+  // BufferAttributes, no ear-clipping, just an in-place array rewrite.
+  //
+  // Single-pin drags (mesh.name == PinBoundingBox) are skipped on purpose:
+  // only one boundary vertex moves and the dependent midpoints inserted by
+  // MeshSubdivider would also need updating. Those drags keep the
+  // snap-on-release behavior from Step 2.
+  useFrame(() => {
+    if (!editState.clickAndDrag) {
+      dragStartPositionsRef.current = null
+      return
+    }
+    if (regionMeshRef.current == null) {
+      return
+    }
+
+    let moveAllPins = (editState.clickAndDrag.mesh.name == meshNames.Region)
+    if (!moveAllPins) {
+      return
+    }
+
+    let positionAttr = regionMeshRef.current.geometry.attributes.position
+    if (!positionAttr) {
+      return
+    }
+
+    // Snapshot on first frame of this drag so subsequent frames apply the
+    // cumulative rotor to the original positions (applying to the
+    // already-rotated buffer would compound).
+    if (dragStartPositionsRef.current == null) {
+      dragStartPositionsRef.current = new Float32Array(positionAttr.array)
+    }
+
+    let qValues = editState.clickAndDrag.rotorQuaternion
+    let qRotor = new THREE.Quaternion(qValues.x, qValues.y, qValues.z, qValues.w)
+    let arr = positionAttr.array
+    let orig = dragStartPositionsRef.current
+    let v = new THREE.Vector3()
+    for (let i = 0; i < arr.length; i += 3) {
+      v.set(orig[i], orig[i + 1], orig[i + 2])
+      v.applyQuaternion(qRotor)
+      arr[i + 0] = v.x
+      arr[i + 1] = v.y
+      arr[i + 2] = v.z
+    }
+    positionAttr.needsUpdate = true
+  })
+
   return (
     <>
       <mesh ref={regionMeshRef} name={meshNames.Region}>
@@ -59,8 +118,14 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       {/*
 
       {/* https://github.com/pmndrs/drei?tab=readme-ov-file#line */}
-      <Line segments={true} points={linePoints} lineWidth={4} >
-      </Line>
+      {/* Hide the triangulation wireframe during drag: Drei's Line builds its
+          geometry from the `points` prop and there's no cheap in-place update,
+          so leaving it visible would show lines floating off the live-moving
+          mesh fill. It snaps back on mouseUp when linePoints regenerates. */}
+      {!editState.clickAndDrag && (
+        <Line segments={true} points={linePoints} lineWidth={4} >
+        </Line>
+      )}
     </>
   )
 }
