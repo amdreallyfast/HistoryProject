@@ -5,7 +5,6 @@ import { useFrame } from "@react-three/fiber"
 import { useSelector } from "react-redux"
 import { meshNames } from "../constValues"
 import { generateRegionMesh } from "./regionMeshGeometry"
-import { sharedDragRotor } from "../sharedDragRotor"
 
 export const EditRegionMesh = ({ sphereRadius }) => {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
@@ -96,16 +95,14 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       dragStartPositionsRef.current = new Float32Array(positionAttr.array)
     }
 
-    // Read the rotor from the shared module (written by MouseHandler.useFrame
-    // earlier in this RAF via tree order). Previously this was pulled from
-    // editState.clickAndDrag.rotorQuaternion via useSelector, which gave us
-    // last-render's value — one frame behind the cursor. Step 4 of the plan.
+    let qValues = editState.clickAndDrag.rotorQuaternion
+    let qRotor = new THREE.Quaternion(qValues.x, qValues.y, qValues.z, qValues.w)
     let arr = positionAttr.array
     let orig = dragStartPositionsRef.current
     let v = new THREE.Vector3()
     for (let i = 0; i < arr.length; i += 3) {
       v.set(orig[i], orig[i + 1], orig[i + 2])
-      v.applyQuaternion(sharedDragRotor.quaternion)
+      v.applyQuaternion(qRotor)
       arr[i + 0] = v.x
       arr[i + 1] = v.y
       arr[i + 2] = v.z
