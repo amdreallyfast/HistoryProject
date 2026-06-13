@@ -204,10 +204,12 @@ export const MouseHandler = () => {
         }
       }
 
-      // Click on open globe space (no display mesh, not in edit mode, not awaiting
-      // placement) deselects the current event.
-      if (clickedGlobe
-        && !editState.editModeOn
+      // Click on open space (no display mesh hit above, not in edit mode, not
+      // awaiting placement) deselects the current event. Covers both globe
+      // clicks that missed a display mesh and canvas-corner clicks that missed
+      // the globe entirely — the `clicked` guard already excludes drags and
+      // long-clicks.
+      if (!editState.editModeOn
         && !editState.newEventAwaitingPlacement
         && selectedEventId) {
         reduxDispatch(eventStateActions.setSelectedEvent(null))
