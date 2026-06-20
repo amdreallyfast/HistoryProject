@@ -11,9 +11,9 @@
     "SpecificLocation": { "Latitude": 41.9, "Longitude": 12.5 },
     "Region": [
       { "Latitude": 42.0, "Longitude": 12.0, "OrderIndex": 0 },
-      { "Latitude": 43.0, "Longitude": 12.0, "OrderIndex": 1 },
+      { "Latitude": 42.0, "Longitude": 13.0, "OrderIndex": 1 },
       { "Latitude": 43.0, "Longitude": 13.0, "OrderIndex": 2 },
-      { "Latitude": 42.0, "Longitude": 13.0, "OrderIndex": 3 }
+      { "Latitude": 43.0, "Longitude": 12.0, "OrderIndex": 3 }
     ],
     "Sources": []
   }
