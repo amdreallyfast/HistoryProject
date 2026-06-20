@@ -180,6 +180,7 @@ export function SearchSectionMain() {
           <span>Search:</span>
           <span>(titles, descriptions, sources, tags)</span>
           <input type='text'
+            data-testid="search-input"
             className='w-full bg-gray-700'
             onChange={onSearchTextChanged}
             onKeyUp={onSearchTextKeyUp}></input>
@@ -203,6 +204,7 @@ export function SearchSectionMain() {
 
         <div className="flex flex-col items-end m-1">
           <input type='button'
+            data-testid="search-button"
             className='p-1 text-white border-2 border-red-300'
             value={"Search"}
             onClick={onSearchClicked}></input>
@@ -219,6 +221,7 @@ export function SearchSectionMain() {
         {latestEvents && latestEvents.map((eventJson) => (
           <p
             key={eventJson.eventId}
+            data-testid="search-result-item"
             className={eventJson.eventId === selectedEvent?.eventId
               ? searchResultHtmlClassNameHighlighted
               : searchResultHtmlClassNameNormal}
