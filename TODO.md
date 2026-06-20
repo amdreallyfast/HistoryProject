@@ -188,6 +188,8 @@ These are bigger architectural questions. Present options with pros/cons before 
   - Is there a simpler state management approach that would work?
   - Present options with pros/cons.
 
+- [ ] `[discussion]` **Incremental TypeScript adoption for the frontend (typed data-model boundary first).** Spun out of the Playwright E2E setup (whose tests are TS). Should `npmfrontend/` adopt TypeScript? Recommended path if pursued: type the data-model boundary first (`api/eventMapper.js`, `api/historyEventApi.js`, Redux slice payloads) via `allowJs`, or a lighter JSDoc + `checkJs` trial. Key caveat — several pending architectural items ("Sources as a distinct object vs. events", "Date storage in days relative to 0 AD", "Wire image upload to backend", "Frontend state persistence strategy") would reshape the exact types TS would encode, so sequencing matters. Full analysis (pros/cons, why Playwright is TS, cross-dependencies) in `claudePlans/6.TypeScriptAdoptionDiscussion.md`.
+
 - [ ] `[discussion]` **Long-term data persistence and database choice.** The project's purpose is insight into historical events — seeing what events/characters were on the world stage at similar times and might have interacted. The current plan is SQL Server in Azure with REST API (axios), chosen from prior experience. But given the project's goals (multi-revision events, temporal queries, potential for discovering connections between events), there may be better options. Evaluate at least 5 options in a pros/cons table, then provide cost/benefit details on each:
   - Classic SQL (SQL Server, as currently planned)
   - Vector database (e.g., Qdrant — open source)
