@@ -273,6 +273,22 @@ Detailed setup notes are archived in `claudePlans/2.GettingStartedSetup.txt`.
 
 ---
 
+## Testing
+
+Frontend E2E via **Playwright** (TypeScript) in `npmfrontend/tests/`. Run `npm run test:e2e` from `npmfrontend/`. Playwright boots the Vite dev server itself (`playwright.config.ts`, port 5173); no backend or DB required.
+
+**Layer:** *UI* E2E — real browser, real React/Redux/Three.js — with the backend API stubbed at the network layer via `page.route`, served from `tests/fixtures/events.json`. Deterministic and Azure-independent, but does **not** verify the frontend↔backend contract (a true full-stack layer is a planned follow-up — see TODO.md "Full-stack testing").
+
+**Scenarios covered** (reproduce/extend here):
+- `smoke.spec.ts` (no mocking) — page loads with the expected `<title>`; the Three.js `<canvas>` is visible.
+- `search.spec.ts` (mocks `GET **/api/HistoricalEvent/GetFirst100` in `beforeEach`) — search form visible on load; clicking Search renders result items; empty search still loads results without crashing; a result shows the fixture title; clicking a result populates the details panel.
+
+**Fixture constraints** (a fixture that violates these silently breaks tests): backend **PascalCase** shape that `eventMapper.backendToFrontend` reads (`EventId`, `Title`, `SpecificLocation.Latitude`, `Region` as a flat array of `{Latitude, Longitude, OrderIndex}`); `SpecificLocation` non-null (selection dereferences it); region boundary wound **counterclockwise** (clockwise crashes `EarClipping` and blanks the whole UI). UI selectors are `data-testid`: `search-input`, `search-button`, `search-result-item`, `details-event-title`.
+
+**CI:** `.github/workflows/playwright.yml` — runs on push/PR to `main` and `test`, path-scoped to `npmfrontend/**`.
+
+---
+
 ## Design Decisions Log
 
 ### "POI" to "Event" Rename (2026-02)
