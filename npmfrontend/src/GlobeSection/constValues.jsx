@@ -21,6 +21,11 @@ export const pinMeshInfo = {
   regionPinColor: 0xffd700
 }
 
+export const editRegionMeshInfo = {
+  validColor: 0x000ff0,   // normal editable region (blue)
+  errorColor: 0xff3333,   // invalid boundary (bad winding / failed triangulation)
+}
+
 export const displayPinMeshInfo = {
   length: 3,
   primaryPinScale: 0.025,

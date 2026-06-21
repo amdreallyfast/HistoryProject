@@ -3,8 +3,8 @@ import { Line } from "@react-three/drei"
 import { useLayoutEffect, useRef, useState } from "react"
 import { useFrame } from "@react-three/fiber"
 import { useSelector } from "react-redux"
-import { meshNames } from "../constValues"
-import { generateRegionMesh } from "./regionMeshGeometry"
+import { meshNames, editRegionMeshInfo } from "../constValues"
+import { generateRegionMesh, isRegionWindingValid } from "./regionMeshGeometry"
 
 // Worst-case capacity for the pre-allocated region-mesh buffers. The geometry is
 // triangulated (EarClipping) then subdivided (MeshSubdivider, maxEdgeLength 0.5),
@@ -70,7 +70,32 @@ export const EditRegionMesh = ({ sphereRadius }) => {
     // Raised above DisplayRegionMesh (+0.01) so the raycaster hits this mesh first
     let meshRadius = sphereRadius + 0.1
     let baseVertices = editState.regionBoundaries.map((boundaryMarker) => [boundaryMarker.x, boundaryMarker.y, boundaryMarker.z])
-    let geometry = generateRegionMesh(baseVertices, meshRadius)
+
+    // Validity = correct winding AND successful triangulation. An invalid edit
+    // (most commonly clockwise winding) must NOT overwrite the buffers: we keep
+    // the last valid mesh on screen and recolor it red, instead of letting
+    // EarClipping throw (which the ErrorBoundary would otherwise catch by dropping
+    // the mesh entirely). The pre-allocated buffer holds the last valid geometry,
+    // so "remembering" it is free — we simply skip the write.
+    let material = regionMeshRef.current.material
+    let geometry = null
+    if (isRegionWindingValid(baseVertices)) {
+      try {
+        geometry = generateRegionMesh(baseVertices, meshRadius)
+      } catch (error) {
+        // CCW winding but still untriangulatable (degenerate / self-intersecting).
+        console.warn({ "EditRegionMesh: region failed to triangulate, keeping last valid mesh": error })
+      }
+    }
+
+    if (geometry == null) {
+      // Invalid edit: keep the last valid geometry (buffers untouched) and flag red.
+      material.color = new THREE.Color(editRegionMeshInfo.errorColor)
+      return
+    }
+
+    // Valid edit: restore the normal color, then rebuild the mesh below.
+    material.color = new THREE.Color(editRegionMeshInfo.validColor)
 
     // wireframe
     let linePoints = []
@@ -178,7 +203,7 @@ export const EditRegionMesh = ({ sphereRadius }) => {
   return (
     <>
       <mesh ref={regionMeshRef} name={meshNames.Region}>
-        <meshBasicMaterial color={0x000ff0} side={THREE.DoubleSide} wireframe={false} />
+        <meshBasicMaterial color={editRegionMeshInfo.validColor} side={THREE.DoubleSide} wireframe={false} />
       </mesh>
       {/*
 

@@ -353,3 +353,34 @@ export const generateRegionMesh = (baseVertices, sphereRadius, maxEdgeLength = 0
 
   return subdividedGeometry
 }
+
+// Signed winding measure of a closed region boundary, using the SAME origin-relative
+// convention as EarClipping#isEar (which judges convexity by whether an edge cross
+// product points outward from the globe origin). Sum the edge cross products
+// P_i x P_{i+1} (the polygon's "vector area") and dot with the outward radial,
+// approximated by the centroid direction (the region sits on the sphere, so the
+// average vertex points outward). Sign only — magnitude is unused.
+//   positive => counterclockwise as seen from OUTSIDE the globe = the orientation
+//               EarClipping requires (valid)
+//   negative => clockwise (EarClipping finds no ear and throws)
+// Input: baseVertices = array of [x, y, z] on the sphere. Caller guarantees length >= 3.
+export const regionWindingSign = (baseVertices) => {
+  let normal = new THREE.Vector3()
+  let centroid = new THREE.Vector3()
+  let a = new THREE.Vector3()
+  let b = new THREE.Vector3()
+  let cross = new THREE.Vector3()
+  for (let i = 0; i < baseVertices.length; i++) {
+    a.set(baseVertices[i][0], baseVertices[i][1], baseVertices[i][2])
+    let next = baseVertices[(i + 1) % baseVertices.length]
+    b.set(next[0], next[1], next[2])
+    normal.add(cross.crossVectors(a, b))
+    centroid.add(a)
+  }
+  return normal.dot(centroid)
+}
+
+// True when the boundary is wound the way EarClipping needs (counterclockwise as
+// seen from outside the globe). Lets the editor detect an invalid edit BEFORE
+// triangulating, instead of relying on the EarClipping throw. Also a test oracle.
+export const isRegionWindingValid = (baseVertices) => regionWindingSign(baseVertices) > 0
