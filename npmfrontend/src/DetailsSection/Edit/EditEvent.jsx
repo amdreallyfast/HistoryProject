@@ -13,6 +13,7 @@ import { eventStateActions } from "../../AppState/stateSliceEvent";
 import { createEvent } from "../../api/historyEventApi";
 import { frontendToBackend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
+import { isRegionWindingValid } from "../../GlobeSection/Region/regionMeshGeometry";
 
 
 export function EditEvent({ }) {
@@ -85,6 +86,19 @@ export function EditEvent({ }) {
     }
     return false
   }, [editState.eventTime, editSources])
+
+  // Block submit when the region boundary is wound the wrong way (clockwise) — the
+  // same condition that turns the edit mesh red. Submitting an invalid boundary
+  // would persist a region that EarClipping can't triangulate, so its display mesh
+  // would vanish. Mirrors the classifier EditRegionMesh uses. (< 3 points = no
+  // region, not an error.) Self-intersecting-but-CCW shapes are not caught here —
+  // that's the deferred self-intersection follow-up.
+  const hasRegionError = useMemo(() => {
+    const boundaries = editState.regionBoundaries
+    if (!boundaries || boundaries.length < 3) return false
+    const baseVertices = boundaries.map((b) => [b.x, b.y, b.z])
+    return !isRegionWindingValid(baseVertices)
+  }, [editState.regionBoundaries])
 
   const onSubmitClick = async (e) => {
 
@@ -182,9 +196,9 @@ export function EditEvent({ }) {
           Cancel
         </button>
         <button
-          className={`font-bold py-2 px-4 rounded text-white ${hasChanges && !hasDateErrors ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
+          className={`font-bold py-2 px-4 rounded text-white ${hasChanges && !hasDateErrors && !hasRegionError ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
           onClick={(e) => onSubmitClick(e)}
-          disabled={!hasChanges || hasDateErrors}
+          disabled={!hasChanges || hasDateErrors || hasRegionError}
         >
           Submit
         </button>
