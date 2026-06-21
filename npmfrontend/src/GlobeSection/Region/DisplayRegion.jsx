@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux"
 import { DisplayPinMesh } from "../DisplayPinMesh"
 import { DisplayRegionMesh } from "./DisplayRegionMesh"
+import { ErrorBoundary } from "./ErrorBoundary"
 import { displayPinMeshInfo, groupNames } from "../constValues"
 
 export function DisplayRegion({ eventId, primaryLoc, regionBoundaries, globeInfo, isSelected }) {
@@ -65,14 +66,21 @@ export function DisplayRegion({ eventId, primaryLoc, regionBoundaries, globeInfo
         />
       ))}
 
-      {/* Region fill mesh */}
+      {/* Region fill mesh. Wrapped so a malformed boundary (e.g. clockwise
+          winding) that makes EarClipping throw only drops this one event's fill
+          mesh — the pins above stay, and the rest of the app keeps working. */}
       {regionBoundaries && regionBoundaries.length >= 3 && (
-        <DisplayRegionMesh
-          eventId={eventId}
-          regionBoundaries={regionBoundaries}
-          sphereRadius={globeInfo.radius}
-          color={regionColor}
-        />
+        <ErrorBoundary
+          resetKeys={[regionBoundaries]}
+          onError={(error) => console.error({ "DisplayRegion: skipped malformed region": { eventId, error } })}
+        >
+          <DisplayRegionMesh
+            eventId={eventId}
+            regionBoundaries={regionBoundaries}
+            sphereRadius={globeInfo.radius}
+            color={regionColor}
+          />
+        </ErrorBoundary>
       )}
     </group>
   )
