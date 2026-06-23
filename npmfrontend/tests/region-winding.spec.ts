@@ -28,6 +28,16 @@ test('winding classifier agrees with EarClipping (valid CCW vs reversed CW)', as
     ].map(([lat, long]) => ConvertLatLongToXYZ(lat, long, MESH_RADIUS))
     const cw = [...ccw].reverse()
 
+    // "Local twist": an 8-pin region where one pin was dragged across its neighbors.
+    // The boundary is still GLOBALLY counterclockwise (winding classifier passes) but
+    // crosses itself enough that EarClipping finds no ear and throws. This is the gap
+    // the Submit guard must close — winding alone says "valid", yet the region can't be
+    // triangulated, so the Submit gate has to track triangulation success, not winding.
+    const twist = [
+      [42.5, 13.5], [43.21, 13.21], [42.36, 14.23], [43.21, 11.79],
+      [42.5, 11.5], [41.14, 13.55], [41.5, 12.5], [42.0, 10.74],
+    ].map(([lat, long]) => ConvertLatLongToXYZ(lat, long, MESH_RADIUS))
+
     const triangulates = (verts: number[][]) => {
       try { generateRegionMesh(verts, MESH_RADIUS); return true } catch { return false }
     }
@@ -39,6 +49,8 @@ test('winding classifier agrees with EarClipping (valid CCW vs reversed CW)', as
       cwSign: regionWindingSign(cw),
       cwValid: isRegionWindingValid(cw),
       cwTriangulates: triangulates(cw),
+      twistValid: isRegionWindingValid(twist),
+      twistTriangulates: triangulates(twist),
     }
   })
 
@@ -51,4 +63,10 @@ test('winding classifier agrees with EarClipping (valid CCW vs reversed CW)', as
   expect(result.cwSign).toBeLessThan(0)
   expect(result.cwValid).toBe(false)
   expect(result.cwTriangulates).toBe(false)
+
+  // Local twist: winding classifier says VALID, yet EarClipping still throws. Proves the
+  // classifier alone can't gate Submit — "did triangulation succeed" is the real signal,
+  // which is exactly the regionValid flag EditRegionMesh publishes to drive the gate.
+  expect(result.twistValid).toBe(true)
+  expect(result.twistTriangulates).toBe(false)
 })

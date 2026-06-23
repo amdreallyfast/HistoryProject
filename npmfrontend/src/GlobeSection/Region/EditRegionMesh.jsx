@@ -2,8 +2,9 @@ import * as THREE from "three"
 import { Line } from "@react-three/drei"
 import { useLayoutEffect, useRef, useState } from "react"
 import { useFrame } from "@react-three/fiber"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { meshNames, editRegionMeshInfo } from "../constValues"
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { generateRegionMesh, isRegionWindingValid } from "./regionMeshGeometry"
 
 // Worst-case capacity for the pre-allocated region-mesh buffers. The geometry is
@@ -17,6 +18,18 @@ const MAX_INDICES = MAX_VERTICES * 8
 export const EditRegionMesh = ({ sphereRadius }) => {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
   const editState = useSelector((state) => state.editEventReducer)
+  const reduxDispatch = useDispatch()
+  // Last validity we published to Redux. The ref-guard means setRegionValid only
+  // dispatches on a true<->false transition, keeping Redux churn to validity *changes*
+  // — one dispatch per commit now, and (when the per-frame single-pin regen lands) a
+  // dispatch only when validity flips, not every frame.
+  const lastValidRef = useRef(null)
+  const setRegionValid = (valid) => {
+    if (lastValidRef.current !== valid) {
+      lastValidRef.current = valid
+      reduxDispatch(editEventStateActions.setRegionValid(valid))
+    }
+  }
   let regionMeshRef = useRef()
   let regionLinesRef = useRef()
   const [linePoints, setLinePoints] = useState([])
@@ -63,7 +76,8 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       return
     }
     else if (editState.regionBoundaries.length < 3) {
-      // Not enough points for a triangle
+      // Not enough points for a triangle. No region = not an error, so Submit isn't blocked.
+      setRegionValid(true)
       return
     }
 
@@ -90,12 +104,17 @@ export const EditRegionMesh = ({ sphereRadius }) => {
 
     if (geometry == null) {
       // Invalid edit: keep the last valid geometry (buffers untouched) and flag red.
+      // Publish invalid so EditEvent disables Submit — an untriangulatable boundary
+      // (clockwise OR a local single-pin twist that keeps global winding positive)
+      // must not be persisted.
       material.color = new THREE.Color(editRegionMeshInfo.errorColor)
+      setRegionValid(false)
       return
     }
 
     // Valid edit: restore the normal color, then rebuild the mesh below.
     material.color = new THREE.Color(editRegionMeshInfo.validColor)
+    setRegionValid(true)
 
     // wireframe
     let linePoints = []

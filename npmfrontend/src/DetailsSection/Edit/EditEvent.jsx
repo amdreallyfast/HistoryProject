@@ -13,7 +13,6 @@ import { eventStateActions } from "../../AppState/stateSliceEvent";
 import { createEvent } from "../../api/historyEventApi";
 import { frontendToBackend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
-import { isRegionWindingValid } from "../../GlobeSection/Region/regionMeshGeometry";
 
 
 export function EditEvent({ }) {
@@ -87,18 +86,15 @@ export function EditEvent({ }) {
     return false
   }, [editState.eventTime, editSources])
 
-  // Block submit when the region boundary is wound the wrong way (clockwise) — the
-  // same condition that turns the edit mesh red. Submitting an invalid boundary
-  // would persist a region that EarClipping can't triangulate, so its display mesh
-  // would vanish. Mirrors the classifier EditRegionMesh uses. (< 3 points = no
-  // region, not an error.) Self-intersecting-but-CCW shapes are not caught here —
-  // that's the deferred self-intersection follow-up.
-  const hasRegionError = useMemo(() => {
-    const boundaries = editState.regionBoundaries
-    if (!boundaries || boundaries.length < 3) return false
-    const baseVertices = boundaries.map((b) => [b.x, b.y, b.z])
-    return !isRegionWindingValid(baseVertices)
-  }, [editState.regionBoundaries])
+  // Block submit when the region boundary can't actually be triangulated. Rather than
+  // recompute that here (which would re-run mesh generation), we read the regionValid
+  // flag that EditRegionMesh publishes — it already triangulates to build the mesh and
+  // knows valid vs. red. This catches both whole-polygon clockwise winding AND a local
+  // single-pin twist that keeps global winding positive but still makes EarClipping
+  // throw. Submitting either would persist a region whose display mesh can't render.
+  // (Edge-crossing self-intersection that triangulates *silently wrong* without throwing
+  // is out of scope by decision.)
+  const hasRegionError = !editState.regionValid
 
   const onSubmitClick = async (e) => {
 
