@@ -192,6 +192,7 @@ export function EditEvent({ }) {
           Cancel
         </button>
         <button
+          data-testid="submit-event-button"
           className={`font-bold py-2 px-4 rounded text-white ${hasChanges && !hasDateErrors && !hasRegionError ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
           onClick={(e) => onSubmitClick(e)}
           disabled={!hasChanges || hasDateErrors || hasRegionError}
