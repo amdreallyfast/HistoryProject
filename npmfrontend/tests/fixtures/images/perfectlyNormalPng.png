@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Read Local File</title>
+</head>
+<body>
+
+    <h2>Select your test file to print it to the console:</h2>
+    <!-- The user must manually select the file due to browser security restrictions -->
+    <input type="file" id="fileInput">
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                // This function runs once the file is successfully read
+                reader.onload = function(e) {
+                    console.log("File content:");
+                    console.log(e.target.result);
+                };
+                
+                // Read the file as plain text
+                reader.readAsText(file);
+            }
+        });
+    </script>
+
+</body>
+</html>

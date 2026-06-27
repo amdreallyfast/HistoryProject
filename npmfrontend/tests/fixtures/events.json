@@ -6,6 +6,8 @@
     "Title": "Test Event One",
     "Summary": "A fixture event for Playwright tests.",
     "Tags": [{ "Value": "rome" }],
+    "EventIsCreationOfSource": true,
+    "EventImage": { "ImageBinary": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMCAQDJ/IAYAAAAAElFTkSuQmCC" },
     "LBYear": 100, "LBMonth": 1, "LBDay": 1,
     "UBYear": 200, "UBMonth": 12, "UBDay": 31,
     "SpecificLocation": { "Latitude": 41.9, "Longitude": 12.5 },
