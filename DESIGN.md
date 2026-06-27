@@ -214,6 +214,8 @@ For **region boundary pins**, movement increments a counter (`regionBoundaryPinH
 
 For **whole region movement**, the region mesh vertices are recalculated from the moved boundary pins rather than transformed — because the geometry is calculated via spherical math, transforms would double-apply.
 
+**Per-frame rotor sharing (drag perf, 2026-06).** During a drag the per-frame rotor does **not** flow through Redux — it lives on a module-level mutable `THREE.Quaternion` in `GlobeSection/sharedDragRotor.js`. `MouseHandler.useFrame` writes it each RAF; `EditPinMesh.useFrame` and `EditRegionMesh.useFrame` read it within the same RAF. Routing the rotor through `dispatch` + `useSelector`/`useEffect` left consumers reading the previous render's value (and `EditPinMesh`'s `useEffect` fired after R3F had already painted), so the rendered mesh trailed the cursor by 1–2 frames — imperceptible at 60 Hz, painful on a slow VM. Correctness depends on R3F running `useFrame` callbacks in mount order: `MouseHandler` is mounted before `EditableRegion` in `Scene.jsx`, so the write happens before the reads. Redux's `editState.clickAndDrag` still carries the "drag active" flag, mesh identity, and `initialOffsetQuaternion`; only the per-frame rotor value moved out.
+
 ### Coordinate System Notes
 
 - Globe lat/long to XYZ: `convertLatLongXYZ.jsx`

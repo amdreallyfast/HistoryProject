@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { meshNames, editRegionMeshInfo } from "../constValues"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { generateRegionMesh, isRegionWindingValid } from "./regionMeshGeometry"
+import { sharedDragRotor } from "../sharedDragRotor"
 
 // Worst-case capacity for the pre-allocated region-mesh buffers. The geometry is
 // triangulated (EarClipping) then subdivided (MeshSubdivider, maxEdgeLength 0.5),
@@ -204,14 +205,16 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       dragStartPositionsRef.current = positionAttr.array.slice(0, activeLength)
     }
 
-    let qValues = editState.clickAndDrag.rotorQuaternion
-    let qRotor = new THREE.Quaternion(qValues.x, qValues.y, qValues.z, qValues.w)
+    // Read the rotor from the shared module (written by MouseHandler.useFrame
+    // earlier in this RAF via tree/mount order). Previously this was pulled from
+    // editState.clickAndDrag.rotorQuaternion via useSelector, which gave us
+    // last-render's value — one frame behind the cursor. Step 2 of the perf plan.
     let arr = positionAttr.array
     let orig = dragStartPositionsRef.current
     let v = new THREE.Vector3()
     for (let i = 0; i < activeLength; i += 3) {
       v.set(orig[i], orig[i + 1], orig[i + 2])
-      v.applyQuaternion(qRotor)
+      v.applyQuaternion(sharedDragRotor.quaternion)
       arr[i + 0] = v.x
       arr[i + 1] = v.y
       arr[i + 2] = v.z

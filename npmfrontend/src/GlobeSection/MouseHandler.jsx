@@ -8,6 +8,7 @@ import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { globeInfo, meshNames } from "./constValues"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
+import { sharedDragRotor } from "./sharedDragRotor"
 
 export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
@@ -52,16 +53,10 @@ export const MouseHandler = () => {
     let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
     let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
-    let qFullRotor = (new THREE.Quaternion()).multiplyQuaternions(qRotor, qOffset)
-    let rotorData = {
-      rotorQuaternion: {
-        w: qFullRotor.w,
-        x: qFullRotor.x,
-        y: qFullRotor.y,
-        z: qFullRotor.z,
-      }
-    }
-    reduxDispatch(editEventStateActions.updateClickAndDrag(rotorData))
+    // Bypass Redux for the per-frame rotor (Step 2 of the perf plan / Step 4 in
+    // claudePlans/4): consumers read this in their own useFrame within the same
+    // RAF — no useSelector closure lag, no dispatch + re-render roundtrip.
+    sharedDragRotor.quaternion.multiplyQuaternions(qRotor, qOffset)
   }
 
   const enableClickAndDrag = () => {
@@ -88,6 +83,11 @@ export const MouseHandler = () => {
 
     let qOffset = (new THREE.Quaternion).setFromUnitVectors(cursorGlobeNormalized, meshIntersectionNormalized)
     let qFullRotor = (new THREE.Quaternion()).multiplyQuaternions(qRotor, qOffset)
+
+    // Seed the shared rotor so the first consumer useFrame after enable picks up
+    // a valid value. After this, updateClickAndDrag overwrites it each RAF.
+    sharedDragRotor.quaternion.copy(qFullRotor)
+
     let clickAndDragData = {
       mesh: mouseDown.mesh,
       initialOffsetQuaternion: {
