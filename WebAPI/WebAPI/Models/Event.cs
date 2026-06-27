@@ -39,6 +39,9 @@ namespace WebAPI.Models
         [Required, MaxLength(2048)]
         public string Summary { get; set; } = default!;
 
+        // When true, this event records the act of creating a source (e.g. a book being written).
+        public bool EventIsCreationOfSource { get; set; }
+
         public int LBYear { get; set; } = -99999; // default value ridiculous
         public int? LBMonth { get; set; }
         public int? LBDay { get; set; }

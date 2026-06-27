@@ -14,6 +14,40 @@ namespace WebAPI.Controllers
         private readonly IWebHostEnvironment webHostEnvironment;
         private string uploadedFilePath = string.Empty;
 
+        // Keep in sync with MAX_IMAGE_BYTES in npmfrontend/src/api/imageDataUrl.js.
+        private const int MaxImageBytes = 5 * 1024 * 1024;
+        private static readonly byte[] PngSignature = { 0x89, 0x50, 0x4e, 0x47 };
+        private static readonly byte[] JpegSignature = { 0xff, 0xd8, 0xff };
+
+        // Returns an error message if the image bytes are invalid, or null when valid.
+        // Empty/null bytes mean "no image" and are allowed.
+        private static string? ValidateImage(byte[]? imageBinary)
+        {
+            if (imageBinary is null || imageBinary.Length == 0)
+            {
+                return null;
+            }
+            if (imageBinary.Length > MaxImageBytes)
+            {
+                return $"Image exceeds {MaxImageBytes / (1024 * 1024)}MB limit.";
+            }
+            if (!StartsWith(imageBinary, PngSignature) && !StartsWith(imageBinary, JpegSignature))
+            {
+                return "Only PNG or JPEG images are allowed.";
+            }
+            return null;
+        }
+
+        private static bool StartsWith(byte[] bytes, byte[] signature)
+        {
+            if (bytes.Length < signature.Length) return false;
+            for (int i = 0; i < signature.Length; i++)
+            {
+                if (bytes[i] != signature[i]) return false;
+            }
+            return true;
+        }
+
         public HistoricalEventController(HistoryProjectDbContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
             this.dbContext = dbContext;
@@ -172,6 +206,15 @@ namespace WebAPI.Controllers
                 return UnprocessableEntity("Must specify location and/or region");
             }
 
+            // Re-validate the image server-side. The frontend already checks, but the client
+            // is untrusted: reject anything that isn't a PNG/JPEG within the size cap so we
+            // never persist arbitrary bytes. An empty image means "no image" and is allowed.
+            var imageError = ValidateImage(e.EventImage?.ImageBinary);
+            if (imageError is not null)
+            {
+                return UnprocessableEntity(imageError);
+            }
+
             //try
             //{
 
@@ -208,6 +251,14 @@ namespace WebAPI.Controllers
             if (existingEvent == null)
             {
                 return NotFound($"Cannot update unknown event: '{e.EventId} ({e.Title})'");
+            }
+
+            // Same image guard as Create — Update is a write path too, so it must not become
+            // a hole for arbitrary bytes once it is implemented.
+            var imageError = ValidateImage(e.EventImage?.ImageBinary);
+            if (imageError is not null)
+            {
+                return UnprocessableEntity(imageError);
             }
 
             //var newEventRevision = existingEvent.CreateUpdatedFromDto(eventDto);
