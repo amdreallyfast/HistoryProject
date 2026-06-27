@@ -12,7 +12,7 @@ import { sharedDragRotor } from "../sharedDragRotor"
 // triangulated (EarClipping) then subdivided (MeshSubdivider, maxEdgeLength 0.5),
 // so vertex count grows well past the boundary-pin count. MAX_INDICES is sized at
 // ~8 indices/vertex (a triangulated disk yields ~2 triangles/vertex => 6 indices,
-// plus margin). Buffers are allocated once and reused; see ensureBuffers below.
+// plus margin). Buffers are allocated once and reused; see initGeometryBuffers below.
 const MAX_VERTICES = 4096
 const MAX_INDICES = MAX_VERTICES * 8
 
@@ -38,7 +38,7 @@ export const EditRegionMesh = ({ sphereRadius }) => {
   // to keep the polygon visually live without re-running ear-clipping or
   // allocating new GPU buffers each frame. See useFrame below.
   const dragStartPositionsRef = useRef(null)
-  // Pre-allocated dynamic GPU buffers (allocated once in ensureBuffers, reused
+  // Pre-allocated dynamic GPU buffers (allocated once in initGeometryBuffers, reused
   // on every mesh update via TypedArray.set). activeVertex/IndexCount track how
   // much of each buffer is live so the drag loop and draw range ignore the tail.
   const positionAttrRef = useRef(null)
@@ -48,8 +48,8 @@ export const EditRegionMesh = ({ sphereRadius }) => {
 
   // One-time allocation of the large dynamic buffers, attached to the mesh
   // geometry. Replaces the old per-update `new THREE.Float32BufferAttribute(...)`
-  // / `Uint32BufferAttribute(...)` that churned GPU memory on every commit.
-  const ensureBuffers = () => {
+  // `Uint32BufferAttribute(...)` that churned GPU memory on every commit.
+  const initGeometryBuffers = () => {
     if (positionAttrRef.current != null) {
       return
     }
@@ -126,7 +126,7 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       return false
     }
 
-    ensureBuffers()
+    initGeometryBuffers()
     let positionAttr = positionAttrRef.current
     let indexAttr = indexAttrRef.current
 
