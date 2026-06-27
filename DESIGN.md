@@ -279,13 +279,18 @@ Detailed setup notes are archived in `claudePlans/2.GettingStartedSetup.txt`.
 
 ## Testing
 
-Frontend E2E via **Playwright** (TypeScript) in `npmfrontend/tests/`. Run `npm run test:e2e` from `npmfrontend/`. Playwright boots the Vite dev server itself (`playwright.config.ts`, port 5173); no backend or DB required.
+Two frontend layers: **Vitest** unit tests (pure logic) and **Playwright** UI E2E.
+
+**Unit (Vitest)** — `npm run test` from `npmfrontend/`. Tests live next to source as `src/**/*.test.{js,jsx}` (scoped via `vitest.config.js`; the `tests/` Playwright specs are excluded). Covers pure logic — currently the image helpers (`api/imageDataUrl.test.js`: magic-byte validation/sniffing incl. the disguised-file reject, size cap, data-URL round trip) and the event mapper contract (`api/eventMapper.test.js`: image bytes + `EventIsCreationOfSource` survive both directions). The image-validation tests load the real `tests/fixtures/images/` files so they run against genuine bytes.
+
+**E2E (Playwright)**, TypeScript in `npmfrontend/tests/`. Run `npm run test:e2e` from `npmfrontend/`. Playwright boots the Vite dev server itself (`playwright.config.ts`, port 5173); no backend or DB required.
 
 **Layer:** *UI* E2E — real browser, real React/Redux/Three.js — with the backend API stubbed at the network layer via `page.route`, served from `tests/fixtures/events.json`. Deterministic and Azure-independent, but does **not** verify the frontend↔backend contract (a true full-stack layer is a planned follow-up — see TODO.md "Full-stack testing").
 
 **Scenarios covered** (reproduce/extend here):
 - `smoke.spec.ts` (no mocking) — page loads with the expected `<title>`; the Three.js `<canvas>` is visible.
 - `search.spec.ts` (mocks `GET **/api/HistoricalEvent/GetFirst100` in `beforeEach`) — search form visible on load; clicking Search renders result items; empty search still loads results without crashing; a result shows the fixture title; clicking a result populates the details panel.
+- `image-upload.spec.ts` (mocks `GetFirst100`, and `POST Create` for the submit case) — backend `EventImage.ImageBinary` is rebuilt into a `data:image/png` URL on display; a valid PNG/JPEG upload previews with no error; a real SVG and HTML-disguised-as-`.png` are rejected with an inline error; submitting a valid image posts non-empty `ImageBinary` (stripped base64) and preserves `EventIsCreationOfSource`. Extra `data-testid`s: `edit-event-button`, `image-upload-input`, `edit-image-preview`, `image-upload-error`, `submit-event-button`, `display-event-image`.
 
 **Fixture constraints** (a fixture that violates these silently breaks tests): backend **PascalCase** shape that `eventMapper.backendToFrontend` reads (`EventId`, `Title`, `SpecificLocation.Latitude`, `Region` as a flat array of `{Latitude, Longitude, OrderIndex}`); `SpecificLocation` non-null (selection dereferences it); region boundary wound **counterclockwise** (clockwise makes `EarClipping` throw). As of the region error boundary (2026-06) a clockwise region no longer blanks the whole UI — it is caught per-region and skipped — but valid fixtures should still be CCW so the region actually renders. `region-error-boundary.spec.ts` deliberately feeds a clockwise region (`fixtures/events-with-bad-region.json`) to assert the boundary contains the crash. UI selectors are `data-testid`: `search-input`, `search-button`, `search-result-item`, `details-event-title`.
 
@@ -294,6 +299,9 @@ Frontend E2E via **Playwright** (TypeScript) in `npmfrontend/tests/`. Run `npm r
 ---
 
 ## Design Decisions Log
+
+### Event Image Persistence (2026-06)
+Event images persist as **raw bytes** in `EventImage.ImageBinary` (`varbinary(max)`); no re-encoding and no stored MIME type. The frontend captures an upload as a base64 data URL; `eventMapper.frontendToBackend` strips the `data:...;base64,` prefix and sends the bare base64 body, which Newtonsoft deserializes to `byte[]`. On read, `backendToFrontend` rebuilds the data URL and derives the MIME by **sniffing the leading magic bytes** (PNG `89 50 4E 47`, JPEG `FF D8 FF`) rather than carrying a label. Uploads are validated by **magic-byte signature + a 5 MB size cap** on the client (`api/imageDataUrl.js`) *and* re-validated server-side in `HistoricalEventController.Create` (→ 422) — validation, not the MIME label, is what prevents arbitrary bytes from being stored; the `MAX_IMAGE_BYTES` constant is mirrored in both. Images are rendered via `<img src={dataUrl}>`, which runs untrusted SVG without executing script — but SVG is rejected at upload anyway (only PNG/JPEG pass). Known follow-up: `GetFirst100` eager-loads images, so the search payload carries every result's bytes — a lazy-load-on-selection optimization is tracked in TODO.md. The `Event.EventIsCreationOfSource` flag (already wired through the frontend) is now a persisted backend column as part of the same work.
 
 ### "POI" to "Event" Rename (2026-02)
 The domain term "event" replaced the UI term "POI" (Point of Interest) throughout the codebase. Users think about historical events, not abstract points of interest. All state slices, components, and variables were renamed.
