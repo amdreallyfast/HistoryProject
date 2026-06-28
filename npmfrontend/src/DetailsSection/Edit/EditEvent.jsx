@@ -10,6 +10,7 @@ import { EditEventSummary } from "./EditEventSummary";
 import { EditEventSources } from "./EditEventSources";
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 import { eventStateActions } from "../../AppState/stateSliceEvent";
+import { selectEvent } from "../../AppState/selectEvent";
 import { createEvent } from "../../api/historyEventApi";
 import { frontendToBackend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
@@ -146,8 +147,16 @@ export function EditEvent({ }) {
       sources: sourcesArray,
     }
 
-    // Append new revision to allEvents; SearchSectionMain useEffect handles re-syncing display
+    // Append new revision to allEvents
     reduxDispatch(eventStateActions.appendEvent(newEvent))
+
+    // Make the just-submitted event the active selection (details panel + globe/search
+    // highlight). This is explicit rather than relying on SearchSectionMain's re-sync
+    // effect, which only re-points an already-selected event — a brand-new event has no
+    // prior selection, so without this it would never become selected. Runs independent
+    // of the awaited createEvent below, so the region/image render from the local event
+    // regardless of backend success.
+    selectEvent(reduxDispatch, newEvent)
 
     // Exit edit mode
     reduxDispatch(editEventStateActions.endEditMode())
