@@ -23,6 +23,15 @@ async function openEditMode(page) {
   await expect(page.getByPlaceholder('Title')).toBeVisible()
 }
 
+test('entering edit mode pre-fills the summary textarea', async ({ page }) => {
+  await page.goto('/')
+  await openEditMode(page)
+
+  // The fixture event's Summary must populate the (uncontrolled) textarea on load.
+  // Regression guard: it was set via .innerHTML, which leaves a <textarea> blank.
+  await expect(page.getByPlaceholder(/^Summary/)).toHaveValue('A fixture event for Playwright tests.')
+})
+
 test('successful submit shows the pending overlay then selects the event', async ({ page }) => {
   // Delay the Create response so the pending overlay is observable.
   await page.route('**/api/HistoricalEvent/Create', async (route) => {
