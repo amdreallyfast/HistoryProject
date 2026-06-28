@@ -32,12 +32,19 @@ test('entering edit mode pre-fills the summary textarea', async ({ page }) => {
   await expect(page.getByPlaceholder(/^Summary/)).toHaveValue('A fixture event for Playwright tests.')
 })
 
-test('successful submit shows the pending overlay then selects the event', async ({ page }) => {
+test('successful submit shows the overlay, then the new revision in place (instant history)', async ({ page }) => {
   // Delay the Create response so the pending overlay is observable.
   await page.route('**/api/HistoricalEvent/Create', async (route) => {
     await new Promise((r) => setTimeout(r, 700))
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) })
   })
+  // After Create, the success path re-fetches GetAllRevisions authoritatively. Return two
+  // revisions (the original + the edited Rev 2) so we can assert the in-place update and
+  // that the revision-history list is correct immediately (seeded from this same fetch).
+  const revTwo = { ...fixtureEvents[0], Revision: 2, Title: 'Edited Selected Title', RevisionDateTime: '2026-06-29T10:00:00Z' }
+  await page.route('**/api/HistoricalEvent/GetAllRevisions/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([fixtureEvents[0], revTwo]) })
+  )
   await page.goto('/')
   await openEditMode(page)
 
@@ -49,12 +56,18 @@ test('successful submit shows the pending overlay then selects the event', async
   // While the request is in flight the panel stays open under the scrim.
   await expect(page.getByTestId('submit-overlay')).toBeVisible()
 
-  // After it resolves: edit mode exits, the overlay is gone, and the event is the active
-  // selection (details panel shows the new title, image renders, search row highlighted).
+  // After it resolves: edit mode exits, the overlay is gone, and the authoritative latest
+  // revision is the active selection (details panel shows its title, image renders, search
+  // row highlighted).
   await expect(page.getByTestId('details-event-title')).toHaveText('Edited Selected Title')
   await expect(page.getByTestId('submit-overlay')).toHaveCount(0)
   await expect(page.getByTestId('display-event-image')).toBeVisible()
   await expect(page.getByTestId('search-result-item')).toHaveClass(/font-bold/)
+
+  // The revision-history list shows BOTH revisions immediately (no separate refetch wait),
+  // with the new Rev 2 highlighted as the current revision.
+  await expect(page.getByTestId('revision-row')).toHaveCount(2)
+  await expect(page.getByTestId('revision-row').filter({ hasText: 'Rev 2' })).toHaveClass(/bg-gray-600/)
 })
 
 test('a failed Create keeps the edit panel open with an error and commits nothing', async ({ page }) => {
