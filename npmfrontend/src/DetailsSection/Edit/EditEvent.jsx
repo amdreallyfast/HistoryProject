@@ -11,8 +11,9 @@ import { EditEventSources } from "./EditEventSources";
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 import { eventStateActions } from "../../AppState/stateSliceEvent";
 import { selectEvent } from "../../AppState/selectEvent";
-import { createEvent } from "../../api/historyEventApi";
-import { frontendToBackend } from "../../api/eventMapper";
+import { getLatestRevisions } from "../../AppState/getLatestRevisions";
+import { createEvent, getAllRevisions } from "../../api/historyEventApi";
+import { frontendToBackend, backendToFrontend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
 
 
@@ -159,20 +160,37 @@ export function EditEvent() {
     setSubmitting(true)
     try {
       await createEvent(frontendToBackend(newEvent))
+    } catch (err) {
+      // Create failed: drop the scrim, stay in edit mode, surface the reason so the user
+      // can fix and retry. Nothing was committed, so there is no phantom to clean up.
+      setSubmitting(false)
+      setSubmitError(err.message || "Submit failed. Please try again.")
+      return
+    }
 
-      // Success: commit locally. Append the revision, make it the active selection
-      // (details panel + globe/search highlight), refresh the revision history cache, and
-      // leave edit mode (which unmounts this panel).
+    // Create succeeded — confirm with an authoritative re-fetch of THIS event's revisions
+    // and update it in place (rather than trusting the locally-built optimistic event).
+    // The scrim stays up across this second round-trip; on resolve the details, search
+    // list, globe, and revision-history list are all in sync with the server.
+    try {
+      const fresh = (await getAllRevisions(newEvent.eventId)).map(backendToFrontend)
+      if (!fresh.length) throw new Error("no revisions returned")
+      reduxDispatch(eventStateActions.upsertEventRevisions({ eventId: newEvent.eventId, revisions: fresh }))
+      // Seed RevisionStack's query cache from the same fetch so its list is correct the
+      // instant the panel opens (no separate refetch delay).
+      queryClient.setQueryData(["revisions", newEvent.eventId], fresh)
+      const latest = getLatestRevisions(fresh).find(e => e.eventId === newEvent.eventId) ?? fresh[0]
+      selectEvent(reduxDispatch, latest)
+    } catch (refetchErr) {
+      // Create succeeded but the confirming re-fetch failed (e.g. a network blip on the
+      // second call). Fall back to the optimistic local event so the successful submit is
+      // not lost, and let RevisionStack refetch on its own.
+      console.error({ "EditEvent.onSubmitClick[refetch]": refetchErr.message })
       reduxDispatch(eventStateActions.appendEvent(newEvent))
       selectEvent(reduxDispatch, newEvent)
       queryClient.invalidateQueries({ queryKey: ["revisions", newEvent.eventId] })
-      reduxDispatch(editEventStateActions.endEditMode())
-    } catch (err) {
-      // Failure: drop the scrim, stay in edit mode, surface the reason so the user can fix
-      // and retry. Nothing was appended/selected, so there is no phantom to clean up.
-      setSubmitting(false)
-      setSubmitError(err.message || "Submit failed. Please try again.")
     }
+    reduxDispatch(editEventStateActions.endEditMode())
   }
 
   const onCancelClick = () => {
