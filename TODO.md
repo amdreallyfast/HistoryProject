@@ -48,6 +48,8 @@ Guidance:
 
 ## Bug Fixes
 
+- [ ] `[plan first]` **Globe region does not follow the selected revision.** When browsing revisions in `RevisionStack`, the details panel updates but the globe's region boundary mesh and pins stay on the *latest* revision's shape. `GlobeSection/Scene.jsx` builds display regions from `getLatestRevisions(allEvents)` (latest per event) and only toggles `isSelected`, so selecting an older revision re-colors but never re-shapes the selected event's region. Fix: for the selected event, source geometry from `eventState.selectedEvent` (the browsed revision) instead of its latest; others keep latest. (Planned 2026-06.)
+
 - [ ] `[simple]` **THREE.Clock deprecation warning still present after fiber v9 upgrade.** **Ignore for now (Friday, 2026/04/25).** After upgrading to `@react-three/fiber` v9.6.0, the console still shows: `THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.` The source is `node_modules/@react-three/fiber/dist/events-760a1017.esm.js:985` — not project code. The wheel-event violation warning is gone; only the Clock warning remains. Revisit when a newer fiber stable release migrates its internal clock to `THREE.Timer`.
 
 - [ ] `[plan first]` **Region validity gating bugs (surfaced by code review, 2026-06).** `EditRegionMesh.writeRegionMesh` and `regionMeshGeometry.regionWindingSign` decide whether the region is valid and whether Submit is enabled. Three related correctness issues:
