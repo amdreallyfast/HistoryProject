@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useQueryClient } from "@tanstack/react-query"
 import { EditEventHeader } from "./EditEventHeader";
@@ -16,12 +16,18 @@ import { frontendToBackend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
 
 
-export function EditEvent({ }) {
+export function EditEvent() {
   const reduxDispatch = useDispatch()
   const queryClient = useQueryClient()
   const editState = useSelector((state) => state.editEventReducer)
   const allEvents = useSelector((state) => state.eventReducer.allEvents)
   const editSources = useSelector((state) => state.editSources)
+
+  // Submit is confirm-before-commit: while the backend Create is in flight we show a scrim
+  // and keep the edit panel open; only on success do we append/select/exit. A failure
+  // leaves the panel open with an inline error (and nothing appended → no phantom event).
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   // Compare current edit state against original snapshot to detect changes.
   // Compares the fields that the user can edit (not sphere point ids/xyz, just lat/long).
@@ -97,7 +103,7 @@ export function EditEvent({ }) {
   // is out of scope by decision.)
   const hasRegionError = !editState.regionValid
 
-  const onSubmitClick = async (e) => {
+  const onSubmitClick = async () => {
 
     // Find max revision for this eventId. allEvents is null until the user runs
     // Search at least once, so guard against it (a brand-new event submitted from
@@ -147,27 +153,25 @@ export function EditEvent({ }) {
       sources: sourcesArray,
     }
 
-    // Append new revision to allEvents
-    reduxDispatch(eventStateActions.appendEvent(newEvent))
-
-    // Make the just-submitted event the active selection (details panel + globe/search
-    // highlight). This is explicit rather than relying on SearchSectionMain's re-sync
-    // effect, which only re-points an already-selected event — a brand-new event has no
-    // prior selection, so without this it would never become selected. Runs independent
-    // of the awaited createEvent below, so the region/image render from the local event
-    // regardless of backend success.
-    selectEvent(reduxDispatch, newEvent)
-
-    // Exit edit mode
-    reduxDispatch(editEventStateActions.endEditMode())
-
-    // Persist to backend (non-blocking: UI is already updated via Redux above)
+    // Confirm with the backend BEFORE committing to local state. Keep the edit panel open
+    // (under a scrim) until Create resolves so a rejection never leaves a phantom event.
+    setSubmitError(null)
+    setSubmitting(true)
     try {
       await createEvent(frontendToBackend(newEvent))
-      // Invalidate the revision history cache so RevisionStack shows the new revision
+
+      // Success: commit locally. Append the revision, make it the active selection
+      // (details panel + globe/search highlight), refresh the revision history cache, and
+      // leave edit mode (which unmounts this panel).
+      reduxDispatch(eventStateActions.appendEvent(newEvent))
+      selectEvent(reduxDispatch, newEvent)
       queryClient.invalidateQueries({ queryKey: ["revisions", newEvent.eventId] })
+      reduxDispatch(editEventStateActions.endEditMode())
     } catch (err) {
-      console.error({ "EditEvent.onSubmitClick[create]": err.message })
+      // Failure: drop the scrim, stay in edit mode, surface the reason so the user can fix
+      // and retry. Nothing was appended/selected, so there is no phantom to clean up.
+      setSubmitting(false)
+      setSubmitError(err.message || "Submit failed. Please try again.")
     }
   }
 
@@ -176,7 +180,7 @@ export function EditEvent({ }) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
       <EditEventHeader />
       <EditEventType />
       <EditEventImage />
@@ -189,26 +193,45 @@ export function EditEvent({ }) {
       {/* Revision author fixed by whoever is logged in */}
       <input className="m-2 text-black text-left" type="text" maxLength={128} placeholder="Revision author" />
 
-      {/* Use "mt-auto" to auto grow the top margin until it fills the space. 
+      {/* Inline error when the backend rejects the submit (panel stays open to retry). */}
+      {submitError && (
+        <div data-testid="submit-error" className="text-red-500 text-sm text-left m-2">{submitError}</div>
+      )}
+
+      {/* Use "mt-auto" to auto grow the top margin until it fills the space.
     Source:
       https://stackoverflow.com/questions/31000885/align-an-element-to-bottom-with-flexbox
   */}
       <div className="flex justify-end gap-2 mt-auto m-2">
         <button
-          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onCancelClick}
+          disabled={submitting}
         >
           Cancel
         </button>
         <button
           data-testid="submit-event-button"
-          className={`font-bold py-2 px-4 rounded text-white ${hasChanges && !hasDateErrors && !hasRegionError ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
-          onClick={(e) => onSubmitClick(e)}
-          disabled={!hasChanges || hasDateErrors || hasRegionError}
+          className={`font-bold py-2 px-4 rounded text-white ${hasChanges && !hasDateErrors && !hasRegionError && !submitting ? "bg-gray-500 hover:bg-gray-700" : "bg-gray-700 opacity-50 cursor-not-allowed"}`}
+          onClick={onSubmitClick}
+          disabled={!hasChanges || hasDateErrors || hasRegionError || submitting}
         >
           Submit
         </button>
       </div>
+
+      {/* Pending overlay: scrim + orbiting comet while the backend Create is in flight. */}
+      {submitting && (
+        <div
+          data-testid="submit-overlay"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-gray-500/60"
+        >
+          <div className="relative w-12 h-12 animate-spin">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)]" />
+          </div>
+          <span className="text-white font-medium">Submitting...</span>
+        </div>
+      )}
     </div>
   )
 }
