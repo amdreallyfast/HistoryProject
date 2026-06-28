@@ -2,11 +2,10 @@ import { useState, useEffect, useRef } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
+import { selectEvent } from "../AppState/selectEvent"
 import { getLatestRevisions } from "../AppState/getLatestRevisions"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
-import { createSpherePointFromLatLong } from "../GlobeSection/createSpherePoint"
-import { globeInfo } from "../GlobeSection/constValues"
 import { getFirst100 } from "../api/historyEventApi"
 import { backendToFrontend } from "../api/eventMapper"
 
@@ -65,34 +64,8 @@ export function SearchSectionMain() {
     let eventJson = latestRevisions.find(ev => ev.eventId === eventId)
     if (!eventJson) return
 
-    // Select this event
-    reduxDispatch(eventStateActions.setSelectedEvent(eventJson))
-
-    // Convert lat/long to sphere points for the globe
-    let primarySpherePoint = createSpherePointFromLatLong(
-      eventJson.primaryLoc.lat,
-      eventJson.primaryLoc.long,
-      globeInfo.radius
-    )
-
-    let regionSpherePoints = eventJson.regionBoundaries.map((boundary) =>
-      createSpherePointFromLatLong(boundary.lat, boundary.long, globeInfo.radius)
-    )
-
-    // Dispatch to selected event state (populates display components)
-    reduxDispatch(selectedEventStateActions.load({
-      eventId: eventJson.eventId,
-      title: eventJson.title,
-      tags: eventJson.tags,
-      eventIsCreationOfSource: eventJson.eventIsCreationOfSource,
-      imageDataUrl: eventJson.imageDataUrl,
-      summary: eventJson.summary,
-      eventTime: eventJson.eventTime,
-      sources: eventJson.sources,
-      primaryLoc: primarySpherePoint,
-      regionBoundaries: regionSpherePoints,
-      revisionAuthor: eventJson.revisionAuthor || "",
-    }))
+    // Select this event (globe/search highlight + details panel, with sphere-point conversion)
+    selectEvent(reduxDispatch, eventJson)
   }
 
   const onSearchTextChanged = (e) => {
@@ -156,18 +129,7 @@ export function SearchSectionMain() {
     const latest = getLatestRevisions(allEvents).find(e => e.eventId === selectedEvent.eventId)
     if (!latest || latest.revision === selectedEvent.revision) return
 
-    reduxDispatch(eventStateActions.setSelectedEvent(latest))
-    const primarySpherePoint = latest.primaryLoc
-      ? createSpherePointFromLatLong(latest.primaryLoc.lat, latest.primaryLoc.long, globeInfo.radius)
-      : null
-    const regionSpherePoints = latest.regionBoundaries.map(rb =>
-      createSpherePointFromLatLong(rb.lat, rb.long, globeInfo.radius)
-    )
-    reduxDispatch(selectedEventStateActions.load({
-      ...latest,
-      primaryLoc: primarySpherePoint,
-      regionBoundaries: regionSpherePoints,
-    }))
+    selectEvent(reduxDispatch, latest)
   }, [allEvents, selectedEvent])
 
   const latestEvents = allEvents ? getLatestRevisions(allEvents) : null
