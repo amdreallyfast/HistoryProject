@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { getAllRevisions } from "../../api/historyEventApi"
 import { backendToFrontend } from "../../api/eventMapper"
 import { selectEvent } from "../../AppState/selectEvent"
+import { formatRevisionDate } from "./formatRevisionDate"
 
 export function RevisionStack({ eventId }) {
   const dispatch = useDispatch()
@@ -27,13 +28,15 @@ export function RevisionStack({ eventId }) {
       {revisions.map(rev => (
         <button
           key={rev.revision}
+          data-testid="revision-row"
           onClick={() => onRevisionClick(rev)}
-          className={`text-left px-2 py-1 text-sm border-b border-gray-700 last:border-0
+          className={`grid grid-cols-[1fr_auto] gap-2 items-baseline px-2 py-1 text-sm border-b border-gray-700 last:border-0
             ${rev.revision === currentRevision
               ? "bg-gray-600 text-white"
               : "text-gray-300 hover:bg-gray-700"}`}
         >
-          Rev {rev.revision} — {rev.revisionAuthor}
+          <span className="text-left">Rev {rev.revision} — {rev.revisionAuthor}</span>
+          <span data-testid="revision-date" className="text-right text-gray-400">{formatRevisionDate(rev.revisionDateTime)}</span>
         </button>
       ))}
     </div>
