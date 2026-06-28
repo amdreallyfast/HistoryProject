@@ -13,6 +13,7 @@ export function backendToFrontend(e) {
     eventId: e.EventId,
     revision: e.Revision,
     revisionAuthor: e.RevisionAuthor ?? "",
+    revisionDateTime: e.RevisionDateTime ?? null,
     title: e.Title,
     tags: e.Tags?.map(t => t.Value) ?? [],
     summary: e.Summary ?? "",

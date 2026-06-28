@@ -20,6 +20,11 @@ describe("backendToFrontend", () => {
     expect(backendToFrontend({ EventIsCreationOfSource: false }).eventIsCreationOfSource).toBe(false)
     expect(backendToFrontend({}).eventIsCreationOfSource).toBe(false)
   })
+
+  it("carries RevisionDateTime through (for the revision-history table)", () => {
+    expect(backendToFrontend({ RevisionDateTime: "2026-06-28T14:30:00Z" }).revisionDateTime).toBe("2026-06-28T14:30:00Z")
+    expect(backendToFrontend({}).revisionDateTime).toBeNull()
+  })
 })
 
 describe("frontendToBackend", () => {
