@@ -59,7 +59,7 @@ Guidance:
 
 ## Refactors
 
-- [ ] `[plan first]` **Wire image upload to backend.** Currently `EventImage.ImageBinary` is always sent as empty bytes. The frontend has an `imageDataUrl` field (base64 data URL). Need to: (1) convert the data URL to a byte array in `frontendToBackend` mapper, (2) store and retrieve binary image data via the backend API, (3) render it in `DisplayEventImage`. `eventIsCreationOfSource` is also missing from the backend `Event` model and must be added (with a migration) as part of this work.
+- [x] `[plan first]` **Wire image upload to backend.** Currently `EventImage.ImageBinary` is always sent as empty bytes. The frontend has an `imageDataUrl` field (base64 data URL). Need to: (1) convert the data URL to a byte array in `frontendToBackend` mapper, (2) store and retrieve binary image data via the backend API, (3) render it in `DisplayEventImage`. `eventIsCreationOfSource` is also missing from the backend `Event` model and must be added (with a migration) as part of this work.
 
 - [ ] `[plan first]` **Lazy-load event images on selection to slim the `GetFirst100` payload.** Now that images persist (raw bytes in `EventImage.ImageBinary`), `GetFirst100` eager-loads `.Include(x => x.EventImage)`, so the search-list response carries the full base64 image bytes (~33% inflated) for up to 100 events — potentially several MB on the initial search. Two coupled costs:
   - **Backend payload:** strip image bytes from the list payload (a projection/DTO that omits `ImageBinary`, or a separate lighter read path) and fetch the full event (with image) only when an event is selected.
