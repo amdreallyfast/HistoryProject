@@ -67,12 +67,14 @@ test('event time opens in exact mode when begin == end', async ({ page }) => {
   await expect(page.getByTestId('event-latest-subsection')).toHaveCount(0)
 })
 
-test('display shows "(exact)" for a begin==end event', async ({ page }) => {
+test('display shows an exact date plainly, with no "(exact)" suffix', async ({ page }) => {
   await mockGetFirst100(page, [exactEvent()])
   await page.goto('/')
   await selectEvent(page)
 
-  await expect(page.getByText('(exact)')).toBeVisible()
+  // exactEvent is year 603 only → "603 AD", shown as-is with no "(exact)" label.
+  await expect(page.getByText('603 AD')).toBeVisible()
+  await expect(page.getByText('(exact)')).toHaveCount(0)
 })
 
 test('checking "Exact date" persists begin==end on submit (year-only partial date)', async ({ page }) => {
