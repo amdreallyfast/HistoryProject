@@ -3,6 +3,7 @@
     "EventId": "test-event-1",
     "Revision": 1,
     "RevisionAuthor": "test",
+    "RevisionDateTime": "2026-06-28T14:30:00Z",
     "Title": "Test Event One",
     "Summary": "A fixture event for Playwright tests.",
     "Tags": [{ "Value": "rome" }],
