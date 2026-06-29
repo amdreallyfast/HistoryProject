@@ -1,0 +1,43 @@
+name: Live E2E (test backend)
+
+# Full-stack tests against the deployed test App Service + its SQL DB. NOT run on push/PR —
+# they mutate the test DB (namespaced __e2e__ data only) and depend on Azure being reachable.
+on:
+  schedule:
+    - cron: '0 9 * * *' # nightly ~09:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  live-e2e:
+    runs-on: ubuntu-latest
+    env:
+      # Set repo variable E2E_API_BASE_URL (e.g. https://historyprojectapi-testing.azurewebsites.net).
+      # If unset, the tests skip (Assert.Inconclusive) rather than fail.
+      E2E_API_BASE_URL: ${{ vars.E2E_API_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+
+      - name: Warm up the test App Service (no Always-On → cold starts)
+        if: ${{ env.E2E_API_BASE_URL != '' }}
+        run: |
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$E2E_API_BASE_URL/api/HistoricalEvent/GetFirst100" || true)
+            echo "warmup attempt $i -> HTTP $code"
+            if [ "$code" = "200" ]; then break; fi
+            sleep 15
+          done
+
+      - name: Run live E2E tests
+        run: dotnet test WebAPI/LiveE2ETests/LiveE2ETests.csproj --configuration Release --logger "trx;LogFileName=live-e2e-results.trx"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: live-e2e-results
+          path: 'WebAPI/LiveE2ETests/TestResults/*.trx'
+          retention-days: 30
