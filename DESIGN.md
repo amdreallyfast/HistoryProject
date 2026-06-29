@@ -301,6 +301,14 @@ Two frontend layers: **Vitest** unit tests (pure logic) and **Playwright** UI E2
 
 **CI:** `.github/workflows/playwright.yml` — runs on push/PR to `main` and `test`, path-scoped to `npmfrontend/**`.
 
+### Backend tests (two layers)
+
+The frontend suites above mock the API, so they deliberately don't verify the frontend↔backend contract. Two backend layers cover that gap.
+
+**Layer 1 — per-push deterministic** (`WebAPI/UnitTesting`, MSTest). No Azure/SQL: controller tests run over EF Core **InMemory**. `CreateImageValidationTests` asserts `Create` returns 200 for a valid PNG/JPEG/no-image and 422 for oversized / non-image (disguised) bytes. `ReadEndpointContractTests` asserts `GetFirst100` returns latest-only per `EventId` and eager-loads the related entities (queried via a fresh context so a missing `.Include` would surface). `JsonContractTests` reproduces the `Program.cs` Newtonsoft settings (`ReferenceLoopHandling.Ignore` + `DefaultContractResolver`) and asserts the PascalCase key/shape contract `backendToFrontend` reads — the casing-drift guard. Run: `dotnet test WebAPI/UnitTesting/UnitTesting.csproj`. CI: `.github/workflows/dotnet-tests.yml` (push/PR to `main`/`test`, paths `WebAPI/**`).
+
+**Layer 2 — nightly/manual live-DB** (`WebAPI/LiveE2ETests`, MSTest + `HttpClient` against the deployed test App Service). Verifies the real live JSON contract and genuine long-term persistence/edits. **Data lifecycle — namespaced, capped, never wipe:** all test data lives under a reserved `__e2e__` tag; a small set of **permanent** `Test Event N E2E` events (fixed `EventId`s) is seeded idempotently (create-if-absent), read/contract tests run against them, and edit tests **append a new revision** (history grows, event count stays capped). `ClassInitialize` sweeps **orphans** (any `__e2e__`-tagged event not in the permanent set) — cleanup is namespace-scoped only, so the DB is never wiped and real data is never touched. Gated on the `E2E_API_BASE_URL` env var (repo variable; e.g. the test App Service URL); when unset the tests **skip** (`Assert.Inconclusive`), so they're no-ops per-push and locally. CI: `.github/workflows/live-e2e.yml` (nightly cron + `workflow_dispatch`; warms the App Service first for cold-start tolerance).
+
 ---
 
 ## Design Decisions Log
