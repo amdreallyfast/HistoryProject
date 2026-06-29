@@ -95,7 +95,7 @@ namespace WebAPI.LiveE2ETests
                 if (status == HttpStatusCode.NotFound)
                 {
                     var resp = await CreateAsync(BuildCanonicalEvent(eventId, revision: 1, title));
-                    resp.EnsureSuccessStatusCode();
+                    await EnsureCreatedAsync(resp);
                 }
             }
         }
@@ -116,8 +116,15 @@ namespace WebAPI.LiveE2ETests
             }
         }
 
+        // PNG magic bytes — a minimal valid image so the server-side image check passes (and
+        // EventImage is non-null, which the [Required] model attribute demands).
+        private static readonly byte[] PngBytes = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+
         public static Event BuildCanonicalEvent(Guid eventId, int revision, string title)
         {
+            // Mirror the shape the frontend's frontendToBackend sends: the Event model marks
+            // EventImage, Tags, and Sources [Required], and the controller is [ApiController], so
+            // any of them being null makes model binding return 400 before the action runs.
             return new Event
             {
                 Id = Guid.NewGuid(),
@@ -127,7 +134,9 @@ namespace WebAPI.LiveE2ETests
                 RevisionAuthor = "e2e",
                 Title = title,
                 Summary = "Permanent E2E fixture event.",
+                EventIsCreationOfSource = false,
                 Tags = new List<Tag> { new() { Id = Guid.NewGuid(), Value = E2ETag } },
+                EventImage = new EventImage { Id = Guid.NewGuid(), ImageBinary = PngBytes },
                 SpecificLocation = new EventLocation { Id = Guid.NewGuid(), Latitude = 41.9, Longitude = 12.5 },
                 Region = new List<EventLocation>
                 {
@@ -135,7 +144,19 @@ namespace WebAPI.LiveE2ETests
                     new() { Id = Guid.NewGuid(), Latitude = 42.0, Longitude = 13.0, OrderIndex = 1 },
                     new() { Id = Guid.NewGuid(), Latitude = 43.0, Longitude = 12.5, OrderIndex = 2 },
                 },
+                Sources = new List<EventSource>(),
             };
+        }
+
+        // Like EnsureSuccessStatusCode but includes the response body, so a 400/422 from Create
+        // reports *why* (the validation message) instead of a bare status code.
+        public static async Task EnsureCreatedAsync(HttpResponseMessage resp)
+        {
+            if (!resp.IsSuccessStatusCode)
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Create failed ({(int)resp.StatusCode} {resp.StatusCode}): {body}");
+            }
         }
 
         // ---- helpers ----

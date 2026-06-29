@@ -58,7 +58,7 @@ namespace WebAPI.LiveE2ETests
             var nextRevision = latest.Revision + 1;
             var edited = E2ESupport.BuildCanonicalEvent(eventId, nextRevision, $"Test Event 1 E2E (rev {nextRevision})");
             var resp = await E2ESupport.CreateAsync(edited);
-            resp.EnsureSuccessStatusCode();
+            await E2ESupport.EnsureCreatedAsync(resp);
 
             var after = await E2ESupport.GetAllRevisionsAsync(eventId);
             Assert.AreEqual(before.Count + 1, after.Count, "a new revision should have been persisted");
