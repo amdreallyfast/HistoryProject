@@ -116,9 +116,12 @@ namespace WebAPI.LiveE2ETests
             }
         }
 
-        // PNG magic bytes — a minimal valid image so the server-side image check passes (and
-        // EventImage is non-null, which the [Required] model attribute demands).
-        private static readonly byte[] PngBytes = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+        // A complete, valid PNG loaded from the copied test asset (see LiveE2ETests.csproj).
+        // Unlike the old signature-only bytes — which passed the server's magic-byte check but
+        // were not a decodable image, so the frontend showed a broken img + "ERROR: Bad dataUrl."
+        // — this round-trips as a real image the UI can display.
+        private static readonly Lazy<byte[]> SeedImageBytes = new(() =>
+            File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "JohnOethGuitar.png")));
 
         public static Event BuildCanonicalEvent(Guid eventId, int revision, string title)
         {
@@ -133,10 +136,18 @@ namespace WebAPI.LiveE2ETests
                 RevisionDateTime = DateTime.UtcNow,
                 RevisionAuthor = "e2e",
                 Title = title,
-                Summary = "Permanent E2E fixture event.",
+                Summary = "Permanent E2E fixture event used by the live full-stack tests.",
                 EventIsCreationOfSource = false,
+                // Real time bounds so the details panel reads "between '1200/01/01 AD' and
+                // '1400/12/31 AD'" instead of the ridiculous -99999/99999 sentinel defaults.
+                LBYear = 1200,
+                LBMonth = 1,
+                LBDay = 1,
+                UBYear = 1400,
+                UBMonth = 12,
+                UBDay = 31,
                 Tags = new List<Tag> { new() { Id = Guid.NewGuid(), Value = E2ETag } },
-                EventImage = new EventImage { Id = Guid.NewGuid(), ImageBinary = PngBytes },
+                EventImage = new EventImage { Id = Guid.NewGuid(), ImageBinary = SeedImageBytes.Value },
                 SpecificLocation = new EventLocation { Id = Guid.NewGuid(), Latitude = 41.9, Longitude = 12.5 },
                 Region = new List<EventLocation>
                 {
@@ -144,7 +155,23 @@ namespace WebAPI.LiveE2ETests
                     new() { Id = Guid.NewGuid(), Latitude = 42.0, Longitude = 13.0, OrderIndex = 1 },
                     new() { Id = Guid.NewGuid(), Latitude = 43.0, Longitude = 12.5, OrderIndex = 2 },
                 },
-                Sources = new List<EventSource>(),
+                // One source with real publication years (its defaults are the same sentinel),
+                // so the Sources section renders a clean entry rather than an empty list.
+                Sources = new List<EventSource>
+                {
+                    new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Title = "E2E Reference Work",
+                        Where = "ch. 1",
+                        Authors = new List<EventSourceAuthor>
+                        {
+                            new() { Id = Guid.NewGuid(), Name = "E2E Author" },
+                        },
+                        PublicationLBYear = 1300,
+                        PublicationUBYear = 1300,
+                    },
+                },
             };
         }
 
