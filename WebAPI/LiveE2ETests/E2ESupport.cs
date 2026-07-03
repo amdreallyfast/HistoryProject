@@ -81,7 +81,14 @@ namespace WebAPI.LiveE2ETests
 
         public static async Task DeleteAsync(Guid eventId)
         {
-            await Http.DeleteAsync(Url($"Delete/{eventId}"));
+            var resp = await Http.DeleteAsync(Url($"Delete/{eventId}"));
+            // Tolerate 404 (already gone), but surface anything else so orphan cleanup can't
+            // silently no-op — e.g. the 403 env-gate or a 500 would otherwise be swallowed.
+            if (!resp.IsSuccessStatusCode && resp.StatusCode != HttpStatusCode.NotFound)
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Delete failed ({(int)resp.StatusCode} {resp.StatusCode}): {body}");
+            }
         }
 
         // ---- Namespaced data strategy ----

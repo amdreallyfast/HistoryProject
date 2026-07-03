@@ -251,7 +251,7 @@ Controller: `HistoricalEventController` at `api/HistoricalEvent/`
 | `GetEventOfTheDay` | GET | Random/featured event |
 | `Create` | POST | New event |
 | `Update` | PUT | Update (new revision) |
-| `Delete/{eventId}` | DELETE | Delete event |
+| `Delete/{eventId}` | DELETE | Hard-delete whole event (all revisions + children); dev/test only |
 
 ### Data Model (Entity Framework)
 
@@ -312,6 +312,9 @@ The frontend suites above mock the API, so they deliberately don't verify the fr
 ---
 
 ## Design Decisions Log
+
+### Event Delete: Whole-Event Hard Delete, Gated to Non-Prod (2026-07)
+`Delete/{eventId}` hard-deletes the **entire** event — every revision of the `EventId` plus its owned children (Region locations, specific location, image, sources, source authors) — via load-graph + `RemoveRange` (no schema/cascade migration). It previously loaded one row without includes and `Remove`d it, which both (a) **500'd** on the real DB (Region/Source rows carry `NO ACTION` FKs to the Event, so removing the Event alone violates them) and (b) only removed a **single revision**. There is **no user-facing delete** — the app is append-only (editing always appends a revision) — so this endpoint is backend-only test/admin cleanup; the live-E2E orphan cleanup is its only caller. Until an account/permission system exists it is **gated to dev/test** (`IsDevelopment() || IsTesting()`); prod returns 403. Tags are shared via the `EventTag` many-to-many join, so their join rows drop by DB cascade but the `Tag` entities are left for other events. Soft-delete was considered and rejected: the append-only UI already guarantees history persistence, and soft-delete wouldn't free the test-DB rows this endpoint exists to clean.
 
 ### Event Image Persistence (2026-06)
 Event images persist as **raw bytes** in `EventImage.ImageBinary` (`varbinary(max)`); no re-encoding and no stored MIME type. The frontend captures an upload as a base64 data URL; `eventMapper.frontendToBackend` strips the `data:...;base64,` prefix and sends the bare base64 body, which Newtonsoft deserializes to `byte[]`. On read, `backendToFrontend` rebuilds the data URL and derives the MIME by **sniffing the leading magic bytes** (PNG `89 50 4E 47`, JPEG `FF D8 FF`) rather than carrying a label. Uploads are validated by **magic-byte signature + a 5 MB size cap** on the client (`api/imageDataUrl.js`) *and* re-validated server-side in `HistoricalEventController.Create` (→ 422) — validation, not the MIME label, is what prevents arbitrary bytes from being stored; the `MAX_IMAGE_BYTES` constant is mirrored in both. Images are rendered via `<img src={dataUrl}>`, which runs untrusted SVG without executing script — but SVG is rejected at upload anyway (only PNG/JPEG pass). Known follow-up: `GetFirst100` eager-loads images, so the search payload carries every result's bytes — a lazy-load-on-selection optimization is tracked in TODO.md. The `Event.EventIsCreationOfSource` flag (already wired through the frontend) is now a persisted backend column as part of the same work.

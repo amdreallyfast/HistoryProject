@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using WebAPI;
 using WebAPI.ModelDTOs;
 using WebAPI.Models;
 
@@ -278,28 +280,52 @@ namespace WebAPI.Controllers
         [HttpDelete]
         public async Task<ActionResult> Delete(Guid eventId)
         {
-            // Note: Don't need to load the related models just to verify that it exists. The
-            // cascade delete will get them anyway.
-            var existingEvent = await dbContext.Events
+            // There is no user-facing delete: the app is append-only (editing always creates a
+            // new revision), so this endpoint exists purely for test/admin cleanup. Until a real
+            // account/permission system exists, gate it to dev/test environments so prod events
+            // cannot be destroyed through the public API. (TODO: replace with admin permission.)
+            if (!webHostEnvironment.IsDevelopment() && !webHostEnvironment.IsTesting())
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    "Delete is only available in the development/test environment.");
+            }
+
+            // Hard-delete the ENTIRE event: every revision of this EventId plus its owned
+            // children. Load the full graph so the owned rows are tracked and removed explicitly —
+            // the Region locations and Sources hold NO ACTION FKs to the Event, so removing the
+            // Event alone would fail the constraint (the historical cause of the 500 here).
+            var revisions = await dbContext.Events
                 .Where(x => x.EventId == eventId)
-                .FirstOrDefaultAsync();
-            if (existingEvent == null)
+                .Include(x => x.Tags)
+                .Include(x => x.EventImage)
+                .Include(x => x.SpecificLocation)
+                .Include(x => x.Region)
+                .Include(x => x.Sources)
+                    .ThenInclude(source => source.Authors)
+                .ToListAsync();
+            if (revisions.Count == 0)
             {
                 return NotFound($"Unknown event ID: '{eventId}'");
             }
 
-            //// Check if anyone _else_ is using the image.
-            //var eventsUsingImage = await dbContext.Events
-            //    .Where(x => x.EventId != existingEvent.EventId)
-            //    .Where(x => x.ImageFilePath == existingEvent.ImageFilePath)
-            //    .FirstOrDefaultAsync();
-            //if (eventsUsingImage == null)
-            //{
-            //    // No one else using it. Remove the associated image.
-            //    System.IO.File.Delete(existingEvent.ImageFilePath);
-            //}
-
-            dbContext.Events.Remove(existingEvent);
+            foreach (var rev in revisions)
+            {
+                if (rev.Region is not null) dbContext.Locations.RemoveRange(rev.Region);
+                if (rev.SpecificLocation is not null) dbContext.Locations.Remove(rev.SpecificLocation);
+                if (rev.EventImage is not null) dbContext.Images.Remove(rev.EventImage);
+                if (rev.Sources is not null)
+                {
+                    foreach (var source in rev.Sources)
+                    {
+                        if (source.Authors is not null) dbContext.SourceAuthors.RemoveRange(source.Authors);
+                    }
+                    dbContext.Sources.RemoveRange(rev.Sources);
+                }
+                // Tags are shared via the EventTag many-to-many join: removing the Event drops the
+                // join rows (DB cascade), but the Tag entities are left alone since other events
+                // may reference them.
+            }
+            dbContext.Events.RemoveRange(revisions);
             await dbContext.SaveChangesAsync();
             return Ok("Delete successful");
         }
