@@ -17,10 +17,17 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.4.3" />
     <PackageReference Include="MSTest.TestFramework" Version="3.4.3" />
+    <!-- In-memory EF Core for controller integration tests (no SQL Server / Azure needed). -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\WebAPI\WebAPI.csproj" />
+  </ItemGroup>
+
+  <!-- Needed so tests can use ControllerBase / ActionResult / IWebHostEnvironment. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>

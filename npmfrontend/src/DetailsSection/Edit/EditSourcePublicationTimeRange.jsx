@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
-import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions"
+import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange, isExactDate } from "./detailRestrictions"
 
 /*
 TODO: (??maybe just duplicate the form and customize it? how much do you want to avoid duplication? are you willing to sacrifice the readability of the code??
@@ -68,6 +68,11 @@ export function EditSourcePublicationTimeRange({
   const [lowerBoundError, setLowerBoundError] = useState()
   const [rangeError, setRangeError] = useState(null)
 
+  // "Exact date" mode: a single publication date instead of a range. Persisted via the
+  // begin==end proxy (no boolean column) — while on, the lower bound is mirrored into the
+  // upper bound in Redux so the submitted source has PublicationLB==PublicationUB.
+  const [exactDate, setExactDate] = useState(false)
+
   // const setLowerBoundErrorStyle = () => {
   //   pubDateLowerBoundContainerRef.current.style.border = "2px solid red"
   // }
@@ -122,11 +127,17 @@ export function EditSourcePublicationTimeRange({
 
   const validateBoth = () => {
     const lowerValid = evaluateLowerBoundComplete()
+    // In exact mode the upper inputs are hidden (refs null) and the upper bound is just a
+    // mirror of the lower bound, so validating it would deref null — skip it.
+    if (exactDate) return lowerValid
     const upperValid = evaluateUpperBoundComplete()
     return lowerValid && upperValid
   }
 
   // On changed
+  // In exact-date mode, mirror each lower-bound change into the matching upper bound in
+  // Redux so the persisted bounds stay equal (the begin==end proxy). The upper inputs are
+  // hidden, so the mirror is dispatch-only (no ref to update).
   const onPubDateLowerBoundYearChanged = (e) => {
     console.log({ "EditSource.onPubDateLowerBoundYearChanged": e })
 
@@ -136,6 +147,9 @@ export function EditSourcePublicationTimeRange({
       value: e.target.value
     }
     reduxDispatch(editSourcesStateActions.updateSourcePubDateEarliestYear(args))
+    if (exactDate) {
+      reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestYear(args))
+    }
   }
 
   const onPubDateLowerBoundMonthChanged = (e) => {
@@ -147,6 +161,9 @@ export function EditSourcePublicationTimeRange({
       value: e.target.value
     }
     reduxDispatch(editSourcesStateActions.updateSourcePubDateEarliestMonth(args))
+    if (exactDate) {
+      reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestMonth(args))
+    }
   }
 
   const onPubDateLowerBoundDayChanged = (e) => {
@@ -158,6 +175,26 @@ export function EditSourcePublicationTimeRange({
       value: e.target.value
     }
     reduxDispatch(editSourcesStateActions.updateSourcePubDateEarliestDay(args))
+    if (exactDate) {
+      reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestDay(args))
+    }
+  }
+
+  // Toggling "Exact date". When enabling, mirror the current lower bound into the upper
+  // bound once (Redux) so begin==end immediately. Disabling makes no data change — the
+  // upper bound already equals the lower and the user can now widen it.
+  const onExactDateChanged = (e) => {
+    const isChecked = e.target.checked
+    setExactDate(isChecked)
+    if (isChecked) {
+      const year = pubDateLowerBoundYearRef.current?.value ?? ""
+      const month = pubDateLowerBoundMonthRef.current?.value ?? ""
+      const day = pubDateLowerBoundDayRef.current?.value ?? ""
+      reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestYear({ editId, value: year }))
+      reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestMonth({ editId, value: month }))
+      reduxDispatch(editSourcesStateActions.updateSourcePubDateLatestDay({ editId, value: day }))
+      setRangeError(null)
+    }
   }
 
   useEffect(() => {
@@ -171,6 +208,10 @@ export function EditSourcePublicationTimeRange({
     pubDateLowerBoundYearRef.current.value = editSource.publicationTime.earliestYear
     pubDateLowerBoundMonthRef.current.value = editSource.publicationTime.earliestMonth
     pubDateLowerBoundDayRef.current.value = editSource.publicationTime.earliestDay
+
+    // Open in exact-date mode if the stored source publication date is a single point
+    // (begin == end with a year). A blank/new source stays in range mode.
+    setExactDate(isExactDate(editSource.publicationTime))
 
     evaluateLowerBoundComplete()
   }, [
@@ -288,9 +329,21 @@ export function EditSourcePublicationTimeRange({
     <div className="flex flex-col m-1">
       <label className="text-left text-lg">Publication date</label>
 
-      {/* Earliest */}
+      {/* Exact date toggle */}
+      <label className="flex items-center justify-between p-1">
+        <span>Exact date</span>
+        <input
+          data-testid="source-exact-date-checkbox"
+          type="checkbox"
+          checked={exactDate}
+          onChange={onExactDateChanged}
+          className="ml-2"
+        />
+      </label>
+
+      {/* Earliest (the only date row in exact mode) */}
       <div ref={pubDateLowerBoundContainerRef} className="flex flex-col p-1">
-        <label className="text-left">Earliest possible</label>
+        <label className="text-left">{exactDate ? "Date" : "Earliest possible"}</label>
         <div className="grid grid-cols-3 auto-rows-min gap-1">
           <input ref={pubDateLowerBoundYearRef} className="text-black" type="text" placeholder="YYYY" onChange={onPubDateLowerBoundYearChanged}></input>
           <input ref={pubDateLowerBoundMonthRef} className="text-black" type="text" placeholder="MM (optional)" onChange={onPubDateLowerBoundMonthChanged}></input>
@@ -299,17 +352,19 @@ export function EditSourcePublicationTimeRange({
         <label className="text-left text-red-500">{lowerBoundError}</label>
       </div>
 
-      {/* Latest */}
-      <div ref={pubDateUpperBoundContainerRef} className="flex flex-col p-1">
-        <label className="text-left">Latest possible</label>
-        <div className="grid grid-cols-3 auto-rows-min gap-1">
-          <input ref={pubDateUpperBoundYearRef} className="text-black" type="text" placeholder="YYYY" onChange={onPubDateUpperBoundYearChanged}></input>
-          <input ref={pubDateUpperBoundMonthRef} className="text-black" type="text" placeholder="MM (optional)" onChange={onPubDateUpperBoundMonthChanged}></input>
-          <input ref={pubDateUpperBoundDayRef} className="text-black" type="text" placeholder="DD (optional)" onChange={onPubDateUpperBoundDayChanged}></input>
+      {/* Latest — hidden in exact mode (begin==end is mirrored automatically) */}
+      {!exactDate && (
+        <div ref={pubDateUpperBoundContainerRef} className="flex flex-col p-1" data-testid="source-latest-subsection">
+          <label className="text-left">Latest possible</label>
+          <div className="grid grid-cols-3 auto-rows-min gap-1">
+            <input ref={pubDateUpperBoundYearRef} className="text-black" type="text" placeholder="YYYY" onChange={onPubDateUpperBoundYearChanged}></input>
+            <input ref={pubDateUpperBoundMonthRef} className="text-black" type="text" placeholder="MM (optional)" onChange={onPubDateUpperBoundMonthChanged}></input>
+            <input ref={pubDateUpperBoundDayRef} className="text-black" type="text" placeholder="DD (optional)" onChange={onPubDateUpperBoundDayChanged}></input>
+          </div>
+          <label className="text-left text-red-500">{upperBoundError}</label>
+          <label className="text-left text-red-500">{rangeError}</label>
         </div>
-        <label className="text-left text-red-500">{upperBoundError}</label>
-        <label className="text-left text-red-500">{rangeError}</label>
-      </div>
+      )}
 
     </div>
   )

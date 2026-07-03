@@ -22,6 +22,7 @@ npm run dev      # Start Vite dev server
 npm run build    # Production build
 npm run lint     # ESLint with --max-warnings 0
 npm run preview  # Preview production build
+npm run test:e2e # Playwright E2E tests (boots Vite, API mocked; no backend needed)
 ```
 
 ### Backend (`WebAPI/`)
@@ -62,6 +63,10 @@ The Three.js scene hierarchy:
 - `EditPinMesh`/`DisplayPinMesh`: Location markers on globe surface (edit = draggable, display = static)
 
 Mesh names and group names are centralized in `constValues.jsx`.
+
+### Testing
+
+Playwright E2E tests live in `npmfrontend/tests/` (TypeScript). Run `npm run test:e2e` (or `npx playwright show-report`). The backend API is mocked via `page.route` from `tests/fixtures/events.json`, so no backend/DB is needed; Playwright boots the Vite dev server itself. Fixtures use the backend's PascalCase JSON shape with a counterclockwise region boundary (clockwise crashes ear-clipping). UI hooks are `data-testid`. CI: `.github/workflows/playwright.yml`. See DESIGN.md "Testing" for scenario coverage.
 
 ### Coordinate System Notes
 

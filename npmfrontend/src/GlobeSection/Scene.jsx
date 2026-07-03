@@ -9,7 +9,7 @@ import { MouseHandler } from "./MouseHandler"
 import { EditableRegion } from "./Region/EditableRegion"
 import { DisplayRegion } from "./Region/DisplayRegion"
 import { createSpherePointFromLatLong } from "./createSpherePoint"
-import { getLatestRevisions } from "../AppState/getLatestRevisions"
+import { buildDisplayRegions } from "../AppState/buildDisplayRegions"
 import * as THREE from "three"
 
 // Extract only what is needed for the state machine.
@@ -61,29 +61,27 @@ export function Scene() {
   useEffect(() => {
     // console.log({ "Scene.useEffect[eventState.allEvents]": eventState.allEvents })
 
-    let displayElements = []
-    let latestEvents = getLatestRevisions(eventState.allEvents) || []
-    latestEvents.forEach((event) => {
-      if (event.primaryLoc) {
-        let primarySpherePoint = createSpherePointFromLatLong(
-          event.primaryLoc.lat,
-          event.primaryLoc.long,
-          globeInfo.radius
-        )
-        let regionSpherePoints = (event.regionBoundaries || []).map((b) =>
-          createSpherePointFromLatLong(b.lat, b.long, globeInfo.radius)
-        )
-        displayElements.push(
-          <DisplayRegion
-            key={event.eventId}
-            eventId={event.eventId}
-            primaryLoc={primarySpherePoint}
-            regionBoundaries={regionSpherePoints}
-            globeInfo={earthGlobeInfo}
-            isSelected={event.eventId === eventState.selectedEvent?.eventId}
-          />
-        )
-      }
+    // The selected event renders the revision currently being browsed (which may be older
+    // than its latest); every other event renders its latest. See buildDisplayRegions.
+    let displayElements = buildDisplayRegions(eventState.allEvents, eventState.selectedEvent).map((event) => {
+      let primarySpherePoint = createSpherePointFromLatLong(
+        event.primaryLoc.lat,
+        event.primaryLoc.long,
+        globeInfo.radius
+      )
+      let regionSpherePoints = event.regionBoundaries.map((b) =>
+        createSpherePointFromLatLong(b.lat, b.long, globeInfo.radius)
+      )
+      return (
+        <DisplayRegion
+          key={event.eventId}
+          eventId={event.eventId}
+          primaryLoc={primarySpherePoint}
+          regionBoundaries={regionSpherePoints}
+          globeInfo={earthGlobeInfo}
+          isSelected={event.isSelected}
+        />
+      )
     })
 
     setPoiReactElements(displayElements)

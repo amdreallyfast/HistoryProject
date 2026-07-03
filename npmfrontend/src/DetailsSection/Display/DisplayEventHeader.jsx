@@ -17,7 +17,7 @@ export function DisplayEventHeader() {
   return (
     <div className="flex flex-col">
       {/* Title */}
-      <label className="m-2 text-white text-2xl text-left">
+      <label data-testid="details-event-title" className="m-2 text-white text-2xl text-left">
         {selectedEventState.title}
       </label>
 

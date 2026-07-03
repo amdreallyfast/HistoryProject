@@ -1,0 +1,38 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main, test]
+    paths:
+      - 'WebAPI/**'
+      - 'global.json'
+      - '.github/workflows/dotnet-tests.yml'
+  pull_request:
+    branches: [main, test]
+    paths:
+      - 'WebAPI/**'
+      - 'global.json'
+      - '.github/workflows/dotnet-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+
+      # Deterministic, in-process tests (EF Core InMemory) — no Azure / SQL Server needed.
+      # Targets the UnitTesting project specifically so the live-DB E2E project never runs here.
+      - name: Run backend unit/contract tests
+        run: dotnet test WebAPI/UnitTesting/UnitTesting.csproj --configuration Release --logger "trx;LogFileName=test-results.trx"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: dotnet-test-results
+          path: 'WebAPI/UnitTesting/TestResults/*.trx'
+          retention-days: 30

@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { useEffect, useRef } from "react"
+import { useFrame } from "@react-three/fiber"
 import { useSelector, useDispatch } from "react-redux"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
@@ -7,6 +8,7 @@ import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { globeInfo, meshNames } from "./constValues"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
+import { sharedDragRotor } from "./sharedDragRotor"
 
 export const MouseHandler = () => {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
@@ -51,16 +53,10 @@ export const MouseHandler = () => {
     let qOffsetJson = editState.clickAndDrag.initialOffsetQuaternion
     let qOffset = new THREE.Quaternion(qOffsetJson.x, qOffsetJson.y, qOffsetJson.z, qOffsetJson.w)
 
-    let qFullRotor = (new THREE.Quaternion()).multiplyQuaternions(qRotor, qOffset)
-    let rotorData = {
-      rotorQuaternion: {
-        w: qFullRotor.w,
-        x: qFullRotor.x,
-        y: qFullRotor.y,
-        z: qFullRotor.z,
-      }
-    }
-    reduxDispatch(editEventStateActions.updateClickAndDrag(rotorData))
+    // Bypass Redux for the per-frame rotor (Step 2 of the perf plan / Step 4 in
+    // claudePlans/4): consumers read this in their own useFrame within the same
+    // RAF — no useSelector closure lag, no dispatch + re-render roundtrip.
+    sharedDragRotor.quaternion.multiplyQuaternions(qRotor, qOffset)
   }
 
   const enableClickAndDrag = () => {
@@ -87,6 +83,11 @@ export const MouseHandler = () => {
 
     let qOffset = (new THREE.Quaternion).setFromUnitVectors(cursorGlobeNormalized, meshIntersectionNormalized)
     let qFullRotor = (new THREE.Quaternion()).multiplyQuaternions(qRotor, qOffset)
+
+    // Seed the shared rotor so the first consumer useFrame after enable picks up
+    // a valid value. After this, updateClickAndDrag overwrites it each RAF.
+    sharedDragRotor.quaternion.copy(qFullRotor)
+
     let clickAndDragData = {
       mesh: mouseDown.mesh,
       initialOffsetQuaternion: {
@@ -204,10 +205,12 @@ export const MouseHandler = () => {
         }
       }
 
-      // Click on open globe space (no display mesh, not in edit mode, not awaiting
-      // placement) deselects the current event.
-      if (clickedGlobe
-        && !editState.editModeOn
+      // Click on open space (no display mesh hit above, not in edit mode, not
+      // awaiting placement) deselects the current event. Covers both globe
+      // clicks that missed a display mesh and canvas-corner clicks that missed
+      // the globe entirely — the `clicked` guard already excludes drags and
+      // long-clicks.
+      if (!editState.editModeOn
         && !editState.newEventAwaitingPlacement
         && selectedEventId) {
         reduxDispatch(eventStateActions.setSelectedEvent(null))
@@ -233,10 +236,11 @@ export const MouseHandler = () => {
     leftMouseDownRef.current = false
   }, [mouseState.leftMouseUp])
 
-  // Mouse move (click-and-drag)
-  useEffect(() => {
-    // console.log({ "MouseHandler.useEffect[mouseState.currPos]": mouseState.currPos })
-
+  // Click-and-drag tick: throttle to ~60Hz via useFrame so multiple browser
+  // mousemoves between frames coalesce into a single updateClickAndDrag
+  // dispatch. The previous useEffect[currPos] ran once per setMousePos
+  // (~120Hz) and drove the dispatch cascade that overwhelmed React + WebGL.
+  useFrame(() => {
     if (!editState.editModeOn) {
       // Do not allow click-and-drag.
       return
@@ -272,7 +276,7 @@ export const MouseHandler = () => {
         clickAndDragEnabledRef.current = true
       }
     }
-  }, [mouseState.currPos])
+  })
 
   // Need to return some HTML simply so that this can be a component.
   return (

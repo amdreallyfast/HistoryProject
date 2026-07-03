@@ -2,10 +2,8 @@ import { useQuery } from "@tanstack/react-query"
 import { useSelector, useDispatch } from "react-redux"
 import { getAllRevisions } from "../../api/historyEventApi"
 import { backendToFrontend } from "../../api/eventMapper"
-import { selectedEventStateActions } from "../../AppState/stateSliceSelectedEvent"
-import { eventStateActions } from "../../AppState/stateSliceEvent"
-import { createSpherePointFromLatLong } from "../../GlobeSection/createSpherePoint"
-import { globeInfo } from "../../GlobeSection/constValues"
+import { selectEvent } from "../../AppState/selectEvent"
+import { formatRevisionDate } from "./formatRevisionDate"
 
 export function RevisionStack({ eventId }) {
   const dispatch = useDispatch()
@@ -18,18 +16,7 @@ export function RevisionStack({ eventId }) {
   })
 
   const onRevisionClick = (rev) => {
-    const primarySpherePoint = rev.primaryLoc
-      ? createSpherePointFromLatLong(rev.primaryLoc.lat, rev.primaryLoc.long, globeInfo.radius)
-      : null
-    const regionSpherePoints = rev.regionBoundaries.map(rb =>
-      createSpherePointFromLatLong(rb.lat, rb.long, globeInfo.radius)
-    )
-    dispatch(eventStateActions.setSelectedEvent(rev))
-    dispatch(selectedEventStateActions.load({
-      ...rev,
-      primaryLoc: primarySpherePoint,
-      regionBoundaries: regionSpherePoints,
-    }))
+    selectEvent(dispatch, rev)
   }
 
   if (isLoading) return <div className="text-gray-400 text-sm m-2">Loading revisions...</div>
@@ -41,13 +28,15 @@ export function RevisionStack({ eventId }) {
       {revisions.map(rev => (
         <button
           key={rev.revision}
+          data-testid="revision-row"
           onClick={() => onRevisionClick(rev)}
-          className={`text-left px-2 py-1 text-sm border-b border-gray-700 last:border-0
+          className={`grid grid-cols-[1fr_auto] gap-2 items-baseline px-2 py-1 text-sm border-b border-gray-700 last:border-0
             ${rev.revision === currentRevision
               ? "bg-gray-600 text-white"
               : "text-gray-300 hover:bg-gray-700"}`}
         >
-          Rev {rev.revision} — {rev.revisionAuthor}
+          <span className="text-left">Rev {rev.revision} — {rev.revisionAuthor}</span>
+          <span data-testid="revision-date" className="text-right text-gray-400">{formatRevisionDate(rev.revisionDateTime)}</span>
         </button>
       ))}
     </div>

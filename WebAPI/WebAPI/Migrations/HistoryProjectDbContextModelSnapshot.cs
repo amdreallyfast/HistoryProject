@@ -49,6 +49,9 @@ namespace WebAPI.Migrations
                     b.Property<Guid>("EventImageId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("EventIsCreationOfSource")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("LBDay")
                         .HasColumnType("int");
 

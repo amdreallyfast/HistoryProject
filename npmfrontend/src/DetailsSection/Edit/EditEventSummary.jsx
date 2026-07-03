@@ -40,7 +40,9 @@ export function EditEventSummary() {
 
     charCountLabelRef.current.innerHTML = `0/${detailRestrictions.maxSummaryLength}`
     if (editState.summary) {
-      summaryInputRef.current.innerHTML = editState.summary
+      // A <textarea>'s live value is `.value`, not `.innerHTML` — setting innerHTML after
+      // mount changes the default/child text but leaves the displayed value blank.
+      summaryInputRef.current.value = editState.summary
       charCountLabelRef.current.innerHTML = `${editState.summary.length}/${detailRestrictions.maxSummaryLength}`
     }
     isComplete(editState.summary)

@@ -53,6 +53,13 @@ const initialState = {
   // Note: _Must_ be an array. Order is important for the "ear clipping" algorithm.
   regionBoundaries: [],
 
+  // Whether the current region boundary can actually be rendered (correct winding AND
+  // triangulates). Published by EditRegionMesh — which already triangulates to build the
+  // mesh — and read by EditEvent to gate Submit, so the two never disagree and we never
+  // triangulate twice. Default true = "no error / nothing to block". Resets automatically
+  // on edit-mode enter/leave because every entry action spreads ...initialState.
+  regionValid: true,
+
   // Can't put ThreeJs meshes into this state machine (function objects are non-serializable), so
   // use integer counters to indicate when there has been a change in meshes that the cursor
   // should be able to hover over.
@@ -348,6 +355,15 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
+    setRegionValid: (state, action) => {
+      // console.log({ msg: "stateSliceEditEvent.setRegionValid", payload: action.payload })
+
+      return {
+        ...state,
+        regionValid: action.payload
+      }
+    },
+
     setUpdatedRegionMeshesInScene: (state, action) => {
       // console.log({ msg: "stateSliceEditEvent.updatedRegionMeshesInScene", payload: action.payload })
 
@@ -389,18 +405,6 @@ export const stateSliceEditEvent = createSlice({
         clickAndDrag: {
           mesh: action.payload.mesh,
           initialOffsetQuaternion: action.payload.initialOffsetQuaternion,
-          rotorQuaternion: action.payload.rotorQuaternion
-        }
-      }
-    },
-
-    updateClickAndDrag: (state, action) => {
-      // console.log({ msg: "stateSliceEditEvent.updateClickAndDrag", payload: action.payload })
-
-      return {
-        ...state,
-        clickAndDrag: {
-          ...state.clickAndDrag,
           rotorQuaternion: action.payload.rotorQuaternion
         }
       }

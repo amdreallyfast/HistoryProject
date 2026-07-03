@@ -1,6 +1,8 @@
 // Backend JSON uses PascalCase (DefaultContractResolver in Newtonsoft.Json).
 // These functions convert between backend Event shape and frontend event shape.
 
+import { dataUrlToImageBinary, imageBinaryToDataUrl } from "./imageDataUrl"
+
 function nullableIntToString(value) {
   return value != null ? String(value) : null
 }
@@ -11,11 +13,12 @@ export function backendToFrontend(e) {
     eventId: e.EventId,
     revision: e.Revision,
     revisionAuthor: e.RevisionAuthor ?? "",
+    revisionDateTime: e.RevisionDateTime ?? null,
     title: e.Title,
     tags: e.Tags?.map(t => t.Value) ?? [],
     summary: e.Summary ?? "",
-    eventIsCreationOfSource: false, // not stored in backend model yet
-    imageDataUrl: null,
+    eventIsCreationOfSource: e.EventIsCreationOfSource ?? false,
+    imageDataUrl: imageBinaryToDataUrl(e.EventImage?.ImageBinary),
     eventTime: {
       earliestYear: nullableIntToString(e.LBYear),
       earliestMonth: nullableIntToString(e.LBMonth),
@@ -60,6 +63,7 @@ export function frontendToBackend(ev) {
     RevisionAuthor: ev.revisionAuthor ?? "amdreallyfast",
     Title: ev.title,
     Summary: ev.summary ?? "",
+    EventIsCreationOfSource: ev.eventIsCreationOfSource ?? false,
     LBYear: toInt(ev.eventTime?.earliestYear) ?? -99999,
     LBMonth: toInt(ev.eventTime?.earliestMonth),
     LBDay: toInt(ev.eventTime?.earliestDay),
@@ -71,7 +75,7 @@ export function frontendToBackend(ev) {
     UBHour: null,
     UBMin: null,
     Tags: ev.tags?.map(v => ({ Id: crypto.randomUUID(), Value: v })) ?? [],
-    EventImage: { Id: crypto.randomUUID(), ImageBinary: "" },
+    EventImage: { Id: crypto.randomUUID(), ImageBinary: dataUrlToImageBinary(ev.imageDataUrl) },
     SpecificLocation: ev.primaryLoc
       ? { Id: crypto.randomUUID(), Latitude: ev.primaryLoc.lat, Longitude: ev.primaryLoc.long }
       : null,

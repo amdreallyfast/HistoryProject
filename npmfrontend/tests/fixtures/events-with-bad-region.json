@@ -1,0 +1,38 @@
+[
+  {
+    "EventId": "test-event-1",
+    "Revision": 1,
+    "RevisionAuthor": "test",
+    "Title": "Test Event One",
+    "Summary": "A fixture event with a valid counterclockwise region.",
+    "Tags": [{ "Value": "rome" }],
+    "LBYear": 100, "LBMonth": 1, "LBDay": 1,
+    "UBYear": 200, "UBMonth": 12, "UBDay": 31,
+    "SpecificLocation": { "Latitude": 41.9, "Longitude": 12.5 },
+    "Region": [
+      { "Latitude": 42.0, "Longitude": 12.0, "OrderIndex": 0 },
+      { "Latitude": 42.0, "Longitude": 13.0, "OrderIndex": 1 },
+      { "Latitude": 43.0, "Longitude": 13.0, "OrderIndex": 2 },
+      { "Latitude": 43.0, "Longitude": 12.0, "OrderIndex": 3 }
+    ],
+    "Sources": []
+  },
+  {
+    "EventId": "test-event-bad-region",
+    "Revision": 1,
+    "RevisionAuthor": "test",
+    "Title": "Bad Region Event",
+    "Summary": "Region vertices are wound CLOCKWISE (the reverse of the valid event above). EarClipping throws on this; the per-region ErrorBoundary must contain the throw so the app does not blank.",
+    "Tags": [{ "Value": "bad" }],
+    "LBYear": 100, "LBMonth": 1, "LBDay": 1,
+    "UBYear": 200, "UBMonth": 12, "UBDay": 31,
+    "SpecificLocation": { "Latitude": 47.5, "Longitude": 2.5 },
+    "Region": [
+      { "Latitude": 48.0, "Longitude": 2.0, "OrderIndex": 0 },
+      { "Latitude": 48.0, "Longitude": 3.0, "OrderIndex": 1 },
+      { "Latitude": 47.0, "Longitude": 3.0, "OrderIndex": 2 },
+      { "Latitude": 47.0, "Longitude": 2.0, "OrderIndex": 3 }
+    ],
+    "Sources": []
+  }
+]

@@ -1,7 +1,7 @@
-import { useEffect, useReducer, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
-import { isDateRangeInverted } from "./detailRestrictions"
+import { isDateRangeInverted, isExactDate } from "./detailRestrictions"
 
 export function EditEventTime() {
   const editState = useSelector((state) => state.editEventReducer)
@@ -22,6 +22,11 @@ export function EditEventTime() {
   const [latestDay, setLatestDay] = useState("")
   const [earliestError, setEarliestError] = useState(null)
   const [latestError, setLatestError] = useState(null)
+
+  // "Exact date" mode: a single date instead of a range. Persisted via the begin==end
+  // proxy (no boolean column) — while on, every earliest field is mirrored into the
+  // matching latest field in Redux so the submitted event has LB==UB. See isExactDate.
+  const [exactDate, setExactDate] = useState(false)
 
   // On start, load values from state
   useEffect(() => {
@@ -44,6 +49,10 @@ export function EditEventTime() {
     setLatestYear(lYear)
     setLatestMonth(lMonth)
     setLatestDay(lDay)
+
+    // Open in exact-date mode if the stored event is a single point (begin == end with a
+    // year). A blank new event stays in range mode.
+    setExactDate(isExactDate(editState.eventTime))
 
     validateBothBounds(eYear, eMonth, eDay, lYear, lMonth, lDay)
   }, [
@@ -113,25 +122,65 @@ export function EditEventTime() {
   }
 
   // Event handlers
+  // In exact-date mode the earliest fields are the only inputs; each change is mirrored
+  // into the matching latest field (local state + Redux) so the persisted bounds stay
+  // equal (the begin==end proxy). Validation then runs against the mirrored latest value.
   const onEarliestYearChanged = (e) => {
     const value = e.target.value
     setEarliestYear(value)
     reduxDispatch(editEventStateActions.setEventTimeEarliestYear(value || null))
-    validateBothBounds(value, earliestMonth, earliestDay, latestYear, latestMonth, latestDay)
+    if (exactDate) {
+      setLatestYear(value)
+      reduxDispatch(editEventStateActions.setEventTimeLatestYear(value || null))
+      validateBothBounds(value, earliestMonth, earliestDay, value, earliestMonth, earliestDay)
+    } else {
+      validateBothBounds(value, earliestMonth, earliestDay, latestYear, latestMonth, latestDay)
+    }
   }
 
   const onEarliestMonthChanged = (e) => {
     const value = e.target.value
     setEarliestMonth(value)
     reduxDispatch(editEventStateActions.setEventTimeEarliestMonth(value || null))
-    validateBothBounds(earliestYear, value, earliestDay, latestYear, latestMonth, latestDay)
+    if (exactDate) {
+      setLatestMonth(value)
+      reduxDispatch(editEventStateActions.setEventTimeLatestMonth(value || null))
+      validateBothBounds(earliestYear, value, earliestDay, earliestYear, value, earliestDay)
+    } else {
+      validateBothBounds(earliestYear, value, earliestDay, latestYear, latestMonth, latestDay)
+    }
   }
 
   const onEarliestDayChanged = (e) => {
     const value = e.target.value
     setEarliestDay(value)
     reduxDispatch(editEventStateActions.setEventTimeEarliestDay(value || null))
-    validateBothBounds(earliestYear, earliestMonth, value, latestYear, latestMonth, latestDay)
+    if (exactDate) {
+      setLatestDay(value)
+      reduxDispatch(editEventStateActions.setEventTimeLatestDay(value || null))
+      validateBothBounds(earliestYear, earliestMonth, value, earliestYear, earliestMonth, value)
+    } else {
+      validateBothBounds(earliestYear, earliestMonth, value, latestYear, latestMonth, latestDay)
+    }
+  }
+
+  // Toggling "Exact date". When enabling, mirror the current earliest bound into the
+  // latest bound once (local + Redux) so begin==end immediately. Disabling makes no data
+  // change — the latest fields already equal the earliest and the user can now widen them.
+  const onExactDateChanged = (e) => {
+    const isChecked = e.target.checked
+    setExactDate(isChecked)
+    if (isChecked) {
+      setLatestYear(earliestYear)
+      setLatestMonth(earliestMonth)
+      setLatestDay(earliestDay)
+      reduxDispatch(editEventStateActions.setEventTimeLatestYear(earliestYear || null))
+      reduxDispatch(editEventStateActions.setEventTimeLatestMonth(earliestMonth || null))
+      reduxDispatch(editEventStateActions.setEventTimeLatestDay(earliestDay || null))
+      validateBothBounds(earliestYear, earliestMonth, earliestDay, earliestYear, earliestMonth, earliestDay)
+    } else {
+      validateBothBounds(earliestYear, earliestMonth, earliestDay, latestYear, latestMonth, latestDay)
+    }
   }
 
   const onLatestYearChanged = (e) => {
@@ -169,9 +218,21 @@ export function EditEventTime() {
     <div className={`flex flex-col m-1 rounded-md ${getBorderClass()}`}>
       <h3 className="text-white font-medium">Event time</h3>
 
-      {/* Earliest subsection */}
+      {/* Exact date toggle */}
+      <label className="flex items-center justify-between m-1">
+        <span className="text-white text-sm">Exact date</span>
+        <input
+          data-testid="event-exact-date-checkbox"
+          type="checkbox"
+          checked={exactDate}
+          onChange={onExactDateChanged}
+          className="ml-2"
+        />
+      </label>
+
+      {/* Earliest subsection (the only date row in exact mode) */}
       <div className="m-1">
-        <span className="text-white text-sm text-left block">Earliest possible:</span>
+        <span className="text-white text-sm text-left block">{exactDate ? "Date:" : "Earliest possible:"}</span>
         <div className="grid grid-cols-3 gap-1">
           <input ref={earliestYearInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={earliestYear} onChange={onEarliestYearChanged} placeholder="YYYY (ex: -500)" />
           <input ref={earliestMonthInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={earliestMonth} onChange={onEarliestMonthChanged} placeholder="MM (optional)" />
@@ -180,16 +241,18 @@ export function EditEventTime() {
         <label className="text-red-500 text-sm mt-1 block text-left">{earliestError}</label>
       </div>
 
-      {/* Latest subsection */}
-      <div className="m-1">
-        <span className="text-white text-sm text-left block">Latest possible:</span>
-        <div className="grid grid-cols-3 gap-1">
-          <input ref={latestYearInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestYear} onChange={onLatestYearChanged} placeholder="YYYY (ex: -500)" />
-          <input ref={latestMonthInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestMonth} onChange={onLatestMonthChanged} placeholder="MM (optional)" />
-          <input ref={latestDayInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestDay} onChange={onLatestDayChanged} placeholder="DD (optional)" />
+      {/* Latest subsection — hidden in exact mode (begin==end is mirrored automatically) */}
+      {!exactDate && (
+        <div className="m-1" data-testid="event-latest-subsection">
+          <span className="text-white text-sm text-left block">Latest possible:</span>
+          <div className="grid grid-cols-3 gap-1">
+            <input ref={latestYearInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestYear} onChange={onLatestYearChanged} placeholder="YYYY (ex: -500)" />
+            <input ref={latestMonthInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestMonth} onChange={onLatestMonthChanged} placeholder="MM (optional)" />
+            <input ref={latestDayInputRef} className="text-black text-center rounded-md border border-gray-300 px-2 py-1" type="text" value={latestDay} onChange={onLatestDayChanged} placeholder="DD (optional)" />
+          </div>
+          <label className="text-red-500 text-sm mt-1 block text-left">{latestError}</label>
         </div>
-        <label className="text-red-500 text-sm mt-1 block text-left">{latestError}</label>
-      </div>
+      )}
     </div>
   )
 }

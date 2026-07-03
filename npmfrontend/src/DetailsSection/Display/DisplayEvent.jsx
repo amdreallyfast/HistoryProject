@@ -34,6 +34,7 @@ export function DisplayEvent({ }) {
 
       <div className="flex justify-end mt-auto m-2">
         <button
+          data-testid="edit-event-button"
           className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
           onClick={onEditClick}
         >

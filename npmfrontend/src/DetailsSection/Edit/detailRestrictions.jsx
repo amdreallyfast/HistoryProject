@@ -23,6 +23,29 @@ export function isDateRangeInverted(eYear, eMonth, eDay, lYear, lMonth, lDay) {
   return ed > ld
 }
 
+// Normalize a date field to either null ("no value") or a trimmed string, so that
+// "603" / 603 compare equal and ""/null/undefined all collapse to null.
+function normalizeDateField(value) {
+  if (value === null || value === undefined) return null
+  const s = String(value).trim()
+  return s === "" ? null : s
+}
+
+// Returns true when a time range represents a single exact point in time, i.e. the
+// earliest and latest bounds are equal across year/month/day. This is the proxy the
+// "Exact date" UI uses (no boolean column): begin == end means "exact". A blank year
+// (e.g. a brand-new event with nothing typed) is never "exact" — it defaults to range
+// mode. Accepts an object with earliest{Year,Month,Day} / latest{Year,Month,Day}.
+export function isExactDate(timeObj) {
+  if (!timeObj) return false
+  if (normalizeDateField(timeObj.earliestYear) === null) return false
+  return (
+    normalizeDateField(timeObj.earliestYear) === normalizeDateField(timeObj.latestYear) &&
+    normalizeDateField(timeObj.earliestMonth) === normalizeDateField(timeObj.latestMonth) &&
+    normalizeDateField(timeObj.earliestDay) === normalizeDateField(timeObj.latestDay)
+  )
+}
+
 export function isMonthOutOfRange(month) {
   if (!month || month.toString().trim() === "") return false
   const m = Number(month)

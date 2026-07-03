@@ -18,6 +18,11 @@ export async function createEvent(backendEvent) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(backendEvent),
   })
-  if (!resp.ok) throw new Error(`Create failed: ${resp.status}`)
+  if (!resp.ok) {
+    // Include the response body so callers can show the backend's reason — e.g. a 422
+    // from image validation ("Image exceeds 5MB limit.") — instead of a bare status code.
+    const body = await resp.text().catch(() => "")
+    throw new Error(body ? `Create failed: ${resp.status} — ${body}` : `Create failed: ${resp.status}`)
+  }
   return resp.json()
 }

@@ -9,6 +9,7 @@ import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
 import { createSpherePointFromXYZ } from "../createSpherePoint"
 import { EditRegionMesh } from "./EditRegionMesh"
+import { ErrorBoundary } from "./ErrorBoundary"
 
 // Generate a set of default points in a circle around the origin.
 // Note: Have to do this in 3D space because lat/long get squished near the poles, while 3D 
@@ -125,7 +126,17 @@ export function EditableRegion({ globeInfo }) {
     <>
       {primaryLocationPinReactElement}
       {regionPinReactElements}
-      {regionMeshReactElements}
+      {/* Guard the edit region mesh: a transient bad winding while editing makes
+          EarClipping throw, which would otherwise blank the app. Resetting on
+          regionBoundaries lets the mesh recover once the user fixes the shape. */}
+      {regionMeshReactElements && (
+        <ErrorBoundary
+          resetKeys={[editState.regionBoundaries]}
+          onError={(error) => console.error({ "EditableRegion: skipped malformed region mesh": { eventId: editState.eventId, error } })}
+        >
+          {regionMeshReactElements}
+        </ErrorBoundary>
+      )}
     </>
   )
 }

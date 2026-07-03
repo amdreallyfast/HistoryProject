@@ -85,7 +85,8 @@ export function convertToTimeSinceFoundingOfRome(y, m, d) {
 //   ))
 export function convertTimeRangeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay, latestYear, latestMonth, latestDay) {
   if (earliestYear == latestYear && earliestMonth == latestMonth && earliestDay == latestDay) {
-    return convertTimeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay) + " (exact)"
+    // An exact date (begin == end) is shown plainly, as provided — no "(exact)" suffix.
+    return convertTimeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay)
   }
 
   let earliestString = convertTimeToGregorianYearMonthDayString(earliestYear, earliestMonth, earliestDay)
