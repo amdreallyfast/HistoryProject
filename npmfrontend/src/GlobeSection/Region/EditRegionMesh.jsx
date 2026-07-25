@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber"
 import { useSelector, useDispatch } from "react-redux"
 import { meshNames, editRegionMeshInfo } from "../constValues"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
-import { generateRegionMesh, isRegionWindingValid } from "./regionMeshGeometry"
+import { generateRegionMesh } from "./regionMeshGeometry"
 import { sharedDragRotor } from "../sharedDragRotor"
 
 // Worst-case capacity for the pre-allocated region-mesh buffers. The geometry is
@@ -64,68 +64,42 @@ export const EditRegionMesh = ({ sphereRadius }) => {
     indexAttrRef.current = indexAttr
   }
 
-  // Triangulate `baseVertices`, validate winding, and write the result into the
-  // pre-allocated buffers. Shared by the regionBoundaries layout effect (commit
-  // path) and the single-pin drag useFrame (live path). Validity = correct
-  // winding AND successful triangulation; an invalid edit (clockwise winding, or
-  // a local single-pin twist that keeps global winding positive but still won't
-  // triangulate) must NOT overwrite the buffers — we keep the last valid mesh on
-  // screen, recolor it red, and publish invalid so EditEvent disables Submit. The
-  // pre-allocated buffer holds the last valid geometry, so "remembering" it is
-  // free (we skip the write). `withLinePoints` rebuilds the Drei <Line> wireframe;
-  // the drag path passes false because the wireframe is hidden during drag and
-  // setLinePoints every frame would force a React re-render every frame.
-  const writeRegionMesh = (baseVertices, { withLinePoints }) => {
-    if (regionMeshRef.current == null) {
-      return false
-    }
-
-    // Raised above DisplayRegionMesh (+0.01) so the raycaster hits this mesh first
-    let meshRadius = sphereRadius + 0.1
-    let material = regionMeshRef.current.material
+  // Triangulate `baseVertices` and flatten into buffer-ready primitive arrays.
+  // Returns null when the region can't be displayed/submitted — either EarClipping
+  // throws (clockwise winding, or a degenerate / self-intersecting boundary) OR the
+  // triangulated result exceeds the pre-allocated fixed-size buffers. Triangulation
+  // is the single source of truth for validity: there is deliberately no winding
+  // pre-check (regionWindingSign's centroid-dot heuristic can flip sign for large /
+  // pole-spanning CCW regions and falsely reject them). This mirrors the read-only
+  // DisplayRegionMesh, which also just lets triangulation throw.
+  const buildRegionBuffers = (baseVertices, meshRadius) => {
     let geometry = null
-    if (isRegionWindingValid(baseVertices)) {
-      try {
-        geometry = generateRegionMesh(baseVertices, meshRadius)
-      } catch (error) {
-        // CCW winding but still untriangulatable (degenerate / self-intersecting).
-        console.warn({ "EditRegionMesh: region failed to triangulate, keeping last valid mesh": error })
-      }
-    }
-
-    if (geometry == null) {
-      // Invalid edit: keep the last valid geometry (buffers untouched) and flag red.
-      material.color.set(editRegionMeshInfo.errorColor)
-      setRegionValid(false)
-      return false
-    }
-
-    // Valid edit: restore the normal color, then rebuild the mesh below.
-    material.color.set(editRegionMeshInfo.validColor)
-    setRegionValid(true)
-
-    if (withLinePoints) {
-      let linePoints = []
-      for (let i = 0; i < geometry.lines.length; i++) {
-        let lineIndicesArr = geometry.lines[i]
-        linePoints.push(geometry.vertices[lineIndicesArr[0]])
-        linePoints.push(geometry.vertices[lineIndicesArr[1]])
-      }
-      setLinePoints(linePoints)
+    try {
+      geometry = generateRegionMesh(baseVertices, meshRadius)
+    } catch (error) {
+      console.warn({ "EditRegionMesh: region failed to triangulate, keeping last valid mesh": error })
+      return null
     }
 
     // Flatten everything into primitive arrays for use with OpenGL buffering.
     let flattenedVertices = geometry.vertices.flat()
     let flattenedMeshIndices = geometry.triangles.flat()
 
-    // Capacity guard: the pre-allocated buffers are fixed-size. A region larger
-    // than the worst-case budget is dropped (skip the write) rather than
-    // overflowing the typed array. Bump MAX_VERTICES / MAX_INDICES if this fires.
+    // Capacity guard: the pre-allocated buffers are fixed-size. A region larger than
+    // the worst-case budget can't be written, so it is not submittable — treat it as
+    // invalid (fall through to the red / block-Submit path) rather than overflowing
+    // the typed array. Bump MAX_VERTICES / MAX_INDICES if this fires.
     if (flattenedVertices.length > MAX_VERTICES * 3 || flattenedMeshIndices.length > MAX_INDICES) {
       console.warn({ "EditRegionMesh.writeRegionMesh": `region mesh exceeds buffer capacity (verts ${flattenedVertices.length / 3}/${MAX_VERTICES}, indices ${flattenedMeshIndices.length}/${MAX_INDICES}); skipping update` })
-      return false
+      return null
     }
 
+    return { geometry, flattenedVertices, flattenedMeshIndices }
+  }
+
+  // Copy a built geometry into the pre-allocated GPU buffers. Shared by the valid
+  // path and the invalid reversed-fill fallback; the caller sets the mesh color.
+  const writeGeometryToBuffers = ({ geometry, flattenedVertices, flattenedMeshIndices }) => {
     initGeometryBuffers()
     let positionAttr = positionAttrRef.current
     let indexAttr = indexAttrRef.current
@@ -145,6 +119,61 @@ export const EditRegionMesh = ({ sphereRadius }) => {
     // mesh. That only ever makes frustum culling less aggressive (never culls a
     // visible mesh), which is fine for a single in-view region during editing.
     regionMeshRef.current.geometry.computeBoundingSphere()
+  }
+
+  // Triangulate `baseVertices` and write the result into the pre-allocated buffers.
+  // Shared by the regionBoundaries layout effect (commit path) and the single-pin
+  // drag useFrame (live path). Validity = successful triangulation AND fits the
+  // buffers; validity/color are published on ONE path, only after both succeed, so
+  // an over-capacity region can't enable Submit while its fill is stale/blank.
+  //
+  // Invalid edit: publish invalid (Submit disabled) and recolor red. To avoid a
+  // confusing blank on first load of an already-invalid stored region (no buffers
+  // were ever written), retry with the REVERSED boundary — a merely-clockwise region
+  // reverses to CCW and triangulates to the same shape, so it's shown filled in red
+  // instead of nothing. A genuinely self-intersecting region fails reversed too; we
+  // then keep the last valid buffers (or nothing on first load) and the pins stay
+  // visible. `withLinePoints` rebuilds the Drei <Line> wireframe (valid path only);
+  // the drag path passes false because the wireframe is hidden during drag and
+  // setLinePoints every frame would force a React re-render every frame.
+  const writeRegionMesh = (baseVertices, { withLinePoints }) => {
+    if (regionMeshRef.current == null) {
+      return false
+    }
+
+    // Raised above DisplayRegionMesh (+0.01) so the raycaster hits this mesh first
+    let meshRadius = sphereRadius + 0.1
+    let material = regionMeshRef.current.material
+
+    let built = buildRegionBuffers(baseVertices, meshRadius)
+
+    if (built == null) {
+      // Invalid edit: flag red and block Submit. Try to still SHOW the region (in
+      // red) via the reversed boundary rather than leaving the mesh blank.
+      let reversed = buildRegionBuffers([...baseVertices].reverse(), meshRadius)
+      if (reversed != null) {
+        writeGeometryToBuffers(reversed)
+      }
+      material.color.set(editRegionMeshInfo.errorColor)
+      setRegionValid(false)
+      return false
+    }
+
+    // Valid edit: restore the normal color and publish valid, then rebuild the mesh.
+    material.color.set(editRegionMeshInfo.validColor)
+    setRegionValid(true)
+
+    if (withLinePoints) {
+      let linePoints = []
+      for (let i = 0; i < built.geometry.lines.length; i++) {
+        let lineIndicesArr = built.geometry.lines[i]
+        linePoints.push(built.geometry.vertices[lineIndicesArr[0]])
+        linePoints.push(built.geometry.vertices[lineIndicesArr[1]])
+      }
+      setLinePoints(linePoints)
+    }
+
+    writeGeometryToBuffers(built)
     return true
   }
 
