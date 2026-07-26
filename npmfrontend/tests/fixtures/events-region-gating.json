@@ -1,0 +1,56 @@
+[
+  {
+    "EventId": "gating-valid-small",
+    "Revision": 1,
+    "RevisionAuthor": "test",
+    "Title": "Valid Small Region",
+    "Summary": "A small counterclockwise region. Triangulates; Submit should enable after an edit.",
+    "Tags": [{ "Value": "ok" }],
+    "LBYear": 100, "LBMonth": 1, "LBDay": 1,
+    "UBYear": 200, "UBMonth": 12, "UBDay": 31,
+    "SpecificLocation": { "Latitude": 41.9, "Longitude": 12.5 },
+    "Region": [
+      { "Latitude": 42.0, "Longitude": 12.0, "OrderIndex": 0 },
+      { "Latitude": 42.0, "Longitude": 13.0, "OrderIndex": 1 },
+      { "Latitude": 43.0, "Longitude": 13.0, "OrderIndex": 2 },
+      { "Latitude": 43.0, "Longitude": 12.0, "OrderIndex": 3 }
+    ],
+    "Sources": []
+  },
+  {
+    "EventId": "gating-clockwise",
+    "Revision": 1,
+    "RevisionAuthor": "test",
+    "Title": "Clockwise Region",
+    "Summary": "Region vertices are wound CLOCKWISE. EarClipping can't triangulate it; Submit must stay disabled.",
+    "Tags": [{ "Value": "bad" }],
+    "LBYear": 100, "LBMonth": 1, "LBDay": 1,
+    "UBYear": 200, "UBMonth": 12, "UBDay": 31,
+    "SpecificLocation": { "Latitude": 47.5, "Longitude": 2.5 },
+    "Region": [
+      { "Latitude": 48.0, "Longitude": 2.0, "OrderIndex": 0 },
+      { "Latitude": 48.0, "Longitude": 3.0, "OrderIndex": 1 },
+      { "Latitude": 47.0, "Longitude": 3.0, "OrderIndex": 2 },
+      { "Latitude": 47.0, "Longitude": 2.0, "OrderIndex": 3 }
+    ],
+    "Sources": []
+  },
+  {
+    "EventId": "gating-large-valid",
+    "Revision": 1,
+    "RevisionAuthor": "test",
+    "Title": "Large Valid Region",
+    "Summary": "A huge but simple counterclockwise quadrilateral (40S..40N, 120W..120E). EarClipping triangulates it fine, but the old regionWindingSign pre-gate mis-signed it as clockwise and falsely blocked Submit. With the pre-gate removed, Submit must enable after an edit.",
+    "Tags": [{ "Value": "large" }],
+    "LBYear": 100, "LBMonth": 1, "LBDay": 1,
+    "UBYear": 200, "UBMonth": 12, "UBDay": 31,
+    "SpecificLocation": { "Latitude": 0.0, "Longitude": 0.0 },
+    "Region": [
+      { "Latitude": -40.0, "Longitude": -120.0, "OrderIndex": 0 },
+      { "Latitude": -40.0, "Longitude": 120.0, "OrderIndex": 1 },
+      { "Latitude": 40.0, "Longitude": 120.0, "OrderIndex": 2 },
+      { "Latitude": 40.0, "Longitude": -120.0, "OrderIndex": 3 }
+    ],
+    "Sources": []
+  }
+]

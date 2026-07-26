@@ -87,7 +87,7 @@ export function EditEventHeader() {
   return (
     <div className={`flex flex-col m-1 rounded-md ${getBorderClass()}`}>
       {/* Title */}
-      <input ref={titleInputRef} className="m-1 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onChange={onTitleChanged} />
+      <input ref={titleInputRef} data-testid="edit-event-title-input" className="m-1 text-black text-2xl text-left" type="text" maxLength={detailRestrictions.maxTitleLength} placeholder="Title" onChange={onTitleChanged} />
 
       {/* Tags */}
       <div className="flex flex-row items-start m-1 overflow-auto flex-wrap">

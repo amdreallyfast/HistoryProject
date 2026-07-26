@@ -70,3 +70,46 @@ test('winding classifier agrees with EarClipping (valid CCW vs reversed CW)', as
   expect(result.twistValid).toBe(true)
   expect(result.twistTriangulates).toBe(false)
 })
+
+// The OTHER direction of the same lesson (bug 3): the winding heuristic can also
+// FALSELY REJECT a perfectly valid region. `writeRegionMesh` used to pre-gate on
+// `isRegionWindingValid` before even attempting triangulation, so a region the
+// heuristic mis-signs as clockwise was dropped (red + Submit blocked) even though
+// EarClipping triangulates it fine. This test pins a concrete example and is the
+// regression guard for removing that pre-gate — triangulation is the sole gate now.
+test('winding heuristic falsely rejects a valid large region (regression for the dropped pre-gate)', async ({ page }) => {
+  await page.goto('/')
+
+  const result = await page.evaluate(async () => {
+    const dyn = (p: string) => import(/* @vite-ignore */ p)
+    const { ConvertLatLongToXYZ } = await dyn('/src/GlobeSection/convertLatLongXYZ.jsx')
+    const { isRegionWindingValid, regionWindingSign, generateRegionMesh } =
+      await dyn('/src/GlobeSection/Region/regionMeshGeometry.js')
+
+    const MESH_RADIUS = 5.1
+    // A huge but simple counterclockwise quadrilateral (40S..40N, 120W..120E).
+    // regionWindingSign sums UN-normalized vertex vectors for its centroid, so over
+    // this large extent the centroid-dot flips negative even though the boundary is
+    // the same CCW orientation EarClipping accepts.
+    const large = [
+      [-40.0, -120.0], [-40.0, 120.0], [40.0, 120.0], [40.0, -120.0],
+    ].map(([lat, long]) => ConvertLatLongToXYZ(lat, long, MESH_RADIUS))
+
+    const triangulates = (verts: number[][]) => {
+      try { generateRegionMesh(verts, MESH_RADIUS); return true } catch { return false }
+    }
+
+    return {
+      sign: regionWindingSign(large),
+      valid: isRegionWindingValid(large),
+      triangulates: triangulates(large),
+    }
+  })
+
+  // Heuristic mis-classifies it as clockwise (sign < 0 => would have blocked Submit)...
+  expect(result.sign).toBeLessThan(0)
+  expect(result.valid).toBe(false)
+  // ...yet EarClipping triangulates it fine, so it is genuinely a valid region. Gating
+  // on triangulation (not this heuristic) is what stops the false rejection.
+  expect(result.triangulates).toBe(true)
+})
