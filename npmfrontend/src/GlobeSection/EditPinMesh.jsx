@@ -139,6 +139,17 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
 
     // Assign metadata so that cursor interactions can figure out what event corresponds to this.
     boxMeshRef.current.userData.eventId = eventId
+    // SINGLE SOURCE OF DRAG IDENTITY. `locationId` is the one key that identifies
+    // "which pin is this" across the whole interaction system:
+    //   - EditPinMesh.useFrame     -> moveThisPin (below)
+    //   - EditRegionMesh.useFrame  -> which boundary vertex to rotate live
+    //   - MouseHandler             -> pin selection + the drag-start invariant check
+    //   - Scene.buildIntersection  -> hover / raycast snapshot
+    // It equals `spherePoint.id`, which is also `regionBoundaries[].id` in
+    // stateSliceEditEvent. Any new code that creates boundary pins (e.g. Subdivide)
+    // MUST carry a spherePoint with an `id`, or every one of the above silently
+    // stops working for that pin. MouseHandler.enableClickAndDrag console.errors if
+    // a drag starts on a bounding box without it.
     boxMeshRef.current.userData.locationId = spherePoint.id
   }, [meshRef.current, boxMeshRef.current])
 
@@ -161,7 +172,14 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     }
 
     // Note: Pin selection triggered in MouseHandler.useEffect[mouseState.leftMouseDown].
-    let moveThisPin = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
+    // Matched by `locationId`, NOT by mesh uuid. Previously this used uuid while
+    // EditRegionMesh's live-polygon lookup used locationId — two identity schemes for
+    // the same drag. A pin missing locationId would then still move here (uuid matches)
+    // while the polygon fill silently froze at its drag-start shape. Sharing one key
+    // means a missing id fails the same way everywhere: the pin doesn't move either,
+    // and MouseHandler logs why.
+    let draggedLocId = editState.clickAndDrag?.mesh.userData?.locationId
+    let moveThisPin = (draggedLocId != null && draggedLocId == spherePoint.id)
     let moveAllPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
     if (!moveThisPin && !moveAllPins) {
       // No change
