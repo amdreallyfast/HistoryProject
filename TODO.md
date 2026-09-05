@@ -104,7 +104,7 @@ Guidance:
 
 - [ ] `[discussion]` **Globe: Snap-click for boundary pins.** Add the ability to snap-click boundary pins (interaction model TBD).
 
-- [ ] `[simple]` **Globe: Scale boundary pins with zoom level.** Add a scaling factor so boundary pins shrink as the user zooms in. Large pins and bounding boxes become obstacles when making detailed boundary edits at high zoom; smaller pins preserve usability.
+- [x] `[simple]` **Globe: Scale boundary pins with zoom level.** Add a scaling factor so boundary pins shrink as the user zooms in. Large pins and bounding boxes become obstacles when making detailed boundary edits at high zoom; smaller pins preserve usability.
 
 - [ ] `[discussion]` **Add a text preview** (details TBD).
 
