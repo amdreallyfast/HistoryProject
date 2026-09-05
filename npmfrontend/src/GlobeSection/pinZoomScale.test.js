@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { computePinZoomScale } from "./pinZoomScale"
-import { pinZoomScaleInfo, globeInfo, regionInfo, pinMeshInfo } from "./constValues"
+import { pinZoomScaleInfo, globeInfo, regionInfo, pinMeshInfo, editRegionMeshInfo } from "./constValues"
 
 describe("computePinZoomScale", () => {
   it("is exactly 1.0 at the reference distance (default view is unchanged)", () => {
@@ -9,10 +9,13 @@ describe("computePinZoomScale", () => {
     expect(computePinZoomScale(pinZoomScaleInfo.referenceDistance, pinZoomScaleInfo)).toBe(1)
   })
 
+  // Distances below stay inside the unclamped band
+  // [referenceDistance * minScale, referenceDistance * maxScale] so they exercise the
+  // curve rather than the rails.
   it("shrinks as the camera approaches and grows as it recedes", () => {
-    const near = computePinZoomScale(10, pinZoomScaleInfo)
-    const mid = computePinZoomScale(25, pinZoomScaleInfo)
-    const far = computePinZoomScale(50, pinZoomScaleInfo)
+    const near = computePinZoomScale(6, pinZoomScaleInfo)
+    const mid = computePinZoomScale(11, pinZoomScaleInfo)
+    const far = computePinZoomScale(14, pinZoomScaleInfo)
 
     expect(near).toBeLessThan(mid)
     expect(mid).toBeLessThan(far)
@@ -21,8 +24,8 @@ describe("computePinZoomScale", () => {
   it("holds constant apparent size at exponent 1.0 (scale is linear in distance)", () => {
     // Doubling the camera distance doubles the world size, which is what keeps the
     // on-screen size fixed.
-    const a = computePinZoomScale(12.5, pinZoomScaleInfo)
-    const b = computePinZoomScale(25, pinZoomScaleInfo)
+    const a = computePinZoomScale(6, pinZoomScaleInfo)
+    const b = computePinZoomScale(12, pinZoomScaleInfo)
     expect(b / a).toBeCloseTo(2)
   })
 
@@ -43,12 +46,43 @@ describe("computePinZoomScale", () => {
   })
 
   it("compresses the range at exponent < 1 (pins also shrink on screen)", () => {
-    const linear = computePinZoomScale(50, pinZoomScaleInfo)
-    const compressed = computePinZoomScale(50, { ...pinZoomScaleInfo, exponent: 0.5 })
+    const linear = computePinZoomScale(13, pinZoomScaleInfo)
+    const compressed = computePinZoomScale(13, { ...pinZoomScaleInfo, exponent: 0.5 })
 
     expect(compressed).toBeLessThan(linear)
     // Still above 1.0 — zooming out enlarges, just less aggressively.
     expect(compressed).toBeGreaterThan(1)
+  })
+})
+
+// Zoom scaling shrinks a pin's radial standoff along with the rest of it. Basing pins on
+// the globe surface therefore made them sink under the edit region fill (which floats at
+// a fixed offset) as soon as the scale dropped far enough — observed as "the boundary
+// boxes are rendered behind the edit region mesh" when zoomed in. Pins are now based
+// ABOVE the fill, which makes the clearance independent of scale. These lock that in.
+describe("edit pins clear the edit region fill at every zoom", () => {
+  it("bases pins above the region fill, not on the globe surface", () => {
+    expect(pinMeshInfo.radiusOffset).toBeGreaterThan(editRegionMeshInfo.radiusOffset)
+  })
+
+  it("keeps the smallest boundary pin above the fill even at minScale", () => {
+    // Worst case: the smaller of the two pin types, at the most aggressive shrink.
+    const pinBase = globeInfo.radius + pinMeshInfo.radiusOffset
+    const fillSurface = globeInfo.radius + editRegionMeshInfo.radiusOffset
+
+    expect(pinBase).toBeGreaterThan(fillSurface)
+
+    // And the pin body still projects outward from that base rather than being buried.
+    const shortestStandoff = pinMeshInfo.length * pinMeshInfo.regionPinScale * pinZoomScaleInfo.minScale
+    expect(pinBase + shortestStandoff).toBeGreaterThan(fillSurface)
+  })
+
+  it("would have failed with surface-based pins (the bug)", () => {
+    // Documents the old arrangement: based at the surface, a boundary pin's tip reached
+    // only 0.15 and the fill sits at 0.1, so any scale under ~0.67 buried it.
+    const oldTipAtScale = (k) => pinMeshInfo.length * pinMeshInfo.regionPinScale * k
+    expect(oldTipAtScale(1.0)).toBeGreaterThan(editRegionMeshInfo.radiusOffset)
+    expect(oldTipAtScale(0.5)).toBeLessThan(editRegionMeshInfo.radiusOffset)
   })
 })
 

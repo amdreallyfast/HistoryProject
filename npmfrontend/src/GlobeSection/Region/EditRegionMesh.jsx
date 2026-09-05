@@ -179,8 +179,10 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       return false
     }
 
-    // Raised above DisplayRegionMesh (+0.01) so the raycaster hits this mesh first
-    let meshRadius = sphereRadius + 0.1
+    // Raised above DisplayRegionMesh (+0.01) so the raycaster hits this mesh first.
+    // Edit pins are based above THIS offset (pinMeshInfo.radiusOffset) so that zoom
+    // scaling can't shrink a pin's standoff until it disappears under this fill.
+    let meshRadius = sphereRadius + editRegionMeshInfo.radiusOffset
     let material = regionMeshRef.current.material
 
     let built = buildRegionBuffers(baseVertices, meshRadius)

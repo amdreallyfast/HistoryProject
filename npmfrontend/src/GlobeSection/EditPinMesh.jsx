@@ -3,7 +3,7 @@ import * as THREE from "three"
 import { useFrame, useThree } from "@react-three/fiber"
 import { useDispatch, useSelector } from "react-redux"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
-import { meshNames, pinZoomScaleInfo } from "./constValues"
+import { meshNames, pinMeshInfo, pinZoomScaleInfo } from "./constValues"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { sharedDragRotor } from "./sharedDragRotor"
 import { computePinZoomScale } from "./pinZoomScale"
@@ -37,6 +37,26 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
   const colors = {
     normal: 0xffffff,
     highlight: 0x00f0f0,
+  }
+
+  // Render position for this pin: the spherePoint lifted clear of the edit region fill.
+  //
+  // spherePoint sits ON the globe surface (radius globeInfo.radius), but the edit region
+  // mesh floats above that, so a surface-based pin only pokes through by the difference —
+  // and zoom scaling shrinks that standoff along with the pin, sinking it under the fill.
+  // Basing the pin above the fill makes the clearance independent of scale.
+  //
+  // Only the RENDER position moves. The stored data is untouched: rotation during a drag
+  // preserves radius, and the mouse-up commit runs createSpherePointFromXYZ(..., globeInfo.radius),
+  // which rescales back to the surface, so lat/long round-trips exactly.
+  //
+  // Assumes the globe is centered at the origin (globeInfo.pos is (0,0,0)), which the drag
+  // math already relies on when it rotates positions about the origin.
+  const liftFactor = (globeInfo.radius + pinMeshInfo.radiusOffset) / globeInfo.radius
+  const renderPos = {
+    x: spherePoint.x * liftFactor,
+    y: spherePoint.y * liftFactor,
+    z: spherePoint.z * liftFactor,
   }
 
   function makePin() {
@@ -76,9 +96,9 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     // Z axis so that +Z points at the globe center. At that point, the object's base will be at 
     // the globe's surface and the top will be inside the globe, so we need to back off the 
     // length of the pin.
-    meshRef.current.position.x = spherePoint.x
-    meshRef.current.position.y = spherePoint.y
-    meshRef.current.position.z = spherePoint.z
+    meshRef.current.position.x = renderPos.x
+    meshRef.current.position.y = renderPos.y
+    meshRef.current.position.z = renderPos.z
     meshRef.current.lookAt(lookAt)
 
     // Mesh origin was the top of the pin. Shift the whole thing so that the end of the pin (
@@ -108,9 +128,9 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     let indicesAttribute = new THREE.Uint32BufferAttribute(boxGeometry.index.array, valuesPerIndex)
     boxMeshRef.current.geometry.setIndex(indicesAttribute)
 
-    boxMeshRef.current.position.x = spherePoint.x
-    boxMeshRef.current.position.y = spherePoint.y
-    boxMeshRef.current.position.z = spherePoint.z
+    boxMeshRef.current.position.x = renderPos.x
+    boxMeshRef.current.position.y = renderPos.y
+    boxMeshRef.current.position.z = renderPos.z
     boxMeshRef.current.geometry.scale(scale, scale, scale)
     boxMeshRef.current.lookAt(lookAt)
 
