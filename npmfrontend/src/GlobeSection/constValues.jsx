@@ -21,6 +21,29 @@ export const pinMeshInfo = {
   regionPinColor: 0xffd700
 }
 
+// Zoom-proportional pin scaling (see pinZoomScale.js). Applied as an OBJECT scale on
+// top of the baked geometry scale above, so a factor of 1.0 renders exactly as the
+// pre-2026-09 fixed-size pins did.
+export const pinZoomScaleInfo = {
+  // The camera's initial Z (GlobeSectionMain's <PerspectiveCamera position={[0,0,25]}>),
+  // so the default view yields scale 1.0 and looks unchanged.
+  referenceDistance: 25,
+
+  // 1.0 == constant apparent size. Below 1.0 the pins also shrink on screen as you
+  // zoom in. Kept here as a knob so the feel can be tuned without touching call sites.
+  exponent: 1.0,
+
+  // Safety rails only. OrbitControls sets no minDistance/maxDistance, so the camera can
+  // get arbitrarily close to (or far from) the globe; these stop a pin from collapsing
+  // to invisible or ballooning across the screen.
+  minScale: 0.15,
+  maxScale: 3.0,
+
+  // Don't rewrite the transform for sub-perceptual changes — a stationary camera should
+  // cost one distanceTo per pin per frame and nothing else.
+  epsilon: 0.001,
+}
+
 export const editRegionMeshInfo = {
   validColor: 0x000ff0,   // normal editable region (blue)
   errorColor: 0xff3333,   // invalid boundary (bad winding / failed triangulation)

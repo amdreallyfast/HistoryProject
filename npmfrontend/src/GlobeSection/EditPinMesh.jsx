@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
-import { useFrame } from "@react-three/fiber"
+import { useFrame, useThree } from "@react-three/fiber"
 import { useDispatch, useSelector } from "react-redux"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
-import { meshNames } from "./constValues"
+import { meshNames, pinZoomScaleInfo } from "./constValues"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { sharedDragRotor } from "./sharedDragRotor"
+import { computePinZoomScale } from "./pinZoomScale"
 import _ from "lodash"
 
 export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
@@ -24,9 +25,14 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
   const reduxDispatch = useDispatch()
   const meshRef = useRef()
   const boxMeshRef = useRef()
+  const camera = useThree((state) => state.camera)
 
   // For use during click-and-drag. Update once click-and-drag ends.
   const originalPosRef = useRef()
+
+  // Last zoom scale written to the meshes, so a stationary camera doesn't rewrite the
+  // transform every frame. See applyZoomScale.
+  const lastZoomScaleRef = useRef(null)
 
   const colors = {
     normal: 0xffffff,
@@ -117,6 +123,38 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
   }
 
+  // Scale the pin with camera distance so it holds a roughly constant APPARENT size.
+  //
+  // Applied as an OBJECT scale, not by rebuilding geometry: makePin/makeBoundingBox bake
+  // the size into the geometry (geometry.scale + an applyMatrix4 translation so the pin
+  // tip rests on the surface), and re-baking that per frame would be wasteful. The mesh
+  // origin already sits at the surface point, so a uniform object scale shrinks the pin
+  // and its standoff together, toward that point. It multiplies on top of the baked
+  // scale, so a factor of 1.0 (the default view) renders exactly as it did before.
+  //
+  // Three.js raycasting honours matrixWorld, so the bounding box's HIT TARGET shrinks
+  // with it — which is the actual point. Fixed-size boxes are what makes a subdivided
+  // boundary unpickable: ~0.17 wide boxes against ~0.14 spacing at 32 pins.
+  const applyZoomScale = () => {
+    if (!meshRef.current || !boxMeshRef.current) {
+      return
+    }
+
+    let cameraDistance = camera.position.distanceTo(globeInfo.pos)
+    let scaleFactor = computePinZoomScale(cameraDistance, pinZoomScaleInfo)
+
+    // Skip sub-perceptual changes so a stationary camera costs one distanceTo and no
+    // matrix rewrite. Same shape as the rotor-unchanged skip in EditRegionMesh.
+    let last = lastZoomScaleRef.current
+    if (last != null && Math.abs(last - scaleFactor) < pinZoomScaleInfo.epsilon) {
+      return
+    }
+    lastZoomScaleRef.current = scaleFactor
+
+    meshRef.current.scale.setScalar(scaleFactor)
+    boxMeshRef.current.scale.setScalar(scaleFactor)
+  }
+
   // Create pin mesh when mesh reference is available.
   useEffect(() => {
     // console.log({ "EditPinMesh.useEffect[meshRef.current]": meshRef.current })
@@ -136,6 +174,10 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     }
 
     makeBoundingBox()
+
+    // Seed the zoom scale at creation so a pin added while the camera is already zoomed
+    // in doesn't render one frame at full size before useFrame catches it.
+    applyZoomScale()
 
     // Assign metadata so that cursor interactions can figure out what event corresponds to this.
     boxMeshRef.current.userData.eventId = eventId
@@ -163,6 +205,10 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
   // happens in the same RAF the rotor was written, so the pin moves with the
   // cursor instead of trailing it.
   useFrame(() => {
+    // Zoom scaling runs on EVERY frame, before the drag guards below — the pin has to
+    // track the camera whether or not a drag is in progress.
+    applyZoomScale()
+
     // Don't move the pin unless we're in edit mode and dragging.
     if (!editState.editModeOn || !editState.clickAndDrag) {
       return
