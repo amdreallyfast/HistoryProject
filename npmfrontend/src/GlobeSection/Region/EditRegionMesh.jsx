@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { meshNames, editRegionMeshInfo } from "../constValues"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { generateRegionMesh } from "./regionMeshGeometry"
+import { buildDraggedBoundary, computeActiveBoundingSphere } from "./regionDragGeometry"
 import { sharedDragRotor } from "../sharedDragRotor"
 
 // Worst-case capacity for the pre-allocated region-mesh buffers. The geometry is
@@ -15,6 +16,14 @@ import { sharedDragRotor } from "../sharedDragRotor"
 // plus margin). Buffers are allocated once and reused; see initGeometryBuffers below.
 const MAX_VERTICES = 4096
 const MAX_INDICES = MAX_VERTICES * 8
+
+// Scratch objects for the drag hot path. These were allocated fresh inside useFrame
+// on every animation frame; at 60Hz that is pure garbage-collector pressure for no
+// reason. EditableRegion mounts exactly one EditRegionMesh per edit session, so
+// module scope is safe here — but note that assumption if the component ever becomes
+// multi-instance.
+const scratchVertex = new THREE.Vector3()
+const scratchSphereCenter = new THREE.Vector3()
 
 export const EditRegionMesh = ({ sphereRadius }) => {
   // const [originalRegionBoundaries, setOriginalRegionBoundaries] = useState()
@@ -38,6 +47,17 @@ export const EditRegionMesh = ({ sphereRadius }) => {
   // to keep the polygon visually live without re-running ear-clipping or
   // allocating new GPU buffers each frame. See useFrame below.
   const dragStartPositionsRef = useRef(null)
+  // Last rotor this component actually consumed. MouseHandler rewrites the shared
+  // rotor every RAF the cursor is over the globe, but the VALUE only changes when the
+  // cursor actually moves. Without this guard a paused cursor mid-drag still cost a
+  // full ear-clip + subdivide + buffer rewrite every single frame. `rotorValidRef`
+  // starts false on each drag so the first frame always builds.
+  const lastRotorRef = useRef(new THREE.Quaternion())
+  const rotorValidRef = useRef(false)
+  // Whole-region drag: the drag-start bounding sphere. That drag is a rigid rotation
+  // about the globe origin, so the sphere can be kept correct by rotating its center
+  // and leaving the radius alone — no need to re-derive it from the vertices.
+  const dragStartSphereRef = useRef(null)
   // Pre-allocated dynamic GPU buffers (allocated once in initGeometryBuffers, reused
   // on every mesh update via TypedArray.set). activeVertex/IndexCount track how
   // much of each buffer is live so the drag loop and draw range ignore the tail.
@@ -114,11 +134,29 @@ export const EditRegionMesh = ({ sphereRadius }) => {
     regionMeshRef.current.geometry.setDrawRange(0, flattenedMeshIndices.length)
     positionAttr.needsUpdate = true
     indexAttr.needsUpdate = true
-    // Conservative bounds: computeBoundingSphere reads the full position buffer
-    // including the zeroed tail (globe center), so the sphere is larger than the
-    // mesh. That only ever makes frustum culling less aggressive (never culls a
-    // visible mesh), which is fine for a single in-view region during editing.
-    regionMeshRef.current.geometry.computeBoundingSphere()
+    writeBoundingSphere()
+  }
+
+  // Bound the bounding sphere to the ACTIVE vertices. geometry.computeBoundingSphere()
+  // walks all MAX_VERTICES including the zeroed tail sitting at the globe center,
+  // which is both ~40x more work than needed and produces a hugely inflated sphere.
+  // Inflation was harmless for culling, but this runs on the single-pin drag hot path.
+  //
+  // Tightening it does create an obligation: the whole-region drag branch previously
+  // never touched the sphere and got away with it precisely BECAUSE the stale sphere
+  // was big enough to cover wherever the mesh rotated to. Now that it is tight, that
+  // branch has to keep it up to date too (see useFrame).
+  const writeBoundingSphere = () => {
+    let geometry = regionMeshRef.current.geometry
+    let { center, radius } = computeActiveBoundingSphere(
+      positionAttrRef.current.array,
+      activeVertexCountRef.current
+    )
+    if (geometry.boundingSphere == null) {
+      geometry.boundingSphere = new THREE.Sphere()
+    }
+    geometry.boundingSphere.center.set(center.x, center.y, center.z)
+    geometry.boundingSphere.radius = radius
   }
 
   // Triangulate `baseVertices` and write the result into the pre-allocated buffers.
@@ -221,11 +259,23 @@ export const EditRegionMesh = ({ sphereRadius }) => {
   useFrame(() => {
     if (!editState.clickAndDrag) {
       dragStartPositionsRef.current = null
+      dragStartSphereRef.current = null
+      rotorValidRef.current = false
       return
     }
     if (regionMeshRef.current == null) {
       return
     }
+
+    // Nothing to do if the cursor hasn't moved since the last frame we handled: the
+    // rotor is what drives both drag kinds, so an unchanged rotor means an unchanged
+    // result. Skipping here avoids a per-frame re-triangulation while the user holds
+    // a pin still. First frame of a drag always passes (rotorValidRef is false).
+    if (rotorValidRef.current && lastRotorRef.current.equals(sharedDragRotor.quaternion)) {
+      return
+    }
+    lastRotorRef.current.copy(sharedDragRotor.quaternion)
+    rotorValidRef.current = true
 
     let dragMesh = editState.clickAndDrag.mesh
     let moveAllPins = (dragMesh.name == meshNames.Region)
@@ -245,21 +295,38 @@ export const EditRegionMesh = ({ sphereRadius }) => {
       // already-rotated buffer would compound).
       if (dragStartPositionsRef.current == null) {
         dragStartPositionsRef.current = positionAttr.array.slice(0, activeLength)
+        // Snapshot the bounding sphere alongside the positions. See writeBoundingSphere:
+        // now that the sphere is tight, this branch must maintain it or a region rotated
+        // away and back could be wrongly frustum-culled mid-drag.
+        let geometry = regionMeshRef.current.geometry
+        if (geometry.boundingSphere == null) {
+          writeBoundingSphere()
+        }
+        dragStartSphereRef.current = {
+          center: geometry.boundingSphere.center.clone(),
+          radius: geometry.boundingSphere.radius,
+        }
       }
 
       // Read the rotor from the shared module (written by MouseHandler.useFrame
       // earlier in this RAF via tree/mount order). Step 2 of the perf plan.
       let arr = positionAttr.array
       let orig = dragStartPositionsRef.current
-      let v = new THREE.Vector3()
       for (let i = 0; i < activeLength; i += 3) {
-        v.set(orig[i], orig[i + 1], orig[i + 2])
-        v.applyQuaternion(sharedDragRotor.quaternion)
-        arr[i + 0] = v.x
-        arr[i + 1] = v.y
-        arr[i + 2] = v.z
+        scratchVertex.set(orig[i], orig[i + 1], orig[i + 2])
+        scratchVertex.applyQuaternion(sharedDragRotor.quaternion)
+        arr[i + 0] = scratchVertex.x
+        arr[i + 1] = scratchVertex.y
+        arr[i + 2] = scratchVertex.z
       }
       positionAttr.needsUpdate = true
+
+      // Rigid rotation about the globe origin: rotate the drag-start center, keep the
+      // radius. Cheaper and exactly equivalent to re-deriving it from the vertices.
+      let dragStartSphere = dragStartSphereRef.current
+      scratchSphereCenter.copy(dragStartSphere.center).applyQuaternion(sharedDragRotor.quaternion)
+      regionMeshRef.current.geometry.boundingSphere.center.copy(scratchSphereCenter)
+      regionMeshRef.current.geometry.boundingSphere.radius = dragStartSphere.radius
       return
     }
 
@@ -267,29 +334,19 @@ export const EditRegionMesh = ({ sphereRadius }) => {
     if (editState.regionBoundaries.length < 3) {
       return
     }
-    let draggedId = dragMesh.userData?.locationId
-    if (!draggedId) {
-      return
-    }
-
     // Reconstruct the live boundary: rotate only the dragged marker by the shared
-    // rotor (same transform EditPinMesh applies to that pin); leave the rest at
-    // their drag-start positions. Boundary order is preserved (map in place) — the
-    // CCW order EarClipping requires.
-    let q = sharedDragRotor.quaternion
-    let tmpVec = new THREE.Vector3()
-    let found = false
-    let baseVertices = editState.regionBoundaries.map((b) => {
-      if (b.id == draggedId) {
-        found = true
-        tmpVec.set(b.x, b.y, b.z).applyQuaternion(q)
-        return [tmpVec.x, tmpVec.y, tmpVec.z]
-      }
-      return [b.x, b.y, b.z]
-    })
+    // rotor (same transform EditPinMesh applies to that pin); leave the rest at their
+    // drag-start positions, preserving the CCW order EarClipping requires. `found` is
+    // false when the dragged pin is the primary location, which the region boundary is
+    // independent of — nothing to rebuild. (A pin with no locationId also lands here,
+    // but MouseHandler.enableClickAndDrag has already console.error'd about it.)
+    let { baseVertices, found } = buildDraggedBoundary(
+      editState.regionBoundaries,
+      dragMesh.userData?.locationId,
+      sharedDragRotor.quaternion,
+      scratchVertex
+    )
     if (!found) {
-      // The dragged pin is the primary location (or unknown), which the region
-      // boundary is independent of. Nothing to rebuild.
       return
     }
 
