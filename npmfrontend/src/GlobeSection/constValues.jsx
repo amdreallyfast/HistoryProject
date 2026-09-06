@@ -10,7 +10,19 @@ export const globeInfo = {
 }
 
 export const regionInfo = {
-  defaultRegionRadius: 8
+  defaultRegionRadius: 8,
+
+  // Ceiling on boundary points, enforced by the Subdivide button (8 -> 16 -> 32 -> 64 ->
+  // 128, so four presses from the default ring).
+  //
+  // This is NOT about pins visually overlapping — that is accepted as the user's
+  // responsibility, and zoom scaling (pinZoomScaleInfo) keeps them pickable. It is about
+  // the drag hot path: EditRegionMesh.useFrame re-runs EarClipping + MeshSubdivider on
+  // every frame the cursor moves during a single-pin drag, and ear-clipping cost grows
+  // superlinearly with point count. If a drag at this size ever stutters, the fix is the
+  // throttle anticipated in EditRegionMesh's useFrame comments (frame-skip or debounce),
+  // not a lower cap.
+  maxBoundaryPoints: 128,
 }
 
 export const pinMeshInfo = {
