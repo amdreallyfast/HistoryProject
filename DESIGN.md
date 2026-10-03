@@ -264,12 +264,93 @@ Controller: `HistoricalEventController` at `api/HistoricalEvent/`
 |----------|--------|---------|
 | `GetLatestRevision/{eventId}` | GET | Latest revision of an event |
 | `GetAllRevisions/{eventId}` | GET | Full revision history |
-| `GetSpecificRevision/{eventId}/{revision}` | GET | Specific revision |
+| `GetSpecificRevision/{eventId}/{revision}` | GET | Specific revision (filters on `EventId`; filtered on the `Id` PK until 2026-10 and could not work as documented) |
 | `GetFirst100` | GET | First 100 events |
 | `GetEventOfTheDay` | GET | Random/featured event |
-| `Create` | POST | New event |
+| `Create` | POST | New event or new revision; server assigns Revision/Id/timestamp |
 | `Update` | PUT | Update (new revision) |
 | `Delete/{eventId}` | DELETE | Hard-delete whole event (all revisions + children); dev/test only |
+
+### Input Validation — the client is untrusted (2026-10)
+
+`Validation/EventValidation.cs` is the single entry point; `Create` and `Update` each make one
+`EventValidation.Validate(e)` call and turn a non-null result into a **422 whose body is the
+reason** (the string is shown to the user, so messages name the offending field, boundary point,
+or source). Covers: Title/Summary present, location-or-region present, image bytes (PNG/JPEG
+signature + 5 MB cap), coordinate ranges and finiteness, list caps, region winding, and calendar
+field ranges.
+
+**Why it exists.** The frontend is user-loaded JS: every client-side guardrail can be removed in
+devtools and arbitrary data POSTed. **What it is not: access control.** The API has no
+authentication yet, so an attacker needs no forgery — they can POST unlimited well-formed garbage.
+This is damage limitation and data integrity. The account-system discussion is the prerequisite
+for the stronger claim, and was deliberately sequenced after this.
+
+**Server authority over identity.** `Create` assigns `Revision` (max + 1 for the EventId), `Id`,
+and `RevisionDateTime` itself and discards whatever the client sent; a unique index on
+`(EventId, Revision)` enforces it at the database. What a forged revision breaks is *ordering*,
+not confidentiality: `GetFirst100` and the frontend's `getLatestRevisions` both pick the maximum
+revision per EventId, so a revision numbered 99999 would pin itself as "latest" permanently. The
+fix is not validating the client's number but refusing to accept it. **`EventId` is the one
+identity field kept as sent** — `EditEvent.onSubmitClick` re-fetches `getAllRevisions(eventId)`
+with the client's own value after a successful Create, so reassigning it would 404 that call.
+
+*A client-computed hash cannot substitute for this.* You cannot make client-submitted data
+tamper-evident against the client: the salt either lives only on the server (so the client cannot
+compute it, and it is not part of the submission) or ships to the browser (where it is not secret,
+because the attacker *is* the browser). A content hash authenticates content, not authority. A
+hash would still be useful for two *different* jobs — ETag-style optimistic concurrency to catch
+lost updates between concurrent editors, and git-style revision chaining for tamper evidence
+against someone with direct database access — neither of which is implemented.
+
+**Region winding: normalize on the frontend, reject on the backend.** Deliberately asymmetric.
+`eventMapper.frontendToBackend` reverses a clockwise ring before submit (the pin-drag UI can
+transiently produce one); the backend 422s it, because a bad winding arriving at the API means the
+frontend was bypassed or has regressed and quietly repairing it would hide that. `OrderIndex` —
+not list position — is the stored ring order (`backendToFrontend` sorts by it), so normalization
+assigns `OrderIndex` *after* reversing and the backend check sorts by it before measuring.
+
+Both tiers compute the **signed area** (solid angle) the ring covers on the unit sphere, by
+fan-triangulating and summing Van Oosterom–Strackee per triangle. Positive is counterclockwise,
+the orientation `EarClipping` requires. Three bands: counterclockwise accepts, clockwise 422s,
+and `|area| <= 1e-12` 422s as *degenerate* — a collinear ring genuinely has no orientation, and
+calling it clockwise would misinform the user. `tests/fixtures/regionWindingContract.json` holds
+the cases and expected classifications and is read by **both** tiers, because the sign depends on
+the handedness of the lat/long→XYZ mapping and a mismatch would invert every verdict.
+
+*Honest accounting of why signed area over the older `regionWindingSign`:* it was **not** measured
+to fix any case. The two agree on every ring constructed — spans from 0.5° to 240°, polar regions,
+and rings densified with 1000 clustered points. What it buys is a meaningful magnitude (which is
+what makes the degenerate band possible at all; `regionWindingSign` returns ~0 for a collinear
+ring and would report it as clockwise), an explainable verdict, and no approximation of "outward"
+to outgrow. `regionWindingSign` is kept only as the historical oracle in `region-winding.spec.ts`.
+
+*Known limits, measured.* Orientation is not simplicity: a ring that is mostly counterclockwise
+with a small self-crossing loop still totals positive and is accepted, while `EarClipping` throws
+— contained because `DisplayRegion`/`EditableRegion` wrap the mesh in an `ErrorBoundary`, so it
+fails to draw rather than taking the page down. A ring spanning more than 180° of longitude flips
+sign (shortest arcs go the other way round and it encloses the complement) — correct, but
+`EarClipping` accepts both orientations at that scale, so the two disagree there. Rings on a great
+circle are sampling-dependent and are excluded from the contract fixture.
+
+**Dates** are checked per field (month 1-12, day 1-31, hour 0-23, minute 0-59, earliest year not
+after latest), on the event and every source publication range. Null means unspecified and is
+allowed — partial dates are first-class. Equal bounds are allowed, since that is how the editor
+records an exact date. Per-month validity (Feb 30) is **deliberately excluded**: it depends on the
+calendar system, which the `JulianCalendar` item owns and both tiers are meant to share.
+
+**Cross-tier constants** live in `npmfrontend/src/api/validationConstants.contract.test.js`, which
+reads the real C# and JS sources and fails if a duplicated limit drifts — currently the image cap,
+the PNG/JPEG signatures, and the region point cap. Latitude/longitude ranges are deliberately not
+covered: they exist only on the backend, so there is no duplication to guard.
+
+**A trap worth knowing.** `Event.EventImage` is a `[Required]` *reference navigation*, so EF treats
+the relationship as required and `.Include(x => x.EventImage)` becomes an **INNER JOIN**. An event
+stored without an EventImage row is therefore invisible to *every* read endpoint — the write
+succeeds and can never be read back. The frontend always sends a wrapper (`{ Id, ImageBinary: "" }`)
+so it has never bitten in practice, which is exactly why the `[Required] EventImage` TODO exists;
+`Create` now fills in an empty wrapper when one is absent. The real fix is making the navigation
+optional, which needs a migration and belongs to that item.
 
 ### Data Model (Entity Framework)
 
