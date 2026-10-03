@@ -384,3 +384,128 @@ export const regionWindingSign = (baseVertices) => {
 // seen from outside the globe). Lets the editor detect an invalid edit BEFORE
 // triangulating, instead of relying on the EarClipping throw. Also a test oracle.
 export const isRegionWindingValid = (baseVertices) => regionWindingSign(baseVertices) > 0
+
+// ---------------------------------------------------------------------------
+// Spherical signed area (orientation of a region boundary)
+// ---------------------------------------------------------------------------
+//
+// Preferred over regionWindingSign for any NEW use, though NOT because it fixes a
+// demonstrated bug — that was measured, and the claim did not hold. On every case
+// constructed (boxes from 0.5° to 240° of span, polar regions, and rings densified with up
+// to 1000 clustered points) the two agree. What this buys instead:
+//
+//   1. A MEANINGFUL MAGNITUDE. regionWindingSign returns the dot product of two
+//      approximations; its magnitude means nothing, so it cannot distinguish "wound the
+//      wrong way" from "encloses no area at all". It returns ~0 for a collinear ring and a
+//      > 0 test then reports that as clockwise — telling a user their collinear boundary is
+//      wound backwards. The three-band classification below needs a real area to exist.
+//   2. AN EXPLAINABLE VERDICT. "This ring, traced by shortest arcs, encloses 3.36
+//      steradians the other way round" is checkable against geometry. The sign of a
+//      centroid dot product is not.
+//   3. NO APPROXIMATIONS TO OUTGROW. regionWindingSign approximates the outward normal by
+//      the vertex centroid and sums un-normalized vectors, so it is weighted by point count
+//      rather than arc length. That did not bite in testing, but it is a latent dependency
+//      on vertex distribution that this has no equivalent of.
+//
+// regionWindingSign is kept as-is: region-winding.spec.ts pins it as a historical oracle.
+// Neither function should gate the editor — triangulation stays authoritative there.
+//
+// This computes the actual signed area the ring covers on the unit sphere — equivalently,
+// the solid angle it subtends at the globe's centre. The sign is the orientation, the same
+// way the 2D shoelace formula comes out positive for a counterclockwise traversal and
+// negative for a clockwise one. Exact at any region size; nothing is approximated.
+//
+// Method: fan-triangulate from vertex 0 and sum each spherical triangle's signed solid
+// angle via Van Oosterom–Strackee:
+//
+//   Ω = 2 * atan2( a · (b × c),  1 + a·b + b·c + c·a )        (a, b, c unit vectors)
+//
+// The numerator is the scalar triple product, so its sign IS that triangle's orientation.
+// On a concave or star-shaped ring the fan triangles that fall outside the real region
+// come back negative and cancel the excess exactly, so no special-casing is needed.
+//
+// Two deliberate choices:
+//  - atan2, not atan(num/den). The denominator legitimately passes through zero for a
+//    degenerate half-great-circle triangle; atan2 handles that without dividing.
+//  - NOT spherical excess (Σ interior angles − (n−2)π). That form subtracts two large
+//    nearly-equal quantities for small regions — catastrophic cancellation exactly where
+//    the check matters most.
+//
+// KNOWN LIMITS, both measured:
+//  - ORIENTATION IS NOT SIMPLICITY. A ring that is mostly counterclockwise with a small
+//    self-crossing loop still totals positive, because the loop's negative area is swamped
+//    — see the `twist` fixture in region-winding.spec.ts, which this accepts and
+//    EarClipping rejects. Triangulation stays the authority on whether a region can be drawn.
+//  - A RING SPANNING MORE THAN 180° OF LONGITUDE flips sign, because the shortest arc
+//    between its far-apart vertices goes the other way round the globe and the ring then
+//    encloses the complement. That is geometrically correct — such a ring genuinely does not
+//    say which side you meant — but note EarClipping accepts BOTH orientations at that scale
+//    (its #pointInCone assumes coplanar points), so the two disagree there.
+//  - A RING ON A GREAT CIRCLE is sampling-dependent: vertices 120° apart give 2π, vertices
+//    10° apart give 0, because the atan2 denominator changes sign once vertices are far
+//    enough apart. Both are defensible for a shape that encloses no definite side.
+//
+// Input: array of [x, y, z] on the sphere (any radius; normalized here).
+// Output: signed area in steradians. Positive = counterclockwise viewed from outside,
+// which is the orientation EarClipping requires.
+export const regionSignedArea = (baseVertices) => {
+  if (!baseVertices || baseVertices.length < 3) {
+    return 0
+  }
+
+  const unit = []
+  for (let i = 0; i < baseVertices.length; i++) {
+    const [x, y, z] = baseVertices[i]
+    const len = Math.sqrt((x * x) + (y * y) + (z * z))
+    if (!(len > 0) || !Number.isFinite(len)) {
+      // A zero or non-finite vertex has no direction; treat the whole ring as degenerate
+      // rather than letting a NaN poison the sum.
+      return 0
+    }
+    unit.push([x / len, y / len, z / len])
+  }
+
+  const dot = (p, q) => (p[0] * q[0]) + (p[1] * q[1]) + (p[2] * q[2])
+
+  const a = unit[0]
+  let total = 0
+  for (let i = 1; i < unit.length - 1; i++) {
+    const b = unit[i]
+    const c = unit[i + 1]
+
+    const crossX = (b[1] * c[2]) - (b[2] * c[1])
+    const crossY = (b[2] * c[0]) - (b[0] * c[2])
+    const crossZ = (b[0] * c[1]) - (b[1] * c[0])
+
+    const numerator = (a[0] * crossX) + (a[1] * crossY) + (a[2] * crossZ)
+    const denominator = 1 + dot(a, b) + dot(b, c) + dot(c, a)
+
+    total += 2 * Math.atan2(numerator, denominator)
+  }
+
+  return total
+}
+
+// Below this, the ring encloses no meaningful area and has no correct orientation:
+// collinear points, duplicates, or a zero-area shape. Sits far above the numerical noise
+// floor (~1e-14 steradians accumulated over a 128-point ring) and far below any region a
+// person could draw (the default 8° region covers ~0.061 sr), so it never has to
+// adjudicate a real case.
+export const REGION_WINDING_EPSILON = 1e-12
+
+export const regionWinding = {
+  counterclockwise: "counterclockwise",
+  clockwise: "clockwise",
+  degenerate: "degenerate",
+}
+
+// Three outcomes, not two. Separating "degenerate" from "clockwise" is not a
+// floating-point workaround — a collinear ring genuinely has no orientation, and saying
+// it is "wound clockwise" would be a misleading thing to tell a user.
+export const classifyRegionWinding = (baseVertices) => {
+  const area = regionSignedArea(baseVertices)
+  if (!Number.isFinite(area) || Math.abs(area) <= REGION_WINDING_EPSILON) {
+    return regionWinding.degenerate
+  }
+  return area > 0 ? regionWinding.counterclockwise : regionWinding.clockwise
+}

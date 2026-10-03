@@ -46,6 +46,15 @@ namespace WebAPI.Validation
         public const double MinLongitude = -180.0;
         public const double MaxLongitude = 180.0;
 
+        // Keep in sync with REGION_WINDING_EPSILON in
+        // npmfrontend/src/GlobeSection/Region/regionMeshGeometry.js.
+        //
+        // Below this the ring encloses no meaningful area and has no correct orientation —
+        // collinear points, duplicates, or a zero-area shape. Sits far above the numerical noise
+        // floor (~1e-14 sr accumulated over a 128-point ring) and far below any region a person
+        // could draw (the default 8° region covers ~0.061 sr), so it never adjudicates a real case.
+        public const double RegionWindingEpsilon = 1e-12;
+
         private static readonly byte[] PngSignature = { 0x89, 0x50, 0x4e, 0x47 };
         private static readonly byte[] JpegSignature = { 0xff, 0xd8, 0xff };
 
@@ -78,6 +87,7 @@ namespace WebAPI.Validation
 
             return ValidateListSizes(e)
                 ?? ValidateCoordinates(e)
+                ?? ValidateRegionWinding(e)
                 ?? ValidateImage(e.EventImage?.ImageBinary);
         }
 
@@ -150,6 +160,126 @@ namespace WebAPI.Validation
                 return $"{label} longitude must be between {MinLongitude} and {MaxLongitude} (received {location.Longitude}).";
             }
             return null;
+        }
+
+        // Region orientation. EarClipping on the frontend requires a counterclockwise ring
+        // (viewed from outside the globe) and throws otherwise — so a clockwise ring that reaches
+        // the database is a region no viewer can draw.
+        //
+        // ASYMMETRY WITH THE FRONTEND, DELIBERATE: the frontend NORMALIZES a clockwise ring to
+        // counterclockwise on submit (see eventMapper.frontendToBackend). The backend REJECTS it.
+        // A bad winding arriving here means the frontend was bypassed or has regressed, and
+        // quietly repairing it would hide that.
+        //
+        // KNOWN LIMIT: this detects orientation, not simplicity. A ring that is mostly
+        // counterclockwise with a small self-crossing loop still totals positive — the loop's
+        // negative area is swamped — so it is accepted here while EarClipping would still throw.
+        // Accepted because DisplayRegion/EditableRegion wrap the mesh in an ErrorBoundary: such a
+        // region fails to draw rather than taking the page down. Closing the gap entirely means
+        // porting EarClipping itself.
+        private static string? ValidateRegionWinding(Event e)
+        {
+            if (e.Region is null || e.Region.Count < 3)
+            {
+                // No region, or too few points to enclose anything. Not an error — an event may
+                // legitimately have only a specific location.
+                return null;
+            }
+
+            var area = RegionSignedArea(e.Region);
+
+            if (!double.IsFinite(area) || Math.Abs(area) <= RegionWindingEpsilon)
+            {
+                return "Region boundary is degenerate: the points enclose no area "
+                     + "(collinear, duplicated, or all on one great circle).";
+            }
+            if (area < 0)
+            {
+                return "Region boundary is wound clockwise; it must be counterclockwise "
+                     + "when viewed from outside the globe.";
+            }
+            return null;
+        }
+
+        // Signed area (equivalently, signed solid angle at the globe's centre) that the boundary
+        // ring covers on the unit sphere. Positive = counterclockwise viewed from outside, which
+        // is the orientation EarClipping requires.
+        //
+        // Must agree with regionSignedArea in
+        // npmfrontend/src/GlobeSection/Region/regionMeshGeometry.js. Guarded by
+        // npmfrontend/src/api/validationConstants.contract.test.js, which runs both
+        // implementations over the same fixtures and compares the classification.
+        //
+        // Method: fan-triangulate from the first vertex and sum each spherical triangle's signed
+        // solid angle via Van Oosterom–Strackee:
+        //
+        //   Ω = 2 * atan2( a · (b × c),  1 + a·b + b·c + c·a )      (a, b, c unit vectors)
+        //
+        // The numerator is the scalar triple product, so its sign IS that triangle's orientation;
+        // on a concave or star-shaped ring the fan triangles outside the real region come back
+        // negative and cancel the excess exactly. atan2 rather than atan(num/den) because the
+        // denominator legitimately passes through zero for a degenerate half-great-circle
+        // triangle. Deliberately NOT spherical excess (Σ interior angles − (n−2)π), which
+        // subtracts two large nearly-equal quantities for small regions.
+        public static double RegionSignedArea(IEnumerable<EventLocation> region)
+        {
+            // ORDER MATTERS AND IS NOT THE LIST ORDER. EF returns related rows unordered, and the
+            // frontend sorts by OrderIndex on read (eventMapper.backendToFrontend), so OrderIndex
+            // — not list position — is the stored ring order. Validating the unsorted list would
+            // check the winding of a ring nobody will ever reconstruct.
+            var ordered = region.OrderBy(p => p.OrderIndex).ToList();
+            if (ordered.Count < 3)
+            {
+                return 0;
+            }
+
+            var unit = new List<double[]>(ordered.Count);
+            foreach (var point in ordered)
+            {
+                if (!double.IsFinite(point.Latitude) || !double.IsFinite(point.Longitude))
+                {
+                    return 0;
+                }
+                unit.Add(ToUnitVector(point.Latitude, point.Longitude));
+            }
+
+            static double Dot(double[] p, double[] q) => (p[0] * q[0]) + (p[1] * q[1]) + (p[2] * q[2]);
+
+            var a = unit[0];
+            double total = 0;
+            for (int i = 1; i < unit.Count - 1; i++)
+            {
+                var b = unit[i];
+                var c = unit[i + 1];
+
+                double crossX = (b[1] * c[2]) - (b[2] * c[1]);
+                double crossY = (b[2] * c[0]) - (b[0] * c[2]);
+                double crossZ = (b[0] * c[1]) - (b[1] * c[0]);
+
+                double numerator = (a[0] * crossX) + (a[1] * crossY) + (a[2] * crossZ);
+                double denominator = 1 + Dot(a, b) + Dot(b, c) + Dot(c, a);
+
+                total += 2 * Math.Atan2(numerator, denominator);
+            }
+
+            return total;
+        }
+
+        // Same axis convention as ConvertLatLongToXYZ in
+        // npmfrontend/src/GlobeSection/convertLatLongXYZ.jsx: Y is the polar axis, and increasing
+        // longitude rotates from +Z toward +X. The sign of the signed area depends on this
+        // handedness, so it must match the frontend exactly or every verdict inverts.
+        private static double[] ToUnitVector(double latitudeDegrees, double longitudeDegrees)
+        {
+            double lat = latitudeDegrees / 180.0 * Math.PI;
+            double lon = longitudeDegrees / 180.0 * Math.PI;
+            double cosLat = Math.Cos(lat);
+            return new[]
+            {
+                Math.Sin(lon) * cosLat,
+                Math.Sin(lat),
+                Math.Cos(lon) * cosLat,
+            };
         }
 
         // Returns an error message if the image bytes are invalid, or null when valid.
