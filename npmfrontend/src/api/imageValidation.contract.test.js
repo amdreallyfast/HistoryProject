@@ -14,7 +14,7 @@ import { describe, it, expect } from "vitest"
 const here = dirname(fileURLToPath(import.meta.url))
 const jsSource = readFileSync(join(here, "imageDataUrl.js"), "utf8")
 const csSource = readFileSync(
-  join(here, "../../../WebAPI/WebAPI/Controllers/HistoricalEventController.cs"),
+  join(here, "../../../WebAPI/WebAPI/Validation/EventValidation.cs"),
   "utf8",
 )
 
