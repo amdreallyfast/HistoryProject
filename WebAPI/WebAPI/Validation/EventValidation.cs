@@ -24,6 +24,28 @@ namespace WebAPI.Validation
         // `MaxImageBytes = <int expression>;`.
         public const int MaxImageBytes = 5 * 1024 * 1024;
 
+        // Keep in sync with regionInfo.maxBoundaryPoints in npmfrontend/src/GlobeSection/constValues.jsx.
+        // Also guarded by the contract test above.
+        //
+        // The UI cap exists for drag performance (EditRegionMesh re-triangulates per frame); this
+        // one exists because a tampered client is not bound by the UI at all, and the display path
+        // has fixed MAX_VERTICES/MAX_INDICES buffers that silently refuse to render an
+        // over-capacity region — a stored event that no viewer can draw.
+        public const int MaxRegionPoints = 128;
+
+        // Not mirrored on the frontend, which has no UI limit on these. Chosen as "far more than
+        // any real event needs, far less than enough to be used as storage".
+        public const int MaxTags = 64;
+        public const int MaxSources = 64;
+        public const int MaxAuthorsPerSource = 32;
+
+        // Guarded by the contract test against the same bounds used in
+        // npmfrontend/src/GlobeSection/convertLatLongXYZ.jsx.
+        public const double MinLatitude = -90.0;
+        public const double MaxLatitude = 90.0;
+        public const double MinLongitude = -180.0;
+        public const double MaxLongitude = 180.0;
+
         private static readonly byte[] PngSignature = { 0x89, 0x50, 0x4e, 0x47 };
         private static readonly byte[] JpegSignature = { 0xff, 0xd8, 0xff };
 
@@ -50,7 +72,84 @@ namespace WebAPI.Validation
                 return "Must specify location and/or region";
             }
 
-            return ValidateImage(e.EventImage?.ImageBinary);
+            // Note: string LENGTH limits are not checked here. [MaxLength] on Title/Summary/
+            // RevisionAuthor makes [ApiController] reject an over-long value with a 400 before
+            // this action runs, so re-checking would be dead code.
+
+            return ValidateListSizes(e)
+                ?? ValidateCoordinates(e)
+                ?? ValidateImage(e.EventImage?.ImageBinary);
+        }
+
+        private static string? ValidateListSizes(Event e)
+        {
+            if (e.Region is not null && e.Region.Count > MaxRegionPoints)
+            {
+                return $"Region cannot exceed {MaxRegionPoints} boundary points (received {e.Region.Count}).";
+            }
+            if (e.Tags is not null && e.Tags.Count > MaxTags)
+            {
+                return $"Cannot exceed {MaxTags} tags (received {e.Tags.Count}).";
+            }
+            if (e.Sources is not null)
+            {
+                if (e.Sources.Count > MaxSources)
+                {
+                    return $"Cannot exceed {MaxSources} sources (received {e.Sources.Count}).";
+                }
+                foreach (var source in e.Sources)
+                {
+                    if (source.Authors is not null && source.Authors.Count > MaxAuthorsPerSource)
+                    {
+                        return $"A source cannot exceed {MaxAuthorsPerSource} authors (received {source.Authors.Count}).";
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static string? ValidateCoordinates(Event e)
+        {
+            if (e.SpecificLocation is not null)
+            {
+                var error = ValidateLocation(e.SpecificLocation, "Primary location");
+                if (error is not null) return error;
+            }
+
+            if (e.Region is not null)
+            {
+                for (int i = 0; i < e.Region.Count; i++)
+                {
+                    var error = ValidateLocation(e.Region[i], $"Region boundary point {i + 1}");
+                    if (error is not null) return error;
+                }
+            }
+
+            return null;
+        }
+
+        // `label` names the offending point in the message, because "a coordinate is out of range"
+        // is useless when a region has 128 of them.
+        private static string? ValidateLocation(EventLocation location, string label)
+        {
+            // Non-finite first. JSON has no NaN literal, but a value can still arrive that
+            // overflows a double, and a non-finite coordinate is worse than an out-of-range one:
+            // it propagates into the frontend's geometry buffers, makes the mesh's bounding sphere
+            // NaN, and every frustum test then fails — so the region silently vanishes with
+            // nothing logged, looking like a rendering bug rather than bad data.
+            if (!double.IsFinite(location.Latitude) || !double.IsFinite(location.Longitude))
+            {
+                return $"{label} has a non-finite coordinate.";
+            }
+            if (location.Latitude < MinLatitude || location.Latitude > MaxLatitude)
+            {
+                return $"{label} latitude must be between {MinLatitude} and {MaxLatitude} (received {location.Latitude}).";
+            }
+            if (location.Longitude < MinLongitude || location.Longitude > MaxLongitude)
+            {
+                return $"{label} longitude must be between {MinLongitude} and {MaxLongitude} (received {location.Longitude}).";
+            }
+            return null;
         }
 
         // Returns an error message if the image bytes are invalid, or null when valid.
