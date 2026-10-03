@@ -88,6 +88,7 @@ namespace WebAPI.Validation
             return ValidateListSizes(e)
                 ?? ValidateCoordinates(e)
                 ?? ValidateRegionWinding(e)
+                ?? ValidateDates(e)
                 ?? ValidateImage(e.EventImage?.ImageBinary);
         }
 
@@ -158,6 +159,67 @@ namespace WebAPI.Validation
             if (location.Longitude < MinLongitude || location.Longitude > MaxLongitude)
             {
                 return $"{label} longitude must be between {MinLongitude} and {MaxLongitude} (received {location.Longitude}).";
+            }
+            return null;
+        }
+
+        // Per-field calendar ranges on the event time bounds and on every source publication
+        // range. Null means "unspecified" and is always allowed: a partial date is a first-class
+        // case here — an event known to be in year 603 with no month or day must still submit.
+        //
+        // DELIBERATELY NOT per-month validity (Feb 30, Nov 31). Day-of-month correctness depends
+        // on the calendar system, which the JulianCalendar TODO owns and which both tiers are
+        // meant to share. Adding a second implementation here is the thing that item exists to
+        // prevent; see it for the empirical cases that still slip through.
+        private static string? ValidateDates(Event e)
+        {
+            return RangeError(e.LBMonth, 1, 12, "Earliest month")
+                ?? RangeError(e.LBDay, 1, 31, "Earliest day")
+                ?? RangeError(e.LBHour, 0, 23, "Earliest hour")
+                ?? RangeError(e.LBMin, 0, 59, "Earliest minute")
+                ?? RangeError(e.UBMonth, 1, 12, "Latest month")
+                ?? RangeError(e.UBDay, 1, 31, "Latest day")
+                ?? RangeError(e.UBHour, 0, 23, "Latest hour")
+                ?? RangeError(e.UBMin, 0, 59, "Latest minute")
+                ?? OrderError(e.LBYear, e.UBYear, "Event")
+                ?? ValidateSourceDates(e);
+        }
+
+        private static string? ValidateSourceDates(Event e)
+        {
+            if (e.Sources is null) return null;
+
+            foreach (var source in e.Sources)
+            {
+                var label = string.IsNullOrEmpty(source.Title) ? "a source" : $"source {source.Title}";
+                var error = RangeError(source.PublicationLBMonth, 1, 12, $"Earliest publication month for {label}")
+                    ?? RangeError(source.PublicationLBDay, 1, 31, $"Earliest publication day for {label}")
+                    ?? RangeError(source.PublicationUBMonth, 1, 12, $"Latest publication month for {label}")
+                    ?? RangeError(source.PublicationUBDay, 1, 31, $"Latest publication day for {label}")
+                    ?? OrderError(source.PublicationLBYear, source.PublicationUBYear, $"Publication of {label}");
+                if (error is not null) return error;
+            }
+            return null;
+        }
+
+        private static string? RangeError(int? value, int min, int max, string label)
+        {
+            if (value is null) return null;   // unspecified, which is allowed
+            if (value < min || value > max)
+            {
+                return $"{label} must be between {min} and {max} (received {value}).";
+            }
+            return null;
+        }
+
+        // Equal bounds are valid and meaningful: the editor records an exact date by setting the
+        // beginning and end to the same value (the "Exact date" toggle), so only a strictly
+        // inverted range is an error.
+        private static string? OrderError(int lowerYear, int upperYear, string label)
+        {
+            if (lowerYear > upperYear)
+            {
+                return $"{label} earliest year ({lowerYear}) cannot be after its latest year ({upperYear}).";
             }
             return null;
         }
