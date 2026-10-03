@@ -74,7 +74,11 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<Event>> GetSpecificRevision(Guid eventId, int revision)
         {
             var specificRevision = await dbContext.Events
-                .Where(x => x.Id == eventId)
+                // EventId, not Id. Id is the per-revision primary key; EventId is the key shared
+                // across an event's revisions, which is what every sibling endpoint and the route
+                // parameter both mean. Filtering on Id could only ever match if the caller passed
+                // a revision's PK, so this endpoint could not work as documented.
+                .Where(x => x.EventId == eventId)
                 .Where(x => x.Revision == revision)
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
@@ -150,14 +154,6 @@ namespace WebAPI.Controllers
         // TODO: CreateNewRevision/{eventId}
         //https://stackoverflow.com/questions/39121358/route-with-multiple-ids-laravel
 
-        [Route("Create2")]
-        [HttpPost]
-        public async Task<ActionResult<string>> Create(IDictionary<string, string> d)
-        {
-            return Ok("things");
-        }
-
-
         [Route("Create")]
         [HttpPost]
         public async Task<ActionResult<Event>> Create(Event e)
@@ -186,10 +182,58 @@ namespace WebAPI.Controllers
             //var newEvent = new HistoricalEvent(eventDto);
             //dbContext.Events.Add(newEvent);
 
-            if (e.Id == Guid.Empty)
+            // Guarantee an EventImage row even when the event has no image.
+            //
+            // NOT cosmetic. Event.EventImage is a [Required] reference navigation, so EF treats
+            // the relationship as required and every .Include(x => x.EventImage) becomes an INNER
+            // JOIN. An event stored without an EventImage row is therefore invisible to EVERY read
+            // endpoint -- GetLatestRevision, GetAllRevisions, GetSpecificRevision and GetFirst100
+            // all include it. The write would succeed and the event could never be read back.
+            //
+            // The frontend already always sends a wrapper (frontendToBackend emits
+            // { Id, ImageBinary: "" } even with no image), which is why this has never bitten in
+            // practice -- and is exactly the smell the open TODO "Reconsider [Required] on
+            // Event.EventImage" describes. But validation accepts a null wrapper, so a minimal or
+            // tampered client could otherwise write an event that silently disappears.
+            //
+            // This normalizes rather than rejects, because an event with no image is legitimate.
+            // The real fix is making the navigation optional, which needs a migration and belongs
+            // to that TODO item.
+            e.EventImage ??= new EventImage { Id = Guid.NewGuid(), ImageBinary = Array.Empty<byte>() };
+
+            // SERVER AUTHORITY OVER IDENTITY. The client does not get to choose any of these.
+            // Nothing here is forgeable because the values the client sends are discarded.
+            //
+            // What a forged Revision actually breaks is ORDERING, not confidentiality:
+            // getLatestRevisions (and GetFirst100's NOT EXISTS subquery) pick the maximum
+            // revision per EventId, so a revision numbered 99999 would pin itself as "latest"
+            // permanently -- no legitimate later edit could supersede it without also jumping
+            // above it. Duplicate (EventId, Revision) pairs separately break the uniqueness
+            // GetSpecificRevision assumes.
+            //
+            // Safe to override: EditEvent.onSubmitClick re-fetches getAllRevisions after a
+            // successful Create and treats THAT as truth, so it never depends on the values it
+            // sent. Its own "maxRevision + 1" is computed from allEvents, which is empty until
+            // the user runs a search -- so the client's number was already unreliable, and this
+            // replaces a guess with the truth.
+            //
+            // EventId is the ONE identity field kept as sent. It is the grouping key across
+            // revisions, and that same re-fetch calls getAllRevisions(eventId) with the client's
+            // own value -- reassigning it would 404 that call and drop the UI into its degraded
+            // fallback path. A brand-new event simply arrives with a fresh client-side uuid.
+            if (e.EventId == Guid.Empty)
             {
-                throw new NotImplementedException();
+                e.EventId = Guid.NewGuid();
             }
+
+            var highestRevision = await dbContext.Events
+                .Where(x => x.EventId == e.EventId)
+                .Select(x => (int?)x.Revision)
+                .MaxAsync();
+
+            e.Revision = (highestRevision ?? 0) + 1;
+            e.Id = Guid.NewGuid();
+            e.RevisionDateTime = DateTime.UtcNow;
 
             dbContext.Events.Add(e);
             await dbContext.SaveChangesAsync();

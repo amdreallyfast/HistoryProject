@@ -22,7 +22,7 @@ namespace WebAPI.Models
         public int Revision { get; set; } = 1;
 
         [Required]
-        public DateTime RevisionDateTime { get; set; } = DateTime.Now;
+        public DateTime RevisionDateTime { get; set; } = DateTime.UtcNow;
 
         [Required, MaxLength(64)]
         public string RevisionAuthor { get; set; } = default!;
@@ -215,7 +215,7 @@ namespace WebAPI.Models
     //    public Guid RevisionId { get; set; }
 
     //    [Required]
-    //    public DateTime RevisionDateTime { get; set; } = DateTime.Now;
+    //    public DateTime RevisionDateTime { get; set; } = DateTime.UtcNow;
 
     //    [Required]
     //    public string RevisionAuthor { get; set; } = string.Empty;
