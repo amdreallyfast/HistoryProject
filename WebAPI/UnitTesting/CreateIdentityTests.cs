@@ -169,9 +169,17 @@ namespace WebAPI.Tests
         //
         // Event.EventImage is a [Required] reference navigation, so .Include(x => x.EventImage)
         // is an INNER JOIN -- and every read endpoint includes it. An event stored without an
-        // EventImage row saved fine and then could never be read back by ANY endpoint. The
-        // frontend always sends a wrapper so it never bit in practice, but validation accepts a
-        // null one, so a minimal client could trigger it. Create now fills in an empty wrapper.
+        // EventImage row saved fine and then could never be read back by ANY endpoint.
+        //
+        // SCOPE OF THIS TEST, stated honestly: it calls the controller DIRECTLY, which is the only
+        // way to reach the e.EventImage ??= ... normalization. Over HTTP you never get there --
+        // [Required] makes [ApiController] reject a null EventImage with a 400 before the action
+        // runs (verified by curl against the test API). So the hole is closed on both paths, but
+        // by different mechanisms: a 400 over HTTP, the normalization in-process. The normalization
+        // is therefore defence for any future in-process caller rather than for the public API.
+        //
+        // The real fix for both is making the navigation optional, which needs a migration and
+        // belongs to the "[Required] on Event.EventImage" TODO.
         [TestMethod]
         public async Task Create_WithoutAnImage_IsStillReadableAfterwards()
         {
