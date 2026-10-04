@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { selectEvent } from "../AppState/selectEvent"
 import { getLatestRevisions } from "../AppState/getLatestRevisions"
+import { sortEventsByTitle } from "../AppState/sortEventsByTitle"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { getFirst100 } from "../api/historyEventApi"
@@ -132,7 +133,13 @@ export function SearchSectionMain() {
     selectEvent(reduxDispatch, latest)
   }, [allEvents, selectedEvent])
 
-  const latestEvents = allEvents ? getLatestRevisions(allEvents) : null
+  // Sorted by title so the list order does not depend on edit history. Without this,
+  // upsertEventRevisions rebuilds allEvents as [...others, ...revisions] after a submit and
+  // the event you just edited jumps to the BOTTOM of the results. Highlighting is keyed on
+  // eventId, not position, so the selected event stays highlighted as it moves into place.
+  const latestEvents = useMemo(
+    () => (allEvents ? sortEventsByTitle(getLatestRevisions(allEvents)) : null),
+    [allEvents])
 
   return (
     <div className="flex flex-col h-full border-2 border-green-500">

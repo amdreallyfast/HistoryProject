@@ -44,7 +44,10 @@ test('a malformed (clockwise) region does not blank the app', async ({ page }) =
 test('the valid event is still selectable when a bad region is present', async ({ page }) => {
   await page.getByTestId('search-button').click()
 
-  // First result is the valid event; it still works end-to-end.
-  await page.getByTestId('search-result-item').first().click()
+  // Select by title rather than position. This used to click .first(), which only worked
+  // because the fixture happened to list the valid event first -- results are now ordered by
+  // title, so "Bad Region Event" comes first. The point of this test is that the valid event
+  // is still SELECTABLE, not where it sits in the list.
+  await page.getByTestId('search-result-item').filter({ hasText: 'Test Event One' }).click()
   await expect(page.getByTestId('details-event-title')).toHaveText('Test Event One')
 })
