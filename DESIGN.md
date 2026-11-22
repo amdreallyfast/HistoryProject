@@ -29,7 +29,7 @@ The same model could also be used for fictional worlds (D&D campaigns, Star Wars
 ```
 HistoryProject/
   npmfrontend/     React + Vite frontend (Three.js, Redux Toolkit, TanStack React Query, Tailwind CSS)
-  WebAPI/          ASP.NET Core (.NET 10) backend (Entity Framework Core, SQL Server, Azure Key Vault)
+  WebAPI/          ASP.NET Core (.NET 10) backend (Entity Framework Core, SQL Server)
 ```
 
 The frontend is the primary development focus. The backend is wired up and serving as the primary data source. Redux holds session/edit state.
@@ -367,7 +367,9 @@ The backend model has `Id` (database PK), `EventId` (shared across revisions), `
 - **Auth**: Managed Identity per App Service → Azure SQL (no passwords or connection string secrets in config). Connection strings use `Authentication=Active Directory Managed Identity` to go straight to IMDS rather than probing the full DefaultAzureCredential chain.
 
 **Local development:**
-- SQL Server Express with connection string in `appsettings.Development.json` (gitignored), read as `ConnectionStrings:LocalDb` in Development mode
+- Connection string read as `ConnectionStrings:LocalDb` in Development mode
+- Windows: SQL Server Express, connection string in `appsettings.Development.json` (committed; Windows auth, no password)
+- Linux: SQL Server 2022 Developer Edition in Docker, set up by `scripts/setup-linux-dev.sh`; connection string (with generated password) in .NET user-secrets, which override appsettings
 
 **Both environments:**
 - CORS enabled for frontend cross-origin requests
