@@ -25,17 +25,25 @@ namespace WebAPI.Models
             set
             {
                 imageBinary = value;
-                const string formatAsHex = "x2";
-                using (var md5 = new System.Security.Cryptography.HMACMD5())
-                {
-                    var md5ByteArr = md5.ComputeHash(imageBinary);
-                    ImageMD5Hash = string.Concat(md5ByteArr.Select(x => x.ToString(formatAsHex)));
-                }
+                ImageMD5Hash = ComputeMD5Hash(imageBinary);
             }
         }
 
+        // Fingerprint of the image bytes, used to recognize an unchanged image so a new revision
+        // can share the existing row instead of storing another copy. Always computed here from
+        // the bytes (private setter: never taken from the client).
+        //
+        // Plain MD5 on purpose: this is a duplicate detector, not a security control, and reuse is
+        // only allowed among one event's own revisions (see HistoricalEventController.Create).
+        // Must stay deterministic. It previously used `new HMACMD5()`, which silently generates a
+        // random secret key per instance, so identical images got different hashes. Migration
+        // FixImageMD5Hash recomputed the stored values with SQL's HASHBYTES('MD5', ...), which
+        // produces the same lowercase-hex string as this method.
         [Required, MaxLength(32)]
         public string ImageMD5Hash { get; private set; } = string.Empty!;
+
+        public static string ComputeMD5Hash(byte[] bytes) =>
+            Convert.ToHexStringLower(System.Security.Cryptography.MD5.HashData(bytes));
 
         //public EventImage()
         //{
