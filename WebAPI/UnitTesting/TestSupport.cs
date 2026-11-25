@@ -26,8 +26,16 @@ namespace WebAPI.Tests
             return new HistoryProjectDbContext(options);
         }
 
+        // With a default HttpContext, as in a real request, so actions that set response headers
+        // (e.g. GetImage's Cache-Control) work in tests.
         public static HistoricalEventController NewController(HistoryProjectDbContext db)
-            => new HistoricalEventController(db, new StubWebHostEnvironment());
+            => new HistoricalEventController(db, new StubWebHostEnvironment())
+            {
+                ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
+                {
+                    HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext(),
+                },
+            };
 
         // Magic-byte prefixes the controller validates against.
         public static byte[] PngBytes() => new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };

@@ -134,6 +134,9 @@ export const stateSliceEditEvent = createSlice({
         tags: event.tags || [],
         eventIsCreationOfSource: event.eventIsCreationOfSource || false,
         imageDataUrl: event.imageDataUrl || null,
+        // Backend image row id of the revision being edited; if the image is left unchanged,
+        // submit sends this as ExistingImageId instead of the bytes (EditEvent).
+        imageId: event.imageId ?? null,
         summary: event.summary || null,
         eventTime: {
           earliestYear: event.eventTime?.earliestYear || null,

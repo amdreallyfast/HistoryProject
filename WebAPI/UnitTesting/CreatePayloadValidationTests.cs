@@ -22,7 +22,7 @@ namespace WebAPI.Tests
         private static List<EventLocation> SmallValidRegion()
             => new() { Loc(10, 10, 0), Loc(10, 12, 1), Loc(12, 11, 2) };
 
-        private static async Task<ActionResult<Event>> Post(Event e)
+        private static async Task<ActionResult<WebAPI.ModelDTOs.CreatedRevision>> Post(Event e)
         {
             using var db = TestSupport.NewInMemoryContext();
             return await TestSupport.NewController(db).Create(e);

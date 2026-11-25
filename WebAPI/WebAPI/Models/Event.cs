@@ -33,6 +33,14 @@ namespace WebAPI.Models
         [Required]
         public EventImage? EventImage { get; set; }
 
+        // Request-only: lets the client say "keep the image of an earlier revision" without
+        // re-uploading its bytes. Create reuses that image row only if it belongs to an earlier
+        // revision of the same EventId (422 otherwise). Not stored, and omitted from responses
+        // when null. See HistoricalEventController.Create and claudePlans/8.
+        [NotMapped]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Guid? ExistingImageId { get; set; }
+
         [Required]
         public List<Tag> Tags { get; set; } = default!;
 

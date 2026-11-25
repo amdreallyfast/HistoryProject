@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent";
 import { dataUrlToImageBinary, validateImageBase64 } from "../../api/imageDataUrl";
+import { useEventImageDataUrl } from "../../api/useEventImageDataUrl";
 
 export function EditEventImage() {
   const editState = useSelector((state) => state.editEventReducer)
@@ -37,12 +38,19 @@ export function EditEventImage() {
     reader.readAsDataURL(file)
   }
 
+  // Preview: a newly uploaded image (editState.imageDataUrl), else the revision's existing image,
+  // fetched by Id when it wasn't loaded with the revision. The fetched image is display-only;
+  // it's not written into edit state, so leaving it unchanged still submits ExistingImageId.
+  const preview = useEventImageDataUrl(editState.imageId, editState.imageDataUrl)
+
   return (
     <div className="m-1 p-2 rounded-md border-2 border-gray-600">
-      {editState.imageDataUrl ?
-        <img data-testid="edit-image-preview" style={{ "maxWidth": "100%", "maxHeight": "200px", display: "block", margin: "auto" }} src={editState.imageDataUrl} alt="ERROR: Bad dataUrl." />
-        :
-        <span>No image</span>
+      {preview.dataUrl ?
+        <img data-testid="edit-image-preview" style={{ "maxWidth": "100%", "maxHeight": "200px", display: "block", margin: "auto" }} src={preview.dataUrl} alt="ERROR: Bad dataUrl." />
+        : preview.loading ?
+          <span>Loading image…</span>
+          :
+          <span>No image</span>
       }
       <div className="items-start flex mt-auto">
         {/* To load multiple, add the "multiple" field. */}

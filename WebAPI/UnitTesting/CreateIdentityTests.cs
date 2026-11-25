@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WebAPI.ModelDTOs;
 using WebAPI.Models;
 
 namespace WebAPI.Tests
@@ -23,10 +24,10 @@ namespace WebAPI.Tests
             return e;
         }
 
-        private static Event Created(ActionResult<Event> result)
+        private static CreatedRevision Created(ActionResult<CreatedRevision> result)
         {
             Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
-            return (Event)((OkObjectResult)result.Result!).Value!;
+            return (CreatedRevision)((OkObjectResult)result.Result!).Value!;
         }
 
         [TestMethod]
