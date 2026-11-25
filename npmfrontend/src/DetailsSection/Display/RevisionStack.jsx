@@ -13,6 +13,14 @@ export function RevisionStack({ eventId }) {
     queryKey: ["revisions", eventId],
     queryFn: () => getAllRevisions(eventId).then(rs => rs.map(backendToFrontend)),
     enabled: !!eventId,
+    // Revisions only change when someone submits, and a submit from this client refreshes them
+    // itself (EditEvent seeds this cache). React Query's defaults (refetch on every window
+    // focus, data stale immediately) re-downloaded the whole history, images included, each
+    // time the window regained focus and again right after a submit (seen in a HAR capture:
+    // 4 extra 35-51 s, 11.7 MB reloads). Re-selecting an event after a minute still refetches,
+    // so other people's edits show up.
+    refetchOnWindowFocus: false,
+    staleTime: 60_000,
   })
 
   const onRevisionClick = (rev) => {

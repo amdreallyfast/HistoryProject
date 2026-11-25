@@ -60,3 +60,48 @@ test('an older revision that shares the image still shows it', async ({ page }) 
   await expect(page.getByTestId('details-event-title')).toHaveText('First')
   await expect(page.getByTestId('display-event-image')).toHaveAttribute('src', /^data:image\/png;base64,/)
 })
+
+// Revision history used React Query defaults, refetching on every window focus; the HAR capture
+// showed 4 extra 35-51 s reloads (11.7 MB each) after one submit. Revisions only change when
+// someone submits, and a submit refreshes them itself.
+async function simulateWindowRefocus(page) {
+  await page.evaluate(() => {
+    const set = (v: string) => Object.defineProperty(document, 'visibilityState', { value: v, configurable: true })
+    set('hidden'); document.dispatchEvent(new Event('visibilitychange', { bubbles: true }))
+    set('visible'); document.dispatchEvent(new Event('visibilitychange', { bubbles: true }))
+    window.dispatchEvent(new Event('focus'))
+  })
+}
+
+test('revision history is not refetched when the window regains focus, or right after a submit', async ({ page }) => {
+  const latest = rev(1, 'Original title', imageBytes)
+  let revisionFetches = 0
+  await page.route('**/api/HistoricalEvent/GetFirst100', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([latest]) })
+  )
+  await page.route('**/api/HistoricalEvent/GetAllRevisions/**', (route) => {
+    revisionFetches++
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([latest]) })
+  })
+  await page.route('**/api/HistoricalEvent/Create', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ Id: 'x' }) })
+  )
+
+  await page.goto('/')
+  await page.getByTestId('search-button').click()
+  await page.getByTestId('search-result-item').first().click()
+  await expect(page.getByTestId('revision-row')).toHaveCount(1)
+  expect(revisionFetches).toBe(1)
+
+  await simulateWindowRefocus(page)
+  await page.waitForTimeout(500)
+  expect(revisionFetches).toBe(1)
+
+  // Submit: EditEvent fetches the revisions once to confirm; the list shouldn't fetch again.
+  await page.getByTestId('edit-event-button').click()
+  await page.getByPlaceholder('Title').fill('Edited title')
+  await page.getByTestId('submit-event-button').click()
+  await expect(page.getByTestId('revision-row')).toHaveCount(1)
+  await page.waitForTimeout(500)
+  expect(revisionFetches).toBe(2)
+})
