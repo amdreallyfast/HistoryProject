@@ -189,7 +189,7 @@ namespace WebAPI.Controllers
 
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<Event>> Create(Event e)
+        public async Task<ActionResult<CreatedRevision>> Create(Event e)
         {
             // The client is untrusted: every rule the UI enforces is re-enforced here before
             // anything is persisted. See EventValidation for what is checked and why.
@@ -318,7 +318,7 @@ namespace WebAPI.Controllers
             }
 
             await dbContext.SaveChangesAsync();
-            return Ok(e);
+            return Ok(new CreatedRevision(e.Id, e.EventId, e.Revision, e.RevisionDateTime));
         }
 
         [Route("Update")]

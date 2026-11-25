@@ -43,7 +43,7 @@ namespace WebAPI.Tests
             return e;
         }
 
-        private static async Task<ActionResult<Event>> Post(Event e)
+        private static async Task<ActionResult<WebAPI.ModelDTOs.CreatedRevision>> Post(Event e)
         {
             using var db = TestSupport.NewInMemoryContext();
             return await TestSupport.NewController(db).Create(e);

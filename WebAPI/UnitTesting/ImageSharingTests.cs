@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WebAPI.ModelDTOs;
 using WebAPI.Models;
 
 namespace WebAPI.Tests
@@ -11,7 +12,7 @@ namespace WebAPI.Tests
     [TestClass]
     public class ImageSharingTests
     {
-        private static async Task<ActionResult<Event>> Create(string dbName, Guid eventId, byte[]? image, Guid? existingImageId = null, Guid? clientImageId = null)
+        private static async Task<ActionResult<CreatedRevision>> Create(string dbName, Guid eventId, byte[]? image, Guid? existingImageId = null, Guid? clientImageId = null)
         {
             using var db = TestSupport.NewInMemoryContext(dbName);
             var e = TestSupport.ValidEvent(image);
@@ -179,6 +180,17 @@ namespace WebAPI.Tests
             var revs = await GetAllRevisions(dbName, eventId);
             CollectionAssert.AreEqual(Jpeg(2), revs[0].EventImage!.ImageBinary);
             CollectionAssert.AreEqual(Jpeg(1), revs[1].EventImage!.ImageBinary);
+        }
+
+        [TestMethod]
+        public async Task Create_ReturnsOnlyTheNewRevisionsIdentity_NotTheImage()
+        {
+            var result = await Create(Guid.NewGuid().ToString(), Guid.NewGuid(), Jpeg(1));
+            var body = ((OkObjectResult)result.Result!).Value!;
+
+            Assert.IsInstanceOfType(body, typeof(CreatedRevision));
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(body);
+            Assert.IsFalse(json.Contains("ImageBinary"), "the image must not be echoed back");
         }
 
         [TestMethod]
