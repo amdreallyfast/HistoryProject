@@ -182,7 +182,7 @@ Guidance:
 
 ## Code Quality
 
-- [ ] `[simple]` **Review and clean up lint errors.** `npm run lint` currently reports 292 problems across the codebase. Review each category (unused vars, missing prop-types, no-empty-pattern, react/no-unknown-property, react-hooks/exhaustive-deps) and fix or suppress with justification.
+- [x] `[simple]` **Review and clean up lint errors.** `npm run lint` currently reports 292 problems across the codebase. Review each category (unused vars, missing prop-types, no-empty-pattern, react/no-unknown-property, react-hooks/exhaustive-deps) and fix or suppress with justification. Done in PR #7: lint is clean (0 problems) and `npm run lint` now runs in the `frontend-tests` CI job.
 
 - [ ] `[simple]` **Standardize debug console.log messages.** Use this format throughout:
   ```js
