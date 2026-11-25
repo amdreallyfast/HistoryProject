@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a full-stack web application for visualizing historical events on an interactive 3D globe.
 
 - **`npmfrontend/`** - React + Vite frontend (Three.js, Redux Toolkit, TanStack React Query, Tailwind CSS)
-- **`WebAPI/`** - ASP.NET Core backend (Entity Framework Core, SQL Server, Azure Key Vault for secrets)
+- **`WebAPI/`** - ASP.NET Core backend (Entity Framework Core, SQL Server; Managed Identity in Azure)
 - **`Tutorials/`** - Reference tutorials
 - **`CLAUDE.md`** - This file (project-level guidance)
 - **`DESIGN.md`** - Living design document (vision, architecture, design decisions)
@@ -27,8 +27,10 @@ npm run test:e2e # Playwright E2E tests (boots Vite, API mocked; no backend need
 
 ### Backend (`WebAPI/`)
 - Open `WebAPI/WebAPI.sln` in Visual Studio or use `dotnet run` from `WebAPI/WebAPI/`
-- Requires Azure Key Vault certificate (`historyprojectwebapp`) installed in CurrentUser cert store
-- Connects to SQL Server via connection string stored in Azure Key Vault
+- Development reads the SQL Server connection string from `ConnectionStrings:LocalDb`
+  - Windows: `appsettings.Development.json` points at SQL Server Express (`localhost\SQLEXPRESS`, Windows auth)
+  - Linux: run `scripts/setup-linux-dev.sh` once per machine. It starts SQL Server 2022 in Docker (`historyproject-sql`), keeps the generated password in `~/.config/historyproject/sql.env`, stores the connection string in .NET user-secrets (which override appsettings), and applies migrations
+- Azure (non-Development) connects via Managed Identity using `AzureSql:Server` / `AzureSql:Database`; no secrets in config
 - CORS enabled for cross-origin requests from the frontend
 - Swagger UI available in development mode
 
