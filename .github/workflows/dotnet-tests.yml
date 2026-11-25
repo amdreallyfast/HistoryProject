@@ -7,15 +7,14 @@ on:
       - 'WebAPI/**'
       - 'global.json'
       - '.github/workflows/dotnet-tests.yml'
+  # No path filter on pull requests: this job is a required check on `test`/`main`,
+  # and a required check that is skipped by a path filter blocks the merge forever.
   pull_request:
     branches: [main, test]
-    paths:
-      - 'WebAPI/**'
-      - 'global.json'
-      - '.github/workflows/dotnet-tests.yml'
 
 jobs:
-  test:
+  backend-tests:
+    name: backend-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -6,14 +6,14 @@ on:
     paths:
       - 'npmfrontend/**'
       - '.github/workflows/playwright.yml'
+  # No path filter on pull requests: this job is a required check on `test`/`main`,
+  # and a required check that is skipped by a path filter blocks the merge forever.
   pull_request:
     branches: [main, test]
-    paths:
-      - 'npmfrontend/**'
-      - '.github/workflows/playwright.yml'
 
 jobs:
-  test:
+  frontend-tests:
+    name: frontend-tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
     defaults:
@@ -28,6 +28,8 @@ jobs:
           cache-dependency-path: npmfrontend/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Run Vitest unit tests
+        run: npm test
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
