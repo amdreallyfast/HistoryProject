@@ -4,6 +4,8 @@ import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
+import { CameraDragLock } from "./CameraDragLock"
+import { GlobeTestHook } from "./GlobeTestHook"
 
 export function GlobeSectionMain() {
   // Toggle with CTRL key.
@@ -157,7 +159,9 @@ export function GlobeSectionMain() {
         onKeyUp={(e) => onCanvasKeyUp(e)}
       >
         <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} near={0.5} far={3000} />
-        <OrbitControls enableRotate={cameraRotateEnabled} enablePan={cameraPanEnabled} />
+        <OrbitControls makeDefault enableRotate={cameraRotateEnabled} enablePan={cameraPanEnabled} />
+        <CameraDragLock />
+        {!import.meta.env.PROD && <GlobeTestHook />}
         <spotLight position={[10, 15, 10]} angle={0.3} intensity={0.2} />
         <Scene />
       </Canvas>
