@@ -165,3 +165,69 @@ test('in display mode, dragging over an event region still rotates the camera', 
   await drag(page, region!, { x: 0, y: 80 })
   expect(distance(await cameraPosition(page), before)).toBeGreaterThan(0.1)
 })
+
+// Fast presses: press in the same instant the cursor arrives, with no time for the per-frame
+// hover raycast to catch up. Before press-time raycasting (cursorRaycast.js), these used the
+// previous position's result: a press that had just left the region still dragged the region,
+// and a press that had just arrived on it rotated the camera instead.
+
+async function fastDrag(page: Page, from: XY, to: XY, delta: XY) {
+  // Settle on `from` so the per-frame result describes it...
+  await page.mouse.move(from.x, from.y)
+  await page.waitForTimeout(150)
+  // ...then jump to `to` and press immediately.
+  await page.mouse.move(to.x, to.y)
+  await page.mouse.down()
+  await page.waitForTimeout(DRAG_START_DELAY_MS)
+  await page.mouse.move(to.x + delta.x, to.y + delta.y, { steps: 15 })
+  await page.waitForTimeout(100)
+  await page.mouse.up()
+  await page.waitForTimeout(100)
+}
+
+test('pressing the instant the cursor reaches the region drags the region, not the camera', async ({ page }) => {
+  await openEditMode(page)
+
+  const region = await page.evaluate(() => window.__globeTest!.latLongClientXY(40, 12.5))
+  const before = await cameraPosition(page)
+  const rowsBefore = await rowTexts(page)
+
+  await fastDrag(page, await canvasCenter(page), region!, { x: 50, y: 30 })
+
+  expect(distance(await cameraPosition(page), before)).toBeLessThan(1e-6)
+  const rowsAfter = await rowTexts(page)
+  for (let i = 1; i < rowsBefore.length; i++) {
+    expect(rowsAfter[i]).not.toBe(rowsBefore[i])
+  }
+})
+
+test('pressing the instant the cursor leaves the region rotates the camera, not the region', async ({ page }) => {
+  await openEditMode(page)
+
+  const region = await page.evaluate(() => window.__globeTest!.latLongClientXY(40, 12.5))
+  const before = await cameraPosition(page)
+  const rowsBefore = await rowTexts(page)
+
+  await fastDrag(page, region!, await canvasCenter(page), { x: 80, y: 0 })
+
+  expect(distance(await cameraPosition(page), before)).toBeGreaterThan(0.1)
+  expect(await rowTexts(page)).toEqual(rowsBefore)
+})
+
+// Display mode uses the same press-time raycast to pick which event a click selects.
+test('clicking an event on the globe selects it; clicking empty globe deselects', async ({ page }) => {
+  await page.getByTestId('search-button').click()
+  await expect(page.getByTestId('search-result-item').first()).toBeVisible()
+  await expect(page.getByText('No event selected')).toBeVisible()
+
+  const region = await page.evaluate(() => window.__globeTest!.latLongClientXY(40, 12.5))
+  // Arrive and click in the same instant (no time for the per-frame hover raycast).
+  await page.mouse.move((await canvasCenter(page)).x, (await canvasCenter(page)).y)
+  await page.waitForTimeout(150)
+  await page.mouse.click(region!.x, region!.y)
+  await expect(page.getByTestId('edit-event-button')).toBeVisible()
+
+  const center = await canvasCenter(page)
+  await page.mouse.click(center.x, center.y)
+  await expect(page.getByText('No event selected')).toBeVisible()
+})

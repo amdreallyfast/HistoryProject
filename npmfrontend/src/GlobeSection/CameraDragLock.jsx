@@ -2,13 +2,14 @@ import { useEffect } from "react"
 import { useThree } from "@react-three/fiber"
 import { useStore } from "react-redux"
 import { meshNames } from "./constValues"
+import { cursorRaycast } from "./cursorRaycast"
 
 // Freezes the camera for the duration of a left-button press that starts on an editable pin
 // or the editable region, so dragging them never also rotates/pans the camera.
 //
 // Why it is safe to keep separate from the pins, the region, and MouseHandler:
-//  - It decides "this press grabbed a pin/region" from the same per-frame raycast
-//    (mouseInfoReducer.cursorRaycasting.intersections[0]) that GlobeSectionMain stores as
+//  - It decides "this press grabbed a pin/region" with the same press-time raycast
+//    (cursorRaycast.atClient at the pressed pixel) that GlobeSectionMain stores as
 //    leftMouseDown.intersection and MouseHandler uses to start the drag, so the two can't
 //    disagree about what was grabbed.
 //  - It only toggles `controls.enabled` on the default camera controls. No other component
@@ -46,7 +47,13 @@ export function CameraDragLock() {
         return
       }
 
-      const grabbedMeshName = state.mouseInfoReducer.cursorRaycasting.intersections[0]?.mesh.name
+      // Same press-time raycast GlobeSectionMain.onCanvasMouseDown uses for MouseHandler's drag:
+      // same function, same pixel, same camera, nothing runs in between, so same answer.
+      const pressIntersections = cursorRaycast.atClient(e.clientX, e.clientY)
+      const grabbed = pressIntersections
+        ? pressIntersections[0]
+        : state.mouseInfoReducer.cursorRaycasting.intersections[0]
+      const grabbedMeshName = grabbed?.mesh.name
       if (grabbedMeshName === meshNames.PinBoundingBox || grabbedMeshName === meshNames.Region) {
         controls.enabled = false
         locked = true
