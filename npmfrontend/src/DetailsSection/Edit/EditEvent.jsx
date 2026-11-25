@@ -143,6 +143,11 @@ export function EditEvent() {
       summary: editState.summary,
       eventIsCreationOfSource: editState.eventIsCreationOfSource,
       imageDataUrl: editState.imageDataUrl,
+      // Image not changed in the editor: reuse the revision's image row on the backend instead
+      // of re-uploading the bytes. Null for new events or a changed image (bytes are sent).
+      existingImageId: (editState.originalEvent && editState.imageDataUrl === editState.originalEvent.imageDataUrl)
+        ? (editState.originalEvent.imageId ?? null)
+        : null,
       eventTime: { ...editState.eventTime },
       primaryLoc: editState.primaryLoc
         ? { lat: editState.primaryLoc.lat, long: editState.primaryLoc.long }

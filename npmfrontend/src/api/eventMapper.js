@@ -21,6 +21,9 @@ export function backendToFrontend(e) {
     summary: e.Summary ?? "",
     eventIsCreationOfSource: e.EventIsCreationOfSource ?? false,
     imageDataUrl: imageBinaryToDataUrl(e.EventImage?.ImageBinary),
+    // Backend image row id. Lets an edit that keeps the image send a reference
+    // (ExistingImageId) instead of re-uploading the bytes; see frontendToBackend.
+    imageId: e.EventImage?.Id ?? null,
     eventTime: {
       earliestYear: nullableIntToString(e.LBYear),
       earliestMonth: nullableIntToString(e.LBMonth),
@@ -107,7 +110,12 @@ export function frontendToBackend(ev) {
     UBHour: null,
     UBMin: null,
     Tags: ev.tags?.map(v => ({ Id: crypto.randomUUID(), Value: v })) ?? [],
-    EventImage: { Id: crypto.randomUUID(), ImageBinary: dataUrlToImageBinary(ev.imageDataUrl) },
+    // Unchanged image: send a reference to the earlier revision's image row instead of the
+    // bytes (can be several MB). The backend shares that row (claudePlans/8). The empty
+    // wrapper is still required by the backend model.
+    ...(ev.existingImageId
+      ? { ExistingImageId: ev.existingImageId, EventImage: { Id: crypto.randomUUID(), ImageBinary: "" } }
+      : { EventImage: { Id: crypto.randomUUID(), ImageBinary: dataUrlToImageBinary(ev.imageDataUrl) } }),
     SpecificLocation: ev.primaryLoc
       ? { Id: crypto.randomUUID(), Latitude: ev.primaryLoc.lat, Longitude: ev.primaryLoc.long }
       : null,

@@ -50,19 +50,46 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetAllRevisions(Guid eventId)
         {
+            // Images are loaded separately (not Included): revisions share an unchanged image
+            // (see Create), and an Include would read and send the same multi-MB bytes once per
+            // revision. Each distinct image is read once below.
             var eventRevisions = await dbContext.Events
                 .Where(x => x.EventId == eventId)
                 .OrderByDescending(x => x.Revision)   // biggest revision number first
                 .Include(x => x.Tags)
-                .Include(x => x.EventImage)
                 .Include(x => x.SpecificLocation)
                 .Include(x => x.Region)
                 .Include(x => x.Sources)
                     .ThenInclude(source => source.Authors)
+                .AsNoTracking()
                 .ToListAsync();
             if (!eventRevisions.Any())
             {
                 return NotFound($"Unknown HistoricalEvent EventId: '{eventId}'");
+            }
+
+            var imageIdByRevisionId = await dbContext.Events
+                .Where(x => x.EventId == eventId)
+                .Select(x => new { x.Id, ImageId = EF.Property<Guid>(x, "EventImageId") })
+                .ToDictionaryAsync(x => x.Id, x => x.ImageId);
+            var distinctImageIds = imageIdByRevisionId.Values.Distinct().ToList();
+            var imagesById = await dbContext.Images
+                .Where(i => distinctImageIds.Contains(i.Id))
+                .AsNoTracking()
+                .ToDictionaryAsync(i => i.Id);
+
+            // RESPONSE CONTRACT: each distinct image's bytes appear ONCE, on the newest revision
+            // that uses it. Other revisions sharing it get { Id, ImageBinary: "" } and the client
+            // fills them in by EventImage.Id (historyEventApi.getAllRevisions). A revision whose
+            // image genuinely has no bytes also has ImageBinary "", but no other revision carries
+            // bytes for that Id, so it stays empty.
+            var imageSent = new HashSet<Guid>();
+            foreach (var revision in eventRevisions)
+            {
+                var imageId = imageIdByRevisionId[revision.Id];
+                revision.EventImage = imageSent.Add(imageId) && imagesById.TryGetValue(imageId, out var image)
+                    ? image
+                    : new EventImage { Id = imageId };
             }
 
             //List<EventDto> dtos = eventRevisions.Select(x => x.ToDto()).ToList();
@@ -241,7 +268,55 @@ namespace WebAPI.Controllers
             e.Id = Guid.NewGuid();
             e.RevisionDateTime = DateTime.UtcNow;
 
-            dbContext.Events.Add(e);
+            // IMAGE SHARING (claudePlans/8). Revisions are full snapshots, but an image that
+            // didn't change is shared with earlier revisions instead of stored again, so an edit
+            // costs roughly the text that changed rather than another multi-MB copy.
+            //
+            // Reuse is limited to images already used by THIS event's revisions:
+            //  - a client can't attach another event's image by guessing its Id, and
+            //  - Delete stays safe: it removes a whole revision chain together with its images,
+            //    and an image row cascades to every event referencing it, so an image shared
+            //    across different events would take the other event down with it.
+            var chainImages = await dbContext.Events
+                .Where(x => x.EventId == e.EventId)
+                .Select(x => new { Id = EF.Property<Guid>(x, "EventImageId"), Hash = x.EventImage!.ImageMD5Hash })
+                .Distinct()
+                .ToListAsync();
+
+            Guid? reuseImageId = null;
+            if (e.ExistingImageId is Guid requestedImageId)
+            {
+                // "Keep the image of an earlier revision": no bytes were sent.
+                if (!chainImages.Any(x => x.Id == requestedImageId))
+                {
+                    return UnprocessableEntity("ExistingImageId must refer to the image of an earlier revision of this event.");
+                }
+                reuseImageId = requestedImageId;
+            }
+            else
+            {
+                // Bytes were sent (or normalized to empty above). Reuse if they're identical to an
+                // earlier revision's image, e.g. the same file uploaded again.
+                reuseImageId = chainImages.FirstOrDefault(x => x.Hash == e.EventImage.ImageMD5Hash)?.Id;
+            }
+
+            if (reuseImageId is Guid sharedImageId)
+            {
+                // Point at the existing row via the FK, without loading its (possibly multi-MB)
+                // bytes. Order matters: drop the navigation BEFORE Add. Nulling a required
+                // navigation on an already-tracked new entity makes EF treat it as an orphan and
+                // silently detach it, so the revision would never be saved.
+                e.EventImage = null;
+                dbContext.Events.Add(e);
+                dbContext.Entry(e).Property("EventImageId").CurrentValue = sharedImageId;
+            }
+            else
+            {
+                // A new image row. Server picks its Id, like the other identity fields above.
+                e.EventImage.Id = Guid.NewGuid();
+                dbContext.Events.Add(e);
+            }
+
             await dbContext.SaveChangesAsync();
             return Ok(e);
         }

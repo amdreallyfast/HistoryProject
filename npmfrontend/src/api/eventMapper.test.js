@@ -41,6 +41,26 @@ describe("frontendToBackend", () => {
     expect(frontendToBackend({ eventIsCreationOfSource: true }).EventIsCreationOfSource).toBe(true)
     expect(frontendToBackend({}).EventIsCreationOfSource).toBe(false)
   })
+
+  // Image sharing (claudePlans/8): an unchanged image is sent by reference, not re-uploaded.
+  it("sends ExistingImageId and no bytes when the image is unchanged", () => {
+    const be = frontendToBackend({ imageDataUrl: `data:image/png;base64,${PNG_B64}`, existingImageId: "img-1" })
+    expect(be.ExistingImageId).toBe("img-1")
+    expect(be.EventImage.ImageBinary).toBe("")
+  })
+
+  it("sends the bytes and no ExistingImageId when the image changed or is new", () => {
+    const be = frontendToBackend({ imageDataUrl: `data:image/png;base64,${PNG_B64}`, existingImageId: null })
+    expect(be.ExistingImageId).toBeUndefined()
+    expect(be.EventImage.ImageBinary).toBe(PNG_B64)
+  })
+})
+
+describe("backendToFrontend image id", () => {
+  it("keeps the backend image row id for later reuse", () => {
+    expect(backendToFrontend({ EventId: "e", EventImage: { Id: "img-1", ImageBinary: "" } }).imageId).toBe("img-1")
+    expect(backendToFrontend({ EventId: "e" }).imageId).toBeNull()
+  })
 })
 
 describe("image round trip", () => {
