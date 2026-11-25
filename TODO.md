@@ -131,6 +131,13 @@ Guidance:
   - If ever pursued, the levers that would actually matter are fill-rate ones — reduce overdraw, skip the atmosphere shader in edit mode — which are invisible on a GPU-equipped machine and so hard to justify.
   - Only revisit if a big win is identified. Otherwise leave it: the earlier optimizations (pre-allocated buffers, shared drag rotor, rotor-unchanged skip, bounded bounding sphere) already removed the pathological costs.
 
+- [ ] `[simple]` **Globe: edit-mode hover cursors for region and pins.** Requested 2026-11-25. In edit mode, change the mouse cursor so it's obvious what a drag will move:
+  - Hovering the **region** (whole-region move): `move` (four-way arrows).
+  - Hovering an **editable pin**, not dragging: `grab` (open hand).
+  - **While dragging** a pin: `grabbing` (closed hand). Assumption: use `grabbing` while dragging the region too, unless that feels wrong in testing.
+  - Anywhere else: the default arrow. Display mode is unchanged.
+  - Options were compared 2026-11-25 (also considered: `all-scroll`, `pointer`, `crosshair`, `cell`); these are the chosen ones. Implementation hint: set the `<Canvas>` element's `style.cursor` from the existing hover state (`mouseState.hoverLocId`, raycast intersections) and drag state. Cross-ref the Ctrl+drag bug in Bug Fixes, whose "Hold CTRL: Stop rotation" overlay touches the same interaction.
+
 - [ ] `[discussion]` **Globe: Snap-click for boundary pins.** Add the ability to snap-click boundary pins (interaction model TBD).
 
 - [x] `[simple]` **Globe: Scale boundary pins with zoom level.** Add a scaling factor so boundary pins shrink as the user zooms in. Large pins and bounding boxes become obstacles when making detailed boundary edits at high zoom; smaller pins preserve usability.
