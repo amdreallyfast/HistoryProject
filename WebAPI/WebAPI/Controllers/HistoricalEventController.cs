@@ -50,9 +50,10 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetAllRevisions(Guid eventId)
         {
-            // Images are loaded separately (not Included): revisions share an unchanged image
-            // (see Create), and an Include would read and send the same multi-MB bytes once per
-            // revision. Each distinct image is read once below.
+            // RESPONSE CONTRACT: no image bytes. Each revision's EventImage is { Id, ImageBinary: "" };
+            // the client fetches an image by Id from GetImage/{imageId} only when it's shown, and
+            // revisions sharing an image (see Create) fetch it once. Including the bytes made the
+            // history payload grow with every revision (one full copy per revision).
             var eventRevisions = await dbContext.Events
                 .Where(x => x.EventId == eventId)
                 .OrderByDescending(x => x.Revision)   // biggest revision number first
@@ -72,28 +73,41 @@ namespace WebAPI.Controllers
                 .Where(x => x.EventId == eventId)
                 .Select(x => new { x.Id, ImageId = EF.Property<Guid>(x, "EventImageId") })
                 .ToDictionaryAsync(x => x.Id, x => x.ImageId);
-            var distinctImageIds = imageIdByRevisionId.Values.Distinct().ToList();
-            var imagesById = await dbContext.Images
-                .Where(i => distinctImageIds.Contains(i.Id))
-                .AsNoTracking()
-                .ToDictionaryAsync(i => i.Id);
-
-            // RESPONSE CONTRACT: each distinct image's bytes appear ONCE, on the newest revision
-            // that uses it. Other revisions sharing it get { Id, ImageBinary: "" } and the client
-            // fills them in by EventImage.Id (historyEventApi.getAllRevisions). A revision whose
-            // image genuinely has no bytes also has ImageBinary "", but no other revision carries
-            // bytes for that Id, so it stays empty.
-            var imageSent = new HashSet<Guid>();
             foreach (var revision in eventRevisions)
             {
-                var imageId = imageIdByRevisionId[revision.Id];
-                revision.EventImage = imageSent.Add(imageId) && imagesById.TryGetValue(imageId, out var image)
-                    ? image
-                    : new EventImage { Id = imageId };
+                revision.EventImage = new EventImage { Id = imageIdByRevisionId[revision.Id] };
             }
 
             //List<EventDto> dtos = eventRevisions.Select(x => x.ToDto()).ToList();
             return Ok(eventRevisions);
+        }
+
+        // An image's raw bytes, by image row Id (from an event's EventImage.Id). Image rows are
+        // never modified after insert (a changed image is a new row), so the response can be
+        // cached indefinitely by the browser. 204 if the row exists but holds no image.
+        [Route("GetImage/{imageId}")]
+        [HttpGet]
+        public async Task<ActionResult> GetImage(Guid imageId)
+        {
+            var bytes = await dbContext.Images
+                .Where(i => i.Id == imageId)
+                .Select(i => i.ImageBinary)
+                .FirstOrDefaultAsync();
+            if (bytes is null)
+            {
+                return NotFound($"Unknown image Id: '{imageId}'");
+            }
+
+            Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+            if (bytes.Length == 0)
+            {
+                return NoContent();
+            }
+            // Create only accepts PNG or JPEG (EventValidation), so sniff between those two.
+            var contentType = bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4e && bytes[3] == 0x47
+                ? "image/png"
+                : "image/jpeg";
+            return File(bytes, contentType);
         }
 
         [Route("GetSpecificRevision/{eventId}/{revision}")]
@@ -318,7 +332,8 @@ namespace WebAPI.Controllers
             }
 
             await dbContext.SaveChangesAsync();
-            return Ok(new CreatedRevision(e.Id, e.EventId, e.Revision, e.RevisionDateTime));
+            var savedImageId = reuseImageId ?? e.EventImage!.Id;
+            return Ok(new CreatedRevision(e.Id, e.EventId, e.Revision, e.RevisionDateTime, savedImageId));
         }
 
         [Route("Update")]

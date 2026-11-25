@@ -13,6 +13,7 @@ import { eventStateActions } from "../../AppState/stateSliceEvent";
 import { selectEvent } from "../../AppState/selectEvent";
 import { getLatestRevisions } from "../../AppState/getLatestRevisions";
 import { createEvent, getAllRevisions } from "../../api/historyEventApi";
+import { eventImageQueryKey } from "../../api/useEventImageDataUrl";
 import { frontendToBackend, backendToFrontend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
 
@@ -164,7 +165,12 @@ export function EditEvent() {
     setSubmitError(null)
     setSubmitting(true)
     try {
-      await createEvent(frontendToBackend(newEvent))
+      const created = await createEvent(frontendToBackend(newEvent))
+      // A newly uploaded image: cache it under its real image Id, so showing the new revision
+      // (whose history entry carries only that Id) doesn't download it straight back.
+      if (!newEvent.existingImageId && newEvent.imageDataUrl && created?.EventImageId) {
+        queryClient.setQueryData(eventImageQueryKey(created.EventImageId), newEvent.imageDataUrl)
+      }
     } catch (err) {
       // Create failed: drop the scrim, stay in edit mode, surface the reason so the user
       // can fix and retry. Nothing was committed, so there is no phantom to clean up.

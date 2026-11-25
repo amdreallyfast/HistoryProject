@@ -42,23 +42,80 @@ test('editing only the title sends the image by reference, not its bytes', async
   expect(posted.EventImage.ImageBinary).toBe('')
 })
 
-test('an older revision that shares the image still shows it', async ({ page }) => {
-  // Newest first, as the backend returns them. Only the newest carries the bytes.
-  const revisions = [rev(2, 'Second', imageBytes), rev(1, 'First', '')]
+// Revision history entries carry no image bytes, only EventImage.Id; the image is fetched by Id
+// (GetImage, raw bytes) when shown, and revisions sharing an image share one download.
+const pngBuffer = Buffer.from(imageBytes, 'base64')
+
+test('revisions without bytes fetch their image by Id, once per shared image', async ({ page }) => {
+  // Search results still carry the latest image inline; the revision list doesn't.
+  const latestInSearch = rev(2, 'Second', imageBytes)
+  const revisions = [rev(2, 'Second', ''), rev(1, 'First', '')]
+  let imageFetches = 0
   await page.route('**/api/HistoricalEvent/GetFirst100', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([revisions[0]]) })
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([latestInSearch]) })
   )
   await page.route('**/api/HistoricalEvent/GetAllRevisions/**', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(revisions) })
   )
+  await page.route('**/api/HistoricalEvent/GetImage/img-shared', (route) => {
+    imageFetches++
+    return route.fulfill({ status: 200, contentType: 'image/png', body: pngBuffer })
+  })
 
   await page.goto('/')
   await page.getByTestId('search-button').click()
   await page.getByTestId('search-result-item').first().click()
-  await page.getByTestId('revision-row').filter({ hasText: 'Rev 1' }).click()
-
-  await expect(page.getByTestId('details-event-title')).toHaveText('First')
   await expect(page.getByTestId('display-event-image')).toHaveAttribute('src', /^data:image\/png;base64,/)
+
+  await page.getByTestId('revision-row').filter({ hasText: 'Rev 1' }).click()
+  await expect(page.getByTestId('details-event-title')).toHaveText('First')
+  await expect(page.getByTestId('display-event-image')).toHaveAttribute('src', `data:image/png;base64,${imageBytes}`)
+
+  await page.getByTestId('revision-row').filter({ hasText: 'Rev 2' }).click()
+  await expect(page.getByTestId('details-event-title')).toHaveText('Second')
+  await expect(page.getByTestId('display-event-image')).toBeVisible()
+
+  // Editing an old revision previews its (fetched) image.
+  await page.getByTestId('revision-row').filter({ hasText: 'Rev 1' }).click()
+  await page.getByTestId('edit-event-button').click()
+  await expect(page.getByTestId('edit-image-preview')).toHaveAttribute('src', `data:image/png;base64,${imageBytes}`)
+
+  expect(imageFetches).toBe(1)
+})
+
+test('after submitting a new image, the new revision shows it without downloading it back', async ({ page }) => {
+  const latest = rev(1, 'Original title', '')
+  let imageFetches = 0
+  let created = false
+  await page.route('**/api/HistoricalEvent/GetFirst100', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([latest]) })
+  )
+  await page.route('**/api/HistoricalEvent/GetAllRevisions/**', (route) => {
+    const newRev = { ...rev(2, 'With new image', ''), EventImage: { Id: 'img-new', ImageBinary: '' } }
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(created ? [newRev, latest] : [latest]) })
+  })
+  await page.route('**/api/HistoricalEvent/GetImage/**', (route) => {
+    imageFetches++
+    return route.fulfill({ status: 204 })
+  })
+  await page.route('**/api/HistoricalEvent/Create', (route) => {
+    created = true
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ Id: 'r2', EventId: latest.EventId, Revision: 2, EventImageId: 'img-new' }) })
+  })
+
+  await page.goto('/')
+  await page.getByTestId('search-button').click()
+  await page.getByTestId('search-result-item').first().click()
+  await page.getByTestId('edit-event-button').click()
+  const fetchesBeforeUpload = imageFetches
+  await page.getByTestId('image-upload-input').setInputFiles('tests/fixtures/images/colloseumStockPhoto.png')
+  await expect(page.getByTestId('edit-image-preview')).toBeVisible()
+  await page.getByPlaceholder('Title').fill('With new image')
+  await page.getByTestId('submit-event-button').click()
+
+  await expect(page.getByTestId('details-event-title')).toHaveText('With new image')
+  await expect(page.getByTestId('display-event-image')).toHaveAttribute('src', /^data:image\/png;base64,/)
+  expect(imageFetches).toBe(fetchesBeforeUpload)
 })
 
 // Revision history used React Query defaults, refetching on every window focus; the HAR capture

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest"
-import { createEvent, fillSharedRevisionImages } from "./historyEventApi"
+import { createEvent, getImageDataUrl } from "./historyEventApi"
 
 // createEvent must surface the backend's rejection reason so the edit panel can show a
 // useful inline error (e.g. the 422 from image validation) rather than a bare status code.
@@ -46,33 +46,31 @@ describe("createEvent", () => {
   })
 })
 
-describe("fillSharedRevisionImages", () => {
-  // GetAllRevisions sends a shared image's bytes once (newest revision); the rest carry the
-  // same EventImage.Id with empty ImageBinary.
-  it("copies bytes to revisions that share the image Id", () => {
-    const out = fillSharedRevisionImages([
-      { Revision: 3, EventImage: { Id: "img-a", ImageBinary: "AAAA" } },
-      { Revision: 2, EventImage: { Id: "img-a", ImageBinary: "" } },
-      { Revision: 1, EventImage: { Id: "img-a", ImageBinary: "" } },
-    ])
-    expect(out.map((r) => r.EventImage.ImageBinary)).toEqual(["AAAA", "AAAA", "AAAA"])
+describe("getImageDataUrl", () => {
+  // GetImage returns raw bytes; the client turns them into the same data URL shape the rest of
+  // the app uses (MIME sniffed from the magic bytes).
+  it("turns raw PNG bytes into a PNG data URL", async () => {
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+    stubFetch(async () => ({ ok: true, status: 200, arrayBuffer: async () => png.buffer }))
+    await expect(getImageDataUrl("img-1")).resolves.toBe("data:image/png;base64,iVBORw0KGgo=")
   })
 
-  it("keeps different images separate and leaves a genuinely empty image empty", () => {
-    const out = fillSharedRevisionImages([
-      { Revision: 3, EventImage: { Id: "img-b", ImageBinary: "BBBB" } },
-      { Revision: 2, EventImage: { Id: "img-none", ImageBinary: "" } },
-      { Revision: 1, EventImage: { Id: "img-a", ImageBinary: "AAAA" } },
-    ])
-    expect(out.map((r) => r.EventImage.ImageBinary)).toEqual(["BBBB", "", "AAAA"])
+  it("handles multi-MB images (no call-stack overflow)", async () => {
+    const big = new Uint8Array(3 * 1024 * 1024)
+    big.set([0xff, 0xd8, 0xff, 0xe0])
+    stubFetch(async () => ({ ok: true, status: 200, arrayBuffer: async () => big.buffer }))
+    const url = await getImageDataUrl("img-big")
+    expect(url.startsWith("data:image/jpeg;base64,/9j/4")).toBe(true)
+    expect(url.length).toBeGreaterThan(4 * 1024 * 1024)
   })
 
-  it("does not mutate its input", () => {
-    const input = [
-      { EventImage: { Id: "x", ImageBinary: "XX" } },
-      { EventImage: { Id: "x", ImageBinary: "" } },
-    ]
-    fillSharedRevisionImages(input)
-    expect(input[1].EventImage.ImageBinary).toBe("")
+  it("returns null when the event has no image (204)", async () => {
+    stubFetch(async () => ({ ok: true, status: 204 }))
+    await expect(getImageDataUrl("img-none")).resolves.toBeNull()
+  })
+
+  it("throws on other errors", async () => {
+    stubFetch(async () => ({ ok: false, status: 404 }))
+    await expect(getImageDataUrl("nope")).rejects.toThrow("GetImage failed: 404")
   })
 })

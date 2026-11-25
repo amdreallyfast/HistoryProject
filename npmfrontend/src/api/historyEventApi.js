@@ -1,3 +1,5 @@
+import { imageBinaryToDataUrl } from "./imageDataUrl"
+
 const baseUrl = import.meta.env.VITE_API_BASE_URL
 
 export async function getFirst100() {
@@ -6,28 +8,31 @@ export async function getFirst100() {
   return resp.json()
 }
 
+// Revisions come without image bytes: each has EventImage { Id, ImageBinary: "" }. Show an
+// image by fetching it with getImageDataUrl(EventImage.Id) (see useEventImageDataUrl).
 export async function getAllRevisions(eventId) {
   const resp = await fetch(`${baseUrl}/api/HistoricalEvent/GetAllRevisions/${eventId}`)
   if (!resp.ok) throw new Error(`GetAllRevisions failed: ${resp.status}`)
-  return fillSharedRevisionImages(await resp.json())
+  return resp.json()
 }
 
-// Revisions share an unchanged image, and GetAllRevisions sends each image's bytes only once
-// (on the newest revision using it); the others come with the same EventImage.Id and empty
-// ImageBinary. Copy the bytes across by Id so every revision has its image. A revision whose
-// image has no bytes anywhere in the response genuinely has no image and stays empty.
-export function fillSharedRevisionImages(revisions) {
-  const bytesByImageId = new Map()
-  for (const r of revisions) {
-    if (r.EventImage?.Id && r.EventImage.ImageBinary) {
-      bytesByImageId.set(r.EventImage.Id, r.EventImage.ImageBinary)
-    }
+// One image's bytes as a data URL, by image row Id. null if the event has no image (204).
+// The backend marks the response cacheable forever (image rows never change).
+export async function getImageDataUrl(imageId) {
+  const resp = await fetch(`${baseUrl}/api/HistoricalEvent/GetImage/${imageId}`)
+  if (resp.status === 204) return null
+  if (!resp.ok) throw new Error(`GetImage failed: ${resp.status}`)
+  return imageBinaryToDataUrl(bytesToBase64(new Uint8Array(await resp.arrayBuffer())))
+}
+
+function bytesToBase64(bytes) {
+  // Chunked: String.fromCharCode(...bigArray) overflows the call stack for multi-MB images.
+  let binary = ""
+  const chunk = 0x8000
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk))
   }
-  return revisions.map((r) =>
-    r.EventImage?.Id && !r.EventImage.ImageBinary && bytesByImageId.has(r.EventImage.Id)
-      ? { ...r, EventImage: { ...r.EventImage, ImageBinary: bytesByImageId.get(r.EventImage.Id) } }
-      : r
-  )
+  return btoa(binary)
 }
 
 export async function createEvent(backendEvent) {

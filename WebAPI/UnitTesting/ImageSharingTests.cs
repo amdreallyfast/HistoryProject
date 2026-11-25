@@ -153,33 +153,81 @@ namespace WebAPI.Tests
         }
 
         [TestMethod]
-        public async Task GetAllRevisions_SendsSharedImageBytesOnce_OnNewestRevision()
+        public async Task GetAllRevisions_SendsNoImageBytes_OnlyEachRevisionsImageId()
         {
             var dbName = Guid.NewGuid().ToString();
             var eventId = Guid.NewGuid();
             await Create(dbName, eventId, Jpeg(1));
-            await Create(dbName, eventId, Jpeg(1));
-            await Create(dbName, eventId, Jpeg(1));
-
-            var revs = await GetAllRevisions(dbName, eventId); // newest first
-            Assert.AreEqual(3, revs.Count);
-            CollectionAssert.AreEqual(Jpeg(1), revs[0].EventImage!.ImageBinary, "newest revision carries the bytes");
-            Assert.AreEqual(0, revs[1].EventImage!.ImageBinary.Length, "older revisions: no repeat bytes");
-            Assert.AreEqual(0, revs[2].EventImage!.ImageBinary.Length);
-            Assert.IsTrue(revs.All(r => r.EventImage!.Id == revs[0].EventImage!.Id), "same image Id lets the client fill them in");
-        }
-
-        [TestMethod]
-        public async Task GetAllRevisions_DifferentImages_EachCarryTheirBytes()
-        {
-            var dbName = Guid.NewGuid().ToString();
-            var eventId = Guid.NewGuid();
             await Create(dbName, eventId, Jpeg(1));
             await Create(dbName, eventId, Jpeg(2));
 
-            var revs = await GetAllRevisions(dbName, eventId);
-            CollectionAssert.AreEqual(Jpeg(2), revs[0].EventImage!.ImageBinary);
-            CollectionAssert.AreEqual(Jpeg(1), revs[1].EventImage!.ImageBinary);
+            var revs = await GetAllRevisions(dbName, eventId); // newest first
+            var expectedIds = (await ImageIdsByRevision(dbName, eventId)).AsEnumerable().Reverse().ToList();
+            Assert.IsTrue(revs.All(r => r.EventImage!.ImageBinary.Length == 0), "no image bytes in the revision list");
+            CollectionAssert.AreEqual(expectedIds, revs.Select(r => r.EventImage!.Id).ToList(), "each revision's real image Id");
+            Assert.AreEqual(revs[1].EventImage!.Id, revs[2].EventImage!.Id, "revisions 1 and 2 share an image");
+            Assert.AreNotEqual(revs[0].EventImage!.Id, revs[1].EventImage!.Id, "revision 3 changed it");
+        }
+
+        private static async Task<ActionResult> GetImage(string dbName, Guid imageId, Action<Microsoft.AspNetCore.Http.IHeaderDictionary>? headers = null)
+        {
+            using var db = TestSupport.NewInMemoryContext(dbName);
+            var controller = TestSupport.NewController(db);
+            var result = await controller.GetImage(imageId);
+            headers?.Invoke(controller.Response.Headers);
+            return result;
+        }
+
+        [TestMethod]
+        public async Task GetImage_ReturnsTheBytes_WithLongLivedCaching()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var eventId = Guid.NewGuid();
+            await Create(dbName, eventId, Jpeg(7));
+            var imageId = (await ImageIdsByRevision(dbName, eventId))[0];
+
+            string? cacheControl = null;
+            var result = await GetImage(dbName, imageId, h => cacheControl = h.CacheControl);
+
+            var file = (FileContentResult)result;
+            CollectionAssert.AreEqual(Jpeg(7), file.FileContents);
+            Assert.AreEqual("image/jpeg", file.ContentType);
+            StringAssert.Contains(cacheControl, "immutable");
+        }
+
+        [TestMethod]
+        public async Task GetImage_Png_HasPngContentType()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var eventId = Guid.NewGuid();
+            await Create(dbName, eventId, TestSupport.PngBytes());
+            var file = (FileContentResult)await GetImage(dbName, (await ImageIdsByRevision(dbName, eventId))[0]);
+            Assert.AreEqual("image/png", file.ContentType);
+        }
+
+        [TestMethod]
+        public async Task GetImage_EventWithoutImage_Is204_UnknownId_Is404()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var eventId = Guid.NewGuid();
+            await Create(dbName, eventId, image: null);
+
+            Assert.IsInstanceOfType(await GetImage(dbName, (await ImageIdsByRevision(dbName, eventId))[0]), typeof(NoContentResult));
+            Assert.IsInstanceOfType(await GetImage(dbName, Guid.NewGuid()), typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Create_ReturnsTheSavedImageId_NewOrShared()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var eventId = Guid.NewGuid();
+            var first = (CreatedRevision)((OkObjectResult)(await Create(dbName, eventId, Jpeg(1))).Result!).Value!;
+            var second = (CreatedRevision)((OkObjectResult)(await Create(dbName, eventId, Jpeg(1))).Result!).Value!;
+
+            var stored = await ImageIdsByRevision(dbName, eventId);
+            Assert.AreEqual(stored[0], first.EventImageId);
+            Assert.AreEqual(stored[1], second.EventImageId);
+            Assert.AreEqual(first.EventImageId, second.EventImageId, "second revision shares the first's image");
         }
 
         [TestMethod]
