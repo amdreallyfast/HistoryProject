@@ -13,7 +13,7 @@ import { cursorRaycast } from "./cursorRaycast"
 //    leftMouseDown.intersection and MouseHandler uses to start the drag, so the two can't
 //    disagree about what was grabbed.
 //  - It only toggles `controls.enabled` on the default camera controls. No other component
-//    reads or writes that flag (the Ctrl toggle uses enableRotate/enablePan).
+//    reads or writes that flag. (This replaced a manual Ctrl-key toggle, removed 2026-11-25.)
 //
 // Timing: three.js OrbitControls decides rotate vs pan inside its own pointerdown handler, so
 // the camera must be locked before that runs. A capture-phase listener on `window` runs before

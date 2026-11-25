@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
@@ -9,9 +9,6 @@ import { GlobeTestHook } from "./GlobeTestHook"
 import { clientToNdc, cursorRaycast } from "./cursorRaycast"
 
 export function GlobeSectionMain() {
-  // Toggle with CTRL key.
-  const [cameraRotateEnabled, setCameraRotateEnabled] = useState(true)
-  const [cameraPanEnabled, setCameraPanEnabled] = useState(true)
   const mouseState = useSelector((state) => state.mouseInfoReducer)
   const reduxDispatch = useDispatch()
 
@@ -99,51 +96,16 @@ export function GlobeSectionMain() {
     }
   }
 
-  function onCanvasKeyDown(e) {
-    // console.log({ "onCanvasKeyDown": e })
-
-    if (e.ctrlKey) {
-      if (cameraRotateEnabled) {
-        console.log("disable rotate")
-        setCameraRotateEnabled(false)
-      }
-
-      if (cameraPanEnabled) {
-        console.log("disable pan")
-        setCameraPanEnabled(false)
-      }
-    }
-  }
-
-  function onCanvasKeyUp(e) {
-    // console.log({ "onCanvasKeyUp": e })
-
-    if (!e.ctrlKey) {
-      if (!cameraRotateEnabled) {
-        console.log("enable rotate")
-        setCameraRotateEnabled(true)
-      }
-
-      if (!cameraPanEnabled) {
-        console.log("enable pan")
-        setCameraPanEnabled(true)
-      }
-    }
-  }
-
   return (
     <div ref={canvasContainerDivRef} className='w-full h-full bg-black border-4 border-red-500'>
       <Canvas
-        // Note: tabIndex must exist for the canvas to take focus and respond to key presses.
-        tabIndex={0}
         onMouseMove={(e) => onCanvasMouseMove(e)}
         onMouseDown={(e) => onCanvasMouseDown(e)}
         onMouseUp={(e) => onCanvasMouseUp(e)}
-        onKeyDown={(e) => onCanvasKeyDown(e)}
-        onKeyUp={(e) => onCanvasKeyUp(e)}
       >
         <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} near={0.5} far={3000} />
-        <OrbitControls makeDefault enableRotate={cameraRotateEnabled} enablePan={cameraPanEnabled} />
+        {/* Camera rotation/pan is frozen automatically while dragging a pin or the region (CameraDragLock). */}
+        <OrbitControls makeDefault />
         <CameraDragLock />
         {!import.meta.env.PROD && <GlobeTestHook />}
         <spotLight position={[10, 15, 10]} angle={0.3} intensity={0.2} />
