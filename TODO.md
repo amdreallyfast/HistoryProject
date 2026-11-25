@@ -4,7 +4,7 @@ Work items for the HistoryProject repository. Organized by priority — start fr
 
 **Instructions for Claude:** Work through items top-to-bottom.
 - `[simple]` — Just do it.
-- `[plan first]` — Create a plan document, get user approval, then create a git branch and implement step-by-step with testing between steps.
+- `[plan first]` — Create a plan document, get user approval, then create a git branch from `test` and implement step-by-step with testing between steps.
 - `[discussion]` — Present options and wait for the user to decide before doing anything.
 
 Guidance:
@@ -13,8 +13,8 @@ Guidance:
   2. summarize the impact
   3. get permission before continuing
   4. when finished, update DESIGN.md
-2. After completing any item:
-  1. commit to test branch and push
+2. After completing any item (see "Development Workflow" in CLAUDE.md):
+  1. push the branch, open a PR into `test`, and merge it once the required checks pass (never commit directly to `test` or `main`)
   2. ask the user to test:
     1. If the test is successful, then mark the TODO item as complete, and commit and push the TODO file
     2. If not, then attempt to diagnose the problem, and engage the user for missing info or unclear intent, and when it is working as the using expects, then mark the TODO item as complete, and commit the changes.
