@@ -14,6 +14,18 @@ This is a full-stack web application for visualizing historical events on an int
 - **`TODO.md`** - Prioritized work items (bug fixes, refactors, features, design discussions)
 - **`claudePlans/`** - Archived plan documents and setup guides (numbered chronologically)
 
+## Development Workflow (pull requests)
+
+The user judges whether the app works; Claude handles the git and PR mechanics. The user should not need to read PRs.
+
+- **Branches:** `test` is the integration branch and deploys to the Azure test environment on merge. `main` is production. Never commit directly to either.
+- **Doing work:** branch from the latest `test` (e.g. `fix/…`, `feature/…`, `todo/…`), commit, push, and open a PR into `test` with `gh pr create --base test`. The PR description says what changed, how it was tested, and anything not verified.
+- **Required checks:** `backend-tests` and `frontend-tests` must pass before a PR can merge into `test` or `main` (GitHub rulesets enforce this). If one fails, fix it on the branch.
+- **Merging into `test`:** Claude merges its own PR (`gh pr merge <n> --merge --delete-branch`) once the required checks pass. No approval is needed; GitHub never lets the author approve their own PR anyway. Use a merge commit, not squash, so individual commit messages survive.
+- **Merging into `main`:** only when the user explicitly says so (e.g. "release", "promote to main"), every time. Open a PR from `test` into `main`, wait for checks, then merge. Never merge into `main` on your own judgment.
+- **After merging into `test`:** tell the user what to try, on the test site (https://gray-ground-025c5820f.7.azurestaticapps.net; backend wakes slowly from idle) or locally.
+- **Commit messages:** follow the rules at the top of `TODO.md`, and start every subject with `w/claude: `.
+
 ## Build & Run Commands
 
 ### Frontend (`npmfrontend/`)
