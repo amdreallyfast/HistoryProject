@@ -106,6 +106,11 @@ namespace WebAPI.Controllers
                 .Where(e => !dbContext.Events.Any(e2 =>
                     e2.EventId == e.EventId &&
                     e2.Revision > e.Revision))
+                // Deterministic order is required with split queries (Program.cs): each
+                // collection is loaded by a separate query that repeats this Take(100), and
+                // without an OrderBy those queries could pick different 100 events. Id keeps
+                // the previous "arbitrary 100" semantics; the frontend sorts results by title.
+                .OrderBy(e => e.Id)
                 .Take(100)
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
@@ -129,6 +134,7 @@ namespace WebAPI.Controllers
             var random = new Random();
             var randomIndex = random.Next(numEvents);
             var randomEvent = await dbContext.Events
+                .OrderBy(x => x.Id)   // required with split queries; see GetFirst100
                 .Skip(randomIndex)
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
