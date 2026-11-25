@@ -109,7 +109,7 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    startEditMode: (state, action) => {
+    startEditMode: () => {
       // console.log("stateSliceEditEvent.startEditMode")
 
       // let eventId = action.payload.eventId
@@ -119,7 +119,7 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    endEditMode: (state, action) => {
+    endEditMode: () => {
       // console.log("stateSliceEditEvent.endEditMode")
       return initialState
     },
@@ -155,7 +155,7 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    prepareNewEvent: (state, action) => {
+    prepareNewEvent: () => {
       return {
         ...initialState,
         newEventAwaitingPlacement: true,
@@ -240,7 +240,6 @@ export const stateSliceEditEvent = createSlice({
     setImageDataUrl: (state, action) => {
       console.log({ "stateSliceEditEvent.setImageDataUrl": action.payload })
 
-      let filename = action.payload.filename
       let dataUrl = action.payload.dataUrl
       return {
         ...state,
@@ -337,7 +336,7 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    setUpdatedPrimaryPinMeshInScene: (state, action) => {
+    setUpdatedPrimaryPinMeshInScene: (state) => {
       // console.log({ msg: "stateSliceEditEvent.setUpdatedPrimaryPinMeshInScene", payload: action.payload })
 
       return {
@@ -364,7 +363,7 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    setUpdatedRegionMeshesInScene: (state, action) => {
+    setUpdatedRegionMeshesInScene: (state) => {
       // console.log({ msg: "stateSliceEditEvent.updatedRegionMeshesInScene", payload: action.payload })
 
       return {
@@ -378,7 +377,7 @@ export const stateSliceEditEvent = createSlice({
 
       // Expected format: See comment block on field.
       let updatedLocation = action.payload
-      let updatedBoundaries = state.regionBoundaries.map((regionBoundary, index) => {
+      let updatedBoundaries = state.regionBoundaries.map((regionBoundary) => {
         if (regionBoundary.id == updatedLocation.id) {
           // console.log("that's me")
           return updatedLocation
@@ -410,7 +409,7 @@ export const stateSliceEditEvent = createSlice({
       }
     },
 
-    disableClickAndDrag: (state, action) => {
+    disableClickAndDrag: (state) => {
       // console.log({ msg: "stateSliceEditEvent.disableClickAndDrag", payload: action.payload })
 
       return {

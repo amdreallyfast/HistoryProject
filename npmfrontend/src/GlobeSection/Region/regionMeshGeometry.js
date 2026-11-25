@@ -73,7 +73,6 @@ export class EarClipping {
     // Get line indices
     // Note: Have to extract the unique line indices from the dictionary.
     // Also Note: They were keyed in duplicate pairs, so skip every other one.
-    let lineIndices = []
     const indexPairsStrArr = Object.keys(this.#lineIndicesDict)
     for (let i = 0; i < indexPairsStrArr.length; i += 2) {
       let indexPairs = indexPairsStrArr[i].split(",")

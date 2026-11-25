@@ -55,6 +55,7 @@ export function EditEventTime() {
     setExactDate(isExactDate(editState.eventTime))
 
     validateBothBounds(eYear, eMonth, eDay, lYear, lMonth, lDay)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [
     earliestYearInputRef.current,
     earliestMonthInputRef.current,

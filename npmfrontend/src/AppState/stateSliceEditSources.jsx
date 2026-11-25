@@ -79,6 +79,7 @@ const sourceInitialState = {
 }
 
 // Author
+// eslint-disable-next-line no-unused-vars -- documents the author shape; not wired into the slice yet
 const authorInitialState = {
   id: null,                 // unique version of this author revision
   authorId: null,           // constant version across all revisions

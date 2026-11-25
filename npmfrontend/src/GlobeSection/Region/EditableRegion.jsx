@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import * as THREE from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { meshNames, pinMeshInfo, regionInfo } from "../constValues"
 import { EditPinMesh } from "../EditPinMesh"
-import _ from "lodash"
 import { v4 as uuid } from "uuid"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 import { ConvertLatLongToVec3 } from "../convertLatLongXYZ"
@@ -84,6 +83,7 @@ export function EditableRegion({ globeInfo }) {
     else {
       setPrimaryLocationPinReactElement(null)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [editState.primaryLoc?.id])
 
   // Set flag to alert that the primary POI pin's meshes are present in ThreeJs' scene and need 
@@ -92,14 +92,14 @@ export function EditableRegion({ globeInfo }) {
     // console.log({ "EditableRegion.useEffect[primaryLocationPinReactElement]": primaryLocationPinReactElement })
 
     reduxDispatch(editEventStateActions.setUpdatedPrimaryPinMeshInScene())
-  }, [primaryLocationPinReactElement])
+  }, [primaryLocationPinReactElement, reduxDispatch])
 
   // Same for region meshes (there are several of them (pins, etc.)).
   useEffect(() => {
     // console.log({ "EditableRegion.useEffect[regionMeshesUpdated]": regionPinReactElements, mesh: regionMeshReactElements })
 
     reduxDispatch(editEventStateActions.setUpdatedRegionMeshesInScene())
-  }, [regionPinReactElements, regionMeshReactElements])
+  }, [regionPinReactElements, regionMeshReactElements, reduxDispatch])
 
   // Create region pins when the number of region boundary points change.
   useEffect(() => {
@@ -120,6 +120,7 @@ export function EditableRegion({ globeInfo }) {
       )
     })
     setRegionPinReactElements(reactElements)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [editState.regionBoundaries.length])
 
   return (

@@ -19,6 +19,7 @@ export function EditEventHeader() {
       titleInputRef.current.value = editState.title
     }
     isComplete(editState.title, editState.tags)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [editState.title])
 
   // Validation function
