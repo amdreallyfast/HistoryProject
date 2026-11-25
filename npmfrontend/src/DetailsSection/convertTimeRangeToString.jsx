@@ -7,9 +7,9 @@ export function convertToTimeSinceFoundingOfRome(y, m, d) {
   let pd = 21
 
   if (y && m && d) {
-    yDiff = py - y
-    mDiff = pm - m
-    dDiff = pd - d
+    let yDiff = py - y
+    let mDiff = pm - m
+    let dDiff = pd - d
     if (yDiff < -1) {
       return `${Math.abs(yDiff)}y, ${Math.abs(mDiff)}m, ${Math.abs(dDiff)}d before the founding of Rome`
     }
@@ -33,8 +33,8 @@ export function convertToTimeSinceFoundingOfRome(y, m, d) {
     }
   }
   else if (y && m) {
-    yDiff = py - y
-    mDiff = pm - m
+    let yDiff = py - y
+    let mDiff = pm - m
     if (yDiff < -1) {
       return `${Math.abs(yDiff)}y, ${Math.abs(mDiff)}m before the founding of Rome`
     }
@@ -52,7 +52,7 @@ export function convertToTimeSinceFoundingOfRome(y, m, d) {
     }
   }
   else if (y) {
-    yDiff = py - y
+    let yDiff = py - y
     if (yDiff < -1) {
       return `${Math.abs(yDiff)}y before the founding of Rome`
     }
@@ -95,11 +95,6 @@ export function convertTimeRangeToGregorianYearMonthDayString(earliestYear, earl
 }
 
 export function convertTimeToGregorianYearMonthDayString(y, m, d) {
-  // "pivot" date == origin (zero point) of calendar
-  let py = 0
-  let pm = 0
-  let pd = 0
-
   let suffix = y < 0 ? "BC" : "AD"
 
   if (y && m && d) {
@@ -121,7 +116,7 @@ export function convertTimeToGregorianYearMonthDayString(y, m, d) {
 //  Note: I combined the solutions.
 //  https://www.sitepoint.com/convert-numbers-to-ordinals-javascript/
 //  https://stackoverflow.com/questions/13627308/add-st-nd-rd-and-th-ordinal-suffix-to-a-number
-function toOrdinalString(n) {
+export function toOrdinalString(n) {
   if (n % 10 == 1 && n % 100 != 11) {
     return n + 'st';
   }

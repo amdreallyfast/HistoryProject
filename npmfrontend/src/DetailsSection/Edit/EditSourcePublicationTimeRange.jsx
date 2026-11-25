@@ -62,8 +62,6 @@ export function EditSourcePublicationTimeRange({
   const pubDateLowerBoundMonthRef = useRef()
   const pubDateLowerBoundDayRef = useRef()
 
-  //??necessary? keep track of this in the state machine??
-  const [publicationDateLowerBoundComplete, setPublicationDateLowerBoundComplete] = useState()
 
   const [lowerBoundError, setLowerBoundError] = useState()
   const [rangeError, setRangeError] = useState(null)
@@ -214,6 +212,7 @@ export function EditSourcePublicationTimeRange({
     setExactDate(isExactDate(editSource.publicationTime))
 
     evaluateLowerBoundComplete()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [
     pubDateLowerBoundYearRef.current,
     pubDateLowerBoundMonthRef.current,
@@ -319,6 +318,7 @@ export function EditSourcePublicationTimeRange({
     pubDateUpperBoundDayRef.current.value = editSource.publicationTime.latestDay
 
     evaluateUpperBoundComplete()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [
     pubDateUpperBoundYearRef.current,
     pubDateUpperBoundMonthRef.current,

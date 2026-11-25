@@ -78,6 +78,7 @@ export function AnimatedBarMesh({ globePos, globeRadius, poiInfoJson }) {
         ease: "linear",
         delay: Math.random(1)
       })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [meshRef.current, materialRef.current])
 
   return (

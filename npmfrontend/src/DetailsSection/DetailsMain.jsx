@@ -91,7 +91,7 @@ import { EditEvent } from "./Edit/EditEvent";
 import { DisplayEvent } from "./Display/DisplayEvent";
 import { editEventStateActions } from "../AppState/stateSliceEditEvent";
 
-export function DetailsMain({ }) {
+export function DetailsMain() {
   const editModeOn = useSelector((state) => state.editEventReducer.editModeOn)
   const newEventAwaitingPlacement = useSelector((state) => state.editEventReducer.newEventAwaitingPlacement)
   const selectedEventId = useSelector((state) => state.selectedEventReducer.eventId)

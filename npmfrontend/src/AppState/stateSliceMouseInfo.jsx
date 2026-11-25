@@ -121,7 +121,7 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    resetLeftMouse: (state, action) => {
+    resetLeftMouse: (state) => {
       // console.log({ "mouseStateActions.resetLeftMouse": action.payload })
 
       return {

@@ -9,7 +9,7 @@ import { DisplayEventSources } from "./DisplayEventSources"
 import { RevisionStack } from "./RevisionStack"
 import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
 
-export function DisplayEvent({ }) {
+export function DisplayEvent() {
   const selectedEvent = useSelector((state) => state.selectedEventReducer)
   const reduxDispatch = useDispatch()
 

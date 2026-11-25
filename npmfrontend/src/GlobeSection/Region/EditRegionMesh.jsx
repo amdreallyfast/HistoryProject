@@ -41,7 +41,6 @@ export const EditRegionMesh = ({ sphereRadius }) => {
     }
   }
   let regionMeshRef = useRef()
-  let regionLinesRef = useRef()
   const [linePoints, setLinePoints] = useState([])
   // Buffer snapshot captured on the first useFrame of a whole-region drag, used
   // to keep the polygon visually live without re-running ear-clipping or
@@ -237,6 +236,7 @@ export const EditRegionMesh = ({ sphereRadius }) => {
 
     let baseVertices = editState.regionBoundaries.map((boundaryMarker) => [boundaryMarker.x, boundaryMarker.y, boundaryMarker.z])
     writeRegionMesh(baseVertices, { withLinePoints: true })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [editState.regionBoundaries])
 
   // Live polygon tracking during click-and-drag, without dispatching state. The

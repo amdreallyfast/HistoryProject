@@ -54,12 +54,14 @@ export function DisplayEventRegion() {
   useEffect(() => {
     console.log({ "ShowRegionDetails.useEffect[selectedEventState.primaryLoc]": selectedEventState.primaryLoc })
     createLatLongReactElements()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [selectedEventState.primaryLoc])
 
   // Re-create HTML to list locations
   useEffect(() => {
     console.log({ "ShowRegionDetails.useEffect[selectedEventState.regionBoundaries]": selectedEventState.regionBoundaries })
     createLatLongReactElements()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [selectedEventState.regionBoundaries])
 
   return (

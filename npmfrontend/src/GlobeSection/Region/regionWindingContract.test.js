@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { classifyRegionWinding, REGION_WINDING_EPSILON } from "./regionMeshGeometry"
 import { ConvertLatLongToXYZ } from "../convertLatLongXYZ"
-import contract from "../../../tests/fixtures/regionWindingContract.json" with { type: "json" }
+import contract from "../../../tests/fixtures/regionWindingContract.json"
 
 // The frontend half of the cross-tier winding contract. The backend half is
 // WebAPI/UnitTesting/RegionWindingContractTests.cs, and both read the SAME fixture file so

@@ -46,6 +46,7 @@ export function EditEventSummary() {
       charCountLabelRef.current.innerHTML = `${editState.summary.length}/${detailRestrictions.maxSummaryLength}`
     }
     isComplete(editState.summary)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ref.current dep is deliberate (re-run once the element mounts); removing it could skip the effect
   }, [summaryInputRef.current, charCountLabelRef.current, editState.summary])
 
   // On text change, set state

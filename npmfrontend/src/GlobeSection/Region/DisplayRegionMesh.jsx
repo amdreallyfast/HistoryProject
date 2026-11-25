@@ -30,6 +30,7 @@ export const DisplayRegionMesh = ({ eventId, regionBoundaries, sphereRadius, col
     regionMeshRef.current.geometry.attributes.position.needsUpdate = true
     regionMeshRef.current.geometry.computeBoundingSphere()
     regionMeshRef.current.userData.eventId = eventId
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [regionBoundaries])
 
   // Update color when it changes (for highlighting).

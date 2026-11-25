@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { meshNames } from "./constValues"
 
-export function DisplayPinMesh({ eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 0) }) {
+export function DisplayPinMesh({ eventId, spherePoint, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 0) }) {
   const meshRef = useRef()
 
   function makePin() {
@@ -58,6 +58,7 @@ export function DisplayPinMesh({ eventId, spherePoint, globeInfo, colorHex, leng
     makePin()
     meshRef.current.name = meshNames.DisplayPin
     meshRef.current.userData.eventId = eventId
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [meshRef.current])
 
   // Update position when spherePoint changes (e.g., after edit submit).
@@ -70,6 +71,7 @@ export function DisplayPinMesh({ eventId, spherePoint, globeInfo, colorHex, leng
     meshRef.current.position.y = spherePoint.y
     meshRef.current.position.z = spherePoint.z
     meshRef.current.lookAt(lookAt)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [spherePoint])
 
   // Update color when colorHex changes (for highlighting).

@@ -35,7 +35,7 @@ function randomPointInSphere(minRadius, maxRadius) {
   return { x: x, y: y, z: z };
 }
 
-export function Stars({ debug }) {
+export function Stars() {
   // console.log("Stars(): begin")
 
   const starsMemo = useMemo(() => {

@@ -152,7 +152,7 @@ export const MouseHandler = () => {
 
 
     leftMouseDownRef.current = true
-  }, [mouseState.leftMouseDown])
+  }, [mouseState.leftMouseDown, reduxDispatch])
 
   // Mouse up
   useEffect(() => {
@@ -247,6 +247,7 @@ export const MouseHandler = () => {
     reduxDispatch(mouseStateActions.resetLeftMouse())
 
     leftMouseDownRef.current = false
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.leftMouseUp])
 
   // Click-and-drag tick: throttle to ~60Hz via useFrame so multiple browser

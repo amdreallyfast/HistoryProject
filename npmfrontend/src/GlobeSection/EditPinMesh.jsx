@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { useFrame, useThree } from "@react-three/fiber"
 import { useDispatch, useSelector } from "react-redux"
@@ -7,7 +7,6 @@ import { meshNames, pinMeshInfo, pinZoomScaleInfo } from "./constValues"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { sharedDragRotor } from "./sharedDragRotor"
 import { computePinZoomScale } from "./pinZoomScale"
-import _ from "lodash"
 
 export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (!pinType) {
@@ -184,6 +183,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
 
     makePin()
     originalPosRef.current = meshRef.current.position.clone()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [meshRef.current])
 
   // Create box mesh when mesh reference is available.
@@ -213,6 +213,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     // stops working for that pin. MouseHandler.enableClickAndDrag console.errors if
     // a drag starts on a bounding box without it.
     boxMeshRef.current.userData.locationId = spherePoint.id
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [meshRef.current, boxMeshRef.current])
 
 
@@ -307,6 +308,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
       originalPosRef.current = meshRef.current.position.clone()
     }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.leftMouseUp])
 
   // Hover: Update color (unless it is selected).
@@ -326,6 +328,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
       boxMeshRef.current.material.color = new THREE.Color(colors.normal)
       boxMeshRef.current.material.opacity = 0.2
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.hoverLocId])
 
   // Selected: Update color (but differently than hover).
@@ -340,6 +343,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
       boxMeshRef.current.material.opacity = 0.2
     }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.selectedLocId])
 
   return (

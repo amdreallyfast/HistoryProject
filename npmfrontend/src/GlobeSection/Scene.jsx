@@ -85,6 +85,7 @@ export function Scene() {
     })
 
     setPoiReactElements(displayElements)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [eventState.allEvents, eventState.selectedEvent])
 
   // Edit mode determines whether we render EditableRegion.
@@ -100,6 +101,7 @@ export function Scene() {
     else {
       setRegionReactElements(null)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [editState.editModeOn])
 
   // Extract meshes from specific groups so that it is easy to filter them.
@@ -131,6 +133,7 @@ export function Scene() {
     setMeshes(meshesArr)
 
     // console.log({ meshesArr, count: meshesArr.length })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [poiReactElements, regionReactElements, editState.updatedPrimaryPinMeshInScene, editState.updatedRegionMeshesInScene])
 
   // Handle mouse hover and mouse click.

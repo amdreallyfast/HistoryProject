@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { convertTimeRangeToGregorianYearMonthDayString } from "../convertTimeRangeToString"
 import { EditSource } from "./EditSource"
 import { v4 as uuid } from "uuid"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
-import { detailRestrictions } from "./detailRestrictions"
 
 export function EditEventSources() {
   const editState = useSelector((state) => state.editEventReducer)
@@ -41,7 +39,7 @@ export function EditEventSources() {
     if (editState.sources && editState.sources.length > 0) {
       reduxDispatch(editSourcesStateActions.loadSources(editState.sources))
     }
-  }, [editState.sources])
+  }, [editState.sources, reduxDispatch])
 
 
   // // On sources changed
@@ -87,7 +85,7 @@ export function EditEventSources() {
     setSources(reactElements)
     console.log({ path: "create", sources: reactElements })
     isComplete(editSources)
-  }, [editSources])
+  }, [editSources, reduxDispatch])
 
 
 
