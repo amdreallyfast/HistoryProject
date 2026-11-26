@@ -51,6 +51,12 @@ export function GlobeTestHook() {
         const p = getThreeJsState().camera.position
         return { x: p.x, y: p.y, z: p.z }
       },
+      // The point the camera orbits around (OrbitControls target). Pan moves it together with
+      // the camera; zoom changes the camera's distance to it.
+      cameraTarget() {
+        const t = getThreeJsState().controls?.target
+        return t ? { x: t.x, y: t.y, z: t.z } : null
+      },
       // Screen position of an editable pin, by its location id (the id on its
       // `region-location-row` in the Where panel).
       pinClientXY(locationId) {

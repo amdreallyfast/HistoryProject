@@ -1,4 +1,5 @@
 import { useRef } from "react"
+import { MOUSE } from "three"
 import { useDispatch, useSelector } from "react-redux"
 import { Canvas } from '@react-three/fiber'
 import { Scene } from "./Scene"
@@ -7,6 +8,11 @@ import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { CameraDragLock } from "./CameraDragLock"
 import { GlobeTestHook } from "./GlobeTestHook"
 import { clientToNdc, cursorRaycast } from "./cursorRaycast"
+
+// Middle-button drag pans (three.js default is DOLLY, which duplicated the wheel zoom); the wheel
+// is the only zoom. Right-button drag also pans (three.js default). Module-level so the prop is
+// the same object on every render (this component re-renders on every mouse move).
+const ORBIT_MOUSE_BUTTONS = { LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.PAN }
 
 export function GlobeSectionMain() {
   const mouseState = useSelector((state) => state.mouseInfoReducer)
@@ -62,8 +68,9 @@ export function GlobeSectionMain() {
       reduxDispatch(mouseStateActions.setLeftMouseIsDown(clickData))
     }
     else if (e.button == 1) {
-      // Right mouse button
-      reduxDispatch(mouseStateActions.setRightMouseIsDown(clickData))
+      // Middle mouse button (DOM MouseEvent.button: 0 left, 1 middle, 2 right). Was
+      // mislabeled "right". Recorded only; camera panning is handled by OrbitControls.
+      reduxDispatch(mouseStateActions.setMiddleMouseIsDown(clickData))
     }
     else {
       // ignore other buttons
@@ -88,8 +95,8 @@ export function GlobeSectionMain() {
       reduxDispatch(mouseStateActions.setLeftMouseIsUp(metadata))
     }
     else if (e.button == 1) {
-      // Right mouse button
-      reduxDispatch(mouseStateActions.setRightMouseIsUp(metadata))
+      // Middle mouse button (see onCanvasMouseDown)
+      reduxDispatch(mouseStateActions.setMiddleMouseIsUp(metadata))
     }
     else {
       // ignore other buttons
@@ -105,7 +112,7 @@ export function GlobeSectionMain() {
       >
         <PerspectiveCamera makeDefault position={[0, 0, 25]} fov={50} near={0.5} far={3000} />
         {/* Camera rotation/pan is frozen automatically while dragging a pin or the region (CameraDragLock). */}
-        <OrbitControls makeDefault />
+        <OrbitControls makeDefault mouseButtons={ORBIT_MOUSE_BUTTONS} />
         <CameraDragLock />
         {!import.meta.env.PROD && <GlobeTestHook />}
         <spotLight position={[10, 15, 10]} angle={0.3} intensity={0.2} />
