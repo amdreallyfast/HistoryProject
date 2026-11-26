@@ -412,6 +412,13 @@ Two frontend layers: **Vitest** unit tests (pure logic) and **Playwright** UI E2
 
 **Fixture constraints** (a fixture that violates these silently breaks tests): backend **PascalCase** shape that `eventMapper.backendToFrontend` reads (`EventId`, `Title`, `SpecificLocation.Latitude`, `Region` as a flat array of `{Latitude, Longitude, OrderIndex}`); `SpecificLocation` non-null (selection dereferences it); region boundary wound **counterclockwise** (clockwise makes `EarClipping` throw). As of the region error boundary (2026-06) a clockwise region no longer blanks the whole UI — it is caught per-region and skipped — but valid fixtures should still be CCW so the region actually renders. `region-error-boundary.spec.ts` deliberately feeds a clockwise region (`fixtures/events-with-bad-region.json`) to assert the boundary contains the crash. UI selectors are `data-testid`: `search-input`, `search-button`, `search-result-item`, `details-event-title`.
 
+**Visual checks** (`npmfrontend/visual/`, `npm run visual:*`; local and manual, not in CI). Playwright screenshots never include the mouse cursor (the OS draws it) and Playwright's mouse is synthetic, so the look of cursor- and drag-dependent UI couldn't be checked automatically. `visual/harness.mjs` (`openSession`):
+- starts an invisible X screen (`Xvfb -noreset`; without `-noreset` the server resets, pointer back to center, whenever its last client disconnects), a Vite dev server (port 5199), and a **headed** Chromium on that screen, with the Wayland variables removed and `--ozone-platform=x11` (otherwise Chromium opens on the developer's real Wayland desktop);
+- `mouse.moveTo/down/up` move and press the **real** X pointer through XTest (`visual/xinput.py`, ctypes, no extra packages), and each move is verified against the page's own `mousemove` coordinates;
+- `capture.screen/aroundPointer/strip` grab the screen with `ffmpeg -f x11grab -draw_mouse 1`, so the OS cursor (Yaru theme) is in the image.
+
+Aiming uses `window.__globeTest`, so it runs against the dev server, not deployed builds. Scenario `edit-cursors.mjs` (`visual:cursors`) asserts the page's cursor at each step and saves a strip: hollow arrows / solid arrows over the region, open / closed hand on a pin, normal arrow on empty globe. It reproduced exactly what the user saw when confirming the cursors (2026-11-25).
+
 **CI:** `.github/workflows/playwright.yml`, job `frontend-tests` (lint, Vitest, Playwright). Runs on every PR into `main`/`test` (no path filter, because it's a required check) and on pushes that touch `npmfrontend/**`.
 
 ### Backend tests (two layers)
