@@ -2,6 +2,8 @@
 // These functions convert between backend Event shape and frontend event shape.
 
 import { dataUrlToImageBinary, imageBinaryToDataUrl } from "./imageDataUrl"
+import { classifyRegionWinding, regionWinding } from "../GlobeSection/Region/regionMeshGeometry"
+import { ConvertLatLongToXYZ } from "../GlobeSection/convertLatLongXYZ"
 
 function nullableIntToString(value) {
   return value != null ? String(value) : null
@@ -19,6 +21,9 @@ export function backendToFrontend(e) {
     summary: e.Summary ?? "",
     eventIsCreationOfSource: e.EventIsCreationOfSource ?? false,
     imageDataUrl: imageBinaryToDataUrl(e.EventImage?.ImageBinary),
+    // Backend image row id. Lets an edit that keeps the image send a reference
+    // (ExistingImageId) instead of re-uploading the bytes; see frontendToBackend.
+    imageId: e.EventImage?.Id ?? null,
     eventTime: {
       earliestYear: nullableIntToString(e.LBYear),
       earliestMonth: nullableIntToString(e.LBMonth),
@@ -51,6 +56,36 @@ export function backendToFrontend(e) {
   }
 }
 
+// Normalize a region boundary to counterclockwise before submitting.
+//
+// EarClipping requires counterclockwise (viewed from outside the globe) and throws otherwise,
+// so a clockwise ring would be a region no viewer could draw. The manual pin-drag UI can
+// transiently produce one — drag a pin far enough across the ring and the orientation flips —
+// so rather than block the user, reverse it here. Reversing a merely-clockwise ring yields the
+// same shape wound the right way.
+//
+// The backend deliberately does NOT do this: it rejects a clockwise ring with a 422. A bad
+// winding arriving at the API means this function was bypassed or has regressed, and quietly
+// repairing it there would hide that.
+//
+// A DEGENERATE ring (collinear, duplicated, zero-area) is returned untouched. There is nothing
+// to normalize — it has no orientation to correct — and silently reordering it would disguise
+// bad data as good. Submit is already blocked in that case by the triangulation gate
+// (regionValid), and if one does reach the API the backend rejects it.
+//
+// Radius is arbitrary: regionSignedArea normalizes to unit vectors, and only the SIGN is used.
+function normalizeRegionWinding(boundaries) {
+  if (!boundaries || boundaries.length < 3) {
+    return boundaries ?? []
+  }
+
+  const asXYZ = boundaries.map(b => ConvertLatLongToXYZ(b.lat, b.long, 1))
+  if (classifyRegionWinding(asXYZ) === regionWinding.clockwise) {
+    return [...boundaries].reverse()
+  }
+  return boundaries
+}
+
 // frontend event → backend Event shape (for POST /api/HistoricalEvent/Create)
 export function frontendToBackend(ev) {
   const toInt = (str) => str != null ? parseInt(str) : null
@@ -75,16 +110,23 @@ export function frontendToBackend(ev) {
     UBHour: null,
     UBMin: null,
     Tags: ev.tags?.map(v => ({ Id: crypto.randomUUID(), Value: v })) ?? [],
-    EventImage: { Id: crypto.randomUUID(), ImageBinary: dataUrlToImageBinary(ev.imageDataUrl) },
+    // Unchanged image: send a reference to the earlier revision's image row instead of the
+    // bytes (can be several MB). The backend shares that row (claudePlans/8). The empty
+    // wrapper is still required by the backend model.
+    ...(ev.existingImageId
+      ? { ExistingImageId: ev.existingImageId, EventImage: { Id: crypto.randomUUID(), ImageBinary: "" } }
+      : { EventImage: { Id: crypto.randomUUID(), ImageBinary: dataUrlToImageBinary(ev.imageDataUrl) } }),
     SpecificLocation: ev.primaryLoc
       ? { Id: crypto.randomUUID(), Latitude: ev.primaryLoc.lat, Longitude: ev.primaryLoc.long }
       : null,
-    Region: ev.regionBoundaries?.map((b, index) => ({
+    // OrderIndex is assigned AFTER normalization, because OrderIndex — not list position —
+    // is what both the backend winding check and backendToFrontend treat as the ring order.
+    Region: normalizeRegionWinding(ev.regionBoundaries).map((b, index) => ({
       Id: crypto.randomUUID(),
       Latitude: b.lat,
       Longitude: b.long,
       OrderIndex: index,
-    })) ?? [],
+    })),
     Sources: ev.sources?.map(s => ({
       Id: crypto.randomUUID(),
       Title: s.title ?? "",

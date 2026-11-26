@@ -28,7 +28,7 @@ export function Globe({ globeRadius }) {
     return {
       geometry: geometry,
     }
-  }, [])
+  }, [globeRadius])
 
   // Another sphere occupying the same space as the globe, but it shall be transparent and give
   // off a glow.
@@ -43,7 +43,7 @@ export function Globe({ globeRadius }) {
     return {
       geometry: geometry,
     }
-  }, [])
+  }, [globeRadius])
 
   useEffect(() => {
     // Allign spherical coordinates with globe texture.
@@ -56,6 +56,7 @@ export function Globe({ globeRadius }) {
     // Rotating the entire globe by -90deg though re-aligns everything. It seems to be a quirk of
     // the ThreeJs sphere geometry + rectangular earth maps.
     groupRef.current.rotation.y = -Math.PI / 2
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ref.current dep is deliberate (re-run once the element mounts); removing it could skip the effect
   }, [groupRef.current])
 
   return (

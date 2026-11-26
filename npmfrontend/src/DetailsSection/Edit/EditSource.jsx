@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { EditSourceAuthor } from "./EditSourceAuthor"
-import { v4 as uuid } from "uuid"
 import { detailRestrictions } from "./detailRestrictions"
 import { EditSourcePublicationTimeRange } from "./EditSourcePublicationTimeRange"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
@@ -42,13 +40,12 @@ export function EditSource({
   // const complete = useState(false)
 
   // Delete button
-  const onDeleteClicked = (e) => {
+  const onDeleteClicked = () => {
     deleteCallback(editId)
   }
 
   // Title
   // const [title, setTitle] = useState(editSource?.title)
-  const [titleComplete, setTitleComplete] = useState()
   const titleContainerRef = useRef()
 
 
@@ -58,7 +55,7 @@ export function EditSource({
   const titleCharCountLabelRef = useRef()
   const titleTextBoxRef = useRef()
   const titleDetailsSummaryRef = useRef()
-  const [titleError, setTitleError] = useState(editSource?.title)
+  const [, setTitleError] = useState(editSource?.title)
 
   const evaluateTitleComplete = () => {
     // assume bad
@@ -106,6 +103,7 @@ export function EditSource({
     titleCharCountLabelRef.current.innerHTML = charCountText
 
     evaluateTitleComplete()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [
     editSource?.title,
     titleCharCountLabelRef.current,
@@ -233,7 +231,7 @@ export function EditSource({
 
 
   // Complete
-  const [border, setBorder] = useState()
+  const [, setBorder] = useState()
   useEffect(() => {
     console.log({ "editSource.complete": { title: editSource?.title } })
 
@@ -261,6 +259,7 @@ export function EditSource({
     // border will occupy space and I don't want it to resize when the red border 
     // appears/disappears)
     setBorder(complete ? "border-2 border-black" : "border-2 border-red-600")
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [editSource?.title])
 
 
@@ -300,9 +299,6 @@ export function EditSource({
   
   */
 
-  const onSubmitThingy = (e) => {
-    console.log("submitted?")
-  }
 
 
   return (

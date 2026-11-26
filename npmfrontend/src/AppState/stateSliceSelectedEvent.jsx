@@ -7,6 +7,8 @@ const initialState = {
   tags: [],
   eventIsCreationOfSource: false,
   imageDataUrl: null,
+  // Backend image row id; carried into edit mode so an unchanged image is reused, not re-uploaded.
+  imageId: null,
   summary: null,
   eventTime: {
     earliestYear: null,
@@ -37,6 +39,7 @@ export const stateSliceSelectedEvent = createSlice({
         tags: action.payload.tags || [],
         eventIsCreationOfSource: action.payload.eventIsCreationOfSource || false,
         imageDataUrl: action.payload.imageDataUrl || null,
+        imageId: action.payload.imageId ?? null,
         summary: action.payload.summary || null,
         eventTime: action.payload.eventTime || initialState.eventTime,
         sources: action.payload.sources || [],

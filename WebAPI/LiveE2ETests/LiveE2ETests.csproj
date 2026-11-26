@@ -25,4 +25,13 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
+  <!-- Seed image for the permanent E2E fixtures: a complete, valid PNG so the events
+       render a real image instead of the old signature-only bytes. Copied next to the
+       test assembly so BuildCanonicalEvent can read it at runtime (incl. in CI). -->
+  <ItemGroup>
+    <None Include="Assets\JohnOethGuitar.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

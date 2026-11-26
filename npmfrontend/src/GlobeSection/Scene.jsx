@@ -10,6 +10,7 @@ import { EditableRegion } from "./Region/EditableRegion"
 import { DisplayRegion } from "./Region/DisplayRegion"
 import { createSpherePointFromLatLong } from "./createSpherePoint"
 import { buildDisplayRegions } from "../AppState/buildDisplayRegions"
+import { clientToNdc, cursorRaycast } from "./cursorRaycast"
 import * as THREE from "three"
 
 // Extract only what is needed for the state machine.
@@ -85,6 +86,7 @@ export function Scene() {
     })
 
     setPoiReactElements(displayElements)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [eventState.allEvents, eventState.selectedEvent])
 
   // Edit mode determines whether we render EditableRegion.
@@ -100,6 +102,7 @@ export function Scene() {
     else {
       setRegionReactElements(null)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [editState.editModeOn])
 
   // Extract meshes from specific groups so that it is easy to filter them.
@@ -131,9 +134,31 @@ export function Scene() {
     setMeshes(meshesArr)
 
     // console.log({ meshesArr, count: meshesArr.length })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [poiReactElements, regionReactElements, editState.updatedPrimaryPinMeshInScene, editState.updatedRegionMeshesInScene])
 
   // Handle mouse hover and mouse click.
+
+  // The one raycast used everywhere (see cursorRaycast.js): per-frame hover below, and
+  // press-time raycasts in GlobeSectionMain and CameraDragLock.
+  // Note: Intersections are organized by increasing distance, making item 0 the closest.
+  const raycastAtNdc = (ndc, threeJsState) => {
+    threeJsState.raycaster.setFromCamera(ndc, threeJsState.camera)
+    return threeJsState.raycaster.intersectObjects(meshes).map((intersection) =>
+      parseIntersectionForState(intersection, globeInfo.pos)
+    )
+  }
+
+  useEffect(() => {
+    if (meshes == null) {
+      return
+    }
+    return cursorRaycast.register((clientX, clientY) => {
+      const threeJsState = getThreeJsState()
+      return raycastAtNdc(clientToNdc(clientX, clientY, threeJsState.gl.domElement), threeJsState)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-register only when the mesh list changes; raycastAtNdc reads `meshes` from this render
+  }, [meshes])
 
   // Determine cursor intersections
   useFrame((state) => {
@@ -144,19 +169,12 @@ export function Scene() {
       return
     }
 
-    // Note: Intersections are organized by increasing distance, making item 0 the closest.
-    state.raycaster.setFromCamera(mouseState.currPos, state.camera)
-
-    const intersections = state.raycaster.intersectObjects(meshes)
+    const parsedIntersectionsForState = raycastAtNdc(mouseState.currPos, state)
 
     // If there are intersections, always update.
     // Else if the mouse state still has intersections, update so that there are none.
     // Else skip.
-    if (intersections.length > 0) {
-      let parsedIntersectionsForState = []
-      for (let i = 0; i < intersections.length; i++) {
-        parsedIntersectionsForState.push(parseIntersectionForState(intersections[i], globeInfo.pos))
-      }
+    if (parsedIntersectionsForState.length > 0) {
       reduxDispatch(mouseStateActions.setCursorRaycasting(parsedIntersectionsForState))
 
       let first = parsedIntersectionsForState[0]

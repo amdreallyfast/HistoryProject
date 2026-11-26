@@ -8,10 +8,24 @@ namespace WebAPI.Models
         {
         }
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    base.OnModelCreating(modelBuilder);
-        //}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // An event is a chain of revisions keyed by (EventId, Revision), and several read
+            // paths assume that pair is unique: GetSpecificRevision fetches exactly one row by it,
+            // and both GetFirst100 and the frontend getLatestRevisions pick the MAX revision per
+            // EventId. A duplicate pair makes "the revision" ambiguous and the latest-revision
+            // choice arbitrary.
+            //
+            // HistoricalEventController.Create now assigns Revision itself (max + 1) rather than
+            // trusting the client, which should make duplicates impossible. This index is the
+            // difference between that being intended and it being enforced -- including against
+            // a future second write path, or two concurrent Creates racing on the same max.
+            modelBuilder.Entity<Event>()
+                .HasIndex(e => new { e.EventId, e.Revision })
+                .IsUnique();
+        }
 
         // Note: The "!" will tell the compiler, "this isn't null, trust me", but it is not a
         // valid symbol in class member declarations, so we have to assign the member to

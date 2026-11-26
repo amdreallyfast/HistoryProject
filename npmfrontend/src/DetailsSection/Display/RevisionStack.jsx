@@ -13,6 +13,14 @@ export function RevisionStack({ eventId }) {
     queryKey: ["revisions", eventId],
     queryFn: () => getAllRevisions(eventId).then(rs => rs.map(backendToFrontend)),
     enabled: !!eventId,
+    // Revisions only change when someone submits, and a submit from this client refreshes them
+    // itself (EditEvent seeds this cache). React Query's defaults (refetch on every window
+    // focus, data stale immediately) re-downloaded the whole history, images included, each
+    // time the window regained focus and again right after a submit (seen in a HAR capture:
+    // 4 extra 35-51 s, 11.7 MB reloads). Re-selecting an event after a minute still refetches,
+    // so other people's edits show up.
+    refetchOnWindowFocus: false,
+    staleTime: 60_000,
   })
 
   const onRevisionClick = (rev) => {
@@ -25,20 +33,24 @@ export function RevisionStack({ eventId }) {
   return (
     <div className="flex flex-col mx-2 my-1 border border-gray-600 rounded">
       <span className="text-xs text-gray-400 px-2 pt-1">Revision history</span>
-      {revisions.map(rev => (
-        <button
-          key={rev.revision}
-          data-testid="revision-row"
-          onClick={() => onRevisionClick(rev)}
-          className={`grid grid-cols-[1fr_auto] gap-2 items-baseline px-2 py-1 text-sm border-b border-gray-700 last:border-0
-            ${rev.revision === currentRevision
-              ? "bg-gray-600 text-white"
-              : "text-gray-300 hover:bg-gray-700"}`}
-        >
-          <span className="text-left">Rev {rev.revision} — {rev.revisionAuthor}</span>
-          <span data-testid="revision-date" className="text-right text-gray-400">{formatRevisionDate(rev.revisionDateTime)}</span>
-        </button>
-      ))}
+      {/* Cap the height and scroll: revisions only ever grow (append-only edits), so a
+          long-lived event's history would otherwise push the panel arbitrarily tall. */}
+      <div className="max-h-48 overflow-y-auto">
+        {revisions.map(rev => (
+          <button
+            key={rev.revision}
+            data-testid="revision-row"
+            onClick={() => onRevisionClick(rev)}
+            className={`w-full grid grid-cols-[1fr_auto] gap-2 items-baseline px-2 py-1 text-sm border-b border-gray-700 last:border-0
+              ${rev.revision === currentRevision
+                ? "bg-gray-600 text-white"
+                : "text-gray-300 hover:bg-gray-700"}`}
+          >
+            <span className="text-left">Rev {rev.revision} — {rev.revisionAuthor}</span>
+            <span data-testid="revision-date" className="text-right text-gray-400">{formatRevisionDate(rev.revisionDateTime)}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

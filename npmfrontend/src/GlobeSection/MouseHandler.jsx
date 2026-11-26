@@ -61,6 +61,19 @@ export const MouseHandler = () => {
 
   const enableClickAndDrag = () => {
     let mouseDown = mouseState.leftMouseDown.intersection
+
+    // Drag-identity invariant. `locationId` (stamped in EditPinMesh's bounding-box
+    // useEffect, = spherePoint.id = regionBoundaries[].id) is the single key that both
+    // EditPinMesh (which pin moves) and EditRegionMesh (which boundary vertex reshapes
+    // the live polygon) match on. If a pin is ever created without one, both guards
+    // no-op and the drag does nothing at all — which is confusing but silent without
+    // this. Log rather than throw: a production user should never lose the globe over it.
+    if (mouseDown.mesh.name == meshNames.PinBoundingBox && !mouseDown.mesh.userData?.locationId) {
+      console.error({
+        "MouseHandler.enableClickAndDrag": "pin bounding box has no userData.locationId; this pin cannot be dragged and its region polygon will not track. Whatever created this pin must supply a spherePoint with an id.",
+        mesh: { name: mouseDown.mesh.name, uuid: mouseDown.mesh.uuid, userData: mouseDown.mesh.userData },
+      })
+    }
     let mouseRelative = mouseDown.relativeToGlobe
     let mouseDownNormalized = new THREE.Vector3(mouseRelative.x, mouseRelative.y, mouseRelative.z).normalize()
 
@@ -139,7 +152,7 @@ export const MouseHandler = () => {
 
 
     leftMouseDownRef.current = true
-  }, [mouseState.leftMouseDown])
+  }, [mouseState.leftMouseDown, reduxDispatch])
 
   // Mouse up
   useEffect(() => {
@@ -234,6 +247,7 @@ export const MouseHandler = () => {
     reduxDispatch(mouseStateActions.resetLeftMouse())
 
     leftMouseDownRef.current = false
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.leftMouseUp])
 
   // Click-and-drag tick: throttle to ~60Hz via useFrame so multiple browser

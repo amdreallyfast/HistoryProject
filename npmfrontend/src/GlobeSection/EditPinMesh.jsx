@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import * as THREE from "three"
-import { useFrame } from "@react-three/fiber"
+import { useFrame, useThree } from "@react-three/fiber"
 import { useDispatch, useSelector } from "react-redux"
 import { createSpherePointFromXYZ } from "./createSpherePoint"
-import { meshNames } from "./constValues"
+import { meshNames, pinMeshInfo, pinZoomScaleInfo } from "./constValues"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { sharedDragRotor } from "./sharedDragRotor"
-import _ from "lodash"
+import { computePinZoomScale } from "./pinZoomScale"
 
 export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex, length = 3, scale = 0.1, lookAt = new THREE.Vector3(0, 0, 1) }) {
   if (!pinType) {
@@ -24,13 +24,38 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
   const reduxDispatch = useDispatch()
   const meshRef = useRef()
   const boxMeshRef = useRef()
+  const camera = useThree((state) => state.camera)
 
   // For use during click-and-drag. Update once click-and-drag ends.
   const originalPosRef = useRef()
 
+  // Last zoom scale written to the meshes, so a stationary camera doesn't rewrite the
+  // transform every frame. See applyZoomScale.
+  const lastZoomScaleRef = useRef(null)
+
   const colors = {
     normal: 0xffffff,
     highlight: 0x00f0f0,
+  }
+
+  // Render position for this pin: the spherePoint lifted clear of the edit region fill.
+  //
+  // spherePoint sits ON the globe surface (radius globeInfo.radius), but the edit region
+  // mesh floats above that, so a surface-based pin only pokes through by the difference —
+  // and zoom scaling shrinks that standoff along with the pin, sinking it under the fill.
+  // Basing the pin above the fill makes the clearance independent of scale.
+  //
+  // Only the RENDER position moves. The stored data is untouched: rotation during a drag
+  // preserves radius, and the mouse-up commit runs createSpherePointFromXYZ(..., globeInfo.radius),
+  // which rescales back to the surface, so lat/long round-trips exactly.
+  //
+  // Assumes the globe is centered at the origin (globeInfo.pos is (0,0,0)), which the drag
+  // math already relies on when it rotates positions about the origin.
+  const liftFactor = (globeInfo.radius + pinMeshInfo.radiusOffset) / globeInfo.radius
+  const renderPos = {
+    x: spherePoint.x * liftFactor,
+    y: spherePoint.y * liftFactor,
+    z: spherePoint.z * liftFactor,
   }
 
   function makePin() {
@@ -70,9 +95,9 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     // Z axis so that +Z points at the globe center. At that point, the object's base will be at 
     // the globe's surface and the top will be inside the globe, so we need to back off the 
     // length of the pin.
-    meshRef.current.position.x = spherePoint.x
-    meshRef.current.position.y = spherePoint.y
-    meshRef.current.position.z = spherePoint.z
+    meshRef.current.position.x = renderPos.x
+    meshRef.current.position.y = renderPos.y
+    meshRef.current.position.z = renderPos.z
     meshRef.current.lookAt(lookAt)
 
     // Mesh origin was the top of the pin. Shift the whole thing so that the end of the pin (
@@ -102,9 +127,9 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     let indicesAttribute = new THREE.Uint32BufferAttribute(boxGeometry.index.array, valuesPerIndex)
     boxMeshRef.current.geometry.setIndex(indicesAttribute)
 
-    boxMeshRef.current.position.x = spherePoint.x
-    boxMeshRef.current.position.y = spherePoint.y
-    boxMeshRef.current.position.z = spherePoint.z
+    boxMeshRef.current.position.x = renderPos.x
+    boxMeshRef.current.position.y = renderPos.y
+    boxMeshRef.current.position.z = renderPos.z
     boxMeshRef.current.geometry.scale(scale, scale, scale)
     boxMeshRef.current.lookAt(lookAt)
 
@@ -117,6 +142,38 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     boxMeshRef.current.geometry.attributes.position.needsUpdate = true
   }
 
+  // Scale the pin with camera distance so it holds a roughly constant APPARENT size.
+  //
+  // Applied as an OBJECT scale, not by rebuilding geometry: makePin/makeBoundingBox bake
+  // the size into the geometry (geometry.scale + an applyMatrix4 translation so the pin
+  // tip rests on the surface), and re-baking that per frame would be wasteful. The mesh
+  // origin already sits at the surface point, so a uniform object scale shrinks the pin
+  // and its standoff together, toward that point. It multiplies on top of the baked
+  // scale, so a factor of 1.0 (the default view) renders exactly as it did before.
+  //
+  // Three.js raycasting honours matrixWorld, so the bounding box's HIT TARGET shrinks
+  // with it — which is the actual point. Fixed-size boxes are what makes a subdivided
+  // boundary unpickable: ~0.17 wide boxes against ~0.14 spacing at 32 pins.
+  const applyZoomScale = () => {
+    if (!meshRef.current || !boxMeshRef.current) {
+      return
+    }
+
+    let cameraDistance = camera.position.distanceTo(globeInfo.pos)
+    let scaleFactor = computePinZoomScale(cameraDistance, pinZoomScaleInfo)
+
+    // Skip sub-perceptual changes so a stationary camera costs one distanceTo and no
+    // matrix rewrite. Same shape as the rotor-unchanged skip in EditRegionMesh.
+    let last = lastZoomScaleRef.current
+    if (last != null && Math.abs(last - scaleFactor) < pinZoomScaleInfo.epsilon) {
+      return
+    }
+    lastZoomScaleRef.current = scaleFactor
+
+    meshRef.current.scale.setScalar(scaleFactor)
+    boxMeshRef.current.scale.setScalar(scaleFactor)
+  }
+
   // Create pin mesh when mesh reference is available.
   useEffect(() => {
     // console.log({ "EditPinMesh.useEffect[meshRef.current]": meshRef.current })
@@ -126,6 +183,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
 
     makePin()
     originalPosRef.current = meshRef.current.position.clone()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [meshRef.current])
 
   // Create box mesh when mesh reference is available.
@@ -137,9 +195,25 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
 
     makeBoundingBox()
 
+    // Seed the zoom scale at creation so a pin added while the camera is already zoomed
+    // in doesn't render one frame at full size before useFrame catches it.
+    applyZoomScale()
+
     // Assign metadata so that cursor interactions can figure out what event corresponds to this.
     boxMeshRef.current.userData.eventId = eventId
+    // SINGLE SOURCE OF DRAG IDENTITY. `locationId` is the one key that identifies
+    // "which pin is this" across the whole interaction system:
+    //   - EditPinMesh.useFrame     -> moveThisPin (below)
+    //   - EditRegionMesh.useFrame  -> which boundary vertex to rotate live
+    //   - MouseHandler             -> pin selection + the drag-start invariant check
+    //   - Scene.buildIntersection  -> hover / raycast snapshot
+    // It equals `spherePoint.id`, which is also `regionBoundaries[].id` in
+    // stateSliceEditEvent. Any new code that creates boundary pins (e.g. Subdivide)
+    // MUST carry a spherePoint with an `id`, or every one of the above silently
+    // stops working for that pin. MouseHandler.enableClickAndDrag console.errors if
+    // a drag starts on a bounding box without it.
     boxMeshRef.current.userData.locationId = spherePoint.id
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [meshRef.current, boxMeshRef.current])
 
 
@@ -152,6 +226,10 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
   // happens in the same RAF the rotor was written, so the pin moves with the
   // cursor instead of trailing it.
   useFrame(() => {
+    // Zoom scaling runs on EVERY frame, before the drag guards below — the pin has to
+    // track the camera whether or not a drag is in progress.
+    applyZoomScale()
+
     // Don't move the pin unless we're in edit mode and dragging.
     if (!editState.editModeOn || !editState.clickAndDrag) {
       return
@@ -161,7 +239,14 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
     }
 
     // Note: Pin selection triggered in MouseHandler.useEffect[mouseState.leftMouseDown].
-    let moveThisPin = (editState.clickAndDrag?.mesh.uuid == boxMeshRef.current.uuid)
+    // Matched by `locationId`, NOT by mesh uuid. Previously this used uuid while
+    // EditRegionMesh's live-polygon lookup used locationId — two identity schemes for
+    // the same drag. A pin missing locationId would then still move here (uuid matches)
+    // while the polygon fill silently froze at its drag-start shape. Sharing one key
+    // means a missing id fails the same way everywhere: the pin doesn't move either,
+    // and MouseHandler logs why.
+    let draggedLocId = editState.clickAndDrag?.mesh.userData?.locationId
+    let moveThisPin = (draggedLocId != null && draggedLocId == spherePoint.id)
     let moveAllPins = (editState.clickAndDrag?.mesh.name == meshNames.Region)
     if (!moveThisPin && !moveAllPins) {
       // No change
@@ -223,6 +308,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
       originalPosRef.current = meshRef.current.position.clone()
     }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.leftMouseUp])
 
   // Hover: Update color (unless it is selected).
@@ -242,6 +328,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
       boxMeshRef.current.material.color = new THREE.Color(colors.normal)
       boxMeshRef.current.material.opacity = 0.2
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.hoverLocId])
 
   // Selected: Update color (but differently than hover).
@@ -256,6 +343,7 @@ export function EditPinMesh({ pinType, eventId, spherePoint, globeInfo, colorHex
       boxMeshRef.current.material.opacity = 0.2
     }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run Three.js scene/mesh setup or loop
   }, [mouseState.selectedLocId])
 
   return (

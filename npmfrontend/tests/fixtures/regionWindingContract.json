@@ -1,0 +1,178 @@
+{
+  "_comment": [
+    "SHARED CROSS-TIER FIXTURE. Read by BOTH implementations of the region winding check:",
+    "  frontend  npmfrontend/src/GlobeSection/Region/regionWindingContract.test.js",
+    "  backend   WebAPI/UnitTesting/RegionWindingContractTests.cs",
+    "The sign of the signed area depends on the handedness of the lat/long to XYZ mapping.",
+    "If the two tiers ever disagree, every verdict inverts: valid regions get 422'd and",
+    "clockwise ones sail through. Keeping the cases in ONE file means neither side can",
+    "quietly drift its own copy of the expectations.",
+    "",
+    "Points are [latitude, longitude] in traversal order. 'expect' is the classification",
+    "both implementations must return.",
+    "",
+    "The authority for 'counterclockwise' is the orientation EarClipping accepts -- for",
+    "regions small enough that EarClipping is trustworthy. It is NOT trustworthy for very",
+    "large ones: its #pointInCone assumes all points are coplanar, which a region spanning",
+    "a large fraction of the globe badly violates, and it accepts BOTH orientations there.",
+    "",
+    "DELIBERATELY EXCLUDED: rings lying on a great circle with widely-spaced vertices. Three",
+    "points 120 degrees apart on the equator give 2*pi (a hemisphere), while 36 points 10",
+    "degrees apart give 0 -- the Van Oosterom-Strackee denominator goes negative once the",
+    "vertices are far enough apart, flipping the atan2 branch. Both answers are defensible",
+    "because a great circle does not say which half you meant, but a sampling-dependent",
+    "answer is not a contract. Closely-spaced collinear points ARE stable and are covered."
+  ],
+  "epsilon": 1e-12,
+  "cases": [
+    {
+      "name": "counterclockwise quad",
+      "note": "The oracle fixture from tests/region-winding.spec.ts. EarClipping triangulates it.",
+      "expect": "counterclockwise",
+      "points": [
+        [
+          42,
+          12
+        ],
+        [
+          42,
+          13
+        ],
+        [
+          43,
+          13
+        ],
+        [
+          43,
+          12
+        ]
+      ]
+    },
+    {
+      "name": "clockwise quad",
+      "note": "The same ring reversed. EarClipping finds no ear and throws.",
+      "expect": "clockwise",
+      "points": [
+        [
+          43,
+          12
+        ],
+        [
+          43,
+          13
+        ],
+        [
+          42,
+          13
+        ],
+        [
+          42,
+          12
+        ]
+      ]
+    },
+    {
+      "name": "large region spanning 240 degrees of longitude",
+      "note": "Traced by SHORTEST great-circle arcs, these four points enclose the complementary 120-degree region wound clockwise -- so 'clockwise' is geometrically correct, not a defect. Kept because it pins the one case where the check and EarClipping disagree: EarClipping triangulates this (and its reverse), so a direct API POST of it gets a 422 while the frontend would have drawn it. Benign in the normal flow -- frontend normalization reverses it before submit and EarClipping renders the reversed ring too. NOTE: regionWindingSign also calls this clockwise. The newer check is not an improvement here; see regionSignedArea's header for what it actually buys.",
+      "expect": "clockwise",
+      "points": [
+        [
+          -40,
+          -120
+        ],
+        [
+          -40,
+          120
+        ],
+        [
+          40,
+          120
+        ],
+        [
+          40,
+          -120
+        ]
+      ]
+    },
+    {
+      "name": "collinear meridian",
+      "note": "Encloses no area, so it has no orientation. Must be 'degenerate', not 'clockwise' - calling it wound the wrong way would be misleading.",
+      "expect": "degenerate",
+      "points": [
+        [
+          10,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          30,
+          0
+        ],
+        [
+          40,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "duplicated points",
+      "expect": "degenerate",
+      "points": [
+        [
+          10,
+          10
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          10,
+          10
+        ]
+      ]
+    },
+    {
+      "name": "self-intersecting twist",
+      "note": "KNOWN GAP, pinned deliberately. Globally counterclockwise but crosses itself, so EarClipping throws while both implementations accept it. Orientation is not simplicity. Contained by the ErrorBoundary around the region mesh; closing it entirely would mean porting EarClipping to the backend.",
+      "expect": "counterclockwise",
+      "points": [
+        [
+          42.5,
+          13.5
+        ],
+        [
+          43.21,
+          13.21
+        ],
+        [
+          42.36,
+          14.23
+        ],
+        [
+          43.21,
+          11.79
+        ],
+        [
+          42.5,
+          11.5
+        ],
+        [
+          41.14,
+          13.55
+        ],
+        [
+          41.5,
+          12.5
+        ],
+        [
+          42,
+          10.74
+        ]
+      ]
+    }
+  ]
+}

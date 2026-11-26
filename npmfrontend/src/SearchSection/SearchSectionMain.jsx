@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { eventStateActions } from "../AppState/stateSliceEvent"
 import { selectedEventStateActions } from "../AppState/stateSliceSelectedEvent"
 import { selectEvent } from "../AppState/selectEvent"
 import { getLatestRevisions } from "../AppState/getLatestRevisions"
+import { sortEventsByTitle } from "../AppState/sortEventsByTitle"
 import { editEventStateActions } from "../AppState/stateSliceEditEvent"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { getFirst100 } from "../api/historyEventApi"
@@ -23,6 +24,8 @@ function ParseDateTimeStr(str) {
 }
 
 export function SearchSectionMain() {
+  // The search filter values are captured from the inputs but not yet applied to the query.
+  /* eslint-disable no-unused-vars */
   const [searchText, setSearchText] = useState()
   const [lowerBoundYear, setLowerBoundYear] = useState()
   const [lowerBoundMon, setLowerBoundMon] = useState()
@@ -31,6 +34,7 @@ export function SearchSectionMain() {
   const [upperBoundMon, setUpperBoundMon] = useState()
   const [upperBoundDay, setUpperBoundDay] = useState()
   const [searchError, setSearchError] = useState(null)
+  /* eslint-enable no-unused-vars */
   const searchResultHtmlClassNameNormal = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1"
   const searchResultHtmlClassNameHighlighted = "w-full text-white text-left border-2 border-gray-400 rounded-md mb-1 font-bold"
 
@@ -113,6 +117,7 @@ export function SearchSectionMain() {
     if (!pendingGlobeEventSelection) return
     reduxDispatch(mouseStateActions.setPendingGlobeEventSelection(null))
     onEventClicked(pendingGlobeEventSelection)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; the handler is recreated each render and would re-run this every render
   }, [pendingGlobeEventSelection])
 
   // Track previous allEvents reference so the re-sync below only fires when
@@ -130,9 +135,15 @@ export function SearchSectionMain() {
     if (!latest || latest.revision === selectedEvent.revision) return
 
     selectEvent(reduxDispatch, latest)
-  }, [allEvents, selectedEvent])
+  }, [allEvents, selectedEvent, reduxDispatch])
 
-  const latestEvents = allEvents ? getLatestRevisions(allEvents) : null
+  // Sorted by title so the list order does not depend on edit history. Without this,
+  // upsertEventRevisions rebuilds allEvents as [...others, ...revisions] after a submit and
+  // the event you just edited jumps to the BOTTOM of the results. Highlighting is keyed on
+  // eventId, not position, so the selected event stays highlighted as it moves into place.
+  const latestEvents = useMemo(
+    () => (allEvents ? sortEventsByTitle(getLatestRevisions(allEvents)) : null),
+    [allEvents])
 
   return (
     <div className="flex flex-col h-full border-2 border-green-500">

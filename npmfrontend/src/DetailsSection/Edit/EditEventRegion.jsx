@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { mouseStateActions } from "../../AppState/stateSliceMouseInfo"
+import { editEventStateActions } from "../../AppState/stateSliceEditEvent"
+import { subdivideRegionBoundaries } from "../../GlobeSection/Region/regionSubdivide"
+import { globeInfo, regionInfo } from "../../GlobeSection/constValues"
 import { roundFloat } from "../RoundFloat";
 
 export function EditEventRegion() {
@@ -54,6 +57,39 @@ export function EditEventRegion() {
     }
   }, [mouseState.selectedLocId])
 
+  // Subdivide: double the boundary ring, inserting a point on the great-circle arc between
+  // each adjacent pair. Purely additive — existing points keep their ids and coordinates,
+  // so the authored boundary is unchanged.
+  //
+  // No dedicated reducer: EditableRegion already establishes the pattern of building the
+  // full boundary array in the component and dispatching setRegionBoundaries. That also
+  // keeps uuid() generation out of the reducer, where non-deterministic values don't
+  // belong. Everything downstream reacts on its own — EditableRegion recreates the pins
+  // (keyed on regionBoundaries.length), EditRegionMesh re-triangulates and republishes
+  // regionValid, and EditEvent's hasChanges sees the new length so Submit enables.
+  //
+  // There is no undo (the Command-pattern TODO is unstarted), so this is one-way within an
+  // edit session; backing out means cancelling the edit.
+  const boundaryCount = editState.regionBoundaries.length
+  const hasRegion = boundaryCount >= 3
+  const nextBoundaryCount = boundaryCount * 2
+  const subdivideDisabled = !hasRegion || nextBoundaryCount > regionInfo.maxBoundaryPoints
+
+  const onSubdivideClicked = () => {
+    if (subdivideDisabled) {
+      return
+    }
+    reduxDispatch(editEventStateActions.setRegionBoundaries(
+      subdivideRegionBoundaries(editState.regionBoundaries, globeInfo.radius)
+    ))
+  }
+
+  const subdivideLabel = !hasRegion
+    ? "Subdivide"
+    : nextBoundaryCount > regionInfo.maxBoundaryPoints
+      ? `Subdivide (max ${regionInfo.maxBoundaryPoints})`
+      : `Subdivide (${boundaryCount} → ${nextBoundaryCount})`
+
   const onLocationTextClicked = (loc) => {
     // If already selected, de-select.
     if (mouseState.selectedLocId === loc.id) {
@@ -80,7 +116,13 @@ export function EditEventRegion() {
         : (isSelected ? htmlClass.RegionBoundaryHighlighted : htmlClass.RegionBoundary)
 
       return (
-        <p id={location.id} key={location.id} className={className} onClick={() => onLocationTextClicked(location)}>
+        <p
+          id={location.id}
+          key={location.id}
+          data-testid="region-location-row"
+          className={className}
+          onClick={() => onLocationTextClicked(location)}
+        >
           {`${roundedLat}, ${roundedLong}`}
         </p>
       )
@@ -101,6 +143,20 @@ export function EditEventRegion() {
       {locationRows && locationRows.length > 0 && (
         <div className="w-full">
           {locationRows}
+        </div>
+      )}
+
+      {/* Subdivide - only meaningful once there's a boundary ring to double */}
+      {hasRegion && (
+        <div className="w-full flex justify-center my-2">
+          <button
+            data-testid="subdivide-region-button"
+            className={`text-white text-sm font-bold py-1 px-3 rounded ${subdivideDisabled ? "bg-gray-700 opacity-50 cursor-not-allowed" : "bg-gray-500 hover:bg-gray-700"}`}
+            onClick={onSubdivideClicked}
+            disabled={subdivideDisabled}
+          >
+            {subdivideLabel}
+          </button>
         </div>
       )}
 

@@ -22,7 +22,7 @@ namespace WebAPI.Models
         public int Revision { get; set; } = 1;
 
         [Required]
-        public DateTime RevisionDateTime { get; set; } = DateTime.Now;
+        public DateTime RevisionDateTime { get; set; } = DateTime.UtcNow;
 
         [Required, MaxLength(64)]
         public string RevisionAuthor { get; set; } = default!;
@@ -32,6 +32,14 @@ namespace WebAPI.Models
 
         [Required]
         public EventImage? EventImage { get; set; }
+
+        // Request-only: lets the client say "keep the image of an earlier revision" without
+        // re-uploading its bytes. Create reuses that image row only if it belongs to an earlier
+        // revision of the same EventId (422 otherwise). Not stored, and omitted from responses
+        // when null. See HistoricalEventController.Create and claudePlans/8.
+        [NotMapped]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Guid? ExistingImageId { get; set; }
 
         [Required]
         public List<Tag> Tags { get; set; } = default!;
@@ -215,7 +223,7 @@ namespace WebAPI.Models
     //    public Guid RevisionId { get; set; }
 
     //    [Required]
-    //    public DateTime RevisionDateTime { get; set; } = DateTime.Now;
+    //    public DateTime RevisionDateTime { get; set; } = DateTime.UtcNow;
 
     //    [Required]
     //    public string RevisionAuthor { get; set; } = string.Empty;

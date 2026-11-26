@@ -91,7 +91,7 @@ export function EditSourceAuthor({ author, authorEditedCallback, authorDeletedCa
         {/* Buttons */}
         <div className="flex flex-row-reverse">
           {/* Delete */}
-          <button type="button" className="inline-flex items-center rounded-md bg-gray-600 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700" onClick={(e) => authorDeletedCallback(author)}>
+          <button type="button" className="inline-flex items-center rounded-md bg-gray-600 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700" onClick={() => authorDeletedCallback(author)}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -100,7 +100,7 @@ export function EditSourceAuthor({ author, authorEditedCallback, authorDeletedCa
           </button>
 
           {/* Edit */}
-          <button type="button" className="inline-flex items-center rounded-md bg-gray-600 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700" onClick={(e) => setEditing(true)}>
+          <button type="button" className="inline-flex items-center rounded-md bg-gray-600 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700" onClick={() => setEditing(true)}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="butt" strokeLinejoin="bevel">
               <polygon points="16 3 21 8 8 21 3 21 3 16 16 3">
               </polygon>
@@ -121,6 +121,7 @@ export function EditSourceAuthor({ author, authorEditedCallback, authorDeletedCa
 
     let reactElement = editing ? createEditReactElement() : createReadReactElement()
     setReactElements(reactElement)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps deliberately narrow; widening them could re-run on every render and reset in-progress edits
   }, [editing])
 
   return (

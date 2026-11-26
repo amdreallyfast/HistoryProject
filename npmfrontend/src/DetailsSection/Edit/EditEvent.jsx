@@ -13,6 +13,7 @@ import { eventStateActions } from "../../AppState/stateSliceEvent";
 import { selectEvent } from "../../AppState/selectEvent";
 import { getLatestRevisions } from "../../AppState/getLatestRevisions";
 import { createEvent, getAllRevisions } from "../../api/historyEventApi";
+import { eventImageQueryKey } from "../../api/useEventImageDataUrl";
 import { frontendToBackend, backendToFrontend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
 
@@ -143,6 +144,11 @@ export function EditEvent() {
       summary: editState.summary,
       eventIsCreationOfSource: editState.eventIsCreationOfSource,
       imageDataUrl: editState.imageDataUrl,
+      // Image not changed in the editor: reuse the revision's image row on the backend instead
+      // of re-uploading the bytes. Null for new events or a changed image (bytes are sent).
+      existingImageId: (editState.originalEvent && editState.imageDataUrl === editState.originalEvent.imageDataUrl)
+        ? (editState.originalEvent.imageId ?? null)
+        : null,
       eventTime: { ...editState.eventTime },
       primaryLoc: editState.primaryLoc
         ? { lat: editState.primaryLoc.lat, long: editState.primaryLoc.long }
@@ -159,7 +165,12 @@ export function EditEvent() {
     setSubmitError(null)
     setSubmitting(true)
     try {
-      await createEvent(frontendToBackend(newEvent))
+      const created = await createEvent(frontendToBackend(newEvent))
+      // A newly uploaded image: cache it under its real image Id, so showing the new revision
+      // (whose history entry carries only that Id) doesn't download it straight back.
+      if (!newEvent.existingImageId && newEvent.imageDataUrl && created?.EventImageId) {
+        queryClient.setQueryData(eventImageQueryKey(created.EventImageId), newEvent.imageDataUrl)
+      }
     } catch (err) {
       // Create failed: drop the scrim, stay in edit mode, surface the reason so the user
       // can fix and retry. Nothing was committed, so there is no phantom to clean up.

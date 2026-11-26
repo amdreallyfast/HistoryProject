@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using WebAPI;
 using WebAPI.ModelDTOs;
 using WebAPI.Models;
+using WebAPI.Validation;
 
 namespace WebAPI.Controllers
 {
@@ -13,40 +16,6 @@ namespace WebAPI.Controllers
         private readonly HistoryProjectDbContext dbContext;
         private readonly IWebHostEnvironment webHostEnvironment;
         private string uploadedFilePath = string.Empty;
-
-        // Keep in sync with MAX_IMAGE_BYTES in npmfrontend/src/api/imageDataUrl.js.
-        private const int MaxImageBytes = 5 * 1024 * 1024;
-        private static readonly byte[] PngSignature = { 0x89, 0x50, 0x4e, 0x47 };
-        private static readonly byte[] JpegSignature = { 0xff, 0xd8, 0xff };
-
-        // Returns an error message if the image bytes are invalid, or null when valid.
-        // Empty/null bytes mean "no image" and are allowed.
-        private static string? ValidateImage(byte[]? imageBinary)
-        {
-            if (imageBinary is null || imageBinary.Length == 0)
-            {
-                return null;
-            }
-            if (imageBinary.Length > MaxImageBytes)
-            {
-                return $"Image exceeds {MaxImageBytes / (1024 * 1024)}MB limit.";
-            }
-            if (!StartsWith(imageBinary, PngSignature) && !StartsWith(imageBinary, JpegSignature))
-            {
-                return "Only PNG or JPEG images are allowed.";
-            }
-            return null;
-        }
-
-        private static bool StartsWith(byte[] bytes, byte[] signature)
-        {
-            if (bytes.Length < signature.Length) return false;
-            for (int i = 0; i < signature.Length; i++)
-            {
-                if (bytes[i] != signature[i]) return false;
-            }
-            return true;
-        }
 
         public HistoricalEventController(HistoryProjectDbContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
@@ -81,23 +50,64 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetAllRevisions(Guid eventId)
         {
+            // RESPONSE CONTRACT: no image bytes. Each revision's EventImage is { Id, ImageBinary: "" };
+            // the client fetches an image by Id from GetImage/{imageId} only when it's shown, and
+            // revisions sharing an image (see Create) fetch it once. Including the bytes made the
+            // history payload grow with every revision (one full copy per revision).
             var eventRevisions = await dbContext.Events
                 .Where(x => x.EventId == eventId)
                 .OrderByDescending(x => x.Revision)   // biggest revision number first
                 .Include(x => x.Tags)
-                .Include(x => x.EventImage)
                 .Include(x => x.SpecificLocation)
                 .Include(x => x.Region)
                 .Include(x => x.Sources)
                     .ThenInclude(source => source.Authors)
+                .AsNoTracking()
                 .ToListAsync();
             if (!eventRevisions.Any())
             {
                 return NotFound($"Unknown HistoricalEvent EventId: '{eventId}'");
             }
 
+            var imageIdByRevisionId = await dbContext.Events
+                .Where(x => x.EventId == eventId)
+                .Select(x => new { x.Id, ImageId = EF.Property<Guid>(x, "EventImageId") })
+                .ToDictionaryAsync(x => x.Id, x => x.ImageId);
+            foreach (var revision in eventRevisions)
+            {
+                revision.EventImage = new EventImage { Id = imageIdByRevisionId[revision.Id] };
+            }
+
             //List<EventDto> dtos = eventRevisions.Select(x => x.ToDto()).ToList();
             return Ok(eventRevisions);
+        }
+
+        // An image's raw bytes, by image row Id (from an event's EventImage.Id). Image rows are
+        // never modified after insert (a changed image is a new row), so the response can be
+        // cached indefinitely by the browser. 204 if the row exists but holds no image.
+        [Route("GetImage/{imageId}")]
+        [HttpGet]
+        public async Task<ActionResult> GetImage(Guid imageId)
+        {
+            var bytes = await dbContext.Images
+                .Where(i => i.Id == imageId)
+                .Select(i => i.ImageBinary)
+                .FirstOrDefaultAsync();
+            if (bytes is null)
+            {
+                return NotFound($"Unknown image Id: '{imageId}'");
+            }
+
+            Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+            if (bytes.Length == 0)
+            {
+                return NoContent();
+            }
+            // Create only accepts PNG or JPEG (EventValidation), so sniff between those two.
+            var contentType = bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4e && bytes[3] == 0x47
+                ? "image/png"
+                : "image/jpeg";
+            return File(bytes, contentType);
         }
 
         [Route("GetSpecificRevision/{eventId}/{revision}")]
@@ -105,7 +115,11 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<Event>> GetSpecificRevision(Guid eventId, int revision)
         {
             var specificRevision = await dbContext.Events
-                .Where(x => x.Id == eventId)
+                // EventId, not Id. Id is the per-revision primary key; EventId is the key shared
+                // across an event's revisions, which is what every sibling endpoint and the route
+                // parameter both mean. Filtering on Id could only ever match if the caller passed
+                // a revision's PK, so this endpoint could not work as documented.
+                .Where(x => x.EventId == eventId)
                 .Where(x => x.Revision == revision)
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
@@ -133,6 +147,11 @@ namespace WebAPI.Controllers
                 .Where(e => !dbContext.Events.Any(e2 =>
                     e2.EventId == e.EventId &&
                     e2.Revision > e.Revision))
+                // Deterministic order is required with split queries (Program.cs): each
+                // collection is loaded by a separate query that repeats this Take(100), and
+                // without an OrderBy those queries could pick different 100 events. Id keeps
+                // the previous "arbitrary 100" semantics; the frontend sorts results by title.
+                .OrderBy(e => e.Id)
                 .Take(100)
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
@@ -156,6 +175,7 @@ namespace WebAPI.Controllers
             var random = new Random();
             var randomIndex = random.Next(numEvents);
             var randomEvent = await dbContext.Events
+                .OrderBy(x => x.Id)   // required with split queries; see GetFirst100
                 .Skip(randomIndex)
                 .Include(x => x.Tags)
                 .Include(x => x.EventImage)
@@ -181,38 +201,16 @@ namespace WebAPI.Controllers
         // TODO: CreateNewRevision/{eventId}
         //https://stackoverflow.com/questions/39121358/route-with-multiple-ids-laravel
 
-        [Route("Create2")]
-        [HttpPost]
-        public async Task<ActionResult<string>> Create(IDictionary<string, string> d)
-        {
-            return Ok("things");
-        }
-
-
         [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<Event>> Create(Event e)
+        public async Task<ActionResult<CreatedRevision>> Create(Event e)
         {
-            if (string.IsNullOrEmpty(e.Title))
+            // The client is untrusted: every rule the UI enforces is re-enforced here before
+            // anything is persisted. See EventValidation for what is checked and why.
+            var validationError = EventValidation.Validate(e);
+            if (validationError is not null)
             {
-                return UnprocessableEntity("Title cannot be empty");
-            }
-            else if (string.IsNullOrEmpty(e.Summary))
-            {
-                return UnprocessableEntity("Summary cannot be empty");
-            }
-            else if (e.SpecificLocation is null && (e.Region is null || !e.Region.Any()))
-            {
-                return UnprocessableEntity("Must specify location and/or region");
-            }
-
-            // Re-validate the image server-side. The frontend already checks, but the client
-            // is untrusted: reject anything that isn't a PNG/JPEG within the size cap so we
-            // never persist arbitrary bytes. An empty image means "no image" and is allowed.
-            var imageError = ValidateImage(e.EventImage?.ImageBinary);
-            if (imageError is not null)
-            {
-                return UnprocessableEntity(imageError);
+                return UnprocessableEntity(validationError);
             }
 
             //try
@@ -231,14 +229,111 @@ namespace WebAPI.Controllers
             //var newEvent = new HistoricalEvent(eventDto);
             //dbContext.Events.Add(newEvent);
 
-            if (e.Id == Guid.Empty)
+            // Guarantee an EventImage row even when the event has no image.
+            //
+            // NOT cosmetic. Event.EventImage is a [Required] reference navigation, so EF treats
+            // the relationship as required and every .Include(x => x.EventImage) becomes an INNER
+            // JOIN. An event stored without an EventImage row is therefore invisible to EVERY read
+            // endpoint -- GetLatestRevision, GetAllRevisions, GetSpecificRevision and GetFirst100
+            // all include it. The write would succeed and the event could never be read back.
+            //
+            // The frontend already always sends a wrapper (frontendToBackend emits
+            // { Id, ImageBinary: "" } even with no image), which is why this has never bitten in
+            // practice -- and is exactly the smell the open TODO "Reconsider [Required] on
+            // Event.EventImage" describes. But validation accepts a null wrapper, so a minimal or
+            // tampered client could otherwise write an event that silently disappears.
+            //
+            // This normalizes rather than rejects, because an event with no image is legitimate.
+            // The real fix is making the navigation optional, which needs a migration and belongs
+            // to that TODO item.
+            e.EventImage ??= new EventImage { Id = Guid.NewGuid(), ImageBinary = Array.Empty<byte>() };
+
+            // SERVER AUTHORITY OVER IDENTITY. The client does not get to choose any of these.
+            // Nothing here is forgeable because the values the client sends are discarded.
+            //
+            // What a forged Revision actually breaks is ORDERING, not confidentiality:
+            // getLatestRevisions (and GetFirst100's NOT EXISTS subquery) pick the maximum
+            // revision per EventId, so a revision numbered 99999 would pin itself as "latest"
+            // permanently -- no legitimate later edit could supersede it without also jumping
+            // above it. Duplicate (EventId, Revision) pairs separately break the uniqueness
+            // GetSpecificRevision assumes.
+            //
+            // Safe to override: EditEvent.onSubmitClick re-fetches getAllRevisions after a
+            // successful Create and treats THAT as truth, so it never depends on the values it
+            // sent. Its own "maxRevision + 1" is computed from allEvents, which is empty until
+            // the user runs a search -- so the client's number was already unreliable, and this
+            // replaces a guess with the truth.
+            //
+            // EventId is the ONE identity field kept as sent. It is the grouping key across
+            // revisions, and that same re-fetch calls getAllRevisions(eventId) with the client's
+            // own value -- reassigning it would 404 that call and drop the UI into its degraded
+            // fallback path. A brand-new event simply arrives with a fresh client-side uuid.
+            if (e.EventId == Guid.Empty)
             {
-                throw new NotImplementedException();
+                e.EventId = Guid.NewGuid();
             }
 
-            dbContext.Events.Add(e);
+            var highestRevision = await dbContext.Events
+                .Where(x => x.EventId == e.EventId)
+                .Select(x => (int?)x.Revision)
+                .MaxAsync();
+
+            e.Revision = (highestRevision ?? 0) + 1;
+            e.Id = Guid.NewGuid();
+            e.RevisionDateTime = DateTime.UtcNow;
+
+            // IMAGE SHARING (claudePlans/8). Revisions are full snapshots, but an image that
+            // didn't change is shared with earlier revisions instead of stored again, so an edit
+            // costs roughly the text that changed rather than another multi-MB copy.
+            //
+            // Reuse is limited to images already used by THIS event's revisions:
+            //  - a client can't attach another event's image by guessing its Id, and
+            //  - Delete stays safe: it removes a whole revision chain together with its images,
+            //    and an image row cascades to every event referencing it, so an image shared
+            //    across different events would take the other event down with it.
+            var chainImages = await dbContext.Events
+                .Where(x => x.EventId == e.EventId)
+                .Select(x => new { Id = EF.Property<Guid>(x, "EventImageId"), Hash = x.EventImage!.ImageMD5Hash })
+                .Distinct()
+                .ToListAsync();
+
+            Guid? reuseImageId = null;
+            if (e.ExistingImageId is Guid requestedImageId)
+            {
+                // "Keep the image of an earlier revision": no bytes were sent.
+                if (!chainImages.Any(x => x.Id == requestedImageId))
+                {
+                    return UnprocessableEntity("ExistingImageId must refer to the image of an earlier revision of this event.");
+                }
+                reuseImageId = requestedImageId;
+            }
+            else
+            {
+                // Bytes were sent (or normalized to empty above). Reuse if they're identical to an
+                // earlier revision's image, e.g. the same file uploaded again.
+                reuseImageId = chainImages.FirstOrDefault(x => x.Hash == e.EventImage.ImageMD5Hash)?.Id;
+            }
+
+            if (reuseImageId is Guid sharedImageId)
+            {
+                // Point at the existing row via the FK, without loading its (possibly multi-MB)
+                // bytes. Order matters: drop the navigation BEFORE Add. Nulling a required
+                // navigation on an already-tracked new entity makes EF treat it as an orphan and
+                // silently detach it, so the revision would never be saved.
+                e.EventImage = null;
+                dbContext.Events.Add(e);
+                dbContext.Entry(e).Property("EventImageId").CurrentValue = sharedImageId;
+            }
+            else
+            {
+                // A new image row. Server picks its Id, like the other identity fields above.
+                e.EventImage.Id = Guid.NewGuid();
+                dbContext.Events.Add(e);
+            }
+
             await dbContext.SaveChangesAsync();
-            return Ok(e);
+            var savedImageId = reuseImageId ?? e.EventImage!.Id;
+            return Ok(new CreatedRevision(e.Id, e.EventId, e.Revision, e.RevisionDateTime, savedImageId));
         }
 
         [Route("Update")]
@@ -253,12 +348,12 @@ namespace WebAPI.Controllers
                 return NotFound($"Cannot update unknown event: '{e.EventId} ({e.Title})'");
             }
 
-            // Same image guard as Create — Update is a write path too, so it must not become
-            // a hole for arbitrary bytes once it is implemented.
-            var imageError = ValidateImage(e.EventImage?.ImageBinary);
-            if (imageError is not null)
+            // Same guard as Create — Update is a write path too, so it must not become a
+            // hole for unvalidated payloads once it is implemented.
+            var validationError = EventValidation.Validate(e);
+            if (validationError is not null)
             {
-                return UnprocessableEntity(imageError);
+                return UnprocessableEntity(validationError);
             }
 
             //var newEventRevision = existingEvent.CreateUpdatedFromDto(eventDto);
@@ -278,28 +373,52 @@ namespace WebAPI.Controllers
         [HttpDelete]
         public async Task<ActionResult> Delete(Guid eventId)
         {
-            // Note: Don't need to load the related models just to verify that it exists. The
-            // cascade delete will get them anyway.
-            var existingEvent = await dbContext.Events
+            // There is no user-facing delete: the app is append-only (editing always creates a
+            // new revision), so this endpoint exists purely for test/admin cleanup. Until a real
+            // account/permission system exists, gate it to dev/test environments so prod events
+            // cannot be destroyed through the public API. (TODO: replace with admin permission.)
+            if (!webHostEnvironment.IsDevelopment() && !webHostEnvironment.IsTesting())
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    "Delete is only available in the development/test environment.");
+            }
+
+            // Hard-delete the ENTIRE event: every revision of this EventId plus its owned
+            // children. Load the full graph so the owned rows are tracked and removed explicitly —
+            // the Region locations and Sources hold NO ACTION FKs to the Event, so removing the
+            // Event alone would fail the constraint (the historical cause of the 500 here).
+            var revisions = await dbContext.Events
                 .Where(x => x.EventId == eventId)
-                .FirstOrDefaultAsync();
-            if (existingEvent == null)
+                .Include(x => x.Tags)
+                .Include(x => x.EventImage)
+                .Include(x => x.SpecificLocation)
+                .Include(x => x.Region)
+                .Include(x => x.Sources)
+                    .ThenInclude(source => source.Authors)
+                .ToListAsync();
+            if (revisions.Count == 0)
             {
                 return NotFound($"Unknown event ID: '{eventId}'");
             }
 
-            //// Check if anyone _else_ is using the image.
-            //var eventsUsingImage = await dbContext.Events
-            //    .Where(x => x.EventId != existingEvent.EventId)
-            //    .Where(x => x.ImageFilePath == existingEvent.ImageFilePath)
-            //    .FirstOrDefaultAsync();
-            //if (eventsUsingImage == null)
-            //{
-            //    // No one else using it. Remove the associated image.
-            //    System.IO.File.Delete(existingEvent.ImageFilePath);
-            //}
-
-            dbContext.Events.Remove(existingEvent);
+            foreach (var rev in revisions)
+            {
+                if (rev.Region is not null) dbContext.Locations.RemoveRange(rev.Region);
+                if (rev.SpecificLocation is not null) dbContext.Locations.Remove(rev.SpecificLocation);
+                if (rev.EventImage is not null) dbContext.Images.Remove(rev.EventImage);
+                if (rev.Sources is not null)
+                {
+                    foreach (var source in rev.Sources)
+                    {
+                        if (source.Authors is not null) dbContext.SourceAuthors.RemoveRange(source.Authors);
+                    }
+                    dbContext.Sources.RemoveRange(rev.Sources);
+                }
+                // Tags are shared via the EventTag many-to-many join: removing the Event drops the
+                // join rows (DB cascade), but the Tag entities are left alone since other events
+                // may reference them.
+            }
+            dbContext.Events.RemoveRange(revisions);
             await dbContext.SaveChangesAsync();
             return Ok("Delete successful");
         }

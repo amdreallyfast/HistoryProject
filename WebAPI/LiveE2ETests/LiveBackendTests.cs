@@ -47,16 +47,18 @@ namespace WebAPI.LiveE2ETests
         {
             E2ESupport.RequireConfigured();
 
-            var (eventId, _) = E2ESupport.PermanentEvents[0];
+            var (eventId, title) = E2ESupport.PermanentEvents[0];
 
             var before = await E2ESupport.GetAllRevisionsAsync(eventId);
             Assert.IsTrue(before.Count > 0, "expected the permanent event to already exist");
             var latest = before.OrderByDescending(e => e.Revision).First();
 
             // Append a new revision (same EventId, Revision+1) — exercises the append-only edit
-            // path and grows the history while the event count stays capped.
+            // path and grows the history while the event count stays capped. Keep the Title stable
+            // (no "(rev N)" suffix) so the search list doesn't drift; the new revision is still
+            // distinguished by its Revision number and RevisionDateTime.
             var nextRevision = latest.Revision + 1;
-            var edited = E2ESupport.BuildCanonicalEvent(eventId, nextRevision, $"Test Event 1 E2E (rev {nextRevision})");
+            var edited = E2ESupport.BuildCanonicalEvent(eventId, nextRevision, title);
             var resp = await E2ESupport.CreateAsync(edited);
             await E2ESupport.EnsureCreatedAsync(resp);
 

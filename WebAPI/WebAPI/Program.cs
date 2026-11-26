@@ -26,10 +26,18 @@ else
 // Add services to the container.
 builder.Services.AddDbContext<HistoryProjectDbContext>(options =>
 {
-    options.UseSqlServer(dbConnStr, sql => sql.EnableRetryOnFailure(
-        maxRetryCount: 6,
-        maxRetryDelay: TimeSpan.FromSeconds(30),
-        errorNumbersToAdd: null));
+    options.UseSqlServer(dbConnStr, sql => sql
+        .EnableRetryOnFailure(
+            maxRetryCount: 6,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null)
+        // Every event read Includes several collections (Tags, Region, Sources->Authors). As one
+        // SQL query, that returns a row per combination, repeating the event's columns (and the
+        // joined image bytes) in each row; with a multi-MB image that made reads take 15-45 s on
+        // the Basic tier. Split queries load each collection separately, so the image is read
+        // once per event. Queries using Take/Skip need a deterministic OrderBy so every split
+        // query sees the same parent rows (see GetFirst100).
+        .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
 });
 
 // Enable CORS (which is useful...how?)

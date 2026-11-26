@@ -17,7 +17,7 @@ namespace WebAPI.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -111,6 +111,9 @@ namespace WebAPI.Migrations
                     b.HasIndex("EventImageId");
 
                     b.HasIndex("SpecificLocationId");
+
+                    b.HasIndex("EventId", "Revision")
+                        .IsUnique();
 
                     b.ToTable("Events");
                 });
