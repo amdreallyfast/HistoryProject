@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WebAPI.ModelDTOs;
@@ -12,15 +12,16 @@ namespace WebAPI.Tests
     [TestClass]
     public class ImageSharingTests
     {
-        private static async Task<ActionResult<CreatedRevision>> Create(string dbName, Guid eventId, byte[]? image, Guid? existingImageId = null, Guid? clientImageId = null)
+        private static async Task<ActionResult<CreatedRevision>> Create(string dbName, Guid eventId, byte[]? image, Guid? existingImageId = null, Guid? clientImageId = null, bool legacyEmptyWrapper = false)
         {
             using var db = TestSupport.NewInMemoryContext(dbName);
             var e = TestSupport.ValidEvent(image);
             e.EventId = eventId;
             e.ExistingImageId = existingImageId;
-            if (existingImageId is not null)
+            if (legacyEmptyWrapper)
             {
-                // What the frontend sends when keeping the image: a wrapper with no bytes.
+                // What the frontend sent before claudePlans/9 for "no image" and next to
+                // ExistingImageId: a wrapper with no bytes. Still accepted. Today it sends none.
                 e.EventImage = new EventImage { Id = Guid.NewGuid(), ImageBinary = Array.Empty<byte>() };
             }
             if (clientImageId is Guid id && e.EventImage is not null)
@@ -30,13 +31,13 @@ namespace WebAPI.Tests
             return await TestSupport.NewController(db).Create(e);
         }
 
-        private static async Task<List<Guid>> ImageIdsByRevision(string dbName, Guid eventId)
+        private static async Task<List<Guid?>> ImageIdsByRevision(string dbName, Guid eventId)
         {
             using var db = TestSupport.NewInMemoryContext(dbName);
             return await db.Events
                 .Where(x => x.EventId == eventId)
                 .OrderBy(x => x.Revision)
-                .Select(x => EF.Property<Guid>(x, "EventImageId"))
+                .Select(x => EF.Property<Guid?>(x, "EventImageId"))
                 .ToListAsync();
         }
 
@@ -72,6 +73,21 @@ namespace WebAPI.Tests
             var firstImageId = (await ImageIdsByRevision(dbName, eventId))[0];
 
             var result = await Create(dbName, eventId, image: null, existingImageId: firstImageId);
+
+            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            CollectionAssert.AreEqual(new[] { firstImageId, firstImageId }, await ImageIdsByRevision(dbName, eventId));
+            Assert.AreEqual(1, await ImageCount(dbName));
+        }
+
+        [TestMethod]
+        public async Task ExistingImageId_WithLegacyEmptyWrapper_StillReusesTheImage()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            var eventId = Guid.NewGuid();
+            await Create(dbName, eventId, Jpeg(1));
+            var firstImageId = (await ImageIdsByRevision(dbName, eventId))[0];
+
+            var result = await Create(dbName, eventId, image: null, existingImageId: firstImageId, legacyEmptyWrapper: true);
 
             Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
             CollectionAssert.AreEqual(new[] { firstImageId, firstImageId }, await ImageIdsByRevision(dbName, eventId));
@@ -184,7 +200,7 @@ namespace WebAPI.Tests
             var dbName = Guid.NewGuid().ToString();
             var eventId = Guid.NewGuid();
             await Create(dbName, eventId, Jpeg(7));
-            var imageId = (await ImageIdsByRevision(dbName, eventId))[0];
+            var imageId = (await ImageIdsByRevision(dbName, eventId))[0]!.Value;
 
             string? cacheControl = null;
             var result = await GetImage(dbName, imageId, h => cacheControl = h.CacheControl);
@@ -201,18 +217,24 @@ namespace WebAPI.Tests
             var dbName = Guid.NewGuid().ToString();
             var eventId = Guid.NewGuid();
             await Create(dbName, eventId, TestSupport.PngBytes());
-            var file = (FileContentResult)await GetImage(dbName, (await ImageIdsByRevision(dbName, eventId))[0]);
+            var file = (FileContentResult)await GetImage(dbName, (await ImageIdsByRevision(dbName, eventId))[0]!.Value);
             Assert.AreEqual("image/png", file.ContentType);
         }
 
         [TestMethod]
-        public async Task GetImage_EventWithoutImage_Is204_UnknownId_Is404()
+        public async Task GetImage_EmptyRow_Is204_UnknownId_Is404()
         {
+            // Empty-bytes rows are no longer written (no image is now no row, claudePlans/9), but
+            // GetImage still answers 204 for one rather than serving empty "image" bytes.
             var dbName = Guid.NewGuid().ToString();
-            var eventId = Guid.NewGuid();
-            await Create(dbName, eventId, image: null);
+            var emptyId = Guid.NewGuid();
+            using (var db = TestSupport.NewInMemoryContext(dbName))
+            {
+                db.Images.Add(new EventImage { Id = emptyId, ImageBinary = Array.Empty<byte>() });
+                await db.SaveChangesAsync();
+            }
 
-            Assert.IsInstanceOfType(await GetImage(dbName, (await ImageIdsByRevision(dbName, eventId))[0]), typeof(NoContentResult));
+            Assert.IsInstanceOfType(await GetImage(dbName, emptyId), typeof(NoContentResult));
             Assert.IsInstanceOfType(await GetImage(dbName, Guid.NewGuid()), typeof(NotFoundObjectResult));
         }
 
