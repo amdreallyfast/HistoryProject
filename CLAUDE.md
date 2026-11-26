@@ -23,6 +23,11 @@ The user judges whether the app works; Claude handles the git and PR mechanics. 
 - **Required checks:** `backend-tests` and `frontend-tests` must pass before a PR can merge into `test` or `main` (GitHub rulesets enforce this). If one fails, fix it on the branch.
 - **Merging into `test`:** Claude merges its own PR (`gh pr merge <n> --merge --delete-branch`) once the required checks pass. No approval is needed; GitHub never lets the author approve their own PR anyway. Use a merge commit, not squash, so individual commit messages survive.
 - **Merging into `main`:** only when the user explicitly says so (e.g. "release", "promote to main"), every time. Open a PR from `test` into `main`, wait for checks, then merge. Never merge into `main` on your own judgment.
+- **Production database on release:** prod is migrated by hand (the test App Service auto-migrates; prod doesn't). Prod's schema can lag behind `main`'s code: in 2026-11 it was missing a migration promoted months earlier, which broke prod reads silently. On every release:
+  1. Ask the user to run `SELECT TOP 5 MigrationId FROM __EFMigrationsHistory ORDER BY MigrationId DESC;` on `HistoryProjectDb` (Azure portal → SQL database → Query editor; it shows only the **last** statement's result, so give one query per block).
+  2. Generate the script **from prod's newest applied migration**, not from what `main` contains: `dotnet ef migrations script <prodLatest> <newestMigration> --idempotent` (from `WebAPI/WebAPI/`). Strip `GO` lines for the portal editor. Don't commit it.
+  3. Read every migration in the range for preconditions (e.g. a unique index fails on existing duplicates) and give the user a read-only check query for each.
+  4. User runs the script, then the history query again to confirm. Check the prod API afterwards (`https://historyprojectapi.azurewebsites.net/api/HistoricalEvent/GetFirst100`).
 - **After merging into `test`:** tell the user what to try, on the test site (https://gray-ground-025c5820f.7.azurestaticapps.net; backend wakes slowly from idle) or locally.
 - **Commit messages:** follow the rules at the top of `TODO.md`, and start every subject with `w/claude: `.
 
