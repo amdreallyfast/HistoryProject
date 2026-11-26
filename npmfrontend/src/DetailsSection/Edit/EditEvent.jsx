@@ -16,6 +16,7 @@ import { createEvent, getAllRevisions } from "../../api/historyEventApi";
 import { eventImageQueryKey } from "../../api/useEventImageDataUrl";
 import { frontendToBackend, backendToFrontend } from "../../api/eventMapper";
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange } from "./detailRestrictions";
+import { isSourceBeforeEvent } from "../../dates/partialDate";
 
 
 export function EditEvent() {
@@ -91,6 +92,8 @@ export function EditEvent() {
                               pt.latestYear,   pt.latestMonth,   pt.latestDay)) return true
       if (isMonthOutOfRange(pt.earliestMonth) || isMonthOutOfRange(pt.latestMonth)) return true
       if (isDayOutOfRange(pt.earliestDay)     || isDayOutOfRange(pt.latestDay))     return true
+      // A source dated entirely before the event (claudePlans/10); shown on that source.
+      if (isSourceBeforeEvent(et, pt)) return true
     }
     return false
   }, [editState.eventTime, editSources])

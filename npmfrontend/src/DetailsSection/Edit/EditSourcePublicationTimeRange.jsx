@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { editSourcesStateActions } from "../../AppState/stateSliceEditSources"
 import { isDateRangeInverted, isMonthOutOfRange, isDayOutOfRange, isExactDate } from "./detailRestrictions"
+import { isSourceBeforeEvent } from "../../dates/partialDate"
 
 /*
 TODO: (??maybe just duplicate the form and customize it? how much do you want to avoid duplication? are you willing to sacrifice the readability of the code??
@@ -54,7 +55,12 @@ export function EditSourcePublicationTimeRange({
   // }
 
   const editSource = useSelector((state) => state.editSources[editId])
+  const eventTime = useSelector((state) => state.editEventReducer.eventTime)
   const reduxDispatch = useDispatch()
+
+  // A source can't be written before the event happened (claudePlans/10). Derived on every
+  // render from both the event's dates and this source's, so editing either updates it.
+  const sourceBeforeEvent = !!editSource && isSourceBeforeEvent(eventTime, editSource.publicationTime)
 
   // Lower bound
   const pubDateLowerBoundContainerRef = useRef()
@@ -364,6 +370,12 @@ export function EditSourcePublicationTimeRange({
           <label className="text-left text-red-500">{upperBoundError}</label>
           <label className="text-left text-red-500">{rangeError}</label>
         </div>
+      )}
+
+      {sourceBeforeEvent && (
+        <label data-testid="source-before-event-error" className="text-left text-red-500 p-1">
+          {"This source's latest date is before the event's earliest date. A source can't be written before the event happened."}
+        </label>
       )}
 
     </div>
