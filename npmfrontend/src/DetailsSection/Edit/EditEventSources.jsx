@@ -33,12 +33,12 @@ export function EditEventSources() {
     }
   }
 
-  // On load: populate the editSources slice from the event's sources array
+  // On load: populate the editSources slice from the event's sources array. Always, including
+  // an empty array: nothing else resets this slice, so skipping the load for an event with no
+  // sources (every new event) left the previously edited event's sources in place.
   useEffect(() => {
     console.log({ "EditEventSources.useEffect[editState.sources]": editState.sources })
-    if (editState.sources && editState.sources.length > 0) {
-      reduxDispatch(editSourcesStateActions.loadSources(editState.sources))
-    }
+    reduxDispatch(editSourcesStateActions.loadSources(editState.sources ?? []))
   }, [editState.sources, reduxDispatch])
 
 
