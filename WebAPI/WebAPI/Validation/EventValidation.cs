@@ -1,4 +1,4 @@
-using WebAPI.Models;
+﻿using WebAPI.Models;
 
 namespace WebAPI.Validation
 {
@@ -181,7 +181,7 @@ namespace WebAPI.Validation
                 ?? RangeError(e.UBDay, 1, 31, "Latest day")
                 ?? RangeError(e.UBHour, 0, 23, "Latest hour")
                 ?? RangeError(e.UBMin, 0, 59, "Latest minute")
-                ?? OrderError(e.LBYear, e.UBYear, "Event")
+                ?? OrderError(e.LBYear, e.LBMonth, e.LBDay, e.UBYear, e.UBMonth, e.UBDay, "Event")
                 ?? ValidateSourceDates(e);
         }
 
@@ -196,7 +196,9 @@ namespace WebAPI.Validation
                     ?? RangeError(source.PublicationLBDay, 1, 31, $"Earliest publication day for {label}")
                     ?? RangeError(source.PublicationUBMonth, 1, 12, $"Latest publication month for {label}")
                     ?? RangeError(source.PublicationUBDay, 1, 31, $"Latest publication day for {label}")
-                    ?? OrderError(source.PublicationLBYear, source.PublicationUBYear, $"Publication of {label}");
+                    ?? OrderError(source.PublicationLBYear, source.PublicationLBMonth, source.PublicationLBDay,
+                        source.PublicationUBYear, source.PublicationUBMonth, source.PublicationUBDay, $"Publication of {label}")
+                    ?? SourceBeforeEventError(e, source, label);
                 if (error is not null) return error;
             }
             return null;
@@ -214,12 +216,30 @@ namespace WebAPI.Validation
 
         // Equal bounds are valid and meaningful: the editor records an exact date by setting the
         // beginning and end to the same value (the "Exact date" toggle), so only a strictly
-        // inverted range is an error.
-        private static string? OrderError(int lowerYear, int upperYear, string label)
+        // inverted range is an error. Compares full dates, missing parts read as the widest span
+        // (PartialDate), matching the editor's check.
+        private static string? OrderError(int lowerYear, int? lowerMonth, int? lowerDay,
+            int upperYear, int? upperMonth, int? upperDay, string label)
         {
-            if (lowerYear > upperYear)
+            if (PartialDate.IsRangeInverted(lowerYear, lowerMonth, lowerDay, upperYear, upperMonth, upperDay))
             {
-                return $"{label} earliest year ({lowerYear}) cannot be after its latest year ({upperYear}).";
+                return $"{label} earliest date ({PartialDate.Format(lowerYear, lowerMonth, lowerDay)}) cannot be after "
+                    + $"its latest date ({PartialDate.Format(upperYear, upperMonth, upperDay)}).";
+            }
+            return null;
+        }
+
+        // A source can't record an event that hadn't happened yet when it was written: reject a
+        // source whose latest date is before the event's earliest date. Overlap is allowed
+        // (it will raise the future "uncertain" flag). See claudePlans/10.
+        private static string? SourceBeforeEventError(Event e, EventSource source, string label)
+        {
+            if (PartialDate.IsSourceBeforeEvent(e.LBYear, e.LBMonth, e.LBDay,
+                source.PublicationUBYear, source.PublicationUBMonth, source.PublicationUBDay))
+            {
+                return $"The latest date of {label} ({PartialDate.Format(source.PublicationUBYear, source.PublicationUBMonth, source.PublicationUBDay)}) "
+                    + $"is before the event's earliest date ({PartialDate.Format(e.LBYear, e.LBMonth, e.LBDay)}). "
+                    + "A source can't be written before the event happened.";
             }
             return null;
         }
