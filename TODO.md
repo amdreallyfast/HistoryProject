@@ -136,7 +136,7 @@ Guidance:
   - **Interaction with `CameraDragLock`:** the lock only reacts to the left button, so a middle-button pan is never blocked. Middle-pressing on a pin should pan, not drag the pin (`MouseHandler` drags on the left button only).
   - **Test:** Playwright with `window.__globeTest.cameraPosition()`: middle-button drag moves the camera sideways and keeps its distance to the target (pan, not zoom); the wheel still changes the distance.
 
-- [ ] `[simple]` **Globe: edit-mode hover cursors for region and pins.** Requested 2026-11-25. In edit mode, change the mouse cursor so it's obvious what a drag will move:
+- [x] `[simple]` **Globe: edit-mode hover cursors for region and pins.** Requested 2026-11-25. **Done 2026-11-25 (PR #17), user-tested OK.** In edit mode, change the mouse cursor so it's obvious what a drag will move:
   - **Region** (whole-region move): custom four-way-arrow cursors, since CSS has no hollow/solid variants of `move`:
     - hovering: **hollow** four-way arrows (white fill, black outline)
     - while dragging the region: **solid** four-way arrows (black fill, white outline)
