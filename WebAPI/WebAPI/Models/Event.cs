@@ -30,7 +30,8 @@ namespace WebAPI.Models
         [Required, MaxLength(128)]
         public string Title { get; set; } = default!;
 
-        [Required]
+        // Optional: null means the event has no image (EventImageId NULL, no Images row).
+        // See HistoryProjectDbContext.OnModelCreating and claudePlans/9.
         public EventImage? EventImage { get; set; }
 
         // Request-only: lets the client say "keep the image of an earlier revision" without

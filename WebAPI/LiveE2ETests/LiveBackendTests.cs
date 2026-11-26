@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using WebAPI.Models;
 
 namespace WebAPI.LiveE2ETests
@@ -65,6 +65,40 @@ namespace WebAPI.LiveE2ETests
             var after = await E2ESupport.GetAllRevisionsAsync(eventId);
             Assert.AreEqual(before.Count + 1, after.Count, "a new revision should have been persisted");
             Assert.IsTrue(after.Any(e => e.Revision == nextRevision), "the new revision should be present");
+        }
+
+        // An event with no image (EventImage null, claudePlans/9) must get past [ApiController]
+        // model validation and come back from every read on real SQL Server. A required image
+        // navigation made Include an INNER JOIN there, hiding imageless events from all reads.
+        // Uses a throwaway E2E-tagged event, deleted at the end (or by CleanupOrphansAsync).
+        [TestMethod]
+        public async Task ImagelessEvent_CreatesAndReadsBack()
+        {
+            E2ESupport.RequireConfigured();
+
+            var eventId = Guid.NewGuid();
+            var e = E2ESupport.BuildCanonicalEvent(eventId, 1, "Imageless E2E (temporary)");
+            e.EventImage = null;
+            try
+            {
+                var resp = await E2ESupport.CreateAsync(e);
+                await E2ESupport.EnsureCreatedAsync(resp);
+
+                var (status, latest) = await E2ESupport.GetLatestRevisionAsync(eventId);
+                Assert.AreEqual(System.Net.HttpStatusCode.OK, status, "imageless event must be readable");
+                Assert.IsNull(latest!.EventImage);
+
+                var revisions = await E2ESupport.GetAllRevisionsAsync(eventId);
+                Assert.AreEqual(1, revisions.Count);
+                Assert.IsNull(revisions[0].EventImage);
+
+                var all = await E2ESupport.GetFirst100Async();
+                Assert.IsTrue(all.Any(x => x.EventId == eventId), "imageless event must appear in search results");
+            }
+            finally
+            {
+                await E2ESupport.DeleteAsync(eventId);
+            }
         }
     }
 }

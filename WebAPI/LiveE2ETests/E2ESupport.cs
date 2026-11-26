@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using WebAPI.Models;
@@ -132,9 +132,10 @@ namespace WebAPI.LiveE2ETests
 
         public static Event BuildCanonicalEvent(Guid eventId, int revision, string title)
         {
-            // Mirror the shape the frontend's frontendToBackend sends: the Event model marks
-            // EventImage, Tags, and Sources [Required], and the controller is [ApiController], so
-            // any of them being null makes model binding return 400 before the action runs.
+            // Mirror the shape the frontend's frontendToBackend sends: Tags and Sources are
+            // required lists (send [] for none; null is a 400 from [ApiController] model
+            // validation). EventImage is optional (null = no image, claudePlans/9); the seed
+            // carries a real image so the UI has one to show.
             return new Event
             {
                 Id = Guid.NewGuid(),

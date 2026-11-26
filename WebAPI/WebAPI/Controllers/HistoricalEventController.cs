@@ -50,7 +50,8 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetAllRevisions(Guid eventId)
         {
-            // RESPONSE CONTRACT: no image bytes. Each revision's EventImage is { Id, ImageBinary: "" };
+            // RESPONSE CONTRACT: no image bytes. Each revision's EventImage is { Id, ImageBinary: "" },
+            // or null when the revision has no image;
             // the client fetches an image by Id from GetImage/{imageId} only when it's shown, and
             // revisions sharing an image (see Create) fetch it once. Including the bytes made the
             // history payload grow with every revision (one full copy per revision).
@@ -71,11 +72,13 @@ namespace WebAPI.Controllers
 
             var imageIdByRevisionId = await dbContext.Events
                 .Where(x => x.EventId == eventId)
-                .Select(x => new { x.Id, ImageId = EF.Property<Guid>(x, "EventImageId") })
+                .Select(x => new { x.Id, ImageId = EF.Property<Guid?>(x, "EventImageId") })
                 .ToDictionaryAsync(x => x.Id, x => x.ImageId);
             foreach (var revision in eventRevisions)
             {
-                revision.EventImage = new EventImage { Id = imageIdByRevisionId[revision.Id] };
+                revision.EventImage = imageIdByRevisionId[revision.Id] is Guid imageId
+                    ? new EventImage { Id = imageId }
+                    : null;
             }
 
             //List<EventDto> dtos = eventRevisions.Select(x => x.ToDto()).ToList();
@@ -84,7 +87,8 @@ namespace WebAPI.Controllers
 
         // An image's raw bytes, by image row Id (from an event's EventImage.Id). Image rows are
         // never modified after insert (a changed image is a new row), so the response can be
-        // cached indefinitely by the browser. 204 if the row exists but holds no image.
+        // cached indefinitely by the browser. 204 if the row exists but holds no image (no longer
+        // written since claudePlans/9, where "no image" became no row; kept for safety).
         [Route("GetImage/{imageId}")]
         [HttpGet]
         public async Task<ActionResult> GetImage(Guid imageId)
@@ -229,24 +233,14 @@ namespace WebAPI.Controllers
             //var newEvent = new HistoricalEvent(eventDto);
             //dbContext.Events.Add(newEvent);
 
-            // Guarantee an EventImage row even when the event has no image.
-            //
-            // NOT cosmetic. Event.EventImage is a [Required] reference navigation, so EF treats
-            // the relationship as required and every .Include(x => x.EventImage) becomes an INNER
-            // JOIN. An event stored without an EventImage row is therefore invisible to EVERY read
-            // endpoint -- GetLatestRevision, GetAllRevisions, GetSpecificRevision and GetFirst100
-            // all include it. The write would succeed and the event could never be read back.
-            //
-            // The frontend already always sends a wrapper (frontendToBackend emits
-            // { Id, ImageBinary: "" } even with no image), which is why this has never bitten in
-            // practice -- and is exactly the smell the open TODO "Reconsider [Required] on
-            // Event.EventImage" describes. But validation accepts a null wrapper, so a minimal or
-            // tampered client could otherwise write an event that silently disappears.
-            //
-            // This normalizes rather than rejects, because an event with no image is legitimate.
-            // The real fix is making the navigation optional, which needs a migration and belongs
-            // to that TODO item.
-            e.EventImage ??= new EventImage { Id = Guid.NewGuid(), ImageBinary = Array.Empty<byte>() };
+            // No image is stored as no image row (EventImageId NULL). A client may say "no image"
+            // by omitting EventImage, or with a wrapper holding empty bytes (what the frontend
+            // always sent before claudePlans/9, including next to ExistingImageId), so both
+            // become null here.
+            if (e.EventImage is { } sentImage && (sentImage.ImageBinary?.Length ?? 0) == 0)
+            {
+                e.EventImage = null;
+            }
 
             // SERVER AUTHORITY OVER IDENTITY. The client does not get to choose any of these.
             // Nothing here is forgeable because the values the client sends are discarded.
@@ -292,8 +286,8 @@ namespace WebAPI.Controllers
             //    and an image row cascades to every event referencing it, so an image shared
             //    across different events would take the other event down with it.
             var chainImages = await dbContext.Events
-                .Where(x => x.EventId == e.EventId)
-                .Select(x => new { Id = EF.Property<Guid>(x, "EventImageId"), Hash = x.EventImage!.ImageMD5Hash })
+                .Where(x => x.EventId == e.EventId && EF.Property<Guid?>(x, "EventImageId") != null)
+                .Select(x => new { Id = EF.Property<Guid?>(x, "EventImageId")!.Value, Hash = x.EventImage!.ImageMD5Hash })
                 .Distinct()
                 .ToListAsync();
 
@@ -307,32 +301,35 @@ namespace WebAPI.Controllers
                 }
                 reuseImageId = requestedImageId;
             }
-            else
+            else if (e.EventImage is not null)
             {
-                // Bytes were sent (or normalized to empty above). Reuse if they're identical to an
-                // earlier revision's image, e.g. the same file uploaded again.
+                // Bytes were sent. Reuse if they're identical to an earlier revision's image,
+                // e.g. the same file uploaded again.
                 reuseImageId = chainImages.FirstOrDefault(x => x.Hash == e.EventImage.ImageMD5Hash)?.Id;
             }
 
             if (reuseImageId is Guid sharedImageId)
             {
                 // Point at the existing row via the FK, without loading its (possibly multi-MB)
-                // bytes. Order matters: drop the navigation BEFORE Add. Nulling a required
-                // navigation on an already-tracked new entity makes EF treat it as an orphan and
-                // silently detach it, so the revision would never be saved.
+                // bytes. Drop the navigation BEFORE Add, so EF doesn't insert it as a new row
+                // and the FK value set below is what's saved.
                 e.EventImage = null;
                 dbContext.Events.Add(e);
                 dbContext.Entry(e).Property("EventImageId").CurrentValue = sharedImageId;
             }
             else
             {
-                // A new image row. Server picks its Id, like the other identity fields above.
-                e.EventImage.Id = Guid.NewGuid();
+                // A new image row (server picks its Id, like the other identity fields above), or
+                // no image at all.
+                if (e.EventImage is not null)
+                {
+                    e.EventImage.Id = Guid.NewGuid();
+                }
                 dbContext.Events.Add(e);
             }
 
             await dbContext.SaveChangesAsync();
-            var savedImageId = reuseImageId ?? e.EventImage!.Id;
+            var savedImageId = reuseImageId ?? e.EventImage?.Id;
             return Ok(new CreatedRevision(e.Id, e.EventId, e.Revision, e.RevisionDateTime, savedImageId));
         }
 

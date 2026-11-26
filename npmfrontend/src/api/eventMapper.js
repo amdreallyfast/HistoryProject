@@ -111,11 +111,13 @@ export function frontendToBackend(ev) {
     UBMin: null,
     Tags: ev.tags?.map(v => ({ Id: crypto.randomUUID(), Value: v })) ?? [],
     // Unchanged image: send a reference to the earlier revision's image row instead of the
-    // bytes (can be several MB). The backend shares that row (claudePlans/8). The empty
-    // wrapper is still required by the backend model.
+    // bytes (can be several MB). The backend shares that row (claudePlans/8).
+    // No image: send no EventImage at all; the backend stores no image row (claudePlans/9).
     ...(ev.existingImageId
-      ? { ExistingImageId: ev.existingImageId, EventImage: { Id: crypto.randomUUID(), ImageBinary: "" } }
-      : { EventImage: { Id: crypto.randomUUID(), ImageBinary: dataUrlToImageBinary(ev.imageDataUrl) } }),
+      ? { ExistingImageId: ev.existingImageId }
+      : ev.imageDataUrl
+        ? { EventImage: { Id: crypto.randomUUID(), ImageBinary: dataUrlToImageBinary(ev.imageDataUrl) } }
+        : {}),
     SpecificLocation: ev.primaryLoc
       ? { Id: crypto.randomUUID(), Latitude: ev.primaryLoc.lat, Longitude: ev.primaryLoc.long }
       : null,

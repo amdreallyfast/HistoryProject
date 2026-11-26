@@ -25,6 +25,21 @@ namespace WebAPI.Models
             modelBuilder.Entity<Event>()
                 .HasIndex(e => new { e.EventId, e.Revision })
                 .IsUnique();
+
+            // An event's image is optional: no image is EventImageId = NULL (no Images row).
+            // It used to be required, which made every .Include(x => x.EventImage) an INNER JOIN,
+            // so "no image" had to be stored as an empty-bytes row or the event vanished from
+            // every read (claudePlans/9).
+            //
+            // Deleting an image row must never delete events. With image sharing (claudePlans/8)
+            // one row is referenced by several revisions, and the old Cascade would have taken
+            // them all down. The only place images are deleted (Delete) removes the events first.
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.EventImage)
+                .WithMany()
+                .HasForeignKey("EventImageId")
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         }
 
         // Note: The "!" will tell the compiler, "this isn't null, trust me", but it is not a

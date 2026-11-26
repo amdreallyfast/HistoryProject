@@ -46,7 +46,7 @@ namespace WebAPI.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("EventImageId")
+                    b.Property<Guid?>("EventImageId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("EventIsCreationOfSource")
@@ -266,9 +266,7 @@ namespace WebAPI.Migrations
                 {
                     b.HasOne("WebAPI.Models.EventImage", "EventImage")
                         .WithMany()
-                        .HasForeignKey("EventImageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EventImageId");
 
                     b.HasOne("WebAPI.Models.EventLocation", "SpecificLocation")
                         .WithMany()

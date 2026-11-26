@@ -344,13 +344,18 @@ reads the real C# and JS sources and fails if a duplicated limit drifts — curr
 the PNG/JPEG signatures, and the region point cap. Latitude/longitude ranges are deliberately not
 covered: they exist only on the backend, so there is no duplication to guard.
 
-**A trap worth knowing.** `Event.EventImage` is a `[Required]` *reference navigation*, so EF treats
-the relationship as required and `.Include(x => x.EventImage)` becomes an **INNER JOIN**. An event
-stored without an EventImage row is therefore invisible to *every* read endpoint — the write
-succeeds and can never be read back. The frontend always sends a wrapper (`{ Id, ImageBinary: "" }`)
-so it has never bitten in practice, which is exactly why the `[Required] EventImage` TODO exists;
-`Create` now fills in an empty wrapper when one is absent. The real fix is making the navigation
-optional, which needs a migration and belongs to that item.
+**No image is no image row (2026-11).** `Event.EventImage` is an *optional* reference navigation:
+`Events.EventImageId` is nullable and `NULL` means the event has no image. The frontend sends no
+`EventImage` at all for no image, and the backend returns `EventImage: null`. `Create` also still
+accepts the older shape, a wrapper with empty bytes, and stores it as `NULL`. It used to be
+`[Required]`, which caused two problems. `[ApiController]` model validation rejected a missing
+wrapper with 400. Worse, EF made every `.Include(x => x.EventImage)` an **INNER JOIN**, so an event
+stored without an image row disappeared from every read. "No image" therefore had to be stored as
+an empty-bytes row. Migration `OptionalEventImage` made the column nullable, unlinked events from
+those empty rows, and deleted the rows. The image→event FK changed from Cascade to no action, so
+deleting an image row can never delete events (`Delete` removes the events itself). `Tags` and
+`Sources` stay `[Required]`: they are collections, which never cause INNER JOINs, so the only
+effect is that a client sends `[]` for "none", never `null`. Plan: `claudePlans/9.OptionalEventImage.md`.
 
 ### Data Model (Entity Framework)
 
@@ -464,8 +469,8 @@ Each edit creates a complete new event object rather than storing diffs. This is
 ### Snapshots Share Unchanged Images (2026-11)
 Revisions are still logical full snapshots, but an **unchanged image is shared** with earlier revisions of the same event instead of stored again (the git model: snapshots that share unchanged objects). Diffs were considered and rejected: rebuilding "latest" would mean replaying a chain, search would need a separate current copy, and the text fields are a few KB anyway; the image is what costs megabytes. The schema already allowed it (`Event → EventImage` is many-to-one), so no table change was needed. Plan and measurements: `claudePlans/8.ImageSharingAndSlimPayloads.md`.
 - **Fingerprint:** `EventImage.ImageMD5Hash` is plain MD5 of the bytes (duplicate detection, not security), computed server-side only. It used to be a randomly keyed `HMACMD5`, so identical images never matched; migration `FixImageMD5Hash` recomputed stored values with `HASHBYTES('MD5', ...)`.
-- **Write (`Create`):** reuse when the client sends `ExistingImageId` (a `[NotMapped]` request field; the frontend sends it when the image wasn't changed in the editor, with no bytes), or when the sent bytes hash-match an earlier revision's image. Reuse is limited to the **same `EventId`**: a client can't attach another event's image, and `Delete` stays safe (an image row cascades to every event using it, so cross-event sharing would need reference counting). Unknown/foreign `ExistingImageId` → 422. New image rows get a server-chosen Id. Gotcha: the image navigation must be cleared *before* `Add`; nulling a required navigation on a tracked new entity makes EF treat it as an orphan and silently drop the revision.
-- **Read (`GetAllRevisions`):** no image bytes at all; each revision has `EventImage { Id, ImageBinary: "" }`. Images come from **`GetImage/{imageId}`** (raw bytes, `Cache-Control: public, max-age=31536000, immutable`, since image rows are never modified; 204 if the row holds no image). The frontend fetches by Id only when an image is shown (`api/useEventImageDataUrl.js`, React Query key `["eventImage", id]`, never stale), so revisions sharing an image download it once. `Create` returns the saved `EventImageId`, and the editor caches a just-uploaded image under it so the new revision doesn't download it straight back. Search (`GetFirst100`) still carries images inline (lazy-load TODO).
+- **Write (`Create`):** reuse when the client sends `ExistingImageId` (a `[NotMapped]` request field; the frontend sends it when the image wasn't changed in the editor, with no bytes), or when the sent bytes hash-match an earlier revision's image. Reuse is limited to the **same `EventId`**: a client can't attach another event's image, and `Delete` stays safe (deleting a chain deletes its image rows, and an image still referenced by another event would fail that delete on the FK; cross-event sharing would need reference counting). Unknown/foreign `ExistingImageId` → 422. New image rows get a server-chosen Id. When reusing a row, `Create` clears the image navigation *before* `Add` and sets the `EventImageId` FK directly (this was required while the navigation was `[Required]`: nulling it on a tracked new entity made EF drop the revision as an orphan).
+- **Read (`GetAllRevisions`):** no image bytes at all; each revision has `EventImage { Id, ImageBinary: "" }`, or `EventImage: null` if it has no image. Images come from **`GetImage/{imageId}`** (raw bytes, `Cache-Control: public, max-age=31536000, immutable`, since image rows are never modified; 204 if the row holds no image). The frontend fetches by Id only when an image is shown (`api/useEventImageDataUrl.js`, React Query key `["eventImage", id]`, never stale), so revisions sharing an image download it once. `Create` returns the saved `EventImageId` (null for no image), and the editor caches a just-uploaded image under it so the new revision doesn't download it straight back. Search (`GetFirst100`) still carries images inline (lazy-load TODO).
 - **Related:** all multi-`Include` reads use **split queries** (`Program.cs`), so collections no longer repeat the event row (and joined image bytes) per combination; queries with `Take`/`Skip` need an `OrderBy` for that. `Create` returns only `CreatedRevision { Id, EventId, Revision, RevisionDateTime, EventImageId }`, not the saved event. `RevisionStack` doesn't refetch on window focus (`staleTime` 60 s).
 - **Result (local, 4.5 MB image, 5 text-only edits):** submit 6 MB up + 6 MB down → ~1 KB; revision history 30.7 MB / 9.4 s → 8 KB / 10 ms, plus one 4.6 MB image download (raw, cacheable) when shown; stored 22.5 MB → 4.5 MB.
 

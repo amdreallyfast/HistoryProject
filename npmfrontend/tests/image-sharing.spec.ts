@@ -39,7 +39,7 @@ test('editing only the title sends the image by reference, not its bytes', async
 
   await expect.poll(() => posted).not.toBeNull()
   expect(posted.ExistingImageId).toBe('img-shared')
-  expect(posted.EventImage.ImageBinary).toBe('')
+  expect(posted.EventImage).toBeUndefined()
 })
 
 // Revision history entries carry no image bytes, only EventImage.Id; the image is fetched by Id
