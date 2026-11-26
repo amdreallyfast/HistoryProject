@@ -72,6 +72,10 @@ An event represents something that happened at a place and time. Events support 
 
 Both events and sources use the same time representation: an **earliest possible** and **latest possible** date. Each bound has year (required), month (optional), and day (optional). When earliest equals latest, the time is exact.
 
+**Comparing partial dates.** A bound with a missing month or day is a span, so comparisons read it as widely as possible: an *earliest* bound as the start of its period (missing month → 1, day → 1), a *latest* bound as the end (month → 12, day → 31). A check only fails when every reading of the dates is impossible. One implementation per tier, `npmfrontend/src/dates/partialDate.js` and `WebAPI/Validation/PartialDate.cs`, both checked against the same cases in `npmfrontend/tests/fixtures/partialDateContract.json`. Day 31 for every month is a simplification; real month lengths belong to the `JulianCalendar` item.
+
+**A source can't predate its event.** For every source, the event's earliest date must be on or before the source's latest date. Otherwise the editor shows an error on that source and blocks Submit, and `Create` returns 422. Overlapping ranges are allowed on purpose (they are planned to raise an "uncertain" flag, a separate design item), and so is an event that ends before its source begins. Stored revisions aren't re-checked; editing one that breaks the rule shows the error until the dates are fixed. Plan: `claudePlans/10.SourceBeforeEventValidation.md`.
+
 ```
 eventTime: {
   earliestYear: -776,  earliestMonth: 7,  earliestDay: null,
@@ -333,8 +337,9 @@ sign (shortest arcs go the other way round and it encloses the complement) — c
 `EarClipping` accepts both orientations at that scale, so the two disagree there. Rings on a great
 circle are sampling-dependent and are excluded from the contract fixture.
 
-**Dates** are checked per field (month 1-12, day 1-31, hour 0-23, minute 0-59, earliest year not
-after latest), on the event and every source publication range. Null means unspecified and is
+**Dates** are checked per field (month 1-12, day 1-31, hour 0-23, minute 0-59, earliest date not
+after latest, compared as partial dates), on the event and every source publication range, plus the
+"source can't predate its event" rule (see "Event Time"). Null means unspecified and is
 allowed — partial dates are first-class. Equal bounds are allowed, since that is how the editor
 records an exact date. Per-month validity (Feb 30) is **deliberately excluded**: it depends on the
 calendar system, which the `JulianCalendar` item owns and both tiers are meant to share.
