@@ -1,0 +1,30 @@
+{
+  "_comment": "Shared cases for partial-date comparison. Read by npmfrontend/src/dates/partialDate.contract.test.js AND WebAPI/UnitTesting/PartialDateContractTests.cs, so the two implementations cannot drift. Dates are [year, month, day] with null for a missing part; negative years are BC. See claudePlans/10.",
+  "sourceBeforeEvent": [
+    { "name": "source years before event", "event": [[1066, null, null], [1066, null, null]], "source": [[1040, null, null], [1050, null, null]], "expect": true },
+    { "name": "source after event", "event": [[1066, null, null], [1066, null, null]], "source": [[1070, null, null], [1080, null, null]], "expect": false },
+    { "name": "overlap is allowed", "event": [[1060, null, null], [1070, null, null]], "source": [[1065, null, null], [1075, null, null]], "expect": false },
+    { "name": "same exact day is allowed", "event": [[1066, 10, 14], [1066, 10, 14]], "source": [[1066, 10, 14], [1066, 10, 14]], "expect": false },
+    { "name": "source one day before event", "event": [[1066, 10, 14], [1066, 10, 14]], "source": [[1066, 10, 13], [1066, 10, 13]], "expect": true },
+    { "name": "year-only event, source in same year with month", "event": [[1066, null, null], [1066, null, null]], "source": [[1066, 3, null], [1066, 3, null]], "expect": false },
+    { "name": "source month before event month, same year", "event": [[1066, 10, null], [1066, 12, null]], "source": [[1066, 3, null], [1066, 3, null]], "expect": true },
+    { "name": "source month without day vs event day in same month", "event": [[1066, 10, 14], [1066, 10, 14]], "source": [[1066, 10, null], [1066, 10, null]], "expect": false },
+    { "name": "BC: source earlier BC year", "event": [[-44, 3, 15], [-44, 3, 15]], "source": [[-50, null, null], [-45, null, null]], "expect": true },
+    { "name": "BC: source later in same BC year", "event": [[-44, 3, 15], [-44, 3, 15]], "source": [[-44, 6, null], [-44, 6, null]], "expect": false },
+    { "name": "BC source, AD event", "event": [[10, null, null], [20, null, null]], "source": [[-5, null, null], [-1, null, null]], "expect": true },
+    { "name": "missing event year: no verdict", "event": [[null, null, null], [null, null, null]], "source": [[1040, null, null], [1050, null, null]], "expect": false },
+    { "name": "missing source latest year: no verdict", "event": [[1066, null, null], [1066, null, null]], "source": [[1040, null, null], [null, null, null]], "expect": false }
+  ],
+  "rangeInverted": [
+    { "name": "earlier year first", "range": [[1060, null, null], [1070, null, null]], "expect": false },
+    { "name": "years inverted", "range": [[1070, null, null], [1060, null, null]], "expect": true },
+    { "name": "equal (exact date)", "range": [[1066, 10, 14], [1066, 10, 14]], "expect": false },
+    { "name": "months inverted in same year", "range": [[2026, 10, null], [2026, 3, null]], "expect": true },
+    { "name": "days inverted in same month", "range": [[2026, 10, 18], [2026, 10, 1]], "expect": true },
+    { "name": "earliest has month, latest year only", "range": [[2026, 10, null], [2026, null, null]], "expect": false },
+    { "name": "earliest year only, latest has month", "range": [[2026, null, null], [2026, 3, null]], "expect": false },
+    { "name": "earliest day, latest month only, same month", "range": [[2026, 5, 10], [2026, 5, null]], "expect": false },
+    { "name": "BC years in order", "range": [[-50, null, null], [-44, null, null]], "expect": false },
+    { "name": "BC years inverted", "range": [[-44, null, null], [-50, null, null]], "expect": true }
+  ]
+}
