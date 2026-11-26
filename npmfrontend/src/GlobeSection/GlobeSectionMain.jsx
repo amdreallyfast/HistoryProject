@@ -6,6 +6,7 @@ import { Scene } from "./Scene"
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei"
 import { mouseStateActions } from "../AppState/stateSliceMouseInfo"
 import { CameraDragLock } from "./CameraDragLock"
+import { EditCursor } from "./EditCursor"
 import { GlobeTestHook } from "./GlobeTestHook"
 import { clientToNdc, cursorRaycast } from "./cursorRaycast"
 
@@ -114,6 +115,7 @@ export function GlobeSectionMain() {
         {/* Camera rotation/pan is frozen automatically while dragging a pin or the region (CameraDragLock). */}
         <OrbitControls makeDefault mouseButtons={ORBIT_MOUSE_BUTTONS} />
         <CameraDragLock />
+        <EditCursor />
         {!import.meta.env.PROD && <GlobeTestHook />}
         <spotLight position={[10, 15, 10]} angle={0.3} intensity={0.2} />
         <Scene />
