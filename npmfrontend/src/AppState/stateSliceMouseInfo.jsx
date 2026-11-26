@@ -21,8 +21,8 @@ const initialState = {
   // },
   leftMouseUp: null,
   leftMouseDown: false,
-  rightMouseUp: null,
-  rightMouseDown: null,
+  middleMouseUp: null,
+  middleMouseDown: null,
 
   // Extracted minimum values from ThreeJs raycasting because objects with functions cannot be 
   // stored as state.
@@ -131,24 +131,24 @@ export const stateSliceMouseInfo = createSlice({
       }
     },
 
-    setRightMouseIsDown: (state, action) => {
-      // console.log({ "mouseStateActions.setRightMouseIsDown": action.payload })
+    setMiddleMouseIsDown: (state, action) => {
+      // console.log({ "mouseStateActions.setMiddleMouseIsDown": action.payload })
 
       return {
         ...state,
-        rightMouseDown: {
+        middleMouseDown: {
           timeMs: action.payload.timeMs,
           pos: action.payload.pos
         }
       }
     },
 
-    setRightMouseIsUp: (state, action) => {
-      // console.log({ "mouseStateActions.setRightMouseIsUp": action.payload })
+    setMiddleMouseIsUp: (state, action) => {
+      // console.log({ "mouseStateActions.setMiddleMouseIsUp": action.payload })
 
       return {
         ...state,
-        rightMouseUp: {
+        middleMouseUp: {
           timeMs: action.payload.timeMs,
           pos: action.payload.pos
         }
