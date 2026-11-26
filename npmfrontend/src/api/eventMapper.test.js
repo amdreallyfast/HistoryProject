@@ -33,8 +33,17 @@ describe("frontendToBackend", () => {
     expect(be.EventImage.ImageBinary).toBe(PNG_B64)
   })
 
-  it("sends empty ImageBinary when there is no image", () => {
-    expect(frontendToBackend({ imageDataUrl: null }).EventImage.ImageBinary).toBe("")
+  // No image is no EventImage at all (claudePlans/9), not an empty wrapper.
+  it("sends no EventImage when there is no image", () => {
+    const be = frontendToBackend({ imageDataUrl: null })
+    expect(be).not.toHaveProperty("EventImage")
+    expect(be).not.toHaveProperty("ExistingImageId")
+  })
+
+  it("maps a null EventImage from the backend to no image", () => {
+    const fe = backendToFrontend({ EventId: "e", EventImage: null })
+    expect(fe.imageDataUrl).toBeNull()
+    expect(fe.imageId).toBeNull()
   })
 
   it("carries EventIsCreationOfSource through", () => {
@@ -46,7 +55,7 @@ describe("frontendToBackend", () => {
   it("sends ExistingImageId and no bytes when the image is unchanged", () => {
     const be = frontendToBackend({ imageDataUrl: `data:image/png;base64,${PNG_B64}`, existingImageId: "img-1" })
     expect(be.ExistingImageId).toBe("img-1")
-    expect(be.EventImage.ImageBinary).toBe("")
+    expect(be).not.toHaveProperty("EventImage")
   })
 
   it("sends the bytes and no ExistingImageId when the image changed or is new", () => {

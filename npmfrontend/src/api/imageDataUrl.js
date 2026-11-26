@@ -48,7 +48,7 @@ function base64ByteLength(base64) {
 }
 
 // frontend data URL ("data:image/png;base64,AAAA") → bare base64 body ("AAAA").
-// Null/empty → "" (the backend's "no image" sentinel; ImageBinary becomes empty bytes).
+// Null/empty → "" (the mapper sends no EventImage at all for no image; see frontendToBackend).
 export function dataUrlToImageBinary(dataUrl) {
   if (!dataUrl) return ""
   const commaIndex = dataUrl.indexOf(",")
