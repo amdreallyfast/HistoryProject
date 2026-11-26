@@ -401,6 +401,8 @@ Two frontend layers: **Vitest** unit tests (pure logic) and **Playwright** UI E2
 
 - `globe-middle-mouse-pan.spec.ts` (mocks `GetFirst100` + `GetAllRevisions/**`) — middle-button drag pans (orbit target moves, camera-to-target distance unchanged) both sideways and up/down; the wheel still zooms; a middle-drag starting on a pin in edit mode pans and leaves the pin alone.
 
+- `globe-edit-cursors.spec.ts` (mocks `GetFirst100` + `GetAllRevisions/**` with its own event) — edit mode: hollow four-way arrows over the region and solid while pressed, `grab`/`grabbing` on a pin, default cursor on empty globe (also while rotating), and default again after leaving edit mode; display mode stays default. Cursor logic is a pure function (`GlobeSection/editCursors.js`, unit-tested) applied by `EditCursor.jsx` to the canvas.
+
 **3D canvas interactions** (pattern from `globe-drag-camera-lock.spec.ts`):
 - **Aiming:** non-production builds expose a read-only `window.__globeTest` (`GlobeSection/GlobeTestHook.jsx`; absent from production bundles): `cameraPosition()`, `cameraTarget()` (OrbitControls target: pan moves it, zoom doesn't), `pinClientXY(locationId)` (the id on the pin's `region-location-row`), and `latLongClientXY(lat, long)`. Don't aim at the region via its mesh bounding box: it uses a pre-sized vertex buffer, so the box doesn't match the visible shape.
 - **Asserting:** "camera didn't move" = `cameraPosition()` unchanged; "pin/region moved" = its `region-location-row` text changed.
