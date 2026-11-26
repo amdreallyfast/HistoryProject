@@ -129,6 +129,13 @@ Guidance:
   - If ever pursued, the levers that would actually matter are fill-rate ones — reduce overdraw, skip the atmosphere shader in edit mode — which are invisible on a GPU-equipped machine and so hard to justify.
   - Only revisit if a big win is identified. Otherwise leave it: the earlier optimizations (pre-allocated buffers, shared drag rotor, rotor-unchanged skip, bounded bounding sphere) already removed the pathological costs.
 
+- [ ] `[simple]` **Globe: middle-mouse drag pans the camera; wheel stays zoom.** Requested 2026-11-25. Today middle-button drag up/down zooms (three.js `OrbitControls` default `mouseButtons.MIDDLE = MOUSE.DOLLY`), which duplicates the mouse wheel. Change middle-button drag to **pan** (left/right/up/down); keep the wheel as the only zoom.
+  - **Likely change:** `<OrbitControls mouseButtons={{ LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.PAN }} />` in `GlobeSectionMain.jsx` (`MOUSE` from `three`). Right-button drag already pans by default; decide during implementation whether right should stay pan or do something else.
+  - **Watch for:** panning moves the orbit target off the globe's center, so later rotation orbits around the panned point. Check that feels right; if not, consider a "recenter" (e.g. double-click or a button) as a follow-up.
+  - **Related cleanup:** `GlobeSectionMain.onCanvasMouseDown/Up` label `e.button == 1` as "Right mouse button", but in the DOM `1` is the **middle** button (`2` is right). Fix the comments/names while here; nothing reads `rightMouseDown` for behavior today (verify).
+  - **Interaction with `CameraDragLock`:** the lock only reacts to the left button, so a middle-button pan is never blocked. Middle-pressing on a pin should pan, not drag the pin (`MouseHandler` drags on the left button only).
+  - **Test:** Playwright with `window.__globeTest.cameraPosition()`: middle-button drag moves the camera sideways and keeps its distance to the target (pan, not zoom); the wheel still changes the distance.
+
 - [ ] `[simple]` **Globe: edit-mode hover cursors for region and pins.** Requested 2026-11-25. In edit mode, change the mouse cursor so it's obvious what a drag will move:
   - **Region** (whole-region move): custom four-way-arrow cursors, since CSS has no hollow/solid variants of `move`:
     - hovering: **hollow** four-way arrows (white fill, black outline)
