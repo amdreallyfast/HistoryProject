@@ -87,6 +87,10 @@ Mesh names and group names are centralized in `constValues.jsx`.
 
 Playwright E2E tests live in `npmfrontend/tests/` (TypeScript). Run `npm run test:e2e` (or `npx playwright show-report`). The backend API is mocked via `page.route` from `tests/fixtures/events.json`, so no backend/DB is needed; Playwright boots the Vite dev server itself. Fixtures use the backend's PascalCase JSON shape with a counterclockwise region boundary (clockwise crashes ear-clipping). UI hooks are `data-testid`. CI: `.github/workflows/playwright.yml`. See DESIGN.md "Testing" for scenario coverage.
 
+### Visual checks (seeing the 3D UI yourself)
+
+Playwright tests assert behavior but can't show the mouse cursor or what a person sees mid-drag. For UI changes on the globe, also run a visual check: `npm run visual:<name>` from `npmfrontend/` (e.g. `visual:cursors`). It runs a real headed Chromium on an invisible virtual X screen, drives it with **real** X mouse input (press, hold, move, release), and captures the screen **with the OS cursor** into `npmfrontend/visual-output/<name>/` (git-ignored). Read the captured PNGs (especially `strip.png`) to judge the look. Needs `xvfb` and `ffmpeg` (installed on the dev machine). New scenarios go in `npmfrontend/visual/scenarios/` using `visual/harness.mjs`; see DESIGN.md "Visual checks".
+
 ### Coordinate System Notes
 
 - Globe coordinates convert lat/long to XYZ via `convertLatLongXYZ.jsx`
